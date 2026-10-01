@@ -91,9 +91,17 @@ def test_select_current(mock_window):
     items = []
     mock_window.core.config.set("llama.idx.list", items)
     mock_window.core.idx.get_idx_by_name = MagicMock(return_value="base")
-    mock_window.ui.models['indexes'].index = MagicMock(return_value=1)
-    mock_window.ui.nodes['indexes'].setCurrentIndex = MagicMock()
+    node = mock_window.ui.nodes['indexes.select']
+    # Idx._sync_combo() resolves the selector through ui.nodes.get(), while
+    # MagicMock's __getitem__ and get() return different child mocks by default.
+    # Make both access paths point at the same selector instance.
+    mock_window.ui.nodes.get.return_value = node
+    node.has_key = MagicMock(return_value=True)
+    node.combo.findData = MagicMock(return_value=1)
+    node.combo.blockSignals = MagicMock(return_value=False)
     idx.select_current()
+    node.combo.setCurrentIndex.assert_called_once_with(1)
+    assert node.current_id == 'base'
 
 
 def test_select_default(mock_window):
@@ -251,8 +259,13 @@ def test_refresh(mock_window):
     """Test refresh"""
     idx = Idx(mock_window)
     idx.select_default = MagicMock()
+    idx.update_list = MagicMock()
+    idx.select_current = MagicMock()
+    mock_window.controller.presets.editor.opened = False
     idx.refresh()
     idx.select_default.assert_called_once()
+    idx.update_list.assert_called_once()
+    idx.select_current.assert_called_once()
 
 
 def test_change_locked(mock_window):

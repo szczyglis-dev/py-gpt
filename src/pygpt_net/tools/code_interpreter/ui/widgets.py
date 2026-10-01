@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 14:17:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -306,15 +306,19 @@ class ToolWidget:
             )
             self.history.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
             self.history.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
-            self.label_output = QLabel(trans("interpreter.edit_label.output"))
-            self.label_history = QLabel(trans("interpreter.edit_label.edit"))
-            self.checkbox_all = QCheckBox(trans("interpreter.all"))
+            self.label_output = QLabel("")
+            self.label_history = QLabel("")
+            self.checkbox_all = QCheckBox("")
+            self.tool.add_lang_mapping(self.label_output, "interpreter.edit_label.output")
+            self.tool.add_lang_mapping(self.label_history, "interpreter.edit_label.edit")
+            self.tool.add_lang_mapping(self.checkbox_all, "interpreter.all")
             self.checkbox_all.setChecked(True)
             self.checkbox_all.clicked.connect(
                 lambda: self.tool.toggle_all(self)
             )
 
-        self.checkbox_auto_clear = QCheckBox(trans("interpreter.auto_clear"))
+        self.checkbox_auto_clear = QCheckBox("")
+        self.tool.add_lang_mapping(self.checkbox_auto_clear, "interpreter.auto_clear")
         self.checkbox_auto_clear.setChecked(False)
         self.checkbox_auto_clear.clicked.connect(
             lambda: self.tool.toggle_auto_clear(self)
@@ -326,18 +330,24 @@ class ToolWidget:
             lambda: self.tool.toggle_ipython(self)
         )
 
-        self.btn_clear = QPushButton(trans("interpreter.btn.clear"))
+        self.btn_clear = QPushButton("")
+        self.tool.add_lang_mapping(self.btn_clear, "interpreter.btn.clear")
         self.btn_clear.clicked.connect(
             lambda: self.tool.clear(self)
         )
 
-        self.btn_send = QPushButton(trans("interpreter.btn.send"))
+        self.btn_send = QPushButton("")
+        self.tool.add_lang_mapping(self.btn_send, "interpreter.btn.send")
         self.btn_send.clicked.connect(
             lambda: self.tool.send_input(self)
         )
 
         self.input = PythonInput(self.window, self.tool, self)
-        self.input.setPlaceholderText(trans("interpreter.input.placeholder"))
+        self.tool.add_lang_mapping(
+            self.input,
+            "interpreter.input.placeholder",
+            "setPlaceholderText",
+        )
         self.input.excluded_copy_to = ["interpreter_input"]
 
         left_layout = QVBoxLayout()
@@ -645,7 +655,7 @@ class PythonInput(QTextEdit):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None and not self.widget.is_dialog:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def update_stylesheet(self, data: str):
@@ -739,7 +749,7 @@ class PythonOutput(BaseCodeEditor):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def clear_content(self):

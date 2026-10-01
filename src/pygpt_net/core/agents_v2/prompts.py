@@ -9,6 +9,74 @@
 # Updated Date: 2026.09.17 17:42:00                  #
 # ================================================== #
 
+import os
+
+
+AGENTS_DIRECTORY_SUPPORT_PROMPT = r"""
+<agents_directory_support>
+The active workdir contains `%workdir%/.agents/`. Inspect it when relevant and follow the applicable project-specific instructions and configuration. Typical layout:
+
+.agents/
+├── agents.md            # additional instructions
+├── system-prompt.md     # system prompt
+├── mcp.json             # MCP server configuration
+├── skills/
+│   └── code-review/
+│       └── skill.md     # skill definition
+├── agents/
+│   └── code-reviewer/
+│       └── agent.md     # sub-agent profile
+├── tasks/
+│   └── daily-code-review/
+│       └── task.md      # repeat task
+└── memories/
+    └── project-arch.md  # persistent memory for agents
+
+Read only files relevant to the current task. You may create or update your own persistent project notes under `.agents/memories/` when useful.
+</agents_directory_support>
+""".strip()
+
+
+AGENTS_DIRECTORY_MEMORIES_PROMPT = r"""
+<agents_directory_support>
+No `%workdir%/.agents/` directory exists for this run. If useful, you may create it and keep persistent work notes under `.agents/memories/` for later agent runs.
+</agents_directory_support>
+""".strip()
+
+
+def agents_directory_exists(window, ctx=None) -> bool:
+    """Return True when a safe .agents directory exists in the active data workdir."""
+    try:
+        workdir = window.core.filesystem.get_data_dir(ctx=ctx, create=False)
+        path = os.path.join(workdir, ".agents")
+        if not os.path.isdir(path):
+            return False
+        root = os.path.normcase(os.path.realpath(os.path.abspath(workdir)))
+        target = os.path.normcase(os.path.realpath(os.path.abspath(path)))
+        return os.path.commonpath([root, target]) == root
+    except Exception as exc:
+        try:
+            window.core.debug.log(exc)
+        except Exception:
+            pass
+        return False
+
+
+def append_agents_directory_support(prompt: str, directory_exists: bool = False) -> str:
+    """Append the .agents guidance appropriate for the run, once."""
+    base = str(prompt or "").strip()
+    if "<agents_directory_support>" in base:
+        return base
+    support_prompt = (
+        AGENTS_DIRECTORY_SUPPORT_PROMPT
+        if directory_exists
+        else AGENTS_DIRECTORY_MEMORIES_PROMPT
+    )
+    if not base:
+        return support_prompt
+    return base + "\n\n" + support_prompt
+
+
 AUTONOMOUS_EXECUTION_POLICY = r"""
 # Autonomous completion contract
 - Complete the requested work end to end; do not stop at a plan when execution is possible.

@@ -9,22 +9,22 @@
 # Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from __future__ import annotations
+
+from typing import Dict, Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.tools.types import BaseTool
+    from llama_index.core.llms.llm import LLM
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
     AGENT_MODE_WORKFLOW,
 )
-from llama_index.core.llms.llm import LLM
-from llama_index.core.tools.types import BaseTool
 
 from pygpt_net.utils import trans
-from .workflow.supervisor import (
-    get_workflow,
-    SUPERVISOR_PROMPT,
-    WORKER_PROMPT,
-)
+from .workflow.supervisor_prompts import SUPERVISOR_PROMPT, WORKER_PROMPT
 from ..base import BaseAgent
 
 class SupervisorAgent(BaseAgent):
@@ -43,12 +43,39 @@ class SupervisorAgent(BaseAgent):
         :param kwargs: Agent parameters
         :return: PlannerWorkflow instance
         """
+        from .workflow.supervisor import get_workflow
+
         context = kwargs.get("context", BridgeContext())
         preset = context.preset
         tools: List[BaseTool] = kwargs.get("tools", []) or []
-        llm_supervisor: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
         max_steps: int = kwargs.get("max_steps", 12)
+        computer_runtime = kwargs.get("computer_runtime")
+        main_model = kwargs.get("model")
+
+        supervisor_allow_local_tools = bool(
+            self.get_option(preset, "supervisor", "allow_local_tools")
+        )
+        supervisor_allow_remote_tools = bool(
+            self.get_option(preset, "supervisor", "allow_remote_tools")
+        )
+        worker_allow_local_tools = bool(
+            self.get_option(preset, "worker", "allow_local_tools")
+        )
+        worker_allow_remote_tools = bool(
+            self.get_option(preset, "worker", "allow_remote_tools")
+        )
+
+        # Build LLM adapters per role so provider-native remote tools are truly
+        # controlled independently for Supervisor and Worker.
+        llm_supervisor: LLM = kwargs.get("llm", None)
+        if main_model is not None:
+            llm_supervisor = window.core.idx.llm.get_agent(
+                main_model,
+                stream=True,
+                allow_remote_tools=supervisor_allow_remote_tools,
+                computer_runtime=computer_runtime if supervisor_allow_remote_tools else None,
+            )
 
         # get prompts from options or use defaults
         prompt_supervisor = self.get_option(preset, "supervisor", "prompt")
@@ -60,30 +87,38 @@ class SupervisorAgent(BaseAgent):
         prompt_supervisor = self.append_system_prompt_extra(prompt_supervisor, kwargs)
         prompt_worker = self.append_system_prompt_extra(prompt_worker, kwargs)
 
-        # get worker LLM from options
-        model_worker = window.core.models.get(
-            self.get_option(preset, "worker", "model")
+        # Worker inherits the active model unless its preset explicitly overwrites it.
+        model_worker = self.resolve_model_option(
+            window,
+            preset,
+            "worker",
+            kwargs.get("model"),
         )
         llm_worker = window.core.idx.llm.get_agent(
             model_worker,
-            stream=False,
-            allow_remote_tools=True,
-            computer_runtime=kwargs.get("computer_runtime"),
+            stream=True,
+            allow_remote_tools=worker_allow_remote_tools,
+            computer_runtime=computer_runtime if worker_allow_remote_tools else None,
         )
-        worker_memory_session_id = ""
-        if context.ctx and context.ctx.meta:
-            worker_memory_session_id = "llama_worker_session_" + str(context.ctx.meta.id)
+        from pygpt_net.core.agents.session_memory import role_memory
+        supervisor_memory = role_memory(window, self, context, "supervisor",
+                                         history=kwargs.get("chat_history"))
+        worker_memory = role_memory(window, self, context, "worker")
 
         # create workflow
         return get_workflow(
                 tools,
                 llm_supervisor=llm_supervisor,
                 llm_worker=llm_worker,
+                supervisor_tools=tools if supervisor_allow_local_tools else [],
+                worker_tools=tools if worker_allow_local_tools else [],
                 verbose=verbose,
                 max_steps=max_steps,
                 prompt_supervisor=prompt_supervisor,
                 prompt_worker=prompt_worker,
-                worker_memory_session_id=worker_memory_session_id,
+                supervisor_memory=supervisor_memory,
+                worker_memory=worker_memory,
+                input_builder=kwargs.get("input_builder"),
         )
 
     def get_options(self) -> Dict[str, Any]:
@@ -102,6 +137,18 @@ class SupervisorAgent(BaseAgent):
                         "description": trans("agent.option.prompt.supervisor.desc"),
                         "default": SUPERVISOR_PROMPT,
                     },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": False,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": False,
+                    },
                 }
             },
             "worker": {
@@ -111,13 +158,30 @@ class SupervisorAgent(BaseAgent):
                         "label": trans("agent.option.model"),
                         "type": "combo",
                         "use": "models",
-                        "default": "gpt-4o",
+                        "default": "gpt-5.6-luna",
+                    },
+                    "model_overwrite": {
+                        "label": trans("agent.option.model.overwrite"),
+                        "type": "bool",
+                        "default": False,
                     },
                     "prompt": {
                         "type": "textarea",
                         "label": trans("agent.option.prompt"),
                         "description": trans("agent.option.prompt.worker.desc"),
                         "default": WORKER_PROMPT,
+                    },
+                    "allow_local_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.local"),
+                        "description": trans("agent.option.tools.local.desc"),
+                        "default": True,
+                    },
+                    "allow_remote_tools": {
+                        "type": "bool",
+                        "label": trans("agent.option.tools.remote"),
+                        "description": trans("agent.option.tools.remote.desc"),
+                        "default": True,
                     },
                 }
             },

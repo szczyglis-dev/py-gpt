@@ -123,12 +123,13 @@ def test_ensure_command_whitelist_blacklist_and_sandbox(tmp_path):
     sec, *_ = make_security(tmp_path, values=values)
     with pytest.raises(SecurityError, match="blocked by the blacklist"):
         sec.ensure_command("git status")
-    assert sec.ensure_command("git status", sandbox=True) == ["git"]
+    with pytest.raises(SecurityError, match="blocked by the blacklist"):
+        sec.ensure_command("git status", sandbox=True)
 
 
 def test_computer_safety_state_and_messages(tmp_path):
     values = {
-        "remote_tools.computer_use.sandbox": False,
+        "computer_use.sandbox": False,
         Security.COMPUTER_HALT_INSECURE_KEY: True,
     }
     sec, window, *_ = make_security(tmp_path, values=values)
@@ -153,7 +154,7 @@ def test_computer_safety_state_and_messages(tmp_path):
 
 def test_computer_safety_sandbox_or_disabled_halt_can_acknowledge(tmp_path):
     ctx = SimpleNamespace(extra={"computer_safety_decisions": [{"decision": "require_confirmation"}]})
-    sec, *_ = make_security(tmp_path, values={"remote_tools.computer_use.sandbox": True})
+    sec, *_ = make_security(tmp_path, values={"computer_use.sandbox": True})
     assert sec.should_halt_computer(ctx) is False
     assert sec.can_acknowledge_computer_safety(ctx) is True
 

@@ -6,16 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 14:20:00                  #
+# Updated Date: 2026.09.28 11:35:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QComboBox, QPushButton
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QSizePolicy, QPushButton
 
 from pygpt_net.core.types import MODE_AGENT_V2
-from pygpt_net.ui.widget.element.labels import HelpLabel, TitleLabel
+from pygpt_net.ui.widget.element.labels import TitleLabel, HelpLabel
 from pygpt_net.ui.widget.option.prompt import PromptTextarea
+from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
 from pygpt_net.utils import trans
 
@@ -54,8 +55,6 @@ class Prompt:
         w = self.window
         nodes = w.ui.nodes
 
-        nodes['toolbox.prompt.label'] = TitleLabel(trans("toolbox.prompt"))
-
         nodes['cmd.enabled'] = ToggleLabel(
             trans('cmd.enabled'),
             label_position="left",
@@ -67,27 +66,34 @@ class Prompt:
 
         header_widget = QWidget()
         header_layout = QHBoxLayout(header_widget)
-        header_layout.addWidget(nodes['toolbox.prompt.label'])
         header_layout.addStretch(1)
         header_layout.addWidget(nodes['cmd.enabled'])
-        header_layout.setContentsMargins(5, 0, 10, 0)
+        header_layout.setContentsMargins(5, 0, 5, 0)
 
         option = w.controller.presets.editor.get_option('prompt')
         nodes['preset.prompt'] = PromptTextarea(w, 'preset', 'prompt', option)
+        prompt_label = trans("toolbox.prompt")
+        nodes['preset.prompt'].setPlaceholderText(f"{prompt_label}...")
+        nodes['preset.prompt'].setToolTip(prompt_label)
         nodes['preset.prompt'].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Agents v2 runtime strategy selector. Persist machine-friendly values in
         # config while keeping the internal PRIMARY_AGENT strategy user-facing as
         # ``Chat``. The whole row is visible only in Agents v2 mode.
         mode_label = TitleLabel(trans("agent.v2.mode.label"))
-        mode_combo = QComboBox()
+        mode_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        mode_combo = NoScrollCombo()
+        mode_combo.setSearchEnabled(False)
         for agent in w.core.agents_v2.editor.get_agents():
             if agent.get("built_in"):
                 text = trans(str(agent.get("label_key") or ""))
             else:
                 text = str(agent.get("name") or agent.get("id") or "")
             mode_combo.addItem(text, agent["id"])
-        mode_combo.setMinimumWidth(40)
+        # Let the closed combo shrink with the toolbox, while the popup
+        # itself is fitted to the longest workflow name by NoScrollCombo.
+        mode_combo.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
+        mode_combo.setMinimumWidth(0)
         mode_combo.setToolTip(trans("agent.v2.mode.tooltip"))
 
         configured_mode = str(
@@ -125,15 +131,16 @@ class Prompt:
         mode_select_layout.addWidget(mode_label, 0)
         mode_select_layout.addWidget(mode_combo, 1)
         mode_select_layout.addWidget(manage_agents, 0, Qt.AlignRight | Qt.AlignVCenter)
-        mode_select_layout.setContentsMargins(0, 0, 0, 0)
+        mode_select_layout.setContentsMargins(0, 0, 9, 0)
 
         mode_layout.addWidget(mode_select_widget)
-        mode_layout.setContentsMargins(3, 0, 5, 0)
+        mode_layout.setContentsMargins(3, 0, 0, 0)
         mode_widget.setVisible(w.core.config.get("mode") == MODE_AGENT_V2)
         nodes['agent.v2.mode.widget'] = mode_widget
 
         nodes['tip.toolbox.prompt'] = HelpLabel(trans('tip.toolbox.prompt'), w)
         nodes['tip.toolbox.prompt'].setAlignment(Qt.AlignCenter)
+        nodes['tip.toolbox.prompt'].setContentsMargins(0, 0, 5, 0)
 
         # Keep System prompt and Agents v2 runtime mode as separate logical
         # hover areas. The outer widget is layout-only and is deliberately not
@@ -150,7 +157,7 @@ class Prompt:
         layout = QVBoxLayout(layout_widget)
         layout.addWidget(prompt_section)
         layout.addWidget(nodes['agent.v2.mode.widget'])
-        layout.setContentsMargins(2, 5, 5, 5)
+        layout.setContentsMargins(2, 5, 0, 5)
 
         self.hover_sections = [
             prompt_section,

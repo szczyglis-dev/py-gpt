@@ -1,0 +1,14 @@
+{
+  "manifest_version": 1,
+  "version": "1.1.0",
+  "min_app_version": "2.8.35",
+  "author": "PyGPT example",
+  "contact": {
+    "repo": "https://github.com/szczyglis-dev/py-gpt"
+  },
+  "external_dependencies": [],
+  "id": "example-locale",
+  "name": "Example locale add-on",
+  "description": "Tutorial locale add-on with one English override key.",
+  "type": "locale"
+}

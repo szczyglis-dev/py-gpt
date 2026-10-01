@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczyglinski                  #
+# Updated Date: 2026.09.20 13:00:00                  #
+# ================================================== #
+
+"""Packages provisioned into uv-managed Built-in sandbox environments.
+
+Keep these lists declarative so the stock sandbox can be changed without
+modifying the runtime/provisioning implementation. Updating a list also changes
+the environment marker, therefore PyGPT recreates the affected venv on the next
+startup/first use.
+"""
+
+# Base packaging tools installed/upgraded in every Built-in venv. This mirrors
+# the bootstrap step used by the stock Docker Python environments.
+BUILTIN_BASE_PACKAGES = [
+    "pip",
+    "setuptools",
+    "wheel",
+    "pytest",
+]
+
+# Mirrors the stock Python/IPython Docker sandboxes. The same Built-in venv is
+# used for ordinary CPython and, when enabled, the persistent IPython kernel.
+BUILTIN_PYTHON_PACKAGES = [
+    "jupyter",
+    "ipykernel",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "scipy",
+    "sympy",
+    "scikit-learn",
+    "pillow",
+    "openpyxl",
+    "xlsxwriter",
+    "pypdf",
+    "pdfminer.six",
+    "pdfplumber",
+    "pymupdf",
+    "reportlab",
+    "python-docx",
+    "python-pptx",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "tabulate",
+    "pyyaml",
+]
+
+# The stock System/OS Docker image creates a venv but does not pre-install
+# additional Python packages. Add packages here if the Built-in OS sandbox
+# should provide them by default.
+BUILTIN_OS_PACKAGES = []
+
+BUILTIN_SANDBOX_PACKAGES = {
+    "python": BUILTIN_PYTHON_PACKAGES,
+    "os": BUILTIN_OS_PACKAGES,
+}
+
+
+def get_builtin_packages(name: str) -> list[str]:
+    """Return a copy of backend-specific default packages."""
+    return list(BUILTIN_SANDBOX_PACKAGES.get(name, []))
+
+
+def builtin_packages_to_text(packages: list[str]) -> str:
+    """Serialize a package list for the editable plugin textarea."""
+    return "\n".join(str(item).strip() for item in packages if str(item).strip())
+
+
+def parse_builtin_packages(value) -> list[str]:
+    """Parse one package requirement per line, preserving order."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        source = value
+    else:
+        source = str(value).splitlines()
+
+    packages = []
+    seen = set()
+    for item in source:
+        package = str(item).strip()
+        if not package or package in seen:
+            continue
+        seen.add(package)
+        packages.append(package)
+    return packages
+
+
+def get_builtin_environment_packages(name: str) -> list[str]:
+    """Return the complete default package spec for a Built-in venv."""
+    return [*BUILTIN_BASE_PACKAGES, *get_builtin_packages(name)]

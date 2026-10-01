@@ -9,13 +9,15 @@
 # Updated Date: 2025.08.18 01:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import os
 import re
 
-import markdown
-from mdx_math import MathExtension
-from bs4 import BeautifulSoup
-from bs4.element import NavigableString
+if TYPE_CHECKING:
+    from bs4 import BeautifulSoup
+
 from pygpt_net.utils import trans
 
 
@@ -36,13 +38,14 @@ class Parser:
         self._icon_base = None
         self._icon_paths = None
 
-    def _make_soup(self, html: str) -> BeautifulSoup:
+    def _make_soup(self, html: str) -> "BeautifulSoup":
         """
         Create BeautifulSoup instance from HTML string
 
         :param html: HTML string to parse
         :return: BeautifulSoup instance
         """
+        from bs4 import BeautifulSoup
         return BeautifulSoup(html, self._soup_parser)
 
     def _get_icon_paths(self) -> dict:
@@ -65,6 +68,9 @@ class Parser:
 
     def init(self):
         """Initialize markdown parser"""
+        import markdown
+        from mdx_math import MathExtension
+        
         if self.md is None:
             self.md = markdown.Markdown(extensions=[
                 'fenced_code',
@@ -192,6 +198,8 @@ class Parser:
 
         :param soup: BeautifulSoup instance
         """
+        from bs4.element import NavigableString
+
         for li in soup.find_all('li'):
             for item in li.contents:
                 if isinstance(item, NavigableString) and item.strip() == '':

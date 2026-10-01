@@ -37,7 +37,7 @@ class SearchInput:
 
         layout = QVBoxLayout()
         layout.addWidget(self.window.ui.nodes['ctx.search'])
-        layout.setContentsMargins(0, 2, 0, 0)
+        layout.setContentsMargins(5, 2, 5, 0)
 
         widget = QWidget()
         widget.setLayout(layout)

@@ -345,6 +345,7 @@ del _pygpt_make_system_noninteractive
             print("Running container {}...".format(name))
             self.prepare_conn()
             local_data_dir = self.get_local_data_dir(ctx=ctx)
+            local_tmp_dir = self.plugin.window.core.config.get_user_dir("tmp")
             kwargs = {
                 "image": self.get_image_name(),
                 "name": name,
@@ -355,14 +356,19 @@ del _pygpt_make_system_noninteractive
                     '5558/tcp': ports['control'],
                     '5559/tcp': ports['hb'],
                 },
-                # bind /data directory in container to the local data directory
+                # bind /mnt/data directory in container to the local data directory
                 "volumes": {
                     local_data_dir: {
-                        'bind': '/data',
+                        'bind': '/mnt/data',
                         'mode': 'rw',
-                    }
+                    },
+                    local_tmp_dir: {
+                        'bind': '/mnt/tmp',
+                        'mode': 'rw',
+                    },
                 },
                 "labels": self.get_container_labels(ctx=ctx),
+                "working_dir": "/mnt/data",
                 "detach": True,
             }
             user = self.get_container_user()
@@ -461,10 +467,15 @@ del _pygpt_make_system_noninteractive
         return None
 
     def get_container_labels(self, ctx=None) -> dict:
-        """Labels used to detect a sandbox user-mode change."""
+        """Labels used to detect sandbox runtime mapping changes."""
         return {
             "pygpt.run_as_root": "true" if self.get_run_as_root() else "false",
             "pygpt.data_dir": os.path.normcase(os.path.realpath(self.get_local_data_dir(ctx=ctx))),
+            "pygpt.data_mount": "/mnt/data",
+            "pygpt.tmp_dir": os.path.normcase(os.path.realpath(
+                self.plugin.window.core.config.get_user_dir("tmp")
+            )),
+            "pygpt.tmp_mount": "/mnt/tmp",
         }
 
     def get_bind_address(self) -> str:
@@ -535,7 +546,7 @@ del _pygpt_make_system_noninteractive
                 stdin=False,
                 stdout=True,
                 stderr=True,
-                workdir="/data",
+                workdir="/mnt/data",
             )
             return result.output or b""
         except Exception as e:
@@ -890,9 +901,11 @@ del _pygpt_make_system_noninteractive
 
     def log(self, msg):
         """
-        Log the message.
+        Log the message to console only when plugin logging is enabled.
 
         :param msg: Message to log.
         """
-        print(msg)
-        self.plugin.window.update_status(msg)
+        if self.plugin is not None and self.plugin.is_log():
+            print(msg)
+        if self.plugin is not None:
+            self.plugin.window.update_status(msg)

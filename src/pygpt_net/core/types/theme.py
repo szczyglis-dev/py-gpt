@@ -19,6 +19,7 @@ BUILTIN_THEMES = (
     'light',
     'mint',
     'gray',
+    'gray_dark',
     'dark',
     'matrix',
     'flare',

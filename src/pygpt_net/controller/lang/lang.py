@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 19:55:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -147,7 +147,7 @@ class Lang:
         self.mapping.apply()
         self.custom.apply()
 
-        c.ui.tabs.reload_titles()
+        c.tabs.reload_titles()
         c.agent_workflow.reload()
         c.calendar.note.update_current()
         self.settings.apply()
@@ -157,6 +157,23 @@ class Lang:
         except Exception as e:
             print("Error updating plugin locale", e)
             w.core.debug.log(e)
+
+        # Tool-owned widgets/actions can live outside the global ui.nodes/menu
+        # registries (e.g. per-tab Canvas/Python-OS surfaces). Refresh their
+        # registered mappings after plugin locale domains have been reloaded.
+        try:
+            w.tools.apply_lang_mappings()
+        except Exception as e:
+            print("Error updating tool locale", e)
+            w.core.debug.log(e)
+
+        # Files tab tooltip contains both a translated prefix and a live path.
+        # Rebuild it on a runtime language switch instead of treating it as a
+        # static tab tooltip.
+        try:
+            w.core.tabs.refresh_files_tooltips()
+        except Exception:
+            pass
 
         w.controller.ctx.common.update_label_by_current()
         w.controller.ctx.update(True, False)

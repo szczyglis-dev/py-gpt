@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 20:50:00
+# Updated Date: 2026.09.27 10:15:00
 # ================================================== #
 
 from typing import Dict
 
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_OPENAI
 from pygpt_net.utils import trans
 
 
@@ -24,15 +25,21 @@ class Mapping:
         self.window = window
         self.mapping = {}
 
+    @staticmethod
+    def _translate_mapping(value):
+        """Translate a legacy mapping value, optionally scoped to a domain."""
+        if isinstance(value, dict):
+            return trans(value.get("key", ""), domain=value.get("domain"))
+        return trans(value)
+
     def _apply_map(self, items, targets, getter_name: str, setter_name: str):
-        t = trans
         get = getattr
         for k, key in items.items():
             w = targets.get(k)
             if w is None:
                 continue
             try:
-                v = t(key)
+                v = self._translate_mapping(key)
                 getter = get(w, getter_name, None)
                 setter = get(w, setter_name, None)
                 if setter is None:
@@ -49,13 +56,12 @@ class Mapping:
 
     def _apply_tooltips(self, items, targets):
         """Apply translated tooltips, including nested toggle controls."""
-        t = trans
         for k, key in items.items():
             widget = targets.get(k)
             if widget is None:
                 continue
             try:
-                value = t(key)
+                value = self._translate_mapping(key)
                 widget.setToolTip(value)
 
                 # ToggleLabel stores the interactive checkbox in ``box``.
@@ -82,6 +88,25 @@ class Mapping:
         self._apply_map(m['dialog.title'], ui.dialog, 'windowTitle', 'setWindowTitle')
         self._apply_tooltips(m['tooltip'], ui.nodes)
         self._apply_map(m['placeholder'], ui.nodes, 'placeholderText', 'setPlaceholderText')
+
+        # The toolbox system-prompt placeholder depends on the active mode,
+        # so refresh it explicitly on every runtime language change.
+        prompt = ui.nodes.get('preset.prompt')
+        if prompt is not None:
+            try:
+                mode = self.window.core.config.get('mode')
+                if mode in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI):
+                    prompt.setPlaceholderText(trans('toolbox.agent.preset.placeholder'))
+                else:
+                    prompt.setPlaceholderText(f"{trans('toolbox.prompt')}...")
+            except Exception:
+                pass
+
+        # External extensions info combines the general description and security
+        # warning into one centered paragraph at the bottom of the dialog.
+        extensions_info = ui.nodes.get("extensions.info")
+        if extensions_info is not None:
+            extensions_info.setText(f'{trans("extensions.help")} {trans("extensions.warning")}')
 
         # Plain-text toggle uses a state-dependent tooltip, so refresh it
         # after every locale mapping pass instead of assigning one static key.
@@ -153,9 +178,8 @@ class Mapping:
         nodes['preset.experts.label'] = 'toolbox.experts.label'
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
-        nodes['toolbox.prompt.label'] = 'toolbox.prompt'
+        nodes['audio.auto_turn'] = 'audio.auto_turn'
         nodes["indexes.label"] = "toolbox.indexes.label"
-        nodes["llama_index.mode.label"] = "toolbox.llama_index.mode.label"
         nodes["agent.llama.loop.score.label"] = "toolbox.agent.llama.loop.score.label"
         nodes["agent.llama.loop.label"] = "toolbox.agent.llama.loop.label"
         nodes["agent.llama.loop.enabled"] = "toolbox.agent.llama.loop.enabled.label"
@@ -164,6 +188,7 @@ class Mapping:
         nodes["agent.continue"] = "toolbox.agent.continue.label"
         nodes["agent.v2.mode.label"] = "agent.v2.mode.label"
         nodes['layout.split'] = "layout.split"
+        nodes['completion.as_chat'] = "toolbox.completion.as_chat"
 
         # input
         nodes['input.label'] = 'input.label'
@@ -171,14 +196,6 @@ class Mapping:
         nodes['input.send_mode.shift_enter'] = 'input.radio.enter_shift'
         nodes['input.update_btn'] = 'input.btn.update'
         nodes['input.cancel_btn'] = 'input.btn.cancel'
-
-        # interpreter
-        nodes['interpreter.all'] = 'interpreter.all'
-        nodes['interpreter.auto_clear'] = 'interpreter.auto_clear'
-        nodes['interpreter.output_label'] = 'interpreter.edit_label.output'
-        nodes['interpreter.edit_label'] = 'interpreter.edit_label.edit'
-        nodes['interpreter.btn.clear'] = 'dialog.logger.btn.clear'
-        nodes['interpreter.btn.send'] = 'interpreter.btn.send'
 
         # assistants
         nodes['assistants.label'] = 'toolbox.assistants.label'
@@ -278,7 +295,7 @@ class Mapping:
         nodes['idx.db.settings.legend.head'] = 'settings.llama.extra.btn.idx_head'
 
         # dialog: changelog
-        nodes['dialog.changelog.label'] = 'dialog.changelog.title'
+        #nodes['dialog.changelog.label'] = 'dialog.changelog.title'
 
         # dialog: license
         nodes['dialog.license.label'] = 'dialog.license.label'
@@ -361,6 +378,17 @@ class Mapping:
         nodes['skills.catalog.btn.refresh'] = 'skills.catalog.refresh'
         nodes['skills.explore.btn.install'] = 'skills.install'
 
+        # External extensions dialog
+        nodes['extensions.btn.close'] = 'action.close'
+        nodes['extensions.installed.btn.zip'] = 'extensions.import.zip'
+        nodes['extensions.installed.btn.directory'] = 'extensions.import.directory'
+        nodes['extensions.installed.btn.github'] = 'extensions.import.github'
+        nodes['extensions.installed.btn.open'] = 'extensions.open_dir'
+        nodes['extensions.installed.btn.refresh'] = 'action.refresh'
+        nodes['extensions.registry.label'] = 'extensions.registry.url'
+        nodes['extensions.registry.btn.refresh'] = 'action.refresh'
+        nodes['extensions.explore.btn.install'] = 'extensions.install_update'
+
         # MCP Connectors dialog
         nodes['connectors.info'] = 'connectors.info'
         nodes['connectors.btn.close'] = 'action.close'
@@ -388,7 +416,7 @@ class Mapping:
         menu_title['theme.density'] = 'menu.theme.density'
         menu_title['theme.style'] = 'menu.theme.style'
         menu_title['menu.plugins'] = 'menu.plugins'
-        menu_title['menu.skills'] = 'menu.skills'
+        menu_title['config.skills'] = 'menu.skills'
         menu_title['menu.plugins.presets'] = 'menu.plugins.presets'
         menu_title['menu.about'] = 'menu.info'
         menu_title['menu.audio'] = 'menu.audio'
@@ -407,11 +435,13 @@ class Mapping:
         menu_text['config.mcp.settings'] = 'menu.config.mcp.settings'
         menu_text['config.mcp.connectors'] = 'menu.config.mcp.connectors'
         menu_text['config.mcp.enabled'] = 'menu.config.mcp.enabled'
+        menu_text['config.extensions'] = 'menu.config.extensions'
         menu_text['config.models.edit'] = 'menu.config.models.edit'
         menu_text['config.models.import.provider'] = 'menu.config.models.import.provider'
         menu_text['config.access'] = 'menu.config.access'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
+        menu_text['config.open_base_dir'] = 'menu.config.open_base_directory'
         menu_text['config.profile.edit'] = 'menu.config.profile.edit'
         menu_text['config.profile.new'] = 'menu.config.profile.new'
         menu_text['config.save'] = 'menu.config.save'
@@ -480,7 +510,6 @@ class Mapping:
         dialog_title['remote_store'] = 'dialog.remote_store'
         dialog_title['editor.preset.presets'] = 'dialog.preset'
         dialog_title['image'] = 'dialog.image.title'
-        dialog_title['interpreter'] = 'dialog.interpreter.title'
         dialog_title['confirm'] = 'dialog.confirm.title'
         dialog_title['rename'] = 'dialog.rename.title'
         dialog_title['update'] = 'update.title'
@@ -495,14 +524,21 @@ class Mapping:
         tooltips = {}
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
+        tooltips['ctx.new'] = 'ctx.new.tooltip'
+        tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
+        tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
+        tooltips['layout.split'] = 'layout.split.tooltip'
+        tooltips['preset.prompt'] = 'toolbox.prompt'
         tooltips['icon.video.capture'] = 'icon.video.capture'
         tooltips['icon.audio.output'] = 'icon.audio.output'
         tooltips['icon.audio.input'] = 'icon.audio.input'
         tooltips['icon.remote_tool.web'] = 'icon.remote_tool.web'
         tooltips['remote_store.btn.refresh_status'] = 'dialog.remote_store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
-        tooltips['attachments.btn.options'] = 'attachments.options.label'
-        tooltips['attachments_ctx.btn.options'] = 'attachments.options.label'
+        tooltips['attachments.btn.options'] = 'action.options'
+        tooltips['attachments_ctx.btn.options'] = 'action.options'
+        tooltips['models.importer.add'] = 'models.importer.add.tooltip'
+        tooltips['models.importer.remove'] = 'models.importer.remove.tooltip'
 
         menu_tooltips = {}
         menu_tooltips['video.capture'] = 'vision.capture.enable.tooltip'
@@ -510,10 +546,13 @@ class Mapping:
 
         placeholders = {}
         placeholders['ctx.search'] = 'ctx.list.search.placeholder'
-        placeholders['interpreter.input'] = 'interpreter.input.placeholder'
         placeholders['input'] = 'input.placeholder'
+        placeholders['logger.console'] = 'logger.console.placeholder'
         placeholders['skills.catalog.url'] = 'skills.catalog.url.placeholder'
+        placeholders['skills.search'] = 'input.search.placeholder'
         placeholders['connectors.catalog.url'] = 'connectors.catalog.url.placeholder'
+        placeholders['connectors.search'] = 'input.search.placeholder'
+        placeholders['extensions.search'] = 'input.search.placeholder'
 
         mapping = {}
         mapping['nodes'] = nodes

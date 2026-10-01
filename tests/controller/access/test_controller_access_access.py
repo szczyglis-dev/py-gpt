@@ -11,6 +11,7 @@ def _access():
     access.window = MagicMock()
     access.control = MagicMock()
     access.voice = MagicMock()
+    access.window.controller.realtime.can_interrupt.return_value = False
     return access
 
 

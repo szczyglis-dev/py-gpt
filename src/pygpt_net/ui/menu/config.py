@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QMenu
 from pygpt_net.utils import trans
 
 from .lang import Lang
+from .skills import Skills
 from .theme import Theme
 
 
@@ -27,6 +28,7 @@ class Config:
         """
         self.window = window
         self.lang = Lang(window)
+        self.skills = Skills(window)
         self.theme = Theme(window)
 
     def setup(self):
@@ -74,6 +76,12 @@ class Config:
         m['config.mcp'].addSeparator()
         m['config.mcp'].addAction(m['config.mcp.enabled'])
 
+        self.skills.setup()
+
+        m['config.extensions'] = QAction(QIcon(":/icons/add.svg"), tr("menu.config.extensions"), w)
+        m['config.extensions'].setMenuRole(QAction.MenuRole.NoRole)
+        m['config.extensions'].triggered.connect(lambda: w.controller.extensions.open(False))
+
         m['config.access'] = QAction(icon_access, tr("menu.config.access"), w)
         m['config.access'].setMenuRole(QAction.MenuRole.NoRole)
 
@@ -107,8 +115,12 @@ class Config:
         m['config.profile'].addAction(m['config.profile.edit'])
         m['config.profile'].addSeparator()
 
+        m['config.packages'] = QAction(icon_settings, tr('packages.title'), w)
+        m['config.packages'].triggered.connect(lambda: w.controller.packages.open())
+
         m['config.open_dir'] = QAction(icon_folder, tr("menu.config.open_dir"), w)
         m['config.change_dir'] = QAction(icon_settings, tr("menu.config.change_dir"), w)
+        m['config.open_base_dir'] = QAction(icon_folder, tr("menu.config.open_base_directory"), w)
         m['config.save'] = QAction(icon_save, tr("menu.config.save"), w)
 
         m['config.settings'].triggered.connect(
@@ -123,6 +135,9 @@ class Config:
         m['config.change_dir'].triggered.connect(
             lambda: w.controller.settings.workdir.change()
         )
+        m['config.open_base_dir'].triggered.connect(
+            lambda: w.controller.settings.open_base_dir()
+        )
         m['config.save'].triggered.connect(
             lambda: w.controller.settings.save_all()
         )
@@ -136,10 +151,14 @@ class Config:
         menu.addMenu(m['config.models'])
         menu.addAction(m['config.agents'])
         menu.addMenu(m['config.mcp'])
+        menu.addMenu(m['config.skills'])
+        menu.addAction(m['config.extensions'])
+        menu.addAction(m['config.packages'])
         menu.addAction(m['config.access'])
         menu.addMenu(m['menu.theme'])
         menu.addMenu(m['menu.lang'])
         menu.addMenu(m['config.profile'])
+        menu.addAction(m['config.open_base_dir'])
         menu.addAction(m['config.open_dir'])
         menu.addAction(m['config.change_dir'])
         menu.addAction(m['config.save'])

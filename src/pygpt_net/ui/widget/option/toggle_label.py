@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.22 15:00:00                  #
+# Updated Date: 2026.09.27 10:15:00                  #
 # ================================================== #
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QCheckBox, QHBoxLayout, QWidget, QLabel
+from PySide6.QtWidgets import QHBoxLayout, QWidget, QLabel, QSizePolicy
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
-from pygpt_net.utils import trans
+from pygpt_net.ui.widget.element.labels import ElideLabel
 
 
 class ToggleLabel(QWidget):
@@ -24,17 +24,30 @@ class ToggleLabel(QWidget):
             icon=None,
             icon_size=24,
             parent=None,
+            elide_label: bool = False,
     ):
         """
         Toggle checkbox with label
 
         :param title: label title
+        :param label_position: label position relative to the toggle
+        :param icon: optional icon path
+        :param icon_size: icon size
+        :param parent: parent widget
+        :param elide_label: whether to shorten the label when horizontal space is limited
         """
         super(ToggleLabel, self).__init__()
-        self.title = title
-        self.label = QLabel(self.title)
-        self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.title = title or ""
+        if elide_label:
+            self.label = ElideLabel(self.title)
+        else:
+            self.label = QLabel(self.title)
+            self.label.setWordWrap(False)
+            self.label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+            self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.box = AnimToggle('', parent)
+        self.setMinimumWidth(0)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
 
         ico = None
         if icon is not None:
@@ -46,13 +59,13 @@ class ToggleLabel(QWidget):
         if label_position == 'left':
             if icon is not None:
                 self.layout.addWidget(ico)
-            self.layout.addWidget(self.label)
-            self.layout.addWidget(self.box)
+            self.layout.addWidget(self.label, 1)
+            self.layout.addWidget(self.box, 0)
         else:
-            self.layout.addWidget(self.box)
+            self.layout.addWidget(self.box, 0)
             if icon is not None:
-                self.layout.addWidget(ico)
-            self.layout.addWidget(self.label)
+                self.layout.addWidget(ico, 0)
+            self.layout.addWidget(self.label, 1)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
@@ -62,7 +75,8 @@ class ToggleLabel(QWidget):
 
         :param text: text
         """
-        self.label.setText(text)
+        self.title = "" if text is None else str(text)
+        self.label.setText(self.title)
 
     def setChecked(self, state: bool):
         """

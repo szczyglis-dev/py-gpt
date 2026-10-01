@@ -67,16 +67,23 @@ def test_ctx_extra_copy_code_text_trims_clipboard_value_and_shortens_status():
     assert "..." in extra.window.update_status.call_args.args[0]
 
 
-def test_ctx_extra_preview_and_run_code_delegate_to_code_interpreter_plugin():
+def test_ctx_extra_preview_uses_canvas_and_run_code_uses_code_interpreter():
     extra = _extra()
-    plugin = MagicMock()
-    extra.window.core.plugins.get.return_value = plugin
+    browser = MagicMock()
+    interpreter = MagicMock()
+    extra.window.tools.get.return_value = browser
+    extra.window.core.filesystem.get_data_dir.return_value = "/data"
+    extra.window.core.plugins.get.return_value = interpreter
 
     extra.preview_code_text("<b>x</b>")
     extra.run_code_text("print(1)")
 
-    plugin.handle_html_output.assert_called_once_with("<b>x</b>")
-    plugin.handle_python_run.assert_called_once_with("print(1)")
+    extra.window.tools.get.assert_called_once_with("web_browser")
+    browser.runtime_call.assert_called_once_with(
+        "canvas_set_html",
+        {"html": "<b>x</b>", "__workdir": "/data"},
+    )
+    interpreter.handle_python_run.assert_called_once_with("print(1)")
 
 
 def test_ctx_extra_edit_item_populates_input_and_edit_state():

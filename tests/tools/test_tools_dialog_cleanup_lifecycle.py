@@ -8,7 +8,6 @@ from pygpt_net.tools.html_canvas.ui.dialogs import ToolDialog as CanvasDialog
 from pygpt_net.tools.indexer.ui.dialogs import IndexerDialog
 from pygpt_net.tools.media_player.ui.dialogs import VideoPlayerDialog
 from pygpt_net.tools.translator.ui.dialogs import ToolDialog as TranslatorDialog
-from pygpt_net.tools.web_browser.ui.dialogs import ToolDialog as BrowserDialog
 
 
 def _window_with_tool(tool_id, tool):
@@ -87,10 +86,6 @@ def test_canvas_dialog_cleanup_closes_and_updates_tool():
 
 def test_translator_dialog_cleanup_closes_and_updates_tool():
     _assert_generic_tool_dialog_cleanup(TranslatorDialog)
-
-
-def test_browser_dialog_cleanup_closes_and_updates_tool():
-    _assert_generic_tool_dialog_cleanup(BrowserDialog)
 
 
 def test_agent_builder_cleanup_is_idempotent_and_drops_ui_references():

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.20 20:00:00                  #
+# Updated Date: 2026.09.30 19:20:00
 # ================================================== #
 
 import copy
@@ -149,11 +149,19 @@ class Config:
         """
         is_test = os.environ.get('ENV_TEST') == '1'
         path = Path(Config.get_base_workdir())
-        if not path.exists() and not is_test:
+
+        # Tests must not depend on, create, or read a real user path.cfg.
+        # On a clean CI runner the base directory usually does not exist at all,
+        # so trying to read path.cfg here would raise FileNotFoundError.
+        if is_test:
+            return str(path)
+
+        if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
+
         path_file = "path.cfg"
         p = os.path.join(str(path), path_file)
-        if not os.path.exists(p) and not is_test:
+        if not os.path.exists(p):
             with open(p, 'w', encoding='utf-8') as f:
                 f.write("")
         else:
@@ -219,8 +227,8 @@ class Config:
         :return: workdir path
         """
         workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
-        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox_ipython"):
-            workdir = "/data"
+        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox") == "docker":
+            workdir = "/mnt/data"
         return workdir
 
     def remove_plugin_config(self, plugin: str, key: str = None) -> bool:
@@ -388,6 +396,88 @@ class Config:
         """
         return self.data.get(key, default)
 
+    def get_provider(self, provider_id: str, key: str = None, default: any = None) -> any:
+        """Return provider-scoped configuration from ``providers``.
+
+        ``api_key`` and ``api_base`` are top-level provider values. Other keys
+        are resolved from ``extra``; callers may explicitly use ``extra.foo``.
+        ``remote_tools.foo`` resolves a key in the provider's tool mapping.
+        """
+        providers = self.data.get("providers", {})
+        if not isinstance(providers, dict):
+            return default
+        provider = providers.get(provider_id, {})
+        if not isinstance(provider, dict):
+            return default
+        if key is None:
+            return provider
+        if key.startswith("remote_tools."):
+            remote = provider.get("remote_tools", {})
+            return remote.get(key[len("remote_tools."):], default) if isinstance(remote, dict) else default
+        if key in provider:
+            return provider.get(key, default)
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = provider.get("extra", {})
+        if isinstance(extra, dict):
+            return extra.get(extra_key, default)
+        return default
+
+    def set_provider(self, provider_id: str, key: str, value: any):
+        """Set provider-scoped configuration in ``providers``."""
+        providers = self.data.setdefault("providers", {})
+        if not isinstance(providers, dict):
+            providers = {}
+            self.data["providers"] = providers
+        provider = providers.setdefault(provider_id, {})
+        if not isinstance(provider, dict):
+            provider = {}
+            providers[provider_id] = provider
+        if key in ("api_key", "api_base"):
+            provider[key] = value
+            return
+        if key.startswith("remote_tools."):
+            remote = provider.get("remote_tools")
+            if not isinstance(remote, dict):
+                remote = {}
+                provider["remote_tools"] = remote
+            remote[key[len("remote_tools."):]] = value
+            return
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = provider.setdefault("extra", {})
+        if not isinstance(extra, dict):
+            extra = {}
+            provider["extra"] = extra
+        extra[extra_key] = value
+
+    def ensure_provider(self, provider_id: str, defaults: dict = None) -> bool:
+        """Create a provider entry and fill only missing schema defaults."""
+        changed = False
+        providers = self.data.setdefault("providers", {})
+        if not isinstance(providers, dict):
+            providers = {}
+            self.data["providers"] = providers
+            changed = True
+        provider = providers.get(provider_id)
+        if not isinstance(provider, dict):
+            provider = {}
+            providers[provider_id] = provider
+            changed = True
+        for key, value in (defaults or {}).items():
+            if key in ("extra", "remote_tools"):
+                extra = provider.get(key)
+                if not isinstance(extra, dict):
+                    extra = {}
+                    provider[key] = extra
+                    changed = True
+                for extra_key, extra_value in (value or {}).items():
+                    if extra_key not in extra:
+                        extra[extra_key] = copy.deepcopy(extra_value)
+                        changed = True
+            elif key not in provider:
+                provider[key] = copy.deepcopy(value)
+                changed = True
+        return changed
+
     def get_session(self, key: str, default: any = None) -> any:
         """
         Return session config value by key
@@ -463,21 +553,53 @@ class Config:
 
     def get_available_langs(self) -> list:
         """
-        Return list with available languages
+        Return list with available languages.
 
-        :return: list with available languages (user + app)
+        Sources include bundled locales, application-wide locale overrides,
+        application-wide Locale Add-ons, and the active profile override.
+
+        :return: list with available languages
         """
         langs_set = set()
-        path_app = os.path.join(self.get_app_path(), 'data', 'locale')
-        if os.path.exists(path_app):
-            for file in os.listdir(path_app):
-                if file.startswith('locale.') and file.endswith(".ini"):
-                    langs_set.add(file.replace('locale.', '').replace('.ini', ''))
-        path_user = os.path.join(self.get_user_path(), 'locale')
-        if os.path.exists(path_user):
-            for file in os.listdir(path_user):
-                if file.startswith('locale.') and file.endswith(".ini"):
-                    langs_set.add(file.replace('locale.', '').replace('.ini', ''))
+
+        def scan(path: str):
+            if not os.path.isdir(path):
+                return
+            try:
+                files = os.listdir(path)
+            except OSError:
+                return
+            for file in files:
+                if file.startswith('locale.') and file.endswith('.ini'):
+                    langs_set.add(file[len('locale.'):-len('.ini')])
+
+        scan(os.path.join(self.get_app_path(), 'data', 'locale'))
+        scan(os.path.join(self.get_base_workdir(), 'locale'))
+
+        # Static Locale Add-ons are read directly from the global Add-ons tree.
+        addons_root = os.path.join(self.get_base_workdir(), 'addons', 'locale')
+        if os.path.isdir(addons_root):
+            try:
+                entries = os.scandir(addons_root)
+            except OSError:
+                entries = []
+            try:
+                for entry in entries:
+                    if entry.name.startswith('.'):
+                        continue
+                    try:
+                        if not entry.is_dir() or entry.is_symlink():
+                            continue
+                    except OSError:
+                        continue
+                    nested = os.path.join(entry.path, 'locale')
+                    scan(nested if os.path.isdir(nested) else entry.path)
+            finally:
+                close = getattr(entries, 'close', None)
+                if callable(close):
+                    close()
+
+        scan(os.path.join(self.get_user_path(), 'locale'))
         langs = sorted(langs_set)
         if 'en' in langs:
             langs.remove('en')
@@ -519,9 +641,14 @@ class Config:
 
         :param all: load all configs
         """
-        self.data = self.provider.load(all)
-        if self.data is not None:
-            self.data = dict(sorted(self.data.items(), key=itemgetter(0)))
+        data = self.provider.load(all)
+        if data is None:
+            # A clean/test environment may not have config.json yet. Keep the
+            # Config object usable so callers such as Locale/trans() can safely
+            # fall back to defaults instead of failing on self.data == None.
+            self.data = {}
+            return
+        self.data = dict(sorted(data.items(), key=itemgetter(0)))
 
     def load_base_config(self):
         """
@@ -612,7 +739,7 @@ class Config:
             except Exception as e:
                 print(f"Error setting env var: {e}")
         if list_loaded:
-            print(f"Setting environment vars: {', '.join(list_loaded)}")
+            print(f"Setting environment: {', '.join(list_loaded)}")
 
     def save(self, filename: str = "config.json"):
         """

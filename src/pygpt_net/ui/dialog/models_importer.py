@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.09.29 12:05:00                  #
 # ================================================== #
 from PySide6 import QtCore
 from PySide6.QtGui import QIcon
@@ -71,12 +71,17 @@ class ModelsImporter:
             id="provider",
             option=option,
         )
+        self.window.ui.config["models.importer"]["provider"].setFixedWidth(220)
         self.window.ui.nodes["models.importer.url"] = QLabel("")
         self.window.ui.nodes["models.importer.url"].setAlignment(QtCore.Qt.AlignRight)
         self.window.ui.nodes["models.importer.url"].setContentsMargins(10, 10, 10, 10)
 
         top_layout = QHBoxLayout()
+        editor_layout = self.window.ui.nodes['models.importer.editor'].layout
+        top_layout.setContentsMargins(editor_layout.contentsMargins().left(), 0, 0, 0)
         top_layout.addWidget(self.window.ui.config["models.importer"]["provider"])
+        top_layout.addWidget(self.window.ui.nodes["models.importer.available.all"])
+        top_layout.addStretch(1)
         top_layout.addWidget(self.window.ui.nodes["models.importer.url"])
 
         main_layout = QVBoxLayout()
@@ -112,6 +117,14 @@ class ModelsImporter:
             node = nodes.get(node_id)
             if node is not None:
                 node.setText(trans(key))
+
+        for node_id in (
+            'models.importer.available.search',
+            'models.importer.current.search',
+        ):
+            node = nodes.get(node_id)
+            if node is not None:
+                node.setPlaceholderText(trans('input.search.placeholder'))
 
         dialog = ui.dialog.get(self.dialog_id)
         if dialog is not None:

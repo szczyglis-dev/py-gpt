@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.09.22 12:25:00                  #
 # ================================================== #
 
 import base64, datetime, os, requests
@@ -161,6 +161,49 @@ class VideoWorker(QRunnable):
         # fallbacks
         self.DEFAULT_VEO_MODEL = "veo-3.1-generate-preview"
 
+    def _generate_videos(
+            self,
+            *,
+            prompt: str = "",
+            image=None,
+            video=None,
+            config=None,
+    ):
+        """
+        Start Veo generation with the SDK-native payload for the installed
+        google-genai generation.
+
+        google-genai 2.x prefers ``source=GenerateVideosSource(...)`` while
+        1.75 uses direct ``prompt``/``image``/``video`` arguments. The old
+        arguments are deprecated in 2.x and scheduled for removal in 3.x.
+        """
+        source_kwargs: Dict[str, Any] = {}
+        if prompt:
+            source_kwargs["prompt"] = prompt
+        if image is not None:
+            source_kwargs["image"] = image
+        if video is not None:
+            source_kwargs["video"] = video
+
+        # google-genai 2.x moved prompt/image/video under
+        # GenerateVideosSource. Version 1.75 does not expose that type, so use
+        # feature detection to keep both SDK generations working.
+        source_cls = getattr(gtypes, "GenerateVideosSource", None)
+        if source_cls is not None:
+            return self.client.models.generate_videos(
+                model=self.model or self.DEFAULT_VEO_MODEL,
+                source=source_cls(**source_kwargs),
+                config=config,
+            )
+
+        return self.client.models.generate_videos(
+            model=self.model or self.DEFAULT_VEO_MODEL,
+            prompt=source_kwargs.get("prompt"),
+            image=source_kwargs.get("image"),
+            video=source_kwargs.get("video"),
+            config=config,
+        )
+
     @Slot()
     def run(self):
         try:
@@ -234,8 +277,7 @@ class VideoWorker(QRunnable):
                 safe_emit(self.signals, "status", label + f": {self.input_prompt or ''}...")
 
                 # Start operation: video extension, prompt optional
-                operation = self.client.models.generate_videos(
-                    model=self.model or self.DEFAULT_VEO_MODEL,
+                operation = self._generate_videos(
                     prompt=self.input_prompt or "",
                     video=video_input,
                     config=ext_config,
@@ -281,8 +323,7 @@ class VideoWorker(QRunnable):
 
             try:
                 config = gtypes.GenerateVideosConfig(**cfg_try)
-                operation = self.client.models.generate_videos(
-                    model=self.model or self.DEFAULT_VEO_MODEL,
+                operation = self._generate_videos(
                     prompt=self.input_prompt or "",
                     config=config,
                     image=self._image_part_if_needed(),
@@ -292,8 +333,7 @@ class VideoWorker(QRunnable):
                 if "durationSeconds isn't supported" in str(e) or "Unrecognized" in str(e):
                     # retry without duration_seconds
                     config = gtypes.GenerateVideosConfig(**cfg_kwargs)
-                    operation = self.client.models.generate_videos(
-                        model=self.model or self.DEFAULT_VEO_MODEL,
+                    operation = self._generate_videos(
                         prompt=self.input_prompt or "",
                         config=config,
                         image=self._image_part_if_needed(),

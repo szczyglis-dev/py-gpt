@@ -6,16 +6,17 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 23:05:00                  #
+# Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
 import os
-import shutil
 
 from packaging.version import parse as parse_version, Version
 
 # old patches moved here
 from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
+from .patches.patch_before_2_8_33 import Patch as PatchBefore2_8_33
+from .utils import safe_copy_preset
 
 
 class Patch:
@@ -31,6 +32,10 @@ class Patch:
         """
         patcher = PatchBefore2_6_42(self.window)  # old patches (< 2.6.42) moved here
         migrated = patcher.execute(version)
+
+        patcher = PatchBefore2_8_33(self.window)
+        if patcher.execute(version):
+            migrated = True
 
         is_agent_v2 = False
         is_agent_v2_presets = False
@@ -66,13 +71,12 @@ class Patch:
                         'agent_v2_pygpt.json',
                         'current.agent_v2.json',
                     ]
+                    copied = False
                     for file in files:
-                        dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
-                        src = os.path.join(self.window.core.config.get_app_path(), 'data', 'config',
-                                           'presets', file)
-                        shutil.copyfile(src, dst)
-                        print("Patched file: {}.".format(dst))
-                    updated = True
+                        if safe_copy_preset(self.window, file):
+                            copied = True
+                    if copied:
+                        updated = True
                     is_agent_v2 = True  # prevent multiple copies
 
             # < 2.8.11
@@ -88,16 +92,8 @@ class Patch:
                     dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
                     if os.path.exists(dst):
                         continue
-                    src = os.path.join(
-                        self.window.core.config.get_app_path(),
-                        'data',
-                        'config',
-                        'presets',
-                        file,
-                    )
-                    shutil.copyfile(src, dst)
-                    print("Patched file: {}.".format(dst))
-                    copied = True
+                    if safe_copy_preset(self.window, file):
+                        copied = True
                 if copied:
                     updated = True
                 is_agent_v2_presets = True  # prevent multiple copy attempts
@@ -108,16 +104,8 @@ class Patch:
                 dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
                 if not os.path.exists(dst):
                     print("Migrating Cybersec v2 preset from < 2.8.12...")
-                    src = os.path.join(
-                        self.window.core.config.get_app_path(),
-                        'data',
-                        'config',
-                        'presets',
-                        file,
-                    )
-                    shutil.copyfile(src, dst)
-                    print("Patched file: {}.".format(dst))
-                    updated = True
+                    if safe_copy_preset(self.window, file):
+                        updated = True
                 is_agent_v2_cybersec = True  # prevent multiple copy attempts
 
             # < 2.8.13
@@ -126,16 +114,8 @@ class Patch:
                 dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
                 if not os.path.exists(dst):
                     print("Migrating OSINT v2 preset from < 2.8.13...")
-                    src = os.path.join(
-                        self.window.core.config.get_app_path(),
-                        'data',
-                        'config',
-                        'presets',
-                        file,
-                    )
-                    shutil.copyfile(src, dst)
-                    print("Patched file: {}.".format(dst))
-                    updated = True
+                    if safe_copy_preset(self.window, file):
+                        updated = True
                 is_agent_v2_osint = True  # prevent multiple copy attempts
 
             # < 2.8.14
@@ -144,16 +124,8 @@ class Patch:
                 dst = os.path.join(self.window.core.config.get_user_dir('presets'), file)
                 if not os.path.exists(dst):
                     print("Migrating Server Admin v2 preset from < 2.8.14...")
-                    src = os.path.join(
-                        self.window.core.config.get_app_path(),
-                        'data',
-                        'config',
-                        'presets',
-                        file,
-                    )
-                    shutil.copyfile(src, dst)
-                    print("Patched file: {}.".format(dst))
-                    updated = True
+                    if safe_copy_preset(self.window, file):
+                        updated = True
                 is_agent_v2_server_admin = True  # prevent multiple copy attempts
 
             # < 2.8.23
@@ -206,21 +178,12 @@ class Patch:
                     )
                 ):
                     print("Migrating Agents v2 presets from < 2.8.23...")
+                    copied = False
                     for file in agent_v2_files:
-                        dst = os.path.join(
-                            self.window.core.config.get_user_dir('presets'),
-                            file,
-                        )
-                        src = os.path.join(
-                            self.window.core.config.get_app_path(),
-                            'data',
-                            'config',
-                            'presets',
-                            file,
-                        )
-                        shutil.copyfile(src, dst)
-                        print("Patched file: {}.".format(dst))
-                    updated = True
+                        if safe_copy_preset(self.window, file):
+                            copied = True
+                    if copied:
+                        updated = True
                     is_agent_v2_2_8_23 = True
 
             # update file

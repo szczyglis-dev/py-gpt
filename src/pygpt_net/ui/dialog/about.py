@@ -6,21 +6,85 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 19:42:00                  #
+# Updated Date: 2026.09.26 12:00:00                  #
 # ================================================== #
 
 import os
 
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot, QTimer
 from PySide6.QtGui import QPixmap, Qt, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QPlainTextEdit
 
+from pygpt_net.core.qt import safe_emit
 from pygpt_net.ui.widget.dialog.info import InfoDialog
 from pygpt_net.utils import trans
 
 
+class AboutVersionsSignals(QObject):
+    result = Signal(object)
+
+
+class AboutVersionsWorker(QRunnable):
+    """Load optional SDK versions without blocking the About dialog."""
+
+    def __init__(self):
+        super().__init__()
+        self.signals = AboutVersionsSignals()
+
+    @Slot()
+    def run(self):
+        versions = {}
+
+        try:
+            import platform
+            versions['Python'] = platform.python_version()
+        except Exception:
+            versions['Python'] = '-'
+
+        try:
+            from openai.version import VERSION as openai_version
+            versions['OpenAI SDK'] = openai_version
+        except Exception:
+            versions['OpenAI SDK'] = '-'
+
+        try:
+            from llama_index.core import __version__ as llama_index_version
+            versions['LlamaIndex'] = llama_index_version
+        except Exception:
+            versions['LlamaIndex'] = '-'
+
+        try:
+            from anthropic import __version__ as anthropic_version
+            versions['Anthropic SDK'] = anthropic_version
+        except Exception:
+            versions['Anthropic SDK'] = '-'
+
+        try:
+            from google.genai import __version__ as google_genai_version
+            versions['Google SDK'] = google_genai_version
+        except Exception:
+            versions['Google SDK'] = '-'
+
+        try:
+            from xai_sdk import __version__ as xai_sdk_version
+            versions['xAI SDK'] = xai_sdk_version
+        except Exception:
+            versions['xAI SDK'] = '-'
+
+        safe_emit(self.signals, 'result', versions)
+
+
 class About:
 
-    RELEASE_YEAR = 2026
+    COPYRIGHT_YEARS = "2022-2026"
+    VERSION_KEYS = (
+        'Python',
+        'OpenAI SDK',
+        'LlamaIndex',
+        'Anthropic SDK',
+        'Google SDK',
+        'xAI SDK',
+    )
 
     def __init__(self, window=None):
         """
@@ -30,6 +94,8 @@ class About:
         """
         self.window = window
         self.thanks = None
+        self._lib_versions = None
+        self._versions_worker = None
 
     def get_thanks(self) -> str:
         """
@@ -51,53 +117,22 @@ class About:
             parts.append(", ".join(line))
         return "\n".join(parts)
 
+    def _get_versions_for_render(self) -> dict:
+        if self._lib_versions is not None:
+            return dict(self._lib_versions)
+        return {key: '...' for key in self.VERSION_KEYS}
+
     def prepare_content(self) -> str:
         """
-        Get info text
+        Get info text. SDK versions are rendered from the async cache; before
+        the first load each version slot contains a lightweight placeholder.
 
         :return: info text
         """
-        lib_versions = {}
-
-        try:
-            import platform
-            lib_versions['Python'] = platform.python_version()
-        except ImportError:
-            pass
-
-        try:
-            from openai.version import VERSION as openai_version
-            lib_versions['OpenAI SDK'] = openai_version
-        except ImportError:
-            pass
-
-        try:
-            from llama_index.core import __version__ as llama_index_version
-            lib_versions['LlamaIndex'] = llama_index_version
-        except ImportError:
-            pass
-
-        try:
-            from anthropic import __version__ as anthropic_version
-            lib_versions['Anthropic SDK'] = anthropic_version
-        except ImportError:
-            pass
-
-        try:
-            from google.genai import __version__ as google_genai_version
-            lib_versions['Google SDK'] = google_genai_version
-        except ImportError:
-            pass
-
-        try:
-            from xai_sdk import __version__ as xai_sdk_version
-            lib_versions['xAI SDK'] = xai_sdk_version
-        except ImportError:
-            pass
-
-        versions_str = ""
-        if lib_versions:
-            versions_str = self.build_versions_str(lib_versions, break_after="LlamaIndex")
+        versions_str = self.build_versions_str(
+            self._get_versions_for_render(),
+            break_after="LlamaIndex",
+        )
 
         platform = self.window.core.platforms.get_as_string()
         version = self.window.meta['version']
@@ -120,7 +155,7 @@ class About:
                f"{label_website}: {website}\n" \
                f"{label_github}: {github}\n" \
                f"{label_docs}: {docs}\n\n" \
-               f"(c) {self.RELEASE_YEAR} {author}\n" \
+               f"(c) {self.COPYRIGHT_YEARS} {author}\n" \
                f"{email}\n"
         return data
 
@@ -144,7 +179,6 @@ class About:
         btn_git.setCursor(Qt.PointingHandCursor)
         self.window.ui.nodes['dialog.about.btn.github'] = btn_git
 
-
         btn_support = QPushButton(QIcon(":/icons/favorite.svg"), trans('about.btn.support'))
         btn_support.clicked.connect(lambda: self.window.controller.dialogs.info.goto_donate())
         btn_support.setCursor(Qt.PointingHandCursor)
@@ -155,8 +189,7 @@ class About:
         buttons_layout.addWidget(self.window.ui.nodes['dialog.about.btn.website'])
         buttons_layout.addWidget(self.window.ui.nodes['dialog.about.btn.github'])
 
-        string = self.prepare_content()
-        content = QLabel(string)
+        content = QLabel()
         content.setTextInteractionFlags(Qt.TextSelectableByMouse)
         content.setWordWrap(True)
         content.setContentsMargins(2, 10, 2, 0)
@@ -184,8 +217,42 @@ class About:
         self.window.ui.dialog['info.' + id].setLayout(layout)
         self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.about.title"))
 
+    def _render_content(self):
+        node = self.window.ui.nodes.get('dialog.about.content')
+        if node is not None:
+            node.setText(self.prepare_content())
+
+    def _start_versions_load(self):
+        if self._lib_versions is not None or self._versions_worker is not None:
+            return
+
+        worker = AboutVersionsWorker()
+        self._versions_worker = worker
+        worker.signals.result.connect(self._on_versions_loaded)
+        QThreadPool.globalInstance().start(worker)
+
+    @Slot(object)
+    def _on_versions_loaded(self, versions):
+        self._versions_worker = None
+
+        loaded = {}
+        if isinstance(versions, dict):
+            for key in self.VERSION_KEYS:
+                value = versions.get(key, '-')
+                loaded[key] = str(value) if value not in (None, '') else '-'
+        else:
+            loaded = {key: '-' for key in self.VERSION_KEYS}
+
+        self._lib_versions = loaded
+        self._render_content()
+
     def prepare(self):
-        """Update dialog content"""
+        """Update dialog content."""
+        # Render immediately without importing SDK modules. Starting the worker
+        # on the next event-loop turn lets the dialog become visible first.
+        self._render_content()
+        QTimer.singleShot(0, self._start_versions_load)
+
         people = str(self.get_thanks())
         self.window.ui.nodes['dialog.about.thanks.content'].setPlainText(people)
         if people == "":

@@ -64,7 +64,7 @@ class LlamaPlan(BaseRunner):
         i = 1
         for sub_task in plan.sub_tasks:
             plan_desc += "\n\n"
-            plan_desc += "\n**===== {sub_task_label}: {sub_task_name} =====**".format(
+            plan_desc += "\n**{sub_task_label}: {sub_task_name}**".format(
                 sub_task_label=trans('msg.agent.plan.subtask'),
                 sub_task_name=sub_task.name,
             )
@@ -109,7 +109,7 @@ class LlamaPlan(BaseRunner):
             tools_output = self.window.core.agents.tools.export_sources(step_output.output)
 
             task_header = "\n"
-            task_header += "\n**===== Sub Task {index}: {sub_task_name} =====**".format(
+            task_header += "\n**Sub Task {index}: {sub_task_name}**".format(
                 index=str(i),
                 sub_task_name=sub_task.name
             )
@@ -220,7 +220,7 @@ class LlamaPlan(BaseRunner):
         )
         for sub_task in plan.sub_tasks:
             plan_desc += "\n\n"
-            plan_desc += "\n**===== {sub_task_label}: {sub_task_name} =====**".format(
+            plan_desc += "\n**{sub_task_label}: {sub_task_name}**".format(
                 sub_task_label=trans('msg.agent.plan.subtask'),
                 sub_task_name=sub_task.name,
             )
@@ -259,7 +259,7 @@ class LlamaPlan(BaseRunner):
             tools_output = self.window.core.agents.tools.export_sources(step_output.output)
 
             task_header = "\n"
-            task_header += "\n**===== Sub Task {index}: {sub_task_name} =====**".format(
+            task_header += "\n**Sub Task {index}: {sub_task_name}**".format(
                 index=str(i),
                 sub_task_name=sub_task.name
             )

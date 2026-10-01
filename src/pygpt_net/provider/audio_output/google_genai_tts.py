@@ -221,7 +221,7 @@ class GoogleGenAITextToSpeech(BaseProvider):
 
         :return: True if configured, False otherwise
         """
-        api_key = self.plugin.window.core.config.get("api_key_google")
+        api_key = self.plugin.window.core.llm.get_config("google", "api_key")
         return api_key is not None and api_key != ""
 
     def get_config_message(self) -> str:

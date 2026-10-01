@@ -38,10 +38,19 @@ def _entry(id, name=None, imported=False):
 def test_model_importer_update_available_marks_current_models_when_all_enabled():
     model = _model(); node = MagicMock()
     importer = SimpleNamespace(all=True, in_current=MagicMock(side_effect=lambda mid: mid == "m2"))
-    widget = SimpleNamespace(window=SimpleNamespace(
-        ui=SimpleNamespace(models={"models.importer.available": model}, nodes={"models.importer.available": node}),
-        controller=SimpleNamespace(model=SimpleNamespace(importer=importer)),
-    ))
+    widget = SimpleNamespace(
+        window=SimpleNamespace(
+            ui=SimpleNamespace(
+                models={"models.importer.available": model},
+                nodes={
+                    "models.importer.available": node,
+                    "models.importer.available.search": MagicMock(text=MagicMock(return_value="")),
+                },
+            ),
+            controller=SimpleNamespace(model=SimpleNamespace(importer=importer)),
+        ),
+        _filter_data=ModelImporter._filter_data,
+    )
     data = {"a": _entry("m1", "Model One"), "b": _entry("m2")}
 
     ModelImporter.update_available(widget, data)
@@ -56,9 +65,16 @@ def test_model_importer_update_available_marks_current_models_when_all_enabled()
 
 def test_model_importer_update_current_marks_renamed_and_imported_models():
     model = _model(); node = MagicMock()
-    widget = SimpleNamespace(window=SimpleNamespace(ui=SimpleNamespace(
-        models={"models.importer.current": model}, nodes={"models.importer.current": node}
-    )))
+    widget = SimpleNamespace(
+        window=SimpleNamespace(ui=SimpleNamespace(
+            models={"models.importer.current": model},
+            nodes={
+                "models.importer.current": node,
+                "models.importer.current.search": MagicMock(text=MagicMock(return_value="")),
+            },
+        )),
+        _filter_data=ModelImporter._filter_data,
+    )
     data = {"a": _entry("m1", "Pretty", True), "b": _entry("m2", "m2", False)}
 
     ModelImporter.update_current(widget, data)

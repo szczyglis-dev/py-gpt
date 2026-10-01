@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 14:00:00
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import datetime
@@ -29,6 +29,7 @@ from pygpt_net.ui.widget.draw.modes import (
     DrawMode,
     DRAW_MODE_ORDER,
     DRAW_MODE_TRANSLATION_KEYS,
+    DRAW_MODE_ICONS,
     create_draw_mode_handlers,
 )
 from pygpt_net.utils import trans
@@ -142,6 +143,9 @@ class PainterWidget(QWidget):
         self._act_capture = QAction(QIcon(":/icons/attachment.svg"), trans('painter.btn.capture'), self)
         self._act_capture.triggered.connect(self.action_capture)
 
+        self._act_camera_capture = QAction(QIcon(":/icons/camera.svg"), trans('painter.btn.camera.capture'), self)
+        self._act_camera_capture.triggered.connect(self.action_camera_capture)
+
         self._act_save = QAction(QIcon(":/icons/save.svg"), trans('img.action.save'), self)
         self._act_save.triggered.connect(self.action_save)
 
@@ -162,7 +166,15 @@ class PainterWidget(QWidget):
         self._draw_action_group.setExclusive(True)
         self._draw_actions = {}
         for draw_mode in DRAW_MODE_ORDER:
-            action = QAction(trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]), self)
+            icon_path = DRAW_MODE_ICONS.get(draw_mode)
+            if icon_path:
+                action = QAction(
+                    QIcon(icon_path),
+                    trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]),
+                    self,
+                )
+            else:
+                action = QAction(trans(DRAW_MODE_TRANSLATION_KEYS[draw_mode]), self)
             action.setCheckable(True)
             action.setData(draw_mode.value)
             action.setChecked(draw_mode == self._drawMode)
@@ -182,9 +194,10 @@ class PainterWidget(QWidget):
         self._ctx_menu.addAction(self._act_crop)
         self._ctx_menu.addAction(self._act_fit)
         self._ctx_menu.addSeparator()
+        self._ctx_menu.addAction(self._act_capture)
         self._ctx_menu.addSeparator()
         self._ctx_menu.addAction(self._act_open)
-        self._ctx_menu.addAction(self._act_capture)
+        self._ctx_menu.addAction(self._act_camera_capture)
         self._ctx_menu.addAction(self._act_copy)
         self._ctx_menu.addAction(self._act_paste)
         self._ctx_menu.addAction(self._act_save)
@@ -935,9 +948,13 @@ class PainterWidget(QWidget):
             self.open_image(path)
 
     def action_capture(self):
-        """Capture the image"""
+        """Use an image from the current capture source."""
         self.saveForUndo()
         self.window.controller.painter.capture.use()
+
+    def action_camera_capture(self):
+        """Capture an image from the camera."""
+        self.window.controller.painter.capture.camera()
 
     def action_save(self):
         """Save image to file"""
@@ -1326,7 +1343,23 @@ class PainterWidget(QWidget):
             action.blockSignals(False)
 
     def retranslate_draw_modes(self):
-        """Refresh Painter drawing mode labels after a runtime language change."""
+        """Refresh Painter RMB actions and drawing mode labels at runtime."""
+        action_keys = {
+            self._act_undo: 'action.undo',
+            self._act_redo: 'action.redo',
+            self._act_copy: 'action.copy',
+            self._act_paste: 'action.paste',
+            self._act_open: 'action.open',
+            self._act_capture: 'painter.btn.capture',
+            self._act_camera_capture: 'painter.btn.camera.capture',
+            self._act_save: 'img.action.save',
+            self._act_clear: 'painter.btn.clear',
+            self._act_crop: 'painter.btn.crop',
+            self._act_fit: 'painter.btn.fit',
+        }
+        for action, key in action_keys.items():
+            action.setText(trans(key))
+
         self._draw_menu.setTitle(trans('painter.draw'))
         for mode, action in self._draw_actions.items():
             action.setText(trans(DRAW_MODE_TRANSLATION_KEYS[mode]))
@@ -2040,5 +2073,5 @@ class PainterWidget(QWidget):
         if event_type == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)

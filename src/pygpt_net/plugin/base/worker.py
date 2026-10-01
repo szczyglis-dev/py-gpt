@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 import json
@@ -256,7 +256,7 @@ class BaseWorker(QRunnable):
         return self.plugin.window.core.filesystem.get_data_dir(ctx=self.ctx)
 
     def security_command(self, command: str, sandbox: bool = False):
-        """Validate host-side plugin system command access."""
+        """Validate plugin system-command access for any execution backend."""
         if self.plugin is None or self.plugin.window is None:
             return []
         return self.plugin.window.core.security.ensure_command(command, sandbox=sandbox)

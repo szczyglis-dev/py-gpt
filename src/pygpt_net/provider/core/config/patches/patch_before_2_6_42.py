@@ -28,7 +28,14 @@ class Patch:
         :return: Updated data, and True if updated, and True if old version
         """
         data = self.window.core.config.all()
-        cfg_get_base = self.window.core.config.get_base
+        raw_get_base = self.window.core.config.get_base
+        from .patch_before_2_8_35 import legacy_defaults
+        defaults = legacy_defaults()
+
+        def cfg_get_base(key):
+            value = raw_get_base(key)
+            return defaults.get(key) if value is None and key in defaults else value
+
         remove_plugin_config = self.window.core.config.remove_plugin_config
         current = "0.0.0"
         updated = False
@@ -1291,14 +1298,8 @@ class Patch:
                     data["render.code_syntax"] = "github-dark"
                 if 'zoom' not in data:
                     data["zoom"] = 1.0
-                if 'render.engine' not in data:
-                    data["render.engine"] = "web"
                 if 'render.open_gl' not in data:
                     data["render.open_gl"] = False
-
-                # in snap, leave legacy render engine by default
-                # if self.window.core.platforms.is_snap():
-                    # data["render.engine"] = "legacy"
 
                 # css upgrade
                 updated = True
@@ -2125,8 +2126,6 @@ class Patch:
             # < 2.5.98
             if old < parse_version("2.5.98"):
                 print("Migrating config from < 2.5.98...")
-                if "agent.openai.response.split" not in data:
-                    data["agent.openai.response.split"] = True
                 updated = True
 
             # < 2.6.0
@@ -2338,7 +2337,7 @@ class Patch:
             if old < parse_version("2.6.41"):
                 print("Migrating config from < 2.6.41...")
                 if "render.memory.limit" not in data:
-                    data["render.memory.limit"] = "2.5GB"
+                    data["render.memory.limit"] = "4GB"
                 # ul p
                 updated = True
 

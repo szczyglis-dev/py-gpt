@@ -4,8 +4,67 @@
 
 class ToolOutput {
 
-	constructor() {
+	constructor(scrollMgr = null) {
 		this._groupSeq = 0;
+		this.scrollMgr = scrollMgr;
+		this._viewportAnchorSeq = 0;
+		this._viewportAnchorTimer = 0;
+	}
+
+	// Expanding/collapsing a tool/workflow block is an explicit viewport
+	// interaction. Keep the clicked header at the same screen Y coordinate
+	// instead of letting page auto-follow or Chromium scroll anchoring pin the
+	// content below it (which makes the accordion appear to grow upward).
+	_withViewportAnchor(anchorEl, mutate) {
+		if (typeof mutate !== 'function') return;
+
+		const anchor = anchorEl && anchorEl.isConnected ? anchorEl : null;
+		const scroller = (typeof Utils !== 'undefined' && Utils.SE)
+			? Utils.SE
+			: (document.scrollingElement || document.documentElement);
+		const beforeTop = anchor ? anchor.getBoundingClientRect().top : null;
+		const scrollMgr = this.scrollMgr || ((typeof runtime !== 'undefined' && runtime) ? runtime.scrollMgr : null);
+
+		// A click on an accordion means the user owns the viewport now. This also
+		// prevents ResizeObserver FOLLOW corrections while the 0fr -> 1fr CSS
+		// transition changes document height.
+		if (scrollMgr && typeof scrollMgr.suspendAutoFollow === 'function') {
+			scrollMgr.suspendAutoFollow();
+		}
+
+		const root = document.documentElement;
+		if (root && root.classList) root.classList.add('tool-viewport-anchor-lock');
+
+		mutate();
+
+		const seq = ++this._viewportAnchorSeq;
+		const correct = () => {
+			if (seq !== this._viewportAnchorSeq || !anchor || !anchor.isConnected || beforeTop == null || !scroller) return;
+			const delta = anchor.getBoundingClientRect().top - beforeTop;
+			if (Math.abs(delta) <= 0.5) return;
+
+			const maxTop = Math.max(0, Number(scroller.scrollHeight || 0) - Number(scroller.clientHeight || 0));
+			const target = Math.max(0, Math.min(maxTop, Number(scroller.scrollTop || 0) + delta));
+			if (scrollMgr && typeof scrollMgr.markProgrammaticScroll === 'function') {
+				scrollMgr.markProgrammaticScroll(target);
+			}
+			try { scroller.scrollTop = target; } catch (_) {}
+		};
+
+		// Correct once after layout commits and once after the accordion transition
+		// settles. The root lock disables Chromium's native anchor candidate while
+		// the geometry is changing.
+		try { requestAnimationFrame(correct); } catch (_) { correct(); }
+		if (this._viewportAnchorTimer) clearTimeout(this._viewportAnchorTimer);
+		this._viewportAnchorTimer = setTimeout(() => {
+			if (seq !== this._viewportAnchorSeq) return;
+			correct();
+			if (root && root.classList) root.classList.remove('tool-viewport-anchor-lock');
+			this._viewportAnchorTimer = 0;
+			if (scrollMgr && typeof scrollMgr.scheduleScrollFabUpdate === 'function') {
+				scrollMgr.scheduleScrollFabUpdate();
+			}
+		}, 280);
 	}
 
 	// Return direct child matching selector without relying on :scope support.
@@ -19,6 +78,23 @@ class ToolOutput {
 			} catch (_) {}
 		}
 		return null;
+	}
+
+	// Return only mutable/live tool-output wrappers. Completed agent workflow
+	// accordions deliberately reuse the generic .tool-output styling, but they
+	// are durable history and must never be touched by live ToolOutput.clear(),
+	// update(), append(), enable(), or disable() calls from a later turn.
+	_mutableOutputs() {
+		const outputs = Array.from(document.querySelectorAll('.tool-output'));
+		return outputs.filter((el) => {
+			if (!el || !el.classList) return false;
+			if (el.classList.contains('agent-workflow-output')) return false;
+			if (el.classList.contains('tool-output-group')) return false;
+			try {
+				if (el.closest('.agent-workflow-output')) return false;
+			} catch (_) {}
+			return true;
+		});
 	}
 
 	// Extract raw tool names from a rendered tool-output wrapper.
@@ -79,15 +155,25 @@ class ToolOutput {
 		}
 
 		const msg = this._directChild(box, '.msg');
-		const output = this._directChild(msg, '.tool-output:not(.tool-output-group)');
-		if (!msg || !output) return null;
+		if (!msg) return null;
+		// Tool wrappers live inside .msg-timeline in the current renderer. Keep
+		// the fallback to .msg for older/special render paths so grouping works
+		// identically for history rebuilds and incremental mutations.
+		const timeline = this._directChild(msg, '.msg-timeline') || msg;
+		const output = this._directChild(timeline, '.tool-output:not(.tool-output-group)');
+		if (!output) return null;
 
 		let toolOnly = box.getAttribute('data-tool-only');
 		if (toolOnly == null) {
-			// Backward/alternate render-path fallback.  A named tool-output with no
+			// Backward/alternate render-path fallback. A named tool-output with no
 			// markdown response is the same "tool-only" shape used by the template.
 			const hasNamedTool = !!output.getAttribute('data-tool-names');
-			const hasAssistantText = !!this._directChild(msg, '.md-block');
+			let hasAssistantText = false;
+			try {
+				hasAssistantText = !!timeline.querySelector(':scope > .md-block, :scope > .msg-part .md-block');
+			} catch (_) {
+				hasAssistantText = !!timeline.querySelector('.md-block');
+			}
 			toolOnly = (hasNamedTool && !hasAssistantText) ? '1' : '0';
 		}
 		if (toolOnly !== '1') return null;
@@ -122,12 +208,9 @@ class ToolOutput {
 
 		const label = document.createElement('span');
 		label.className = 'tool-output-label';
-		const strong = document.createElement('b');
-		strong.textContent = (typeof window !== 'undefined' && window.LOCALE_TOOLS)
+		label.textContent = ((typeof window !== 'undefined' && window.LOCALE_TOOLS)
 			? String(window.LOCALE_TOOLS)
-			: 'Tools';
-		label.appendChild(strong);
-		label.appendChild(document.createTextNode(':\u00a0'));
+			: 'Tools') + ':\u00a0';
 
 		const names = document.createElement('span');
 		names.className = 'tool-output-name tool-group-names';
@@ -164,7 +247,9 @@ class ToolOutput {
 		if (!groupCandidate || !groupCandidate.group || !next || !next.box) return groupCandidate;
 		const content = this._directChild(groupCandidate.group, '.tool-group-content');
 		if (!content) return groupCandidate;
-		content.appendChild(next.box);
+		const inner = this._directChild(content, '.tool-collapse-inner');
+		const body = inner ? this._directChild(inner, '.tool-collapse-body') : null;
+		(body || inner || content).appendChild(next.box);
 		this._groupSummary(groupCandidate.group);
 		return groupCandidate;
 	}
@@ -203,19 +288,60 @@ class ToolOutput {
 		}
 	}
 
+	// Prepare a collapsible body for CSS-only height animation. A single inner
+	// wrapper lets CSS interpolate grid-template-rows from 0fr to 1fr without
+	// measuring dynamic tool/workflow content in JavaScript.
+	_prepareCollapsible(contentEl) {
+		if (!contentEl) return null;
+		let inner = this._directChild(contentEl, '.tool-collapse-inner');
+		let body = inner ? this._directChild(inner, '.tool-collapse-body') : null;
+		if (!inner) {
+			inner = document.createElement('div');
+			inner.className = 'tool-collapse-inner';
+			body = document.createElement('div');
+			body.className = 'tool-collapse-body';
+			while (contentEl.firstChild) body.appendChild(contentEl.firstChild);
+			inner.appendChild(body);
+			contentEl.appendChild(inner);
+		} else if (!body) {
+			body = document.createElement('div');
+			body.className = 'tool-collapse-body';
+			while (inner.firstChild) body.appendChild(inner.firstChild);
+			inner.appendChild(body);
+		}
+
+		// Templates historically used inline display:none. Remove it once, then
+		// let the CSS grid state own visibility for all subsequent toggles.
+		if (contentEl.style && contentEl.style.display === 'none') {
+			contentEl.style.removeProperty('display');
+			// Commit the collapsed 0fr state before adding is-expanded so the very
+			// first opening animates as well.
+			void contentEl.offsetHeight;
+		}
+		return body;
+	}
+
+	_setExpanded(contentEl, expanded) {
+		if (!contentEl) return;
+		this._prepareCollapsible(contentEl);
+		contentEl.classList.toggle('is-expanded', !!expanded);
+	}
+
 	// Toggle a parent tool group. Individual tools remain independently collapsed.
 	toggleGroup(id) {
 		const groupEl = document.getElementById(String(id || ''));
 		if (!groupEl) return;
 		const content = this._directChild(groupEl, '.tool-group-content');
 		if (!content) return;
-		const expanded = content.style.display === 'none';
-		content.style.display = expanded ? 'block' : 'none';
-
 		const header = this._directChild(groupEl, '.tool-output-toggle.tool-group-toggle');
-		if (header) header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-		const arrow = header ? header.querySelector('.tool-group-arrow') : null;
-		if (arrow) arrow.classList.toggle('toggle-expanded', expanded);
+		const expanded = !content.classList.contains('is-expanded');
+
+		this._withViewportAnchor(header || groupEl, () => {
+			this._setExpanded(content, expanded);
+			if (header) header.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+			const arrow = header ? header.querySelector('.tool-group-arrow') : null;
+			if (arrow) arrow.classList.toggle('toggle-expanded', expanded);
+		});
 	}
 
 	// Return the collapsible body while keeping compatibility with HTML produced
@@ -223,6 +349,12 @@ class ToolOutput {
 	_content(outputEl) {
 		if (!outputEl) return null;
 		return outputEl.querySelector('.tool-output-content, .content');
+	}
+
+	_contentBody(contentEl) {
+		if (!contentEl) return null;
+		const inner = this._directChild(contentEl, '.tool-collapse-inner');
+		return (inner && this._directChild(inner, '.tool-collapse-body')) || inner || contentEl;
 	}
 
 	// Pretty-print valid JSON, preserving arbitrary non-JSON tool output as text.
@@ -289,6 +421,10 @@ class ToolOutput {
 		const md = document.createElement('div');
 		md.className = 'tool-output-markdown';
 		md.setAttribute('md-block-markdown', '1');
+		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE)
+			? String(window.LOCALE_TOOL_RESPONSE)
+			: 'Output';
+		md.setAttribute('data-code-header', responseLabel);
 		md.textContent = this._codeMarkdown(raw);
 		resultEl.appendChild(md);
 
@@ -327,13 +463,13 @@ class ToolOutput {
 
 	// Enables the tool output area.
 	enable() {
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) els[els.length - 1].style.display = 'block';
 	}
 
 	// Disables the tool output area.
 	disable() {
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) els[els.length - 1].style.display = 'none';
 	}
 
@@ -342,7 +478,7 @@ class ToolOutput {
 	append(content) {
 		this.hideLoader();
 		this.enable();
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
@@ -351,7 +487,7 @@ class ToolOutput {
 				const next = this._resultRaw(resultEl) + (content == null ? '' : String(content));
 				this._renderStructuredResult(resultEl, next);
 			} else {
-				contentEl.insertAdjacentHTML('beforeend', content == null ? '' : String(content));
+				this._contentBody(contentEl).insertAdjacentHTML('beforeend', content == null ? '' : String(content));
 			}
 		}
 	}
@@ -361,7 +497,7 @@ class ToolOutput {
 	update(content) {
 		this.hideLoader();
 		this.enable();
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
@@ -369,7 +505,7 @@ class ToolOutput {
 			if (resultEl) {
 				this._renderStructuredResult(resultEl, content);
 			} else {
-				contentEl.innerHTML = content == null ? '' : String(content);
+				this._contentBody(contentEl).innerHTML = content == null ? '' : String(content);
 			}
 		}
 	}
@@ -380,13 +516,13 @@ class ToolOutput {
 	// here would leave an empty expand arrow in the message.
 	clear() {
 		this.hideLoader();
-		const els = document.querySelectorAll('.tool-output');
+		const els = this._mutableOutputs();
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
 			const resultEl = contentEl.querySelector('.tool-output-result-data');
 			if (resultEl) this._renderStructuredResult(resultEl, '');
-			else contentEl.replaceChildren();
+			else this._contentBody(contentEl).replaceChildren();
 		}
 	}
 	
@@ -402,13 +538,15 @@ class ToolOutput {
 		const contentEl = this._content(outputEl);
 		if (!contentEl) return;
 
-		const expanded = contentEl.style.display === 'none';
-		contentEl.style.display = expanded ? 'block' : 'none';
-
 		const headerEl = outputEl.querySelector('.tool-output-toggle');
-		if (headerEl) headerEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+		const expanded = !contentEl.classList.contains('is-expanded');
 
-		const arrowEl = outputEl.querySelector('.tool-output-arrow') || outputEl.querySelector('.toggle-cmd-output img');
-		if (arrowEl) arrowEl.classList.toggle('toggle-expanded', expanded);
+		this._withViewportAnchor(headerEl || outputEl, () => {
+			this._setExpanded(contentEl, expanded);
+			if (headerEl) headerEl.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+			const arrowEl = outputEl.querySelector('.tool-output-arrow') || outputEl.querySelector('.toggle-cmd-output img');
+			if (arrowEl) arrowEl.classList.toggle('toggle-expanded', expanded);
+		});
 	}
 }

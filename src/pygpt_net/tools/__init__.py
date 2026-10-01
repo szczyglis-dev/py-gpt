@@ -144,6 +144,11 @@ class Tools:
             if instance is not None:
                 return instance
 
+    def apply_lang_mappings(self):
+        """Refresh runtime language mappings registered by all tools."""
+        for id in self.tools:
+            self.tools[id].apply_lang_mappings()
+
     def get_lang_mappings(self) -> Dict[str, dict]:
         """
         Get language mappings
@@ -152,12 +157,21 @@ class Tools:
         """
         mappings = {}
         for id in self.tools:
-            tool_mappings = self.tools[id].get_lang_mappings()
+            tool = self.tools[id]
+            tool_mappings = tool.get_lang_mappings()
             if tool_mappings and isinstance(tool_mappings, dict):
-                for key in tool_mappings:
+                domain = tool.get_locale_domain() if hasattr(tool, 'get_locale_domain') else None
+                for key, values in tool_mappings.items():
+                    scoped = values
+                    if domain and isinstance(values, dict):
+                        scoped = {
+                            target: {"key": locale_key, "domain": domain}
+                            if isinstance(locale_key, str) else locale_key
+                            for target, locale_key in values.items()
+                        }
                     if key not in mappings:
-                        mappings[key] = tool_mappings[key]
+                        mappings[key] = scoped
                     else:
-                        mappings[key].update(tool_mappings[key])
+                        mappings[key].update(scoped)
         return mappings
         

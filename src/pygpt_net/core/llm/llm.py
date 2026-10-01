@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 import hashlib
 import re
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 
 
 class LLM:
@@ -70,7 +70,11 @@ class LLM:
             self.llms.pop(provider_id, None)
         self._runtime_custom_ids.clear()
 
-        from pygpt_net.provider.llms.custom import CustomLLM
+        if not rows:
+            self._runtime_custom_signature = signature
+            return
+
+        from pygpt_net.provider.llms.custom.provider import CustomLLM
 
         for item in rows:
             if not isinstance(item, dict):
@@ -85,12 +89,15 @@ class LLM:
             # Do not overwrite a provider registered by code with the same ID.
             if provider_id in self.llms and provider_id not in self._runtime_custom_ids:
                 continue
-            self.llms[provider_id] = CustomLLM(
+            provider = CustomLLM(
                 provider_id=provider_id,
                 name=name,
                 api_base=api_base,
                 api_key=api_key,
             )
+            if hasattr(provider, "bind"):
+                provider.bind(self.window)
+            self.llms[provider_id] = provider
             self._runtime_custom_ids.add(provider_id)
 
         self._runtime_custom_signature = signature
@@ -125,10 +132,10 @@ class LLM:
         if type is not None:
             for id in list(self.llms.keys()):
                 if type in self.llms[id].type:
-                    choices[id] = self.llms[id].name
+                    choices[id] = self.llms[id].get_name() if hasattr(self.llms[id], "get_name") else self.llms[id].name
         else:
             for id in list(self.llms.keys()):
-                choices[id] = self.llms[id].name
+                choices[id] = self.llms[id].get_name() if hasattr(self.llms[id], "get_name") else self.llms[id].name
 
         # sorted by name
         return dict(sorted(choices.items(), key=lambda item: item[1].lower()))
@@ -141,7 +148,7 @@ class LLM:
         :return: provider name
         """
         self.sync_custom()
-        return self.llms[id].name if id in self.llms else id
+        return (self.llms[id].get_name() if hasattr(self.llms[id], "get_name") else self.llms[id].name) if id in self.llms else id
 
     def get(self, id: str):
         """
@@ -152,6 +159,26 @@ class LLM:
         """
         self.sync_custom()
         return self.llms[id] if id in self.llms else None
+
+    def is_openai_compatible(self, provider_id: str) -> bool:
+        """Return whether a registered provider exposes an OpenAI-compatible API."""
+        provider = self.get(provider_id)
+        if provider is None or not hasattr(provider, "is_openai_compatible"):
+            return False
+        return bool(provider.is_openai_compatible())
+
+    def get_config(self, provider_id: str, key: str, default: Any = None) -> Any:
+        """Read provider-scoped config through the registered provider."""
+        provider = self.get(provider_id)
+        if provider is None or not hasattr(provider, "get_config"):
+            return default
+        return provider.get_config(key, default)
+
+    def set_config(self, provider_id: str, key: str, value: Any):
+        """Write provider-scoped config through the registered provider."""
+        provider = self.get(provider_id)
+        if provider is not None and hasattr(provider, "set_config"):
+            provider.set_config(key, value)
 
     def register(
             self,
@@ -164,4 +191,169 @@ class LLM:
         :param id: LLM id
         :param llm: LLM object
         """
+        if hasattr(llm, "bind"):
+            llm.bind(self.window)
         self.llms[id] = llm
+        # Provider-owned settings are assembled after registration, so force a
+        # refresh if Settings happened to be loaded earlier during bootstrap.
+        try:
+            self.window.core.settings.initialized = False
+        except (AttributeError, RuntimeError):
+            pass
+
+    def get_by_config_id(self, config_id: str):
+        """Return the first registered provider using a logical config ID."""
+        self.sync_custom()
+        for provider in self.llms.values():
+            current = provider.get_config_id() if hasattr(provider, "get_config_id") else getattr(provider, "id", "")
+            if current == config_id:
+                return provider
+        return None
+
+    def sync_provider_configs(self, save: bool = False) -> bool:
+        """Materialize defaults declared by registered providers."""
+        self.sync_custom()
+        changed = False
+        seen = set()
+        for provider in self.llms.values():
+            if not hasattr(provider, "sync_config"):
+                continue
+            config_id = provider.get_config_id() if hasattr(provider, "get_config_id") else getattr(provider, "id", "")
+            if not config_id or config_id in seen:
+                continue
+            seen.add(config_id)
+            if provider.sync_config():
+                changed = True
+        if changed and save:
+            self.window.core.config.save()
+        return changed
+
+    @staticmethod
+    def _setting_type(value: str) -> str:
+        return {
+            "str": "text",
+            "string": "text",
+            "text": "text",
+            "bool": "bool",
+            "int": "int",
+            "float": "float",
+            "combo": "combo",
+            "textarea": "textarea",
+            "dict": "dict",
+        }.get(str(value or "str").lower(), str(value or "text").lower())
+
+    def _build_setting_option(self, provider, config_id: str, key: str, field: dict, *, is_extra: bool) -> tuple[str, dict]:
+        """Convert a provider schema field into the regular Settings format."""
+        provider_name = getattr(provider, "config_name", "") or (provider.get_name() if hasattr(provider, "get_name") else getattr(provider, "name", "")) or config_id
+        path = f"extra.{key}" if is_extra else key
+        option_id = f"provider.{config_id}.{path}"
+        use_locale = bool(field.get("use_locale", False))
+        locale_domain = field.get("locale_domain")
+        if not locale_domain and use_locale and hasattr(provider, "get_locale_domain"):
+            locale_domain = provider.get_locale_domain()
+
+        label = field.get("label")
+        description = field.get("desc", field.get("description"))
+        label_params = field.get("label_params") or {}
+        description_params = field.get("description_params") or {}
+
+        # Common credentials use generic, translated labels automatically.
+        if key == "api_key" and not is_extra and not label:
+            label = "settings.provider.api_key.label"
+            description = description or "settings.provider.api_key.desc"
+            description_params = {"provider": provider_name}
+            use_locale = True
+        elif key == "api_base" and not is_extra and not label:
+            label = "settings.provider.api_base.label"
+            description = description or "settings.provider.api_base.desc"
+            description_params = {"provider": provider_name}
+            use_locale = True
+        elif not label:
+            label = key.replace("_", " ").strip().capitalize()
+
+        option = {
+            "section": "api_keys",
+            "type": self._setting_type(field.get("type", "str")),
+            "label": label,
+            "description": description,
+            "value": field.get("default"),
+            "secret": bool(field.get("secret", False)),
+            "persist": True,
+            "advanced": bool(field.get("advanced", False)),
+            "tab": config_id,
+            "_provider": getattr(provider, "id", config_id),
+            "_provider_config_id": config_id,
+            "_provider_key": path,
+            "_provider_dynamic": True,
+            "_tab_label": provider_name,
+            "_tab_locale_domain": provider.get_locale_domain()
+            if hasattr(provider, "get_locale_domain") else None,
+            "_use_locale": use_locale,
+            "_locale_domain": locale_domain,
+            "_label_params": label_params,
+            "_description_params": description_params,
+            "_ui_key": f"settings.{option_id}",
+        }
+        if key == "api_key" and not is_extra:
+            option["secret"] = field.get("secret", True)
+            option["extra"] = dict(field.get("extra") or {"bold": True})
+        elif field.get("extra"):
+            option["extra"] = dict(field.get("extra") or {})
+        for name in ("urls", "min", "max", "step", "multiplier", "choices", "keys", "use", "use_params", "from_defaults", "slider", "real_time"):
+            if name in field:
+                option[name] = field[name]
+        if option["type"] == "combo" and "keys" not in option and "choices" in field:
+            option["keys"] = field["choices"]
+        return option_id, option
+
+    def get_settings_options(self) -> Dict[str, dict]:
+        """Build API Keys and Remote Tools fields from registered providers."""
+        self.sync_custom()
+        options = {}
+        seen = set()
+        for provider in self.llms.values():
+            if not hasattr(provider, "get_settings_schema"):
+                continue
+            schema = provider.get_settings_schema()
+            if not schema and not provider.get_remote_tools_schema():
+                continue
+            config_id = provider.get_config_id() if hasattr(provider, "get_config_id") else getattr(provider, "id", "")
+            if not config_id or config_id in seen:
+                continue
+            seen.add(config_id)
+
+            for key, field in provider.get_remote_tools_schema().items():
+                if not isinstance(field, dict) or field.get("hidden"):
+                    continue
+                option_id, option = self._build_setting_option(
+                    provider, config_id, "remote_tools." + key, field, is_extra=False)
+                option["section"] = "remote_tools"
+                option["persist"] = bool(field.get("persist", False))
+                option["_remote_tool_key"] = key
+                options[option_id] = option
+
+            for key in ("api_key", "api_base"):
+                field = schema.get(key)
+                if isinstance(field, dict):
+                    option_id, option = self._build_setting_option(provider, config_id, key, field, is_extra=False)
+                    options[option_id] = option
+
+            extra = schema.get("extra", {})
+            if not isinstance(extra, dict):
+                continue
+            # Advanced fields are always rendered after regular extra fields.
+            regular = [(key, field) for key, field in extra.items() if isinstance(field, dict) and not field.get("advanced", False)]
+            advanced = [(key, field) for key, field in extra.items() if isinstance(field, dict) and field.get("advanced", False)]
+            for key, field in regular + advanced:
+                option_id, option = self._build_setting_option(provider, config_id, key, field, is_extra=True)
+                options[option_id] = option
+        return options
+
+    def get_settings_option_id(self, provider_id: str, key: str) -> Optional[str]:
+        """Return generated Settings option ID for a provider key."""
+        provider = self.get(provider_id)
+        if provider is None or not hasattr(provider, "get_config_id"):
+            return None
+        config_id = provider.get_config_id()
+        path = key if key in ("api_key", "api_base") or key.startswith(("extra.", "remote_tools.")) else f"extra.{key}"
+        return f"provider.{config_id}.{path}"

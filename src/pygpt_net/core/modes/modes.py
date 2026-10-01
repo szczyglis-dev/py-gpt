@@ -42,20 +42,20 @@ class Modes:
         self.provider = JsonFileProvider(window)
         self.initialized = False
         self.all = (
-            MODE_AGENT,
-            MODE_AGENT_LLAMA,
             MODE_AGENT_OPENAI,
             MODE_AGENT_V2,
             MODE_AUDIO,
             MODE_CHAT,
             MODE_COMPLETION,
             MODE_EXPERT,
+            MODE_AGENT,
             MODE_IMAGE,
             # MODE_LANGCHAIN,
             MODE_LLAMA_INDEX,
             # MODE_VISION,
             MODE_RESEARCH,
             MODE_COMPUTER,
+            MODE_AGENT_LLAMA,
         )
         self.items = {}
 
@@ -69,7 +69,13 @@ class Modes:
         """
         regular = []
         legacy = []
+        # Deprecated modes remain loaded for backward compatibility/runtime
+        # handling, but are intentionally absent from every UI selector that
+        # consumes this canonical ordered list.
+        hidden = {MODE_LLAMA_INDEX, MODE_AGENT_OPENAI}
         for mode_id, item in self.items.items():
+            if mode_id in hidden:
+                continue
             (legacy if item.legacy else regular).append(mode_id)
         return tuple(regular + legacy)
 

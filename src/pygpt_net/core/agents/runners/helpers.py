@@ -48,6 +48,7 @@ class Helpers:
         ctx.current = True  # mark as current context item
         ctx.mode = from_ctx.mode
         ctx.model = from_ctx.model
+        ctx.agents_v2_system_prompt = getattr(from_ctx, "agents_v2_system_prompt", "") or ""
         ctx.prev_ctx = from_ctx
         ctx.images = from_ctx.images  # copy from parent if appended from plugins
         ctx.urls = from_ctx.urls  # copy from parent if appended from plugins
@@ -101,7 +102,7 @@ class Helpers:
         """
         if signals is None:
             return
-        chunk = ctx.stream.replace("<execute>", "\n```python\n").replace("</execute>", "\n```\n") if ctx.stream else ""
+        chunk = ctx.stream or ""
         data = {
             "meta": ctx.meta,
             "ctx": ctx,

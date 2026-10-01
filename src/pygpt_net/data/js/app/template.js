@@ -67,10 +67,13 @@ class NodeTemplateEngine {
 
 	// Emit a normal Markdown placeholder so the standard renderer creates the
 	// same code wrapper/highlighting/copy UI as code fenced in assistant text.
-	_renderToolCode(value) {
+	_renderToolCode(value, headerLabel = '') {
 		const md = this._toolCodeMarkdown(value);
 		if (!md) return '';
-		return `<div class='tool-output-markdown' md-block-markdown='1'>${this._escapeHtml(md)}</div>`;
+		const headerAttr = headerLabel
+			? ` data-code-header='${this._escapeHtml(headerLabel)}'`
+			: '';
+		return `<div class='tool-output-markdown' md-block-markdown='1'${headerAttr}>${this._escapeHtml(md)}</div>`;
 	}
 
 	// Render name header given role
@@ -309,8 +312,8 @@ class NodeTemplateEngine {
 		const toggleTitle = (typeof trans !== 'undefined' && trans) ? trans('action.cmd.expand') : 'Expand';
 		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
 		const toolLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL) ? window.LOCALE_TOOL : 'Tool';
-		const requestLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_REQUEST) ? window.LOCALE_TOOL_REQUEST : 'Request';
-		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE) ? window.LOCALE_TOOL_RESPONSE : 'Response';
+		const requestLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_REQUEST) ? window.LOCALE_TOOL_REQUEST : 'Input';
+		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE) ? window.LOCALE_TOOL_RESPONSE : 'Output';
 
 		let titleHtml = '';
 		let contentHtml = legacyToolOutput;
@@ -340,7 +343,7 @@ class NodeTemplateEngine {
 			}
 			const names = displayNames.map((name) => this._escapeHtml(name));
 			toolNamesAttr = this._escapeHtml(JSON.stringify(rawNames));
-			const resultCode = this._renderToolCode(toolResult);
+			const resultCode = this._renderToolCode(toolResult, responseLabel);
 
 			const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
 			const titleLabel = groupedInMessage && typeof window !== 'undefined' && window.LOCALE_TOOLS
@@ -349,24 +352,22 @@ class NodeTemplateEngine {
 			titleHtml =
 				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
 				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-				`<span class='tool-output-label'><b>${this._escapeHtml(titleLabel)}:</b>&nbsp;</span>` +
+				`<span class='tool-output-label'>${this._escapeHtml(titleLabel)}:&nbsp;</span>` +
 				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
 				`</button>`;
 
 			if (hasPerCallResponses) {
 				const renderPair = (call) => {
-					const requestCode = this._renderToolCode(call && call.request);
+					const requestCode = this._renderToolCode(call && call.request, requestLabel);
 					const hasResponse = !!call && Object.prototype.hasOwnProperty.call(call, 'response');
-					const responseCode = hasResponse ? this._renderToolCode(call.response) : '';
+					const responseCode = hasResponse ? this._renderToolCode(call.response, responseLabel) : '';
 					const responseDisplay = hasResponse ? '' : 'display:none';
 					return (
 						`<div class='tool-output-pair'>` +
 						`<div class='tool-output-section'>` +
-						`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
 						`<div class='tool-output-data tool-output-request-data'>${requestCode}</div>` +
 						`</div>` +
 						`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
-						`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
 						`<div class='tool-output-data tool-output-result-data'>${responseCode}</div>` +
 						`</div>` +
 						`</div>`
@@ -383,7 +384,7 @@ class NodeTemplateEngine {
 							`<button type='button' class='tool-output-toggle tool-group-toggle' ` +
 							`onclick="toggleToolGroup('${itemId}');" ` +
 							`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-							`<span class='tool-output-label'><b>${this._escapeHtml(toolLabel)}:</b>&nbsp;</span>` +
+							`<span class='tool-output-label'>${this._escapeHtml(toolLabel)}:&nbsp;</span>` +
 							`<span class='tool-output-name'>${callName}</span>${itemArrow}` +
 							`</button>` +
 							`<div class='tool-group-content' style='display:none'>${renderPair(call)}</div>` +
@@ -397,16 +398,14 @@ class NodeTemplateEngine {
 				// Legacy/single-turn tool rendering keeps its existing common response
 				// section, including incremental ToolOutput.update() behavior.
 				const requests = toolCalls
-					.map((call) => this._renderToolCode(call.request))
+					.map((call) => this._renderToolCode(call.request, requestLabel))
 					.join('');
 				const responseDisplay = resultCode ? '' : 'display:none';
 				contentHtml =
 					`<div class='tool-output-section'>` +
-					`<div class='tool-output-header'>${this._escapeHtml(requestLabel)}</div>` +
 					`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
 					`</div>` +
 					`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
-					`<div class='tool-output-header'>${this._escapeHtml(responseLabel)}</div>` +
 					`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
 					`</div>`;
 			}
@@ -478,7 +477,26 @@ class NodeTemplateEngine {
 				continue;
 			}
 
+			if (segment.inline_message === true) {
+				const label = this._escapeHtml(String(segment.inline_message_label || 'Message'));
+				const content = this._escapeHtml(String(segment.text || '')).replace(/\r?\n/g, '<br>');
+				if (content) {
+					const partId = this._esc(segment.part_uuid || segment.part_id || i);
+					parts.push(
+						`<div class='msg-part msg-part-inline' data-part-id='${partId}'>` +
+						`<div class='msg-box msg-user msg-inline'><div class='msg'>` +
+						`<p style='margin:0'><strong>${label}:</strong> ${content}</p>` +
+						`</div></div></div>`
+					);
+				}
+				continue;
+			}
+
 			const mdText = this._escapeHtml(segment.text || '');
+			const agentName = String(segment.agent_name_prefix || '').trim();
+			const agentPrefix = (mdText && agentName)
+				? `<span class='agent-name-prefix'>${this._escapeHtml(agentName)}</span>`
+				: '';
 			const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';
 			const calls = Array.isArray(segment.tool_calls) ? segment.tool_calls.filter(Boolean) : [];
 			let toolWrap = '';
@@ -496,7 +514,7 @@ class NodeTemplateEngine {
 			}
 			if (!mdBlock && !toolWrap) continue;
 			const partId = this._esc(segment.part_uuid || segment.part_id || i);
-			parts.push(`<div class='msg-part' data-part-id='${partId}'>${mdBlock}${toolWrap}</div>`);
+			parts.push(`<div class='msg-part' data-part-id='${partId}'>${agentPrefix}${mdBlock}${toolWrap}</div>`);
 		}
 		return parts.join('');
 	}
@@ -513,21 +531,22 @@ class NodeTemplateEngine {
 
 		const contentHtml = this._renderTimelineSegments(block, timeline);
 		if (!contentHtml) return '';
+		const expanded = workflow.expanded === true;
 		const label = this._escapeHtml(String(workflow.label || ''));
 		const expIcon = (typeof window !== 'undefined' && window.ICON_EXPAND) ? window.ICON_EXPAND : '';
 		const toggleTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
 			? String(window.LOCALE_EXPAND)
 			: 'Expand';
 		const id = this._esc(block.id);
-		const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow agent-workflow-arrow' width='25' height='25' alt=''>`;
+		const arrowHtml = `<img src='${this._esc(expIcon)}' class='tool-output-arrow agent-workflow-arrow${expanded ? ' toggle-expanded' : ''}' width='25' height='25' alt=''>`;
 
 		return (
 			`<div class='tool-output agent-workflow-output' id='tool-output-${id}'>` +
 			`<button type='button' class='tool-output-toggle agent-workflow-toggle' ` +
-			`onclick='toggleToolOutput(${id});' title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
-			`<span class='tool-output-label agent-workflow-label'><b>${label}</b></span>${arrowHtml}` +
+			`onclick='toggleToolOutput(${id});' title='${this._escapeHtml(toggleTitle)}' aria-expanded='${expanded}'>` +
+			`<span class='tool-output-label agent-workflow-label'>${label}</span>${arrowHtml}` +
 			`</button>` +
-			`<div class='tool-output-content agent-workflow-content' style='display:none' data-trusted='1'>${contentHtml}</div>` +
+			`<div class='tool-output-content agent-workflow-content${expanded ? ' is-expanded' : ''}' ${expanded ? '' : "style='display:none'"} data-trusted='1'><div class='tool-collapse-inner'><div class='tool-collapse-body'>${contentHtml}</div></div></div>` +
 			`</div>`
 		);
 	}
@@ -547,7 +566,11 @@ class NodeTemplateEngine {
 
 		const mdText = this._escapeHtml(out.text || '');
 		const timelineHtml = this._renderPartialTimeline(block);
-		const mdBlock = timelineHtml ? '' : (mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '');
+		const agentName = String(out.agent_name_prefix || '').trim();
+		const agentPrefix = (!timelineHtml && mdText && agentName)
+			? `<span class='agent-name-prefix'>${this._escapeHtml(agentName)}</span>`
+			: '';
+		const mdBlock = timelineHtml ? '' : (mdText ? `${agentPrefix}<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '');
 		const collapsedWorkflowHtml = timelineHtml ? '' : this._renderCollapsedWorkflow(block);
 		const primaryHtml = timelineHtml || `${collapsedWorkflowHtml}${mdBlock}`;
 		const toolWrap = timelineHtml ? '' : this._renderToolOutputWrapper(block);

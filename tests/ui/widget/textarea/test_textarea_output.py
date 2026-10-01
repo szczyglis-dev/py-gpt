@@ -75,22 +75,15 @@ def test_find_open_and_update_manage_finder():
     finder.clear.assert_called_once_with()
 
 
-def test_zoom_change_updates_config_option_and_font_size():
+def test_zoom_change_uses_shared_zoom_scheduler(monkeypatch):
     window = _window()
-    option = {"value": 10}
-    window.controller.settings.editor.get_option.return_value = option
     widget = SimpleNamespace(window=window, value=10)
-
+    zoom = MagicMock()
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.output.zoom_text', zoom)
     ChatOutput.on_zoom_changed(widget, 15)
-
-    assert widget.value == 15
-    assert window.core.config.data["font_size"] == 15
-    window.core.config.save.assert_called_once_with()
-    assert option["value"] == 15
-    window.controller.config.apply.assert_called_once_with(
-        parent_id="config", key="font_size", option=option
-    )
-    window.controller.ui.update_font_size.assert_called_once_with()
+    zoom.assert_called_once_with(widget, window, 15, 'font_size')
+    window.core.config.save.assert_not_called()
+    window.controller.config.apply.assert_not_called()
 
 
 def test_auto_scroll_margin_uses_page_step_and_clamps():

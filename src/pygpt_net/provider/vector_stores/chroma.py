@@ -9,12 +9,14 @@
 # Updated Date: 2025.08.06 01:00:00                  #
 # ================================================== #
 
-import os.path
-from typing import Optional
+from __future__ import annotations
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core import StorageContext
-from llama_index.vector_stores.chroma import ChromaVectorStore
+
+import os.path
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
 
 from .base import BaseStore
 
@@ -81,6 +83,9 @@ class ChromaProvider(BaseStore):
         :param embed_model: Embedding model instance
         :return: index instance
         """
+        from llama_index.core import StorageContext
+        from llama_index.vector_stores.chroma import ChromaVectorStore
+
         if not self.exists(id):
             self.create(id, embed_model)
         path = self.get_path(id)

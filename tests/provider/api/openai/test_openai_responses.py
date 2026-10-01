@@ -41,6 +41,12 @@ def dummy_window():
     window.core = SimpleNamespace()
     window.core.config = SimpleNamespace()
     window.core.config.get = lambda key, default=None: config_dict.get(key, default)
+    window.core.llm = SimpleNamespace()
+    window.core.llm.get_config = lambda provider, key, default=None: (
+        config_dict.get("api_use_responses", default)
+        if provider == "openai" and key == "responses_api"
+        else default
+    )
     window.core.api = SimpleNamespace()
     window.core.api.logger = SimpleNamespace(log_input=MagicMock(), log_output=MagicMock())
     window.core.api.openai = SimpleNamespace()
@@ -82,6 +88,8 @@ def dummy_window():
     window.core.command.unpack_tool_calls_chunks = MagicMock()
     window.core.image = SimpleNamespace()
     window.core.image.gen_unique_path = MagicMock(return_value="dummy_image.png")
+    window.core.filesystem = SimpleNamespace()
+    window.core.filesystem.materialize_runtime_artifact = MagicMock()
     window.core.debug = SimpleNamespace()
     window.core.debug.info = MagicMock()
     window.core.debug.error = MagicMock()

@@ -177,7 +177,9 @@ class EventManager {
         }, DUR);
     }
 
-	// Toggle code collapse/expand and remember collapsed indices.
+	// Toggle code collapse/expand and remember collapsed indices. The code body
+	// remains in the DOM; CSS animates the wrapper between 0fr and 1fr so
+	// collapse/expand has the same smooth slide semantics as tools/workflow.
     _toggleCollapse(wrapper) {
         if (!wrapper) return;
         const codeEl = this._getCodeEl(wrapper);
@@ -188,19 +190,31 @@ class EventManager {
         const L_EXPAND = wrapper.getAttribute('data-locale-expand') || 'Expand';
         const idx = String(wrapper.getAttribute('data-index') || '');
         const arr = window.__collapsed_idx || (window.__collapsed_idx = []);
-        const isHidden = (codeEl.style.display === 'none');
+        const isCollapsed = wrapper.classList.contains('code-collapsed') || codeEl.style.display === 'none';
 
-        if (isHidden) {
-            codeEl.style.display = 'block';
+        // Remove legacy inline display state once and let the CSS transition own
+        // visibility from this point onward.
+        try { codeEl.style.removeProperty('display'); } catch (_) {}
+
+        if (isCollapsed) {
+            wrapper.classList.remove('code-collapsed');
+            wrapper.setAttribute('aria-expanded', 'true');
             if (span) span.textContent = L_COLLAPSE;
             const p = arr.indexOf(idx);
             if (p !== -1) arr.splice(p, 1);
-            if (btn) btn.setAttribute('title', L_COLLAPSE);
+            if (btn) {
+                btn.setAttribute('title', L_COLLAPSE);
+                btn.setAttribute('aria-expanded', 'true');
+            }
         } else {
-            codeEl.style.display = 'none';
+            wrapper.classList.add('code-collapsed');
+            wrapper.setAttribute('aria-expanded', 'false');
             if (span) span.textContent = L_EXPAND;
             if (!arr.includes(idx)) arr.push(idx);
-            if (btn) btn.setAttribute('title', L_EXPAND);
+            if (btn) {
+                btn.setAttribute('title', L_EXPAND);
+                btn.setAttribute('aria-expanded', 'false');
+            }
         }
 
         // Click feedback (same "pop" effect as input)
@@ -379,9 +393,8 @@ class EventManager {
 			const last = runtime.scrollMgr.lastScrollTop;
 			const programmatic = runtime.scrollMgr.isProgrammaticScroll(top);
 
-			// Only actual user movement is allowed to change ownership. Browser DOM
-			// anchoring is disabled globally, while our own scrolls are filtered by the
-			// one-shot programmatic marker above.
+			// Filter our own scrolls, then let ScrollManager distinguish pointer
+			// input from layout-driven scrollTop clamping (e.g. hiding the loader).
 			if (!programmatic && Math.abs(top - last) > 0.5) {
 				runtime.scrollMgr.noteObservedUserScroll(top - last);
 			}

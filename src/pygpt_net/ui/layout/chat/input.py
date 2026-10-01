@@ -12,18 +12,20 @@
 from PySide6.QtCore import Qt, QSize, QTimer, QPoint
 from PySide6.QtGui import QIcon, QAction, QActionGroup
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QMenu, \
-    QGridLayout, QSizePolicy, QLabel
+    QGridLayout, QSizePolicy
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
 from pygpt_net.ui.layout.chat.attachments_ctx import AttachmentsCtx
 from pygpt_net.ui.layout.status import Status
-from pygpt_net.ui.widget.audio.bar import OutputBar
+from pygpt_net.ui.widget.audio.bar import OutputBar, InputRecordWidget
 from pygpt_net.ui.widget.audio.input import AudioInput
 from pygpt_net.ui.widget.audio.input_button import AudioInputButton
 from pygpt_net.ui.widget.audio.output import AudioOutput
-from pygpt_net.ui.widget.element.labels import HelpLabel, ChatStatusLabel, IconLabel
+from pygpt_net.ui.widget.element.labels import (
+    HelpLabel, ChatStatusLabel, IconLabel, StatusIconCounter, StatusIconLabel,
+)
 from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.input_extra import ExtraInput
@@ -192,25 +194,17 @@ class ChatInputContainer(QWidget):
 
 
 class ChatInputRootContainer(QWidget):
-    """Full-width input area with a centered composer and global status footer."""
+    """Column-local input pane containing only the shared chat composer."""
 
-    def __init__(self, composer_widget, footer_widget):
+    def __init__(self, composer_widget):
         super().__init__()
         self.composer_widget = composer_widget
-        self.footer_widget = footer_widget
-
-        # Only the global status footer spans the whole available panel width,
-        # independently from the 800 px / zoom-constrained composer above it.
-        # Ignore its horizontal hint so it cannot increase the main window's
-        # minimum width.
-        self.footer_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 5)
         layout.setSpacing(0)
         layout.addWidget(self.composer_widget, 1)
-        layout.addWidget(self.footer_widget, 0)
 
     def sizeHint(self) -> QSize:
         hint = super().sizeHint()
@@ -222,7 +216,8 @@ class ChatInputRootContainer(QWidget):
 
 
 class Input:
-    VISION_ICON_SIZE = 16
+    STATUS_ICON_SIZE = 16
+    STATUS_ITEM_SPACING = 10
 
     def __init__(self, window=None):
         """
@@ -239,11 +234,11 @@ class Input:
         # min height
         self.min_height_files_tab = 120
         # Keep the normal Input tab more compact. The tab minimum and the
-        # inner editor minimum are reduced together; otherwise QTabWidget's
+        # inner editor minimum are kept in sync; otherwise QTabWidget's
         # current-page minimumSizeHint would still clamp the pane to the old
         # effective height. Files tabs keep their existing minimums.
-        self.min_height_input_tab = 115
-        self.min_height_input = 85
+        self.min_height_input_tab = 135
+        self.min_height_input = 105
         self.min_height_input_extra = 100
 
         # Exact main.output splitter geometry from the moment the user leaves
@@ -266,9 +261,7 @@ class Input:
         files_uploaded = self.setup_attachments_uploaded()
         files_ctx = self.setup_attachments_ctx()
 
-        # Create metadata/capability nodes before the tab widget. Only the
-        # capability icons are moved into the tab bar row; metadata stays in
-        # its existing footer position.
+        # Create footer metadata/capability nodes before the tab widget.
         self._setup_footer_nodes()
 
         self.window.ui.tabs['input'] = InputTabs(self.window)
@@ -291,6 +284,9 @@ class Input:
         tabs.set_compact_tab_count(2, 0)
         tabs.set_compact_tab_count(3, 0)
 
+        self.window.ui.plugin_addon['audio.input.bar'] = InputRecordWidget(self.window)
+        tabs.set_header_widget(self.window.ui.plugin_addon['audio.input.bar'])
+
         content = QWidget()
         content_layout = QVBoxLayout(content)
         content_layout.addLayout(self.setup_header())
@@ -304,14 +300,14 @@ class Input:
         composer = ChatInputContainer(self.window, content)
         self.window.ui.nodes['input.container'] = composer
 
-        # Only the application-wide status row is full width. This lets the
-        # clock / Ready status sit at the far-left edge without pulling the
-        # chat metadata out of the centered composer.
+        # The application-wide bottom status remains outside both chat columns.
+        # Only the composer-local metadata row (Plugins / MCP / Skills / ctx),
+        # already embedded in ``content`` above, follows the shared input.
         footer = QWidget()
         footer.setLayout(self.setup_bottom())
         self.window.ui.nodes['input.footer.container'] = footer
 
-        widget = ChatInputRootContainer(composer, footer)
+        widget = ChatInputRootContainer(composer)
         self.window.ui.nodes['input.root'] = widget
 
         # main.output is created around this input later in the UI setup. Keep
@@ -476,7 +472,7 @@ class Input:
         status_layout.setContentsMargins(4, 0, 0, 5)
 
         bottom_row = QGridLayout()
-        bottom_row.setContentsMargins(2, 0, 2, 0)
+        bottom_row.setContentsMargins(0, 4, 2, 2)
         bottom_row.setHorizontalSpacing(6)
         bottom_row.addLayout(status_layout, 0, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
         bottom_row.addWidget(
@@ -567,8 +563,20 @@ class Input:
         nodes['chat.model'].setWordWrap(False)
         nodes['chat.model'].hide()
 
-        nodes['chat.plugins'] = ChatStatusLabel("")
-        nodes['chat.plugins'].setSizePolicy(min_policy)
+        nodes['chat.plugins'] = StatusIconCounter(
+            ":/icons/power.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.mcp'] = StatusIconCounter(
+            ":/icons/router.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.skills'] = StatusIconCounter(
+            ":/icons/robot.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.annotations'] = StatusIconCounter(
+            ":/icons/chat2.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.annotations'].setToolTip(trans('plugin.tab.annotations'))
+        nodes['chat.annotations'].setVisible(False)
 
         nodes['input.counter'] = ChatStatusLabel("")
         nodes['input.counter'].setToolTip("")
@@ -578,23 +586,17 @@ class Input:
         plugin_addon['audio.output'] = AudioOutput(self.window)
         plugin_addon['schedule'] = ChatStatusLabel("")
 
-        nodes['inline.vision'] = QLabel()
-        nodes['inline.vision'].setPixmap(
-            QIcon(":/icons/vision.svg").pixmap(QSize(self.VISION_ICON_SIZE, self.VISION_ICON_SIZE))
+        nodes['inline.vision'] = StatusIconLabel(
+            ":/icons/vision.svg", self.window, self.STATUS_ICON_SIZE
         )
-        nodes['inline.vision'].setAlignment(Qt.AlignCenter)
         nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
-        nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
-        nodes['inline.vision'].setFixedSize(
-            self.VISION_ICON_SIZE,
-            self.VISION_ICON_SIZE,
-        )
         nodes['inline.vision'].setVisible(False)
 
         # Kept for compatibility with the existing (currently disabled) loading
         # helper in ui/__init__.py.
         nodes['anim.loading'] = QWidget()
         nodes['anim.loading'].hide()
+
 
     def _setup_footer_metadata(self) -> QHBoxLayout:
         """Build chat metadata on the far left."""
@@ -610,7 +612,19 @@ class Input:
         # Model selection lives directly in ChatInput's bottom controls row.
         layout.addWidget(plugin_addon['schedule'], alignment=Qt.AlignVCenter)
         layout.addSpacing(4)
-        layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
+
+        status_layout = QHBoxLayout()
+        status_layout.setContentsMargins(0, 0, 0, 0)
+        status_layout.setSpacing(self.STATUS_ITEM_SPACING)
+        status_layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
+        status_layout.addWidget(nodes['chat.mcp'], alignment=Qt.AlignVCenter)
+        status_layout.addWidget(nodes['chat.skills'], alignment=Qt.AlignVCenter)
+        status_layout.addWidget(nodes['chat.annotations'], alignment=Qt.AlignVCenter)
+        # Vision always remains the last status icon in the metadata row.
+        status_layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
+        status_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+        layout.addLayout(status_layout)
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         return layout
 
@@ -626,7 +640,6 @@ class Input:
         layout.setContentsMargins(4, 0, 4, 7)
         layout.setSpacing(5)
         layout.addWidget(nodes['icon.plain'], alignment=Qt.AlignVCenter)
-        layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.video.capture'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.audio.input'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.audio.output'], alignment=Qt.AlignVCenter)
@@ -652,7 +665,7 @@ class Input:
             key="send",
             icon=QIcon(":/icons/play.svg"),
             tooltip=trans("input.btn.send"),
-            callback=controller.chat.input.send_input,
+            callback=controller.chat.common.handle_send,
             visible=True,
         )
 
@@ -768,6 +781,34 @@ class Input:
             return
         self._remember_live_input_splitter_sizes()
 
+    def _is_usable_input_splitter_sizes(self, sizes) -> bool:
+        """Reject cached geometry that would collapse the normal Input pane."""
+        splitter = self.window.ui.splitters.get('main.output')
+        root = self.window.ui.nodes.get('input.root')
+        if splitter is None or root is None or not sizes or len(sizes) != splitter.count():
+            return False
+        try:
+            tabs_controller = getattr(self.window.controller.ui, 'tabs', None)
+            validator = getattr(tabs_controller, '_is_expanded_chat_input_sizes', None)
+            if callable(validator):
+                return bool(validator(sizes))
+
+            input_idx = self._input_pane_index(splitter, root)
+            if input_idx < 0 or input_idx >= len(sizes):
+                return False
+            # Fallback for early setup: reject only a truly collapsed pane.
+            return int(sizes[input_idx]) > 0 and sum(int(x) for x in sizes) > 0
+        except (TypeError, ValueError):
+            return False
+
+    def _ensure_input_splitter_visible(self):
+        """Recover the normal Input pane if Qt ended a tab transition at zero height."""
+        tabs = getattr(self.window.controller.ui, 'tabs', None)
+        ensure = getattr(tabs, '_ensure_chat_input_splitter_visible', None)
+        if callable(ensure):
+            ensure()
+            self._remember_live_input_splitter_sizes()
+
     def _remember_live_input_splitter_sizes(self):
         """Persist current splitter sizes only while Input/Extra is active."""
         tabs = self.window.ui.tabs.get('input')
@@ -779,7 +820,7 @@ class Input:
             return
         try:
             sizes = list(splitter.sizes())
-            if sizes and len(sizes) == splitter.count():
+            if self._is_usable_input_splitter_sizes(sizes):
                 self.window.controller.ui.splitter_output_size_input = sizes
         except Exception:
             pass
@@ -794,7 +835,8 @@ class Input:
         splitter = self.window.ui.splitters.get('main.output')
         if tabs is None or splitter is None or tabs.currentIndex() not in (0, 4):
             return
-        if not sizes or len(sizes) != splitter.count():
+        if not self._is_usable_input_splitter_sizes(sizes):
+            QTimer.singleShot(0, self._ensure_input_splitter_visible)
             return
 
         try:
@@ -836,9 +878,14 @@ class Input:
                     except Exception:
                         pass
 
-            # Keep the normal-input remembered size synchronized with what Qt
-            # actually accepted after applying current style/minimum hints.
-            self.window.controller.ui.splitter_output_size_input = list(splitter.sizes())
+            # Keep the normal-input remembered size synchronized only if Qt
+            # actually accepted a visible normal Input pane. A transient zero
+            # result is recovered instead of poisoning the next restore.
+            actual = list(splitter.sizes())
+            if self._is_usable_input_splitter_sizes(actual):
+                self.window.controller.ui.splitter_output_size_input = actual
+            else:
+                QTimer.singleShot(0, self._ensure_input_splitter_visible)
         except Exception:
             # Geometry restoration must never break tab switching.
             return
@@ -872,9 +919,12 @@ class Input:
                 root.updateGeometry()
 
             restore_sizes = None
-            if not previous_was_input and self._input_splitter_sizes_before_files:
+            if (
+                not previous_was_input
+                and self._is_usable_input_splitter_sizes(self._input_splitter_sizes_before_files)
+            ):
                 restore_sizes = list(self._input_splitter_sizes_before_files)
-            elif controller_ui.splitter_output_size_input:
+            elif self._is_usable_input_splitter_sizes(controller_ui.splitter_output_size_input):
                 restore_sizes = list(controller_ui.splitter_output_size_input)
 
             if splitter is not None and restore_sizes:
@@ -883,6 +933,8 @@ class Input:
                 # hidden Attachments/Uploaded page's old layout constraints.
                 self._restore_input_splitter_sizes(restore_sizes)
                 QTimer.singleShot(0, lambda s=list(restore_sizes): self._restore_input_splitter_sizes(s))
+            else:
+                QTimer.singleShot(0, self._ensure_input_splitter_visible)
 
             if not previous_was_input:
                 self._input_splitter_sizes_before_files = None
@@ -899,12 +951,12 @@ class Input:
             # so it still represents the pre-click height even if QTabWidget
             # has already started relayouting the newly selected files page.
             saved_sizes = controller_ui.splitter_output_size_input
-            if saved_sizes and len(saved_sizes) == splitter.count():
+            if self._is_usable_input_splitter_sizes(saved_sizes):
                 self._input_splitter_sizes_before_files = list(saved_sizes)
             else:
                 try:
                     live_sizes = list(splitter.sizes())
-                    if live_sizes and len(live_sizes) == splitter.count():
+                    if self._is_usable_input_splitter_sizes(live_sizes):
                         self._input_splitter_sizes_before_files = live_sizes
                         controller_ui.splitter_output_size_input = list(live_sizes)
                 except Exception:

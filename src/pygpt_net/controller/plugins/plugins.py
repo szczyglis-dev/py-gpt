@@ -6,22 +6,26 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 18:02:00                  #
+# Updated Date: 2026.09.29 19:40:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject, Signal
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
-    MODE_AUDIO, MODE_EXPERT,
+    MODE_AUDIO, MODE_EXPERT, MODE_AGENT_V2,
 )
 from pygpt_net.controller.plugins.presets import Presets
 from pygpt_net.controller.plugins.settings import Settings
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+
+
+class PluginUiSignals(QObject):
+    annotation_info = Signal()
 
 
 class Plugins:
@@ -38,6 +42,11 @@ class Plugins:
         self._ids = None
         self._ids_with_update = None
         self._suspend_updates = 0
+        self._ui_signals = PluginUiSignals()
+        self._ui_signals.annotation_info.connect(
+            self.update_annotations_info,
+            Qt.ConnectionType.QueuedConnection,
+        )
 
     def _begin_batch(self):
         """Begin batch updates"""
@@ -415,13 +424,10 @@ class Plugins:
 
         pm = self.window.core.plugins
         for pid in pm.get_ids():
-            plugin = pm.get(pid)
-            fn = getattr(pm, "destroy", None)
-            if callable(fn):
-                try:
-                    pm.destroy(pid)
-                except AttributeError:
-                    pass
+            try:
+                pm.destroy(pid)
+            except AttributeError:
+                pass
 
     def has_type(self, id: str, type: str):
         """
@@ -491,21 +497,125 @@ class Plugins:
                 if callable(fn):
                     fn()
 
+    def _status_tooltip(self, header_key: str, items=None) -> str:
+        """Build a compact status tooltip containing only status items."""
+        if items:
+            return "\n".join(items)
+        return ""
+
     def update_info(self):
-        """Update plugins info"""
+        """Update plugin/MCP/Skill and annotation counters below the chat input."""
         pm = self.window.core.plugins
+
+        # Plugins
         enabled_names = []
-        c = 0
+        plugin_count = 0
         for pid in pm.get_ids():
             if self.is_enabled(pid):
-                c += 1
+                plugin_count += 1
                 enabled_names.append(pm.get_name(pid))
 
-        enabled_names.sort(key=str.casefold)
-        tooltip = "\n".join(enabled_names)
-        count_str = f"{c} {trans('chatbox.plugins')}" if c > 0 else ""
-        self.window.ui.nodes['chat.plugins'].setText(count_str)
-        self.window.ui.nodes['chat.plugins'].setToolTip(tooltip)
+        plugin_label = self.window.ui.nodes['chat.plugins']
+        if plugin_count > 0:
+            enabled_names.sort(key=str.casefold)
+            plugin_label.setCount(plugin_count)
+            plugin_label.setToolTip(self._status_tooltip("menu.plugins", enabled_names))
+            plugin_label.setVisible(True)
+        else:
+            plugin_label.clear()
+            plugin_label.setToolTip("")
+            plugin_label.setVisible(False)
+
+        # MCP count means active configured MCP servers. Keep it hidden when
+        # the MCP plugin itself is disabled, even if server rows remain active
+        # in its saved configuration.
+        mcp_label = self.window.ui.nodes.get('chat.mcp')
+        mcp_names = []
+        if self.is_enabled("mcp"):
+            try:
+                mcp = pm.get("mcp")
+                servers = mcp.get_option_value("servers") if mcp is not None else []
+                for server in (servers or []):
+                    if not isinstance(server, dict) or not bool(server.get("active", False)):
+                        continue
+                    name = str(server.get("label") or server.get("server_address") or "").strip()
+                    if name:
+                        mcp_names.append(name)
+            except Exception:
+                mcp_names = []
+
+        if mcp_label is not None:
+            if mcp_names:
+                mcp_names.sort(key=str.casefold)
+                mcp_label.setCount(len(mcp_names))
+                mcp_label.setToolTip(self._status_tooltip("menu.config.mcp", mcp_names))
+                mcp_label.setVisible(True)
+            else:
+                mcp_label.clear()
+                mcp_label.setToolTip("")
+                mcp_label.setVisible(False)
+
+        # Skills participate only in the Agents v2 / Chat with Agents runtime.
+        skills_label = self.window.ui.nodes.get('chat.skills')
+        skill_names = []
+        if self.window.core.config.get("mode") == MODE_AGENT_V2:
+            try:
+                for skill in self.window.core.skills.list_installed(enabled_only=True):
+                    if not isinstance(skill, dict):
+                        continue
+                    name = str(skill.get("name") or skill.get("dir_name") or "").strip()
+                    if name:
+                        skill_names.append(name)
+            except Exception:
+                skill_names = []
+
+        if skills_label is not None:
+            if skill_names:
+                skill_names.sort(key=str.casefold)
+                skills_label.setCount(len(skill_names))
+                skills_label.setToolTip(self._status_tooltip("menu.skills", skill_names))
+                skills_label.setVisible(True)
+            else:
+                skills_label.clear()
+                skills_label.setToolTip("")
+                skills_label.setVisible(False)
+
+        self.update_annotations_info()
+
+    def request_annotations_info_update(self):
+        """Thread-safe request to refresh the annotation counter on the UI thread."""
+        self._ui_signals.annotation_info.emit()
+
+    def update_annotations_info(self):
+        """Update the combined Canvas/chat/files annotation counter."""
+        label = self.window.ui.nodes.get('chat.annotations')
+        if label is None:
+            return
+
+        count = 0
+        try:
+            meta = self.window.core.ctx.get_current_meta()
+            session = self.window.controller.chat.text.get_annotations(meta)
+            if session is not None:
+                count += len(session.annotations)
+        except Exception:
+            pass
+
+        try:
+            tool = self.window.tools.get("web_browser")
+            if tool is not None:
+                count += len(tool.get_annotations())
+        except Exception:
+            pass
+
+        if count > 0:
+            label.setCount(count)
+            label.setToolTip(str(trans("plugin.tab.annotations")).strip())
+            label.setVisible(True)
+        else:
+            label.clear()
+            label.setToolTip(str(trans("plugin.tab.annotations")).strip())
+            label.setVisible(False)
 
     def _apply_cmds_common(
             self,
@@ -605,6 +715,22 @@ class Plugins:
         self.settings.init()
         self.update()
 
+    def shutdown(self):
+        """Run the shutdown hook for every registered plugin."""
+        pm = self.window.core.plugins
+        for pid in pm.get_ids():
+            plugin = pm.get(pid)
+            if plugin is None:
+                continue
+
+            enabled = bool(self.enabled.get(pid, getattr(plugin, 'enabled', False)))
+            try:
+                plugin.shutdown(enabled=enabled)
+            except Exception as e:
+                self.window.core.debug.log(
+                    f"Plugin shutdown failed ({pid}): {e}"
+                )
+
     def save_all(self):
         """Save plugin settings"""
         pm = self.window.core.plugins
@@ -616,6 +742,8 @@ class Plugins:
                 cfg_plugins[pid] = {}
             dest = cfg_plugins[pid]
             for key, opt in plugin.options.items():
+                if opt.get('type') == 'button':
+                    continue
                 if opt.get('type') == 'cmd':
                     value = opt.get('value')
                     dest[key] = bool(value.get('enabled', False)) if isinstance(value, dict) else bool(value)

@@ -4,7 +4,7 @@ MCP Connectors
 Overview
 --------
 
-**MCP Connectors** provide a convenient management and import layer for Model Context Protocol (MCP) servers. Connectors do not create a separate MCP runtime: imported definitions are normalized and stored directly in the existing ``MCP`` plugin server registry, so the same MCP tool discovery, transport handling, filtering, caching, and execution path is used after a connector is enabled.
+**MCP Connectors** provide a convenient way to import and manage Model Context Protocol (MCP) server configurations. Enabled connectors are handled by the regular ``MCP`` plugin.
 
 The connector importer understands common MCP configuration layouts used by Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible generic JSON, JSONC/JSON5, TOML, YAML, and YML files. This makes it possible to reuse existing MCP server configurations without manually recreating every server entry in PyGPT.
 
@@ -58,7 +58,7 @@ When the setting is empty, PyGPT uses its built-in default catalog URL:
 
 .. code-block:: text
 
-   https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/connectors/catalog.json
+   https://github.com/szczyglis-dev/py-gpt-addons/mcp.json
 
 PyGPT also includes a bundled local catalog. If loading the built-in default remote catalog fails, the bundled catalog is used as a fallback. An explicitly configured custom catalog reports its loading error instead of silently switching to the default source.
 

@@ -91,19 +91,37 @@ class BaseConfigDialog:
 
         return widgets
 
-    def trans_or_not(self, label: str):
+    def trans_or_not(self, label: str, domain: str = None):
         """
         Translate label or return it as is if translation is not available
 
         :param label: Label to translate
         :return: Translated label or original if not found
         """
-        txt = trans(label)
+        txt = trans(label, domain=domain)
         if txt == label:
             if txt.startswith("dictionary."):
                 # get only last part after the dot
                 txt = txt.split('.')[-1].capitalize()
         return txt
+
+    def get_option_text(self, option: dict, field: str) -> str:
+        """Return translated/formatted option text for static or dynamic fields."""
+        value = option.get(field)
+        if value is None:
+            return ""
+        if option.get('_use_locale', True):
+            value = self.trans_or_not(str(value), option.get('_locale_domain'))
+        else:
+            value = str(value)
+        params_key = '_label_params' if field == 'label' else '_description_params'
+        params = option.get(params_key) or {}
+        if params:
+            try:
+                value = value.format(**params)
+            except (KeyError, ValueError):
+                pass
+        return value
 
     def add_option(self, widget: QWidget, option: dict) -> QHBoxLayout:
         """
@@ -116,10 +134,11 @@ class BaseConfigDialog:
         label = option['label']
         desc = option.get('description')
         extra = option.get('extra') or {}
-        label_key = f'{label}.label'
+        ui_key = option.get('_ui_key', label)
+        label_key = f'{ui_key}.label'
         nodes = self.window.ui.nodes
 
-        txt = self.trans_or_not(label)
+        txt = self.get_option_text(option, 'label')
         if extra.get('bold'):
             nodes[label_key] = TitleLabel(txt)
         else:
@@ -130,8 +149,8 @@ class BaseConfigDialog:
 
         desc_key = None
         if desc is not None:
-            desc_key = f'{label}.desc'
-            nodes[desc_key] = self.add_description(desc)
+            desc_key = f'{ui_key}.desc'
+            nodes[desc_key] = self.add_description(desc, option)
 
         if option.get('type') == 'textarea':
             widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
@@ -160,12 +179,13 @@ class BaseConfigDialog:
         :return: QHBoxLayout
         """
         label = option['label']
-        label_key = f'{label}.label'
+        ui_key = option.get('_ui_key', label)
+        label_key = f'{ui_key}.label'
         desc = option.get('description')
         extra = option.get('extra') or {}
         nodes = self.window.ui.nodes
 
-        txt = self.trans_or_not(label)
+        txt = self.get_option_text(option, 'label')
         if extra.get('bold'):
             nodes[label_key] = TitleLabel(txt)
         else:
@@ -175,8 +195,8 @@ class BaseConfigDialog:
 
         desc_key = None
         if desc is not None:
-            desc_key = f'{label}.desc'
-            nodes[desc_key] = self.add_description(desc)
+            desc_key = f'{ui_key}.desc'
+            nodes[desc_key] = self.add_description(desc, option)
 
         layout = QVBoxLayout()
         layout.addWidget(nodes[label_key])
@@ -210,8 +230,9 @@ class BaseConfigDialog:
 
         desc_key = None
         if desc is not None:
-            desc_key = f'{label}.desc'
-            nodes[desc_key] = self.add_description(desc)
+            ui_key = option.get('_ui_key', label)
+            desc_key = f'{ui_key}.desc'
+            nodes[desc_key] = self.add_description(desc, option)
 
         urls = extra.get('urls')
         if urls:
@@ -227,14 +248,19 @@ class BaseConfigDialog:
 
         return layout
 
-    def add_description(self, text: str) -> QLabel:
+    def add_description(self, text: str, option: dict = None) -> QLabel:
         """
         Add description
 
         :param text: text (to translate)
+        :param option: option metadata
         :return: QLabel
         """
-        value = trans_placeholder_apply(trans(text))
+        if option is not None:
+            value = self.get_option_text(option, 'description')
+        else:
+            value = trans(text)
+        value = trans_placeholder_apply(value)
         if "%WORKDIR%" in value:
             value = value.replace("%WORKDIR%", self.window.core.filesystem.get_data_dir())
         return DescLabel(value)

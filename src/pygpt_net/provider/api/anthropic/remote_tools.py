@@ -33,7 +33,7 @@ class RemoteTools:
         :param model: ModelItem
         :return: List of remote tool dicts
         """
-        cfg = self.window.core.config
+        provider = self.window.core.llm.get("anthropic")
         tools: List[dict] = []
 
         # keep compatibility with previous models that had no remote tool support
@@ -44,13 +44,13 @@ class RemoteTools:
         # Helper: bool from config with provider-specific fallback
         def cfg_bool(*keys: str, default: bool = False) -> bool:
             for k in keys:
-                v = cfg.get(k)
+                v = provider.get_remote_tool_config(k)
                 if isinstance(v, bool):
                     return v
             return default
 
         def parse_csv_list(key: str) -> list:
-            raw = cfg.get(key, "")
+            raw = provider.get_remote_tool_config(key, "")
             if not raw:
                 return []
             if isinstance(raw, list):
@@ -64,25 +64,25 @@ class RemoteTools:
             and remote_tools.supported(model, "web_search")
         )
         if is_web:
-            ttype = cfg.get("remote_tools.anthropic.web_search.type", "web_search_20250305")
+            ttype = provider.get_remote_tool_config("web_search.type", "web_search_20250305")
             tname = "web_search"
             tool_def: Dict[str, Any] = {
                 "type": ttype,
                 "name": tname,
             }
-            max_uses = cfg.get("remote_tools.anthropic.web_search.max_uses")
+            max_uses = provider.get_remote_tool_config("web_search.max_uses")
             if isinstance(max_uses, int) and max_uses > 0:
                 tool_def["max_uses"] = max_uses
-            allowed = parse_csv_list("remote_tools.anthropic.web_search.allowed_domains")
-            blocked = parse_csv_list("remote_tools.anthropic.web_search.blocked_domains")
+            allowed = parse_csv_list("web_search.allowed_domains")
+            blocked = parse_csv_list("web_search.blocked_domains")
             if allowed:
                 tool_def["allowed_domains"] = allowed
             elif blocked:
                 tool_def["blocked_domains"] = blocked
-            loc_city = cfg.get("remote_tools.anthropic.web_search.user_location.city")
-            loc_region = cfg.get("remote_tools.anthropic.web_search.user_location.region")
-            loc_country = cfg.get("remote_tools.anthropic.web_search.user_location.country")
-            loc_tz = cfg.get("remote_tools.anthropic.web_search.user_location.timezone")
+            loc_city = provider.get_remote_tool_config("web_search.user_location.city")
+            loc_region = provider.get_remote_tool_config("web_search.user_location.region")
+            loc_country = provider.get_remote_tool_config("web_search.user_location.country")
+            loc_tz = provider.get_remote_tool_config("web_search.user_location.timezone")
             if any([loc_city, loc_region, loc_country, loc_tz]):
                 tool_def["user_location"] = {
                     "type": "approximate",
@@ -95,12 +95,12 @@ class RemoteTools:
             tools.append(tool_def)
 
         # --- Computer Use (Anthropic-defined client tool) ---
-        if cfg_bool("remote_tools.anthropic.computer_use", default=False) \
+        if provider.is_remote_tool_enabled("computer_use") \
                 and self.window.core.api.anthropic.computer.supports_model(model):
             tools.append(self.window.core.api.anthropic.computer.get_tool(model=model))
 
         # --- Code Execution (server tool) ---
-        is_code_exec = cfg_bool("remote_tools.anthropic.code_execution", default=False)
+        is_code_exec = provider.is_remote_tool_enabled("code_execution")
         if is_code_exec:
             tools.append({
                 "type": "code_execution_20250825",
@@ -108,38 +108,38 @@ class RemoteTools:
             })
 
         # --- Web Fetch (server tool) ---
-        is_web_fetch = cfg_bool("remote_tools.anthropic.web_fetch", default=False)
+        is_web_fetch = provider.is_remote_tool_enabled("web_fetch")
         if is_web_fetch:
             fetch_def: Dict[str, Any] = {
                 "type": "web_fetch_20250910",
                 "name": "web_fetch",
             }
-            max_uses = cfg.get("remote_tools.anthropic.web_fetch.max_uses")
+            max_uses = provider.get_remote_tool_config("web_fetch.max_uses")
             if isinstance(max_uses, int) and max_uses > 0:
                 fetch_def["max_uses"] = max_uses
-            allowed = parse_csv_list("remote_tools.anthropic.web_fetch.allowed_domains")
-            blocked = parse_csv_list("remote_tools.anthropic.web_fetch.blocked_domains")
+            allowed = parse_csv_list("web_fetch.allowed_domains")
+            blocked = parse_csv_list("web_fetch.blocked_domains")
             if allowed:
                 fetch_def["allowed_domains"] = allowed
             elif blocked:
                 fetch_def["blocked_domains"] = blocked
-            citations_enabled = cfg_bool("remote_tools.anthropic.web_fetch.citations.enabled", default=True)
+            citations_enabled = cfg_bool("web_fetch.citations.enabled", default=True)
             if citations_enabled:
                 fetch_def["citations"] = {"enabled": True}
-            max_content_tokens = cfg.get("remote_tools.anthropic.web_fetch.max_content_tokens")
+            max_content_tokens = provider.get_remote_tool_config("web_fetch.max_content_tokens")
             if isinstance(max_content_tokens, int) and max_content_tokens > 0:
                 fetch_def["max_content_tokens"] = max_content_tokens
             tools.append(fetch_def)
 
         # --- Tool Search (server tool) ---
         """
-        is_tool_search = cfg_bool("remote_tools.anthropic.tool_search", default=False)
+        is_tool_search = cfg_bool("tool_search", default=False)
         if is_tool_search:
-            variant = (cfg.get("remote_tools.anthropic.tool_search.variant")
-                       or cfg.get("remote_tools.tool_search.variant") or "regex")
+            variant = (provider.get_remote_tool_config("tool_search.variant")
+                       or "regex")
             # accept full type as well
-            raw_type = str(cfg.get("remote_tools.anthropic.tool_search.type")
-                           or cfg.get("remote_tools.tool_search.type") or "").strip()
+            raw_type = str(provider.get_remote_tool_config("tool_search.type")
+                           or "").strip()
             if raw_type.startswith("tool_search_tool_"):
                 ttype = raw_type
                 tname = "tool_search_tool_regex" if "regex" in raw_type else "tool_search_tool_bm25"
@@ -157,9 +157,9 @@ class RemoteTools:
         """
 
         # --- MCP toolset (server-side tool catalog from MCP servers) ---
-        is_mcp = cfg_bool("remote_tools.anthropic.mcp", default=False)
+        is_mcp = provider.is_remote_tool_enabled("mcp")
         if is_mcp:
-            raw_tools = cfg.get("remote_tools.anthropic.mcp.tools")
+            raw_tools = provider.get_remote_tool_config("mcp.tools")
             if raw_tools:
                 try:
                     if isinstance(raw_tools, (list, dict)):

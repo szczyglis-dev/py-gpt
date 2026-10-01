@@ -591,7 +591,7 @@ class ImageViewerDialog(BaseDialog):
         return min(tw / float(iw), th / float(ih))
 
     def fit_to_width(self):
-        """Fit image to the viewport width without upscaling above its native size."""
+        """Fit image inside the viewport without upscaling above its native size."""
         if not self._has_image():
             return
         self._zoom_mode = 'width'
@@ -603,15 +603,19 @@ class ImageViewerDialog(BaseDialog):
             self.scroll_area.verticalScrollBar().setValue(0)
 
     def _apply_width_fit(self, src, target: QSize):
-        """Scale to viewport width, preserving aspect ratio and never enlarging the source."""
+        """Fit image inside the viewport, preserving aspect ratio and native-size cap."""
         if src is None or src.isNull() or self.pixmap is None:
             return
 
         iw = max(1, src.width())
         ih = max(1, src.height())
         tw = max(1, target.width())
+        th = max(1, target.height())
 
-        factor = min(1.0, tw / float(iw))
+        # Constrain by both dimensions. This is especially important when a
+        # portrait image returns from the edge-maximized/fullscreen geometry:
+        # fitting only the width can leave the image taller than the dialog.
+        factor = min(1.0, tw / float(iw), th / float(ih))
         new_w = max(1, int(round(iw * factor)))
         new_h = max(1, int(round(ih * factor)))
 
@@ -627,13 +631,16 @@ class ImageViewerDialog(BaseDialog):
         self.pixmap.setPixmap(scaled)
         self.pixmap.resize(scaled.size())
 
-        # A vertical scrollbar can appear after the first resize and reduce the
-        # actual viewport width. Recalculate once against the final viewport so
-        # width-fit never creates an unnecessary horizontal scrollbar.
+        # Scrollbar visibility can change after the first resize, which changes
+        # the final viewport by a few pixels. Recalculate once against the actual
+        # viewport so the image is guaranteed to fit in both dimensions.
         if self.scroll_area is not None:
-            actual_tw = max(1, self.scroll_area.viewport().width())
-            if actual_tw < tw and new_w > actual_tw:
-                factor = min(1.0, actual_tw / float(iw))
+            actual = self.scroll_area.viewport().size()
+            actual_tw = max(1, actual.width())
+            actual_th = max(1, actual.height())
+            final_factor = min(1.0, actual_tw / float(iw), actual_th / float(ih))
+            if abs(final_factor - factor) > 1e-9:
+                factor = final_factor
                 new_w = max(1, int(round(iw * factor)))
                 new_h = max(1, int(round(ih * factor)))
                 scaled = src.scaled(

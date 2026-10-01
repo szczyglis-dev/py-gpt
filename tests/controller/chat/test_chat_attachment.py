@@ -80,6 +80,7 @@ class DummyController:
         self.ctx = MagicMock()
         self.ui = MagicMock()
         self.ui.update_tokens = MagicMock()
+        self.tabs = MagicMock()
         self.files = MagicMock()
         self.chat = MagicMock()
         self.chat.input = MagicMock()

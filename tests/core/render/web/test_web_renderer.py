@@ -14,9 +14,10 @@ import re
 import time
 from datetime import datetime
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call
+from unittest.mock import ANY, MagicMock, call
 import pytest
 
+from pygpt_net.core.render.protocol import RenderOp
 from pygpt_net.core.render.web.pid import PidData
 from pygpt_net.core.render.web.renderer import Renderer
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -136,6 +137,9 @@ class DummyCtxItem:
     def get_part_tool_calls(self, visible_only=False, part=None):
         return []
 
+    def get_active_part(self):
+        return None
+
     def to_dict(self):
         return {"id": self.id}
 
@@ -207,21 +211,23 @@ class TestRenderer:
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.busy", meta)
-        node.page().runJavaScript.assert_called_with("if (typeof window.showLoading !== 'undefined') showLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.showLoading !== 'undefined') showLoading(0, false);")
 
     def test_state_changed_idle(self, renderer, fake_window):
         renderer.pids = {1: MagicMock()}
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.idle", DummyCtxMeta())
-        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();"
+            "if (typeof window.clearAgentWorking !== 'undefined') clearAgentWorking();")
 
     def test_state_changed_error(self, renderer, fake_window):
         renderer.pids = {1: MagicMock()}
         node = fake_window.core.ctx.output.get_by_pid(1)
         node.page().runJavaScript = MagicMock()
         renderer.state_changed("render.state.error", DummyCtxMeta())
-        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();")
+        node.page().runJavaScript.assert_called_with("if (typeof window.hideLoading !== 'undefined') hideLoading();"
+            "if (typeof window.clearAgentWorking !== 'undefined') clearAgentWorking();")
 
     def test_begin(self, renderer):
         meta = DummyCtxMeta()
@@ -240,12 +246,18 @@ class TestRenderer:
     def test_end(self, renderer):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        pctx = PidData(1, meta)
+        pctx.item = "item"
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(item="item")}
-        renderer.append_context_item = MagicMock()
+        renderer.pids = {1: pctx}
+        renderer.auto_cleanup = MagicMock()
+
         renderer.end(meta, ctx, True)
-        renderer.append_context_item.assert_called_with(meta, "item")
-        assert renderer.pids[1].item is None
+
+        renderer.get_or_create_pid.assert_called_once_with(meta)
+        assert pctx.item is None
+        assert pctx.buffer == ""
+        renderer.auto_cleanup.assert_called_once_with(meta)
 
     def test_end_extra(self, renderer):
         ctx = DummyCtxItem()
@@ -267,16 +279,30 @@ class TestRenderer:
     def test_stream_end(self, renderer, fake_window):
         meta = DummyCtxMeta()
         ctx = DummyCtxItem()
+        pctx = PidData(1, meta)
+        pctx.item = "item"
+        pctx.buffer = "pending"
         renderer.get_or_create_pid = MagicMock(return_value=1)
-        renderer.pids = {1: MagicMock(item="item")}
-        renderer.window.controller.agent.legacy.enabled = MagicMock(return_value=True)
-        renderer.append_context_item = MagicMock()
-        node = fake_window.core.ctx.output.get_current(meta)
-        node.page().runJavaScript = MagicMock()
+        renderer.pids = {1: pctx}
+        renderer._stream_flush = MagicMock()
+        renderer.flush_part_streams = MagicMock()
+        renderer._partial_stream_reset = MagicMock()
+        renderer.finalize_output = MagicMock()
+        renderer._stream_reset = MagicMock()
+        renderer.auto_cleanup = MagicMock()
+
         renderer.stream_end(meta, ctx)
-        renderer.append_context_item.assert_called_with(meta, "item")
-        assert renderer.pids[1].item is None
-        node.page().runJavaScript.assert_called()
+
+        renderer._stream_flush.assert_called_once_with(1, force=True)
+        renderer.flush_part_streams.assert_called_once_with(meta)
+        renderer.finalize_output.assert_called_once_with(
+            meta, ctx, replace_text=False, reason="stream_end"
+        )
+        assert pctx.item == "item"
+        assert pctx.buffer == ""
+        assert renderer._partial_stream_reset.call_count == 2
+        renderer._stream_reset.assert_called_once_with(1)
+        renderer.auto_cleanup.assert_called_once_with(meta)
 
     def test_append_context(self, renderer):
         meta = DummyCtxMeta()
@@ -303,9 +329,9 @@ class TestRenderer:
         renderer.tool_output_end = MagicMock()
         renderer.prepare_input = MagicMock(return_value="prepared input")
         block = MagicMock()
-        block.to_json.return_value = "render-block-json"
+        block.to_dict.return_value = {"id": 1, "input": {"text": "prepared input"}}
         renderer._build_render_block = MagicMock(return_value=block)
-        renderer.append = MagicMock()
+        renderer._emit_mutation = MagicMock()
         renderer.pids = {1: MagicMock()}
 
         renderer.append_input(meta, ctx, flush=True, append=False)
@@ -315,10 +341,15 @@ class TestRenderer:
         renderer.update_names.assert_called_once_with(meta, ctx)
         renderer.prepare_input.assert_called_once_with(meta, ctx, True, False)
         renderer._build_render_block.assert_called_once_with(
-            meta, ctx, input_text="prepared input", output_text=None
+            meta, ctx, input_text="prepared input", output_text=None, history_date_label=None
         )
-        block.to_json.assert_called_once_with(wrap=True)
-        renderer.append.assert_called_once_with(1, "render-block-json")
+        block.to_dict.assert_called_once_with()
+        renderer._emit_mutation.assert_called_once()
+        mutation_meta, mutation = renderer._emit_mutation.call_args.args
+        assert mutation_meta is meta
+        assert mutation.op == RenderOp.APPEND_INPUT
+        assert mutation.msg_id == ctx.id
+        assert mutation.block == block.to_dict.return_value
 
     def test_append_chunk(self, renderer, fake_window):
         meta = DummyCtxMeta()
@@ -326,7 +357,9 @@ class TestRenderer:
         ctx.id = 2
         previous = DummyCtxItem()
         previous.id = 1
-        pctx = SimpleNamespace(item=previous, header="")
+        pctx = PidData(1, meta)
+        pctx.item = previous
+        pctx.header = ""
         renderer.get_or_create_pid = MagicMock(return_value=1)
         renderer.pids = {1: pctx}
         renderer._hide_previous_agent_action_icons = MagicMock()
@@ -347,11 +380,16 @@ class TestRenderer:
         renderer._stream_reset.assert_called_once_with(1)
         renderer.update_names.assert_called_once_with(meta, ctx)
         assert node.page().runJavaScript.call_args_list == [
+            call(
+                "if (typeof window.bindStreamOwner !== 'undefined') bindStreamOwner(\"2\");"
+            ),
             call("if (typeof window.hideLoading !== 'undefined') hideLoading(false);"),
             call(
                 "if (typeof window.freezeWorkflowStatus !== 'undefined') freezeWorkflowStatus(\"2\");"
-                "if (typeof window.beginStream !== 'undefined') beginStream(true);"
-                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", []);"
+                "if (typeof window.beginStream !== 'undefined') beginStream(true, \"2\");"
+                "if (typeof window.bindWorkflowStream !== 'undefined') bindWorkflowStream(\"2\", \"header\", [],\"\", \"\");",
+                0,
+                ANY,
             ),
         ]
         renderer._stream_push.assert_called_once_with(1, "header", "chunk")
@@ -857,3 +895,71 @@ def test_auto_cleanup_uses_effective_memory_after_exclusion(renderer, fake_windo
 
     renderer.fresh.assert_called_once_with(meta, force=True)
     renderer.auto_cleanup_soft.assert_not_called()
+
+
+@pytest.mark.parametrize('mode', ['agent_llama', 'agent_v2'])
+@pytest.mark.parametrize('full_workflow', [False, True])
+@pytest.mark.parametrize('rebuild', [False, True])
+def test_completed_workflow_respects_display_setting(renderer, mode, full_workflow, rebuild):
+    ctx = CtxItem()
+    ctx.mode = mode
+    ctx.extra = {'agent_timeline': True}
+    ctx.id = 1
+    ctx.output = 'Final'
+    from pygpt_net.item.ctx_part import CtxItemPart
+    ctx.extra['response_final'] = True
+    ctx.parts = [CtxItemPart(output='Final', extra={'agents_v2_final': True})]
+    renderer.pids[1] = MagicMock()
+    renderer.helpers.pre_format_text.side_effect = lambda text, **kwargs: text
+    renderer.get_or_create_pid = MagicMock(return_value=1)
+    original_get = renderer.window.core.config.get.side_effect
+    renderer.window.core.config.get.side_effect = lambda key, default=None: (
+        full_workflow if key == "agent.v2.display_full_workflow" else original_get(key, default)
+    )
+    renderer._ctx_has_final_answer = MagicMock(return_value=True)
+    renderer._build_partial_timeline = MagicMock(return_value=[
+        {'kind': 'text', 'text': 'First', 'part_uuid': 'first'},
+        {'kind': 'text', 'text': 'Second', 'part_uuid': 'second'},
+    ])
+    renderer._agent_v2_timeline_without_final_text = MagicMock(side_effect=lambda ctx, timeline: timeline)
+    renderer._agent_v2_collapsed_workflow_step_count = MagicMock(return_value=2)
+    block = renderer._build_render_block(CtxMeta(), ctx, None, 'Final', action_state={}, rebuild=rebuild)
+    if full_workflow:
+        assert block.extra['collapsed_workflow'] is None
+        assert len(block.extra['partial_timeline']) == 2
+    else:
+        assert block.extra['collapsed_workflow']['expanded'] is False
+        assert len(block.extra['collapsed_workflow']['timeline']) == 2
+
+
+@pytest.mark.parametrize("mode,extra", [("agent_v2", {}), ("agent", {"agent_timeline": True})])
+def test_working_timer_requires_real_work(renderer, monkeypatch, mode, extra):
+    monkeypatch.setattr("pygpt_net.core.render.web.renderer.trans", lambda key: key)
+    ctx = CtxItem()
+    ctx.mode = mode
+    ctx.extra = extra
+    ctx.input_timestamp = 123
+    ctx.parts = [SimpleNamespace(extra={}, tasks=[])]
+    assert renderer._agent_working_payload(ctx) is None
+    assert renderer._agent_working_payload(ctx, tool_started=True)["started"] == 123
+    ctx.parts.append(SimpleNamespace(extra={}, tasks=[]))
+    assert renderer._agent_working_payload(ctx) is not None
+    ctx.parts[-1].extra["agents_v2_final"] = True
+    assert renderer._agent_working_payload(ctx, tool_started=True) is None
+
+
+@pytest.mark.parametrize("ending", ["stopped", "response_final", "response_interrupted"])
+def test_working_timer_does_not_restart_after_end(renderer, ending):
+    ctx = CtxItem()
+    ctx.mode = "agent_v2"
+    if ending == "stopped":
+        ctx.stopped = True
+    else:
+        ctx.extra[ending] = True
+    assert renderer._agent_working_payload(ctx, tool_started=True) is None
+
+
+def test_working_timer_not_shown_for_regular_chat(renderer):
+    ctx = CtxItem()
+    ctx.mode = "chat"
+    assert renderer._agent_working_payload(ctx, tool_started=True) is None

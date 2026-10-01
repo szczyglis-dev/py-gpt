@@ -9,13 +9,10 @@
 # Updated Date: 2026.09.11 14:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import os.path
-from typing import Optional, Union, List, Dict
+from typing import TYPE_CHECKING, Optional, Union, List, Dict
 
-from llama_index.core.llms.llm import BaseLLM
-from llama_index.core.multi_modal_llms import MultiModalLLM
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.llms.openai import OpenAI
 
 from pygpt_net.core.types import (
     MODE_LLAMA_INDEX,
@@ -24,6 +21,10 @@ from pygpt_net.core.types import (
 from pygpt_net.item.model import ModelItem
 from pygpt_net.core.provider.llm import LlamaIndexLLMProxy
 
+if TYPE_CHECKING:
+    from llama_index.core.llms.llm import BaseLLM
+    from llama_index.core.multi_modal_llms import MultiModalLLM
+    from llama_index.core.base.embeddings.base import BaseEmbedding
 
 class Llm:
     def __init__(self, window=None):
@@ -40,9 +41,9 @@ class Llm:
 
     def init(self):
         """Init base ENV vars"""
-        os.environ['OPENAI_API_KEY'] = str(self.window.core.config.get('api_key'))
-        os.environ['OPENAI_API_BASE'] = str(self.window.core.config.get('api_endpoint'))
-        os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.config.get('organization_key'))
+        os.environ['OPENAI_API_KEY'] = str(self.window.core.llm.get_config('openai', 'api_key', ''))
+        os.environ['OPENAI_API_BASE'] = str(self.window.core.llm.get_config('openai', 'api_base', ''))
+        os.environ['OPENAI_ORGANIZATION'] = str(self.window.core.llm.get_config('openai', 'organization', ''))
 
     def get(
             self,
@@ -50,6 +51,7 @@ class Llm:
             multimodal: bool = False,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> Union[BaseLLM, MultiModalLLM]:
         """
         Get LLM provider
@@ -58,6 +60,7 @@ class Llm:
         :param multimodal: Allow multi-modal flag (True to get multimodal provider if available)
         :param stream: Stream mode (True to enable streaming)
         :param computer_runtime: Shared provider-native Computer Use runtime adapter
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: Llama LLM instance
         """
         # TMP: deprecation warning fix
@@ -94,6 +97,7 @@ class Llm:
                         model=model,
                         stream=stream,
                         computer_runtime=runtime,
+                        force_computer_use=force_computer_use,
                     )
                 else:
                     llm = llm_provider.llama(
@@ -113,6 +117,7 @@ class Llm:
                 kwargs=fallback_args, model=self.default_model,
                 path="llama_index.llms.openai.OpenAI",
             )
+            from llama_index.llms.openai import OpenAI
             llm = OpenAI(**fallback_args)
         return llm
 
@@ -155,6 +160,7 @@ class Llm:
             stream: bool = False,
             allow_remote_tools: bool = True,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ) -> BaseLLM:
         """
         Get a LlamaIndex LLM configured for agent workflows.
@@ -167,6 +173,7 @@ class Llm:
         :param stream: Stream mode
         :param allow_remote_tools: Allow provider-native remote tools
         :param computer_runtime: Optional shared Computer Use runtime to bind
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: LlamaIndex LLM instance
         """
         if not self.initialized:
@@ -191,6 +198,7 @@ class Llm:
                     model=model,
                     stream=stream,
                     allow_remote_tools=allow_remote_tools,
+                    force_computer_use=force_computer_use,
                 )
             elif self.window.core.llm.is_custom_provider(provider):
                 raise RuntimeError(f"Custom provider is not configured: {provider}")
@@ -203,6 +211,7 @@ class Llm:
                 kwargs=fallback_args, model=self.default_model,
                 path="llama_index.llms.openai.OpenAI",
             )
+            from llama_index.llms.openai import OpenAI
             llm = OpenAI(**fallback_args)
 
         # Provider agent adapters (OpenAI Responses, Google GenAI, Anthropic)
@@ -286,6 +295,7 @@ class Llm:
             stream: bool = False,
             auto_embed: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ):
         """
         Get service context + embeddings provider
@@ -294,9 +304,15 @@ class Llm:
         :param stream: Stream mode (True to enable streaming)
         :param auto_embed: Auto-detect embeddings provider based on model capabilities
         :param computer_runtime: Shared provider-native Computer Use runtime adapter
+        :param force_computer_use: Force provider-native Computer Use remote tool
         :return: Service context instance
         """
-        llm = self.get(model=model, stream=stream, computer_runtime=computer_runtime)
+        llm = self.get(
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
+        )
         if not auto_embed:
             embed_model = self.get_embeddings_provider()
         else:

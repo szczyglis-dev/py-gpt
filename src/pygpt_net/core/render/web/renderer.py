@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 15:00:00                  #
+# Updated Date: 2026.09.30 13:05:00                  #
 # ================================================== #
 
 import json
+import time
 import os
 import re
 import html as _html
@@ -23,7 +24,8 @@ from io import StringIO
 from PySide6.QtCore import QLocale, QTimer
 
 from pygpt_net.core.render.base import BaseRenderer
-from pygpt_net.core.types import MODE_AGENT_V2
+from pygpt_net.core.render.protocol import RenderMutation, RenderOp
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_V2
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.web import ChatWebOutput
@@ -46,6 +48,10 @@ WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_KEY = "agent.v2.single_status.live"
 WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_KEY = "agent.v2.single_status.history"
 WORKFLOW_SINGLE_STATUS_PER_PART_LIVE_DEFAULT = True
 WORKFLOW_SINGLE_STATUS_PER_PART_HISTORY_DEFAULT = True
+
+# UI-only actor label for legacy LlamaIndex Custom agents. The prefix is
+# rendered from CtxItemPart.name and is never stored in part.output/ctx.output.
+SHOW_LEGACY_AGENT_NAME_PREFIX = True
 
 
 @dataclass(slots=True)
@@ -189,8 +195,25 @@ class Renderer(BaseRenderer):
         self._stream_acc: dict[int, Renderer._AppendBuffer] = {}
         self._stream_timer: dict[int, QTimer] = {}
         self._stream_header: dict[int, str] = {}
+        self._stream_owner_id: dict[int, str] = {}
         self._stream_last_flush: dict[int, float] = {}
         self._stream_last_cleanup: float = 0.0
+
+        # ``beginStream()`` is sent with QWebEnginePage.runJavaScript(), while
+        # streamed text is transported independently through QWebChannel. The
+        # two transports are asynchronous and WebEngine does not guarantee that
+        # a bridge signal emitted later from Python is processed after that JS.
+        # Keep a per-PID begin barrier so no text batch can reach JS until the
+        # latest begin/reset script has actually executed.
+        self._stream_begin_seq: dict[int, int] = {}
+        self._stream_begin_pending: set[int] = set()
+        self._stream_end_pending: dict[int, tuple[CtxMeta, CtxItem]] = {}
+        # One logical response may announce STREAM_BEGIN and then mark its first
+        # STREAM_APPEND with begin=True. Realtime can deliver those two signals
+        # through different queued paths, so their arrival order is not a safe
+        # lifecycle boundary. Track the response object that already owns the
+        # PID and make begin/reset idempotent for that response.
+        self._stream_session_ctx: dict[int, int] = {}
 
         # Inline partial streaming keeps post-tool text inside the already
         # materialized bot message (same durable CtxItem) instead of creating a
@@ -214,6 +237,7 @@ class Renderer(BaseRenderer):
         # not count as visible activity when live reasoning is disabled.
         self._loading_visible: dict[int, bool] = {}
         self._loading_reserved: dict[int, bool] = {}
+        self._loading_show_options: dict[int, tuple[int, bool]] = {}
 
         # Track <think> boundaries independently for every live stream so the
         # request spinner can stay visible while hidden reasoning is arriving.
@@ -241,9 +265,14 @@ class Renderer(BaseRenderer):
         self.pids = {}
         self._loading_visible = {}
         self._loading_reserved = {}
+        self._loading_show_options = {}
         self._reasoning_activity_state = {}
         self._workflow_statuses = {}
         self._workflow_status_seq = 0
+        self._stream_begin_seq = {}
+        self._stream_begin_pending = set()
+        self._stream_end_pending = {}
+        self._stream_session_ctx = {}
 
     def on_load(self, meta: CtxMeta = None):
         """
@@ -300,8 +329,11 @@ class Renderer(BaseRenderer):
         # intentionally leave the spinner hidden.
         if self._loading_visible.get(pid, False):
             try:
+                delay_ms, wait_for_input = self._loading_show_options.get(pid, (0, False))
+                wait_js = "true" if wait_for_input else "false"
                 node.page().runJavaScript(
-                    "if (typeof window.showLoading !== 'undefined') showLoading();"
+                    "if (typeof window.showLoading !== 'undefined') "
+                    f"showLoading({int(delay_ms)}, {wait_js});"
                 )
             except Exception:
                 pass
@@ -405,23 +437,41 @@ class Renderer(BaseRenderer):
             self,
             state: str,
             meta: CtxMeta,
+            loading_delay_ms: int = 0,
+            loading_wait_for_input: bool = False,
     ):
         """
         On kernel state changed event
 
         :param state: new state
         :param meta: context meta
+        :param loading_delay_ms: optional loader visibility delay
+        :param loading_wait_for_input: wait until the user row is materialized
         """
         if state == RenderEvent.STATE_BUSY:
             if meta:
                 pid = self.get_pid(meta)
                 if pid is not None:
+                    # Repeated BUSY events are common when a mode finishes input
+                    # materialization and reasserts ownership (Agents v2).  The
+                    # loader may already be armed with a delayed/input-gated show;
+                    # do not restart that pending gate after the inputReady event.
+                    if self._loading_visible.get(pid, False):
+                        return
+                    try:
+                        delay_ms = max(0, int(loading_delay_ms or 0))
+                    except (TypeError, ValueError):
+                        delay_ms = 0
+                    wait_for_input = bool(loading_wait_for_input)
                     self._loading_visible[pid] = True
                     self._loading_reserved[pid] = False
+                    self._loading_show_options[pid] = (delay_ms, wait_for_input)
                     node = self.get_output_node_by_pid(pid)
                     try:
+                        wait_js = "true" if wait_for_input else "false"
                         node.page().runJavaScript(
-                            "if (typeof window.showLoading !== 'undefined') showLoading();"
+                            "if (typeof window.showLoading !== 'undefined') "
+                            f"showLoading({delay_ms}, {wait_js});"
                         )
                     except Exception:
                         pass
@@ -439,6 +489,7 @@ class Renderer(BaseRenderer):
             for pid in target_pids:
                 self._loading_visible[pid] = False
                 self._loading_reserved[pid] = False
+                self._loading_show_options.pop(pid, None)
                 if state == RenderEvent.STATE_ERROR:
                     # Error/interruption history may intentionally retain the
                     # last workflow row. Stop its shimmer when the request is no
@@ -452,6 +503,7 @@ class Renderer(BaseRenderer):
                     try:
                         node.page().runJavaScript(
                             "if (typeof window.hideLoading !== 'undefined') hideLoading();"
+                            "if (typeof window.clearAgentWorking !== 'undefined') clearAgentWorking();"
                         )
                     except Exception:
                         pass
@@ -480,7 +532,11 @@ class Renderer(BaseRenderer):
             pass
 
         try:
-            self.get_output_node(meta).page().runJavaScript("if (typeof window.begin !== 'undefined') begin();")
+            msg_id = json.dumps(str(getattr(ctx, "id", "") or ""), ensure_ascii=False)
+            self.get_output_node(meta).page().runJavaScript(
+                "if (typeof window.begin !== 'undefined') "
+                f"begin({msg_id});"
+            )
         except Exception:
             pass
 
@@ -495,14 +551,16 @@ class Renderer(BaseRenderer):
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
-        if self.pids[pid].item is not None and stream:
-            self.append_context_item(meta, self.pids[pid].item)
-            self.pids[pid].item = None
-        else:
-            self.reload(meta)
+        # END is a lifecycle boundary only. Durable DOM changes are explicit
+        # SYNC/REPLACE mutations; a live row is promoted by STREAM_END.
+        self.pids[pid].item = None
 
         try:
-            self.get_output_node(meta).page().runJavaScript("if (typeof window.end !== 'undefined') end();")
+            msg_id = json.dumps(str(getattr(ctx, "id", "") or ""), ensure_ascii=False)
+            self.get_output_node(meta).page().runJavaScript(
+                "if (typeof window.end !== 'undefined') "
+                f"end({msg_id});"
+            )
         except Exception:
             pass
 
@@ -521,16 +579,49 @@ class Renderer(BaseRenderer):
 
     def stream_begin(self, meta: CtxMeta, ctx: CtxItem):
         """
-        Render stream begin
+        Render stream begin.
+
+        STREAM_BEGIN and the first STREAM_APPEND(begin=True) describe the same
+        logical response. They are intentionally accepted in either order. The
+        first one that reaches the renderer owns initialization; the duplicate
+        begin for the same CtxItem becomes a no-op instead of resetting buffers
+        or the browser stream a second time.
 
         :param meta: context meta
         :param ctx: context item
         """
         pid = self.get_or_create_pid(meta)
-        if pid is not None:
-            pctx = self.pids[pid]
-            pctx.clear()
-            self._stream_reset(pid)
+        if pid is None or ctx is None:
+            return
+
+        session_key = id(ctx)
+        if self._stream_session_ctx.get(pid) == session_key:
+            # The first text delta may have reached the renderer before the
+            # separately queued STREAM_BEGIN (notably in Realtime + audio). A
+            # second begin here would clear the Python micro-batch and call
+            # beginStream() again, dropping exactly that first provider delta.
+            # Ownership can still become durable after the response object was
+            # created, so refresh only the owner hint without resetting anything.
+            owner_id = str(getattr(getattr(ctx, "turn_parent", None) or ctx, "id", "") or "")
+            if owner_id and self._stream_owner_id.get(pid, "") != owner_id:
+                try:
+                    owner_json = json.dumps(owner_id, ensure_ascii=False)
+                    node = self.get_output_node(meta)
+                    if node is not None:
+                        node.page().runJavaScript(
+                            "if (typeof window.bindStreamOwner !== 'undefined') "
+                            f"bindStreamOwner({owner_json});"
+                        )
+                    self._stream_owner_id[pid] = owner_id
+                except Exception:
+                    pass
+            return
+
+        self._stream_session_ctx[pid] = session_key
+        pctx = self.pids[pid]
+        pctx.clear()
+        self._stream_reset(pid)
+        self._stream_owner_id[pid] = str(getattr(ctx, "id", "") or "")
         self.prev_chunk_replace = False
 
         # A provider continuation starts after a tool result has been returned to
@@ -540,8 +631,19 @@ class Renderer(BaseRenderer):
         # visible until the first response token arrived. Rebind the durable parent
         # and replay the UI-only workflow rows in the same JS turn so the waiting
         # status remains visible for the whole provider TTFT window.
+        #
+        # beginStream() is sent through runJavaScript(), while text deltas use
+        # QWebChannel. The transport barrier below keeps all text on the Python
+        # side until that reset has executed. The response-level session guard
+        # above additionally prevents a duplicate/late begin from resetting a
+        # stream that its first delta has already initialized.
         parent_ctx = getattr(ctx, "turn_parent", None)
         try:
+            stream_owner = parent_ctx if parent_ctx is not None else ctx
+            stream_owner_id = json.dumps(
+                str(getattr(stream_owner, "id", "") or ""), ensure_ascii=False
+            )
+            script = ""
             if parent_ctx is not None:
                 header = self.get_name_header(ctx, stream=True)
                 parent_id = json.dumps(
@@ -558,22 +660,24 @@ class Renderer(BaseRenderer):
                     ensure_ascii=False,
                     default=str,
                 )
+                script = (
+                    f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
+                )
                 if status_records:
-                    self.get_output_node(meta).page().runJavaScript(
-                        "if (typeof window.beginStream !== 'undefined') beginStream();"
+                    script += (
                         "if (typeof window.bindWorkflowStream !== 'undefined') "
                         f"bindWorkflowStream({parent_id}, {header_json}, {records_json});"
                     )
-                else:
-                    self.get_output_node(meta).page().runJavaScript(
-                        "if (typeof window.beginStream !== 'undefined') beginStream();"
-                    )
             else:
-                self.get_output_node(meta).page().runJavaScript(
-                    "if (typeof window.beginStream !== 'undefined') beginStream();"
+                script = (
+                    f"if (typeof window.beginStream !== 'undefined') beginStream(false, {stream_owner_id});"
                 )
+
+            node = self.get_output_node(meta)
+            if node is not None:
+                self._run_stream_begin_js(pid, node, script)
         except Exception:
-            pass
+            self._stream_begin_release(pid, self._stream_begin_seq.get(pid, 0))
 
         try:
             self.pids[pid].header = self.get_name_header(ctx, stream=True)
@@ -583,39 +687,46 @@ class Renderer(BaseRenderer):
 
     def stream_end(self, meta: CtxMeta, ctx: CtxItem):
         """
-        Render stream end
+        Render stream end.
+
+        If beginStream() is still executing in WebEngine, postpone finalization
+        until its callback opens the QWebChannel barrier. This covers extremely
+        short realtime responses where TURN_END can arrive before the browser
+        has processed STREAM_BEGIN.
 
         :param meta: context meta
         :param ctx: context item
         """
-        self.prev_chunk_replace = False
         pid = self.get_or_create_pid(meta)
         if pid is None:
             return
+        if pid in self._stream_begin_pending:
+            self._stream_end_pending[pid] = (meta, ctx)
+            return
+        self._stream_end_finish(meta, ctx, pid)
+
+    def _stream_end_finish(self, meta: CtxMeta, ctx: CtxItem, pid: int) -> None:
+        """Finalize a stream after the begin/reset transport barrier is open."""
+        self.prev_chunk_replace = False
 
         self._stream_flush(pid, force=True)
         # Flush the last inline partial delta before teardown. The durable parent
-        # is authoritative and will be rebuilt by RELOAD immediately afterwards,
-        # but flushing first avoids a visible tail truncation between STREAM_END
-        # and that replacement.
+        # is authoritative, but the streamed DOM itself is preserved; flushing
+        # here guarantees the final tail is present before STREAM_END promotes it.
         self.flush_part_streams(meta)
         self._partial_stream_reset(pid)
-        # Historical autonomous mode used one CtxItem per iteration and needed
-        # STREAM_END to append that whole item. New autonomous continuations are
-        # nested CtxItemPart streams of one durable parent; appending the parent
-        # here duplicates/replaces the live partial and makes it look as if no
-        # streaming occurred. Keep the legacy materialization only for a top-level
-        # stream; partial continuations are finalized by Stream.handleEnd().
-        if (self.window.controller.agent.legacy.enabled()
-                and not (getattr(ctx, "parts", None) or [])):
-            if self.pids[pid].item is not None:
-                self.append_context_item(meta, self.pids[pid].item)
-                self.pids[pid].item = None
+        # Stream finalization is mode-agnostic. Historical agent modes used to
+        # append a newly rendered CtxItem here, which discarded the DOM that had
+        # just received the stream. Always promote/synchronize the existing live
+        # node instead; producers that truly changed authoritative text must emit
+        # REPLACE_OUTPUT explicitly.
+        # Promote the exact DOM node that received the stream into durable history.
+        # Do not replace its text at normal stream completion. Any exceptional
+        # correction must be requested explicitly via REPLACE_OUTPUT/SYNC_OUTPUT.
+        self.finalize_output(meta, ctx, replace_text=False, reason="stream_end")
         self.pids[pid].clear()
-        try:
-            self.get_output_node(meta).page().runJavaScript("if (typeof window.endStream !== 'undefined') endStream();")
-        except Exception:
-            pass
+        self._stream_owner_id.pop(pid, None)
+        self._stream_session_ctx.pop(pid, None)
         self._stream_reset(pid)
         self._partial_stream_reset(pid)
         self.auto_cleanup(meta)
@@ -850,7 +961,7 @@ class Renderer(BaseRenderer):
             return None
 
     def _format_history_date_label(self, timestamp) -> Optional[str]:
-        """Format a history-only day separator shown above user messages."""
+        """Format a day separator shown above user messages."""
         if timestamp is None:
             return None
         try:
@@ -886,6 +997,72 @@ class Renderer(BaseRenderer):
         if day.year == today.year:
             return f"{prefix}{dt.day} {month} {clock}"
         return f"{prefix}{dt.day} {month} {dt.year}"
+
+    def _get_live_input_date_label(self, meta: CtxMeta, ctx: CtxItem) -> Optional[str]:
+        """Return the day separator for an input rendered before history rebuild.
+
+        History rendering tracks the previous visible user-input day while it
+        walks the whole context. Live INPUT_APPEND normally happens before the
+        new item is stored, so reproduce the same decision from the currently
+        loaded items. This reserves the separator's final layout space before
+        response streaming starts.
+        """
+        current_day = self._history_input_day(ctx)
+        if current_day is None:
+            return None
+
+        target_meta_id = getattr(meta, "id", None)
+        current_id = getattr(ctx, "id", None)
+        previous_user_day = None
+
+        try:
+            core_ctx = self.window.core.ctx
+            if target_meta_id is not None and core_ctx.get_current() != target_meta_id:
+                items = list(core_ctx.all(target_meta_id) or [])
+            else:
+                items = list(core_ctx.get_items() or [])
+        except Exception:
+            items = []
+
+        for i, item in enumerate(items):
+            # Standard chat stores the item after INPUT_APPEND, while some
+            # modes store it before. In the latter case stop at the current row.
+            if item is ctx:
+                break
+            item_id = getattr(item, "id", None)
+            if current_id is not None and item_id == current_id:
+                break
+
+            if getattr(item, "hidden", False):
+                continue
+
+            item_meta_id = getattr(item, "meta_id", None)
+            if item_meta_id is None:
+                item_meta = getattr(item, "meta", None)
+                item_meta_id = getattr(item_meta, "id", None) if item_meta is not None else None
+            if (target_meta_id is not None
+                    and item_meta_id is not None
+                    and item_meta_id != target_meta_id):
+                continue
+
+            raw_input = getattr(item, "input", None)
+            if raw_input is None or str(raw_input).strip() == "":
+                continue
+
+            # Match prepare_input() visibility rules. append_context_* marks
+            # list index 0 as the first item before evaluating these rules.
+            if getattr(item, "internal", False) and i != 0:
+                stripped = str(raw_input).strip()
+                if not stripped.startswith("user: ") and not stripped.startswith("@"):
+                    continue
+
+            item_day = self._history_input_day(item)
+            if item_day is not None:
+                previous_user_day = item_day
+
+        if previous_user_day == current_day:
+            return None
+        return self._format_history_date_label(getattr(ctx, "input_timestamp", None))
 
     def prepare_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False) -> Optional[str]:
         """
@@ -939,15 +1116,32 @@ class Renderer(BaseRenderer):
         self.update_names(meta, ctx)
         text = self.prepare_input(meta, ctx, flush, append)
         if text:
+            date_label = self._get_live_input_date_label(meta, ctx)
             if flush:
                 if self.is_stream() and not append:
                     # legacy streaming input (leave as-is)
                     content = self.prepare_node(meta, ctx, text, self.NODE_INPUT)
-                    self.append_chunk_input(meta, ctx, content, begin=False)
+                    self.append_chunk_input(
+                        meta,
+                        ctx,
+                        content,
+                        begin=False,
+                        date_label=date_label,
+                    )
                     return
-            block = self._build_render_block(meta, ctx, input_text=text, output_text=None)
+            block = self._build_render_block(
+                meta,
+                ctx,
+                input_text=text,
+                output_text=None,
+                history_date_label=date_label,
+            )
             if block:
-                self.append(pid, block.to_json(wrap=True))
+                self._emit_mutation(meta, RenderMutation(
+                    op=RenderOp.APPEND_INPUT,
+                    msg_id=getattr(ctx, "id", None),
+                    block=block.to_dict(),
+                ))
 
     def prepare_output(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True,
                        prev_ctx: Optional[CtxItem] = None, next_ctx: Optional[CtxItem] = None) -> Optional[str]:
@@ -1004,13 +1198,28 @@ class Renderer(BaseRenderer):
         )
         if output or visible_part_tools:
             self._hide_previous_agent_action_icons(meta, ctx)
-            block = self._build_render_block(meta, ctx, input_text=None, output_text=output,
-                                             prev_ctx=prev_ctx, next_ctx=next_ctx)
+            input_text = self.prepare_input(meta, ctx, flush=False, append=True)
+            block = self._build_render_block(
+                meta, ctx, input_text=input_text, output_text=output,
+                prev_ctx=prev_ctx, next_ctx=next_ctx,
+                history_date_label=self._get_live_input_date_label(meta, ctx),
+            )
             if block:
-                pid = self.get_or_create_pid(meta)
-                self.append(pid, block.to_json(wrap=True))
+                self._emit_mutation(meta, RenderMutation(
+                    op=RenderOp.APPEND_OUTPUT,
+                    msg_id=getattr(ctx, "id", None),
+                    block=block.to_dict(),
+                    replace_text=True,
+                ))
 
-    def append_chunk(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False,
+            part_key: Optional[object] = None,
+    ):
         """
         Append streamed Markdown chunk to JS with micro-batching and typed chunk support.
 
@@ -1018,6 +1227,7 @@ class Renderer(BaseRenderer):
         :param ctx: context item
         :param text_chunk: text chunk to append
         :param begin: True if begin of stream
+        :param part_key: durable partial UUID/ID owning this chunk (optional)
         """
         pid = self.get_or_create_pid(meta)
         if pid is None:
@@ -1027,14 +1237,41 @@ class Renderer(BaseRenderer):
         previous_item = pctx.item
         previous_id = getattr(previous_item, "id", None)
         current_id = getattr(ctx, "id", None)
+        current_owner = str(current_id or "")
+        if current_owner and self._stream_owner_id.get(pid, "") != current_owner:
+            try:
+                owner_json = json.dumps(current_owner, ensure_ascii=False)
+                self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.bindStreamOwner !== 'undefined') "
+                    f"bindStreamOwner({owner_json});"
+                )
+                self._stream_owner_id[pid] = current_owner
+            except Exception:
+                pass
         is_new_item = previous_item is not ctx and (
             previous_id is None or current_id is None or previous_id != current_id
         )
         if is_new_item:
             self._hide_previous_agent_action_icons(meta, ctx)
-        pctx.item = ctx
 
-        if begin:
+        # STREAM_BEGIN and STREAM_APPEND(begin=True) are two announcements of the
+        # same response lifecycle. Whichever arrives first performs the reset.
+        # The other must not clear buffers or call beginStream() again. This is
+        # critical for realtime, where Qt queued delivery can let the first text
+        # delta overtake RT_OUTPUT_READY/STREAM_BEGIN.
+        session_key = id(ctx)
+        stream_already_started = self._stream_session_ctx.get(pid) == session_key
+        begin_stream_here = bool(begin and not stream_already_started)
+        if begin_stream_here:
+            self._stream_session_ctx[pid] = session_key
+
+        pctx.item = ctx
+        if begin_stream_here:
+            pctx.buffer = ""
+        if text_chunk:
+            pctx.append_buffer(str(text_chunk))
+
+        if begin_stream_here:
             # Clear the previous turn's batching/reasoning state before looking
             # at the first chunk of the new stream.
             self._stream_reset(pid)
@@ -1052,7 +1289,7 @@ class Renderer(BaseRenderer):
                 reserve_space=False,
             )
 
-        if begin:
+        if begin_stream_here:
             # JS beginStream() recreates the transient stream container. Pass
             # true only when this first chunk is actually visible activity; a
             # hidden <think> stream must not dismiss the request spinner.
@@ -1068,20 +1305,38 @@ class Renderer(BaseRenderer):
                 live_ids=self._workflow_single_status_live(),
             )
             try:
+                stream_part_key = str(part_key or "")
+                if stream_part_key:
+                    agent_name = self._legacy_agent_name_prefix(ctx, part_key=stream_part_key)
+                else:
+                    active_part = ctx.get_active_part()
+                    stream_part_key = str(
+                        getattr(active_part, "uuid", "")
+                        or getattr(active_part, "id", "")
+                        or ""
+                    )
+                    agent_name = self._legacy_agent_name_prefix(ctx, part=active_part)
                 parent_json = json.dumps(parent_id, ensure_ascii=False)
                 header_json = json.dumps(pctx.header or "", ensure_ascii=False)
                 records_json = json.dumps(status_records, ensure_ascii=False, default=str)
+                part_key_json = json.dumps(stream_part_key, ensure_ascii=False)
+                agent_name_json = json.dumps(agent_name, ensure_ascii=False)
                 chunk_js = "true" if has_response_activity else "false"
-                self.get_output_node(meta).page().runJavaScript(
+                script = (
                     "if (typeof window.freezeWorkflowStatus !== 'undefined') "
                     f"freezeWorkflowStatus({parent_json});"
                     "if (typeof window.beginStream !== 'undefined') "
-                    f"beginStream({chunk_js});"
+                    f"beginStream({chunk_js}, {parent_json});"
                     "if (typeof window.bindWorkflowStream !== 'undefined') "
-                    f"bindWorkflowStream({parent_json}, {header_json}, {records_json});"
+                    f"bindWorkflowStream({parent_json}, {header_json}, {records_json},"
+                    f"{part_key_json}, {agent_name_json});"
                 )
+                node = self.get_output_node(meta)
+                if node is not None:
+                    self._run_stream_begin_js(pid, node, script)
             except Exception:
-                pass
+                # Never strand queued text if the WebView is already going away.
+                self._stream_begin_release(pid, self._stream_begin_seq.get(pid, 0))
             self.update_names(meta, ctx)
 
         if not text_chunk:
@@ -1100,10 +1355,10 @@ class Renderer(BaseRenderer):
         """Stream a chronological partial inside one existing bot message.
 
         This is used after a tool boundary. The durable parent CtxItem has
-        already been materialized by RELOAD; the new text is appended as a
+        already been materialized/synchronized; the new text is appended as a
         ``.msg-part`` under ``msg-bot-<parent id>``. No additional CtxItem /
-        msg-box is created. The final RELOAD replaces this transient part with
-        the persisted CtxItemPart.
+        msg-box is created. Finalization keeps this streamed DOM and synchronizes
+        only structural metadata around it.
         """
         pid = self.get_or_create_pid(meta)
         parent_id = getattr(parent_ctx, "id", None)
@@ -1112,6 +1367,8 @@ class Renderer(BaseRenderer):
             self.append_chunk(meta, parent_ctx, text_chunk, begin)
             return
 
+        if begin:
+            self._update_agent_working(meta, parent_ctx)
         pctx = self.pids[pid]
         pctx.item = parent_ctx
         key = (pid, str(parent_id), str(part_key or "live"))
@@ -1204,12 +1461,15 @@ class Renderer(BaseRenderer):
         begin = key not in self._partial_stream_started
         self._partial_stream_started.add(key)
         try:
+            parent_ctx = self.pids.get(pid).item if pid in self.pids else None
+            agent_name = self._legacy_agent_name_prefix(parent_ctx, part_key=part_key)
             node.page().runJavaScript(
                 "if (typeof window.appendPartialStream !== 'undefined') "
                 f"appendPartialStream({json.dumps(parent_id, ensure_ascii=False)},"
                 f"{json.dumps(part_key, ensure_ascii=False)},"
                 f"{json.dumps(data, ensure_ascii=False)},"
-                f"{'true' if begin else 'false'});"
+                f"{'true' if begin else 'false'},"
+                f"{json.dumps(agent_name, ensure_ascii=False)});"
             )
         except Exception:
             pass
@@ -1217,8 +1477,8 @@ class Renderer(BaseRenderer):
     def _partial_stream_reset(self, pid: Optional[int] = None, keep: Optional[tuple] = None):
         """Stop/discard Python buffers for transient inline partials.
 
-        The durable CtxItemPart is authoritative across a RELOAD, therefore
-        pending inline chunks must never fire afterwards and recreate stale UI.
+        The durable CtxItemPart is authoritative across structural boundaries,
+        therefore pending inline chunks must never fire afterwards and recreate stale UI.
         """
         keys = set(self._partial_stream_acc) | set(self._partial_stream_timer) | set(self._partial_stream_started)
         for key in list(keys):
@@ -1255,7 +1515,7 @@ class Renderer(BaseRenderer):
                 self._partial_stream_flush(key, force=True)
 
     def discard_part_streams(self, meta: Optional[CtxMeta] = None):
-        """Discard transient inline buffers before a durable RELOAD boundary."""
+        """Discard transient inline buffers before a durable sync boundary."""
         pid = self.get_pid(meta) if meta is not None else None
         self._partial_stream_reset(pid)
 
@@ -1284,22 +1544,35 @@ class Renderer(BaseRenderer):
         except Exception:
             self.pids[pid].header = ""
 
-    def append_chunk_input(self, meta: CtxMeta, ctx: CtxItem, text_chunk: str, begin: bool = False):
+    def append_chunk_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            text_chunk: str,
+            begin: bool = False,
+            date_label: Optional[str] = None,
+    ):
         """
-        Append output chunk to input area (legacy)
+        Append user input payload to the live input area (legacy bridge path)
 
         :param meta: context meta
         :param ctx: context item
         :param text_chunk: text chunk to append
         :param begin: True if begin of stream
+        :param date_label: optional day separator rendered before the user row
         """
         if not text_chunk:
             return
         if ctx.hidden:
             return
         try:
+            payload = "__PYGPT_INPUT_V1__" + json.dumps({
+                "text": self.sanitize_html(text_chunk),
+                "date_label": date_label,
+                "msg_id": getattr(ctx, "id", None),
+            }, ensure_ascii=False, separators=(",", ":"))
             self.get_output_node(meta).page().bridge.nodeInput.emit(
-                self.sanitize_html(text_chunk)
+                payload
             )
         except Exception:
             pass
@@ -1332,6 +1605,7 @@ class Renderer(BaseRenderer):
         except Exception:
             try:
                 self.get_output_node(meta).page().runJavaScript(
+                    "if (typeof window.clearAgentWorking !== 'undefined') window.clearAgentWorking();"
                     "if (typeof window.clearAgentStatus !== 'undefined') window.clearAgentStatus();"
                     "if (typeof window.clearStream !== 'undefined') window.clearStream();"
                 )
@@ -1384,6 +1658,7 @@ class Renderer(BaseRenderer):
             return
         self._loading_visible[pid] = False
         self._loading_reserved[pid] = bool(reserve_space)
+        self._loading_show_options.pop(pid, None)
         node = self.get_output_node_by_pid(pid)
         if node is None:
             return
@@ -1684,6 +1959,36 @@ class Renderer(BaseRenderer):
             if key and key[0] == pid:
                 self._workflow_statuses.pop(key, None)
 
+    def _agent_working_payload(self, ctx: CtxItem, tool_started: bool = False):
+        """Describe real multi-step work, never a one-shot agent answer."""
+        if ctx is None or not CtxItem.uses_agent_timeline(ctx):
+            return None
+        extra = ctx.extra if isinstance(ctx.extra, dict) else {}
+        parts = list(ctx.parts or [])
+        if (ctx.stopped or extra.get("response_final") or extra.get("response_interrupted")
+                or any((part.extra or {}).get("agents_v2_final") for part in parts)):
+            return None
+        if not (tool_started or len(parts) > 1 or any(part.tasks for part in parts)):
+            return None
+        return {
+            "started": float(ctx.input_timestamp or time.time()),
+            "label": trans("ctx.agent.workflow.working"),
+            "units": [trans("ctx.agent.workflow.time.hour"),
+                      trans("ctx.agent.workflow.time.minute"),
+                      trans("ctx.agent.workflow.time.second")],
+        }
+
+    def _update_agent_working(self, meta: CtxMeta, ctx: CtxItem, tool_started: bool = False):
+        payload = self._agent_working_payload(ctx, tool_started)
+        if payload is None:
+            return
+        parent = json.dumps(str(ctx.id or ""))
+        data = json.dumps(payload, ensure_ascii=False)
+        self.get_output_node(meta).page().runJavaScript(
+            "if (typeof window.setAgentWorking !== 'undefined') "
+            f"window.setAgentWorking({parent}, {data});"
+        )
+
     def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
         """Append a live agent status inside the current durable turn."""
         value_text = str(status or "").strip()
@@ -1693,6 +1998,7 @@ class Renderer(BaseRenderer):
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
         if resolved_ctx is None:
             resolved_ctx = ctx
+        self._update_agent_working(meta, resolved_ctx)
         status_id = self._workflow_status_add(
             meta, resolved_ctx, kind="agent", text=value_text,
         )
@@ -1823,7 +2129,12 @@ class Renderer(BaseRenderer):
         :param replace: True if replace whole output (legacy HTML path)
         """
         if self.pids[pid].loaded and not self.pids[pid].use_buffer:
-            self.clear_chunks(pid)
+            # A full history replacement must be one browser-side transaction.
+            # Clearing input/output here uses separate runJavaScript calls and can
+            # expose an empty frame before nodeReplace reaches QWebEngine, which is
+            # especially visible after the first streamed turn in a new meta.
+            if not replace:
+                self.clear_chunks(pid)
             if payload:
                 self.flush_output(pid, payload, replace)
             self.pids[pid].clear()
@@ -1931,17 +2242,19 @@ class Renderer(BaseRenderer):
 
         html = "".join(html_parts)
         if render and html != "":
-            if footer:
-                self.append(pid, html)
-            else:
-                try:
-                    self.get_output_node(meta).page().runJavaScript(
-                        f"""appendExtra('{ctx.id}',{self.to_json(
-                            self.sanitize_html(html)
-                        )});"""
-                    )
-                except Exception:
-                    pass
+            # Extras are a message mutation too. Keep them on the same ordered
+            # transport as text/finalization instead of issuing an unrelated
+            # runJavaScript call that can race a stream boundary. ``html`` is a
+            # delta here (append_* tracking above filters already-rendered rows).
+            self._emit_mutation(meta, RenderMutation(
+                op=RenderOp.APPEND_ARTIFACTS,
+                msg_id=getattr(ctx, "id", None),
+                extra={
+                    "html": self.sanitize_html(html),
+                    "footer": bool(footer),
+                },
+                reason="runtime_extra",
+            ))
 
         return html
 
@@ -2003,6 +2316,11 @@ class Renderer(BaseRenderer):
         self.reset_names_by_pid(pid)
         self.prev_chunk_replace = False
         self._stream_reset(pid)
+        self._stream_begin_pending.discard(pid)
+        self._stream_begin_seq.pop(pid, None)
+        self._stream_end_pending.pop(pid, None)
+        self._stream_session_ctx.pop(pid, None)
+        self._stream_owner_id.pop(pid, None)
         self._partial_stream_reset(pid)
 
     def clear_input(self):
@@ -2199,6 +2517,124 @@ class Renderer(BaseRenderer):
         else:
             return f"<div class=\"name-header name-bot\">{avatar_html}{output_name}</div>"
 
+    def _emit_mutation(self, meta: CtxMeta, mutation: RenderMutation) -> None:
+        """Send one renderer mutation through the existing ordered node channel."""
+        pid = self.get_or_create_pid(meta)
+        if pid is None:
+            return
+        self.flush_output(pid, mutation.to_json(), replace=False)
+
+    def _build_input_block(self, meta: CtxMeta, ctx: CtxItem) -> Optional[RenderBlock]:
+        """Build one durable user block without touching the DOM."""
+        if ctx is None or getattr(ctx, "id", None) is None:
+            return None
+        input_text = self.prepare_input(meta, ctx, flush=False, append=True)
+        if not input_text:
+            return None
+        return self._build_render_block(
+            meta,
+            ctx,
+            input_text=input_text,
+            output_text=None,
+            history_date_label=self._get_live_input_date_label(meta, ctx),
+        )
+
+    def _build_output_block(self, meta: CtxMeta, ctx: CtxItem) -> Optional[RenderBlock]:
+        """Build the current assistant block without touching the DOM."""
+        if ctx is None or getattr(ctx, "id", None) is None:
+            return None
+        input_text = self.prepare_input(meta, ctx, flush=False, append=True)
+        output = self.prepare_output(meta=meta, ctx=ctx, flush=False)
+        visible_part_tools = self.helpers.extract_extra_tool_calls(
+            ctx.get_part_tool_calls(visible_only=True)
+        )
+        if not output and not visible_part_tools and not getattr(ctx, "parts", None):
+            # Still allow input-only/structure-only snapshots.
+            output = ""
+        return self._build_render_block(
+            meta,
+            ctx,
+            input_text=input_text,
+            output_text=output,
+            history_date_label=self._get_live_input_date_label(meta, ctx),
+        )
+
+    def replace_input(self, meta: CtxMeta, ctx: CtxItem, reason: Optional[str] = None) -> None:
+        """Explicitly replace one durable user message."""
+        block = self._build_input_block(meta, ctx)
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.REPLACE_INPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            reason=reason,
+        ))
+
+    def sync_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Synchronize one durable assistant message in place.
+
+        By default the existing text/timeline is preserved. This is the normal
+        post-stream/post-tool path and replaces the historical full-chat RELOAD.
+        """
+        self._update_agent_working(meta, ctx)
+        block = self._build_output_block(meta, ctx)
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.SYNC_OUTPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            replace_text=replace_text,
+            reason=reason,
+        ))
+
+    def finalize_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None,
+    ) -> None:
+        """Finalize a live assistant stream without rebuilding or replacing it."""
+        input_text = self.prepare_input(meta, ctx, flush=False, append=False)
+        output_text = self.prepare_output(meta=meta, ctx=ctx, flush=False)
+        block = self._build_render_block(
+            meta,
+            ctx,
+            input_text=input_text,
+            output_text=output_text,
+            history_date_label=self._get_live_input_date_label(meta, ctx),
+        )
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.FINALIZE_OUTPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            replace_text=replace_text,
+            reason=reason,
+        ))
+
+    def replace_output(self, meta: CtxMeta, ctx: CtxItem, reason: Optional[str] = None) -> None:
+        """Explicitly replace assistant text when the authoritative text changed."""
+        block = self._build_output_block(meta, ctx)
+        if block is None:
+            return
+        self._emit_mutation(meta, RenderMutation(
+            op=RenderOp.REPLACE_OUTPUT,
+            msg_id=getattr(ctx, "id", None),
+            block=block.to_dict(),
+            replace_text=True,
+            reason=reason,
+        ))
+
     def flush_output(self, pid: int, payload: str, replace: bool = False):
         """
         Send content via QWebChannel (JSON or HTML string).
@@ -2220,7 +2656,9 @@ class Renderer(BaseRenderer):
                 br = getattr(node.page(), "bridge", None)
                 if br is not None:
                     if replace and hasattr(br, "nodeReplace"):
-                        self.clear_nodes(pid)
+                        # nodeReplace performs the stream/input/node cleanup and
+                        # replacement atomically in JS. Do not clear nodes first:
+                        # that separate browser call can be painted as a blank frame.
                         br.nodeReplace.emit(payload)
                         return
                     if not replace and hasattr(br, "node"):
@@ -2289,6 +2727,11 @@ class Renderer(BaseRenderer):
             self._pending_nodes[pid] = []
             node.unload()  # unload web page
             self._stream_reset(pid)
+            self._stream_session_ctx.pop(pid, None)
+            self._stream_owner_id.pop(pid, None)
+            self._stream_begin_pending.discard(pid)
+            self._stream_begin_seq.pop(pid, None)
+            self._stream_end_pending.pop(pid, None)
             self._partial_stream_reset(pid)
             self.pids[pid].clear(all=True)
             self.pids[pid].loaded = False
@@ -2363,12 +2806,10 @@ class Renderer(BaseRenderer):
 
         :param ctx: context item
         """
-        try:
-            self.get_output_node(ctx.meta).page().runJavaScript(
-                f"if (typeof window.removeNode !== 'undefined') removeNode({self.to_json(ctx.id)});"
-            )
-        except Exception:
-            pass
+        self._emit_mutation(ctx.meta, RenderMutation(
+            op=RenderOp.REMOVE_MESSAGE,
+            msg_id=getattr(ctx, "id", None),
+        ))
 
     def remove_items_from(self, ctx: CtxItem):
         """
@@ -2376,12 +2817,10 @@ class Renderer(BaseRenderer):
 
         :param ctx: context item
         """
-        try:
-            self.get_output_node(ctx.meta).page().runJavaScript(
-                f"if (typeof window.removeNodesFromId !== 'undefined') removeNodesFromId({self.to_json(ctx.id)});"
-            )
-        except Exception:
-            pass
+        self._emit_mutation(ctx.meta, RenderMutation(
+            op=RenderOp.REMOVE_FROM,
+            msg_id=getattr(ctx, "id", None),
+        ))
 
     def reset_names(self, meta: CtxMeta):
         """
@@ -2507,6 +2946,54 @@ class Renderer(BaseRenderer):
         """Scroll to bottom placeholder"""
         pass
 
+    def resume_auto_follow_if_near_bottom(
+            self,
+            meta: CtxMeta,
+            margin: int = 128,
+            force: bool = False
+    ):
+        """Re-arm WebView auto-follow for a realtime response.
+
+        Realtime can begin its provider stream immediately after APPEND_INPUT while
+        the request loader is still changing document height. In that narrow race
+        Chromium may report a layout-driven scroll as manual movement and leave the
+        JS ScrollManager in MANUAL even though the user never moved away from the
+        bottom. Normally recover only when the physical viewport remains close to
+        the bottom. ``force=True`` is reserved for the first visible realtime token:
+        a freshly submitted microphone turn explicitly owns FOLLOW, so that token
+        must snap to the real bottom and keep the permanent bottom anchor enabled.
+
+        This helper is invoked only by the Realtime controller and therefore does
+        not alter scroll ownership in Chat/Agents/other modes.
+
+        :param meta: context meta owning the WebView
+        :param margin: maximum distance from the physical bottom in pixels
+        :param force: reassert FOLLOW regardless of transient layout distance
+        """
+        if meta is None:
+            return
+        try:
+            node = self.get_output_node(meta)
+            if node is None:
+                return
+            safe_margin = max(0, int(margin))
+            force_js = "true" if force else "false"
+            node.page().runJavaScript(
+                "(() => {"
+                "const el = document.scrollingElement || document.documentElement;"
+                "if (!el) return false;"
+                "const d = Math.max(0, el.scrollHeight - el.clientHeight - el.scrollTop);"
+                f"if ({force_js} || d <= {safe_margin}) {{"
+                "if (typeof window.scrollToBottomUser === 'function') {"
+                "window.scrollToBottomUser(); return true;"
+                "}"
+                "}"
+                "return false;"
+                "})()"
+            )
+        except Exception:
+            pass
+
     def append_block(self):
         """Append block placeholder"""
         pass
@@ -2596,16 +3083,23 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
             immediate: bool = False,
     ):
-        """Retire or freeze the transient tool status after tool completion.
+        """Retire the transient tool-series status at a real series boundary.
 
-        With expandable tool JSON enabled, the runtime row is removed because a
-        durable Tool/Tools block replaces it. In compact status mode the row is
-        kept and frozen so later tool calls in the same turn can reactivate and
-        aggregate it. STOP/error paths request ``immediate=True`` and remove the
-        painted row at once in both modes.
+        During a consecutive tool round the row stays active and animated; this
+        method is intentionally not called after individual tool results. With
+        expandable tool JSON enabled, the durable Tool/Tools block is rendered
+        first and this removes its transient predecessor. In compact status mode
+        the row is frozen only here, after the series has ended. STOP/error paths
+        request ``immediate=True`` and remove it at once.
         """
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
-        if immediate or self._display_tool_calls_json():
+        durable_tool_ui = (
+            self._show_tool_chain_for_ctx(resolved_ctx)
+            if resolved_ctx is not None
+            else self._display_tool_calls_json()
+        )
+        remove_status = bool(immediate or durable_tool_ui)
+        if remove_status:
             self._workflow_status_remove(meta, resolved_ctx, kind="tool")
         else:
             # Without the durable JSON accordion the status itself is the only
@@ -2616,10 +3110,10 @@ class Renderer(BaseRenderer):
             parent_id = json.dumps(
                 str(getattr(resolved_ctx, "id", "") or ""), ensure_ascii=False
             )
-            immediate_js = "true" if immediate else "false"
+            remove_js = "true" if remove_status else "false"
             self.get_output_node(meta).page().runJavaScript(
                 "if (typeof window.clearToolStatus !== 'undefined') "
-                f"clearToolStatus({parent_id}, {immediate_js});"
+                f"clearToolStatus({parent_id}, {remove_js});"
                 "else if (typeof window.freezeWorkflowStatus !== 'undefined') "
                 f"freezeWorkflowStatus({parent_id}, 'tool');"
                 "if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
@@ -2634,6 +3128,9 @@ class Renderer(BaseRenderer):
             ctx: Optional[CtxItem] = None,
     ):
         """Show an animated tool row inside the chronological message body."""
+        _key, _pid, working_ctx = self._workflow_status_key(meta, ctx)
+        if tool_names:
+            self._update_agent_working(meta, working_ctx, tool_started=True)
         names_list = self.window.core.command.realtime_visible_tool_names(
             list(tool_names or [])
         )
@@ -2644,31 +3141,19 @@ class Renderer(BaseRenderer):
         if not names_list:
             return
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
-        compact_status = not self._display_tool_calls_json()
-        if compact_status and resolved_ctx is not None:
-            merged_names = []
-            seen = set()
-            for record in self._workflow_status_records(resolved_ctx):
-                if record.get("kind") != "tool":
-                    continue
-                for name in list(record.get("tool_names") or []):
-                    value = str(name)
-                    if value and value not in seen:
-                        seen.add(value)
-                        merged_names.append(value)
-            for name in names_list:
-                value = str(name)
-                if value and value not in seen:
-                    seen.add(value)
-                    merged_names.append(value)
-            names_list = merged_names
 
+        # Consecutive tool calls share one transient row regardless of whether
+        # the durable JSON Tool/Tools accordion is enabled. Each TOOL_BEGIN only
+        # replaces the label with the current call/batch; the shimmer remains
+        # active across tool results and between provider continuations. Completed
+        # calls are accumulated in ctx partial tasks and become durable controls
+        # only at the next non-tool/final boundary.
         status_id = self._workflow_status_add(
             meta,
             resolved_ctx,
             kind="tool",
             tool_names=names_list,
-            aggregate=compact_status,
+            aggregate=True,
         ) if resolved_ctx is not None else None
         try:
             names = json.dumps(names_list, ensure_ascii=False)
@@ -2763,9 +3248,13 @@ class Renderer(BaseRenderer):
                 pass
         self._stream_acc.pop(pid, None)
         self._stream_header.pop(pid, None)
+        self._stream_begin_pending.discard(pid)
+        self._stream_begin_seq.pop(pid, None)
+        self._stream_end_pending.pop(pid, None)
         self._stream_last_flush.pop(pid, None)
         self._loading_visible.pop(pid, None)
         self._loading_reserved.pop(pid, None)
+        self._loading_show_options.pop(pid, None)
 
     def on_js_ready(self, pid: int) -> None:
         """
@@ -2796,7 +3285,8 @@ class Renderer(BaseRenderer):
             replace, payload = q.pop(0)
             try:
                 if replace and hasattr(br, "nodeReplace"):
-                    self.clear_nodes(pid)
+                    # Keep queued full replacements atomic for the same reason as
+                    # flush_output(): JS owns cleanup + replacement in one task.
                     br.nodeReplace.emit(payload)
                 elif not replace and hasattr(br, "node"):
                     br.node.emit(payload)
@@ -2897,6 +3387,46 @@ class Renderer(BaseRenderer):
         self._stream_last_flush[pid] = 0.0
         self._reasoning_activity_state.pop(("main", pid), None)
 
+    def _stream_begin_arm(self, pid: int) -> int:
+        """Arm/replace the WebEngine begin barrier for one stream PID."""
+        seq = int(self._stream_begin_seq.get(pid, 0)) + 1
+        self._stream_begin_seq[pid] = seq
+        self._stream_begin_pending.add(pid)
+        return seq
+
+    def _stream_begin_release(self, pid: int, seq: int) -> None:
+        """Release buffered text after the matching beginStream JS completed."""
+        if self._stream_begin_seq.get(pid) != seq:
+            # A newer begin/reset superseded this callback. Only the newest JS
+            # reset is allowed to open the text transport.
+            return
+        self._stream_begin_pending.discard(pid)
+        if pid not in self.pids:
+            return
+        buf = self._stream_acc.get(pid)
+        if buf is not None and not buf.is_empty():
+            self._stream_flush(pid, force=True)
+
+        pending_end = self._stream_end_pending.pop(pid, None)
+        if pending_end is not None:
+            meta, ctx = pending_end
+            self._stream_end_finish(meta, ctx, pid)
+
+    def _run_stream_begin_js(self, pid: int, node, script: str) -> None:
+        """Run begin/reset JS and open QWebChannel streaming only afterwards."""
+        seq = self._stream_begin_arm(pid)
+
+        def ready(_value=None, pid=pid, seq=seq):
+            self._stream_begin_release(pid, seq)
+
+        try:
+            # PySide6 overload: script, worldId, resultCallback.
+            node.page().runJavaScript(script, 0, ready)
+        except Exception:
+            # Preserve the old best-effort behavior when the page is being
+            # destroyed, but never leave the Python stream permanently gated.
+            self._stream_begin_release(pid, seq)
+
     def _stream_push(self, pid: int, header: str, chunk: str):
         """
         Push chunk into buffer and schedule flush
@@ -2913,6 +3443,13 @@ class Renderer(BaseRenderer):
             self._stream_header[pid] = header
 
         buf.append(chunk)
+
+        # Keep every delta on the Python side while beginStream() is still
+        # pending. QWebChannel must never overtake the JS reset and put data into
+        # streamQ just before that reset clears it.
+        if pid in self._stream_begin_pending:
+            return
+
         pending_size = getattr(buf, "_size", 0)
         if pending_size >= self._stream_emergency_bytes:
             self._stream_flush(pid, force=True)
@@ -2933,6 +3470,11 @@ class Renderer(BaseRenderer):
         :param pid: context PID
         :param force: True if force flush ignoring interval
         """
+        # The matching runJavaScript callback will call us again after the
+        # latest begin/reset has actually executed in WebEngine.
+        if pid in self._stream_begin_pending:
+            return
+
         buf = self._stream_acc.get(pid)
         if buf is None or buf.is_empty():
             t = self._stream_timer.get(pid)
@@ -2977,20 +3519,32 @@ class Renderer(BaseRenderer):
         """
         Evaluate arbitrary JS in the output node context.
 
+        ``QWebEnginePage.runJavaScript`` expects the callback as the third
+        argument (after ``worldId``).  Passing it as the second argument can be
+        interpreted as a world ID and fail before the script is evaluated.
+
+        Console output (console.log/warn/error/...) is delivered separately by
+        ``javaScriptConsoleMessage``.  The callback below therefore reports
+        only an actual expression result and skips JavaScript undefined/null
+        values represented by Qt as ``None``.
+
         :param script: JS code to run
         """
         current = self.window.core.ctx.get_current()
         meta = self.window.core.ctx.get_meta_by_id(current)
         node = self.get_output_node(meta)
         if node is None:
+            self.window.controller.debug.log("[JS] No active WebEngine output", window=True)
             return
+
         def callback(val):
-            self.window.core.debug.console.log(f"[JS] {val}")
-            print(f"[JS] {val}")
+            if val is not None:
+                self.window.controller.debug.log(f"[JS] {val}", window=True)
+
         try:
-            node.page().runJavaScript(script, callback)
-        except Exception:
-            pass
+            node.page().runJavaScript(script, 0, callback)
+        except Exception as e:
+            self.window.controller.debug.log(f"[JS] Error: {e}", window=True)
 
     # ------------------------- Helpers: build JSON blocks -------------------------
 
@@ -3679,13 +4233,52 @@ class Renderer(BaseRenderer):
             )
         )
 
+    def _legacy_agent_name_prefix(
+            self,
+            ctx: Optional[CtxItem],
+            part=None,
+            part_key: Optional[object] = None,
+            prefer_final: bool = False,
+    ) -> str:
+        """Return a UI-only actor label for one legacy LlamaIndex partial."""
+        if (not SHOW_LEGACY_AGENT_NAME_PREFIX
+                or ctx is None
+                or str(getattr(ctx, "mode", "") or "") != MODE_AGENT_LLAMA):
+            return ""
+
+        parts = list(getattr(ctx, "parts", None) or [])
+        if part is None and part_key not in (None, ""):
+            wanted = str(part_key)
+            for candidate in parts:
+                if (str(getattr(candidate, "uuid", "") or "") == wanted
+                        or str(getattr(candidate, "id", "") or "") == wanted):
+                    part = candidate
+                    break
+
+        if part is None and prefer_final:
+            for candidate in reversed(parts):
+                extra = candidate.extra if isinstance(getattr(candidate, "extra", None), dict) else {}
+                if extra.get("agents_v2_final") is True:
+                    part = candidate
+                    break
+
+        if part is None and parts:
+            part = parts[-1]
+        if part is None:
+            try:
+                part = ctx.get_active_part()
+            except Exception:
+                part = None
+
+        return str(getattr(part, "name", "") or "").strip() if part is not None else ""
+
     def _display_full_agent_workflow_for_ctx(self, ctx: CtxItem) -> bool:
         """Return whether completed Chat with Agents partials stay visible.
 
         This is a UI-only preference. It does not change durable partial storage
         or the separate model-facing history replay policy.
         """
-        if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
+        if not CtxItem.uses_agent_timeline(ctx):
             return False
         return bool(self.window.core.config.get("agent.v2.display_full_workflow", True))
 
@@ -3797,6 +4390,46 @@ class Renderer(BaseRenderer):
                 count += 1
         return count
 
+    @staticmethod
+    def _agent_v2_collapsed_workflow_step_count(timeline: list) -> int:
+        """Count meaningful pre-final workflow segments for the collapsed UI.
+
+        Runtime worker progress is represented by workflow-status/tool segments
+        attached to the durable parent rather than by worker-owned partial rows.
+        Counting only orchestrator CtxItemPart objects therefore hid the
+        ``Processed for...`` accordion whenever the visible work happened in a
+        worker. Count the rendered chronological segments instead.
+        """
+        count = 0
+        for segment in list(timeline or []):
+            if not isinstance(segment, dict):
+                continue
+            calls = list(segment.get("tool_calls") or [])
+            if calls:
+                count += max(1, len(calls))
+                continue
+            if (segment.get("text")
+                    or segment.get("status_id")
+                    or segment.get("status_kind")
+                    or segment.get("inline_message")):
+                count += 1
+        return count
+
+    @staticmethod
+    def _agent_v2_final_part_key(ctx: CtxItem) -> str:
+        """Return the durable key of the authoritative final partial."""
+        for part in reversed(list(getattr(ctx, "parts", None) or [])):
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            if extra.get("agents_v2_final") is not True:
+                continue
+            value = str(getattr(part, "uuid", "") or "")
+            if value:
+                return value
+            part_id = getattr(part, "id", None)
+            if part_id is not None:
+                return str(part_id)
+        return ""
+
     def _format_agent_v2_processing_label(self, ctx: CtxItem) -> str:
         """Build the localized collapsed-workflow label."""
         seconds = self._agent_v2_processing_seconds(ctx)
@@ -3827,7 +4460,7 @@ class Renderer(BaseRenderer):
         """
         if not self._display_tool_calls_json():
             return False
-        if str(getattr(ctx, "mode", "") or "") != MODE_AGENT_V2:
+        if not CtxItem.uses_agent_timeline(ctx):
             return True
         return bool(self.window.core.config.get("agent.v2.show_tool_chain", False))
 
@@ -3873,13 +4506,16 @@ class Renderer(BaseRenderer):
         parts = []
         for part in all_parts:
             part_uuid = str(getattr(part, "uuid", "") or "")
+            part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
             visible_part_tools = bool(include_tool_calls) and bool(
                 self.helpers.extract_extra_tool_calls(
                     ctx.get_part_tool_calls(visible_only=True, part=part)
                 )
             )
+            has_inline_messages = bool(self.get_inline_messages(part_extra))
             if (getattr(part, "output", None) not in (None, "")
                     or visible_part_tools
+                    or has_inline_messages
                     or part_uuid in anchored_uuids):
                 parts.append(part)
 
@@ -3892,9 +4528,16 @@ class Renderer(BaseRenderer):
             ))
             for part in parts
         )
-        # A single plain text part needs no sub-timeline. Any status, tool or
-        # multiple partials do, because relative ordering then matters.
-        if len(parts) == 1 and not has_visible_structured_tools and not workflow_statuses:
+        has_inline_messages = any(
+            bool(self.get_inline_messages(
+                part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            ))
+            for part in parts
+        )
+        # A single plain text part needs no sub-timeline. Any status, tool, inline
+        # message or multiple partials do, because relative ordering matters.
+        if (len(parts) == 1 and not has_visible_structured_tools
+                and not has_inline_messages and not workflow_statuses):
             return []
 
         timeline = []
@@ -3921,6 +4564,9 @@ class Renderer(BaseRenderer):
                 "render_id": -(base_id * 10000 + seq),
                 "text": md_text,
                 "tool_calls": tool_calls,
+                "agent_name_prefix": (
+                    self._legacy_agent_name_prefix(ctx, part=part) if text else ""
+                ),
             })
 
         def append_status(record):
@@ -3937,6 +4583,28 @@ class Renderer(BaseRenderer):
                 "status_text": str(record.get("text") or ""),
                 "status_tool_names": list(record.get("tool_names") or []),
                 "status_active": bool(record.get("active")),
+            })
+
+        def append_inline_message(part, message):
+            """Add one UI-only inline message associated with a durable partial."""
+            nonlocal seq
+            if not isinstance(message, dict):
+                return
+            value = str(message.get("text") or "").strip()
+            if not value:
+                return
+            msg_type = str(message.get("type") or "message").strip() or "message"
+            label = self.get_inline_message_label(msg_type)
+            seq += 1
+            timeline.append({
+                "part_id": getattr(part, "id", None),
+                "part_uuid": getattr(part, "uuid", None),
+                "render_id": -(base_id * 10000 + seq),
+                "text": value,
+                "tool_calls": [],
+                "inline_message": True,
+                "inline_message_type": msg_type,
+                "inline_message_label": label,
             })
 
         part_by_uuid = {
@@ -3995,6 +4663,8 @@ class Renderer(BaseRenderer):
             append_part_statuses(before_by_part.get(part_uuid, []), part)
 
             part_extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            for inline_message in self.get_inline_messages(part_extra):
+                append_inline_message(part, inline_message)
             source_text = str(getattr(part, "output", None) or "")
             if final_only_text:
                 if part_extra.get("agents_v2_final") is True:
@@ -4079,7 +4749,8 @@ class Renderer(BaseRenderer):
         for segment in timeline:
             calls = list(segment.get("tool_calls") or [])
             is_tool_only = bool(calls) and not segment.get("text") \
-                and not segment.get("status_id") and not segment.get("status_kind")
+                and not segment.get("status_id") and not segment.get("status_kind") \
+                and not segment.get("inline_message")
 
             if is_tool_only and grouped_timeline:
                 previous = grouped_timeline[-1]
@@ -4087,7 +4758,8 @@ class Renderer(BaseRenderer):
                 previous_is_tool_only = bool(previous_calls) \
                     and not previous.get("text") \
                     and not previous.get("status_id") \
-                    and not previous.get("status_kind")
+                    and not previous.get("status_kind") \
+                    and not previous.get("inline_message")
                 if previous_is_tool_only:
                     previous["tool_calls"] = previous_calls + calls
                     continue
@@ -4144,7 +4816,7 @@ class Renderer(BaseRenderer):
                 "text": str(input_text),
                 "timestamp": ctx.input_timestamp if hasattr(ctx, "input_timestamp") else None,
             }
-            if rebuild and history_date_label:
+            if history_date_label:
                 block.input["date_label"] = history_date_label
 
         # output
@@ -4166,14 +4838,14 @@ class Renderer(BaseRenderer):
         # it. A fresh history load has no records here, so old completed turns keep
         # the previous final-only behavior.
         if (rebuild
-                and str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2
+                and CtxItem.uses_agent_timeline(ctx)
                 and self._ctx_has_final_answer(ctx)
                 and runtime_status_records):
             replay_statuses = True
 
         show_tool_chain = self._show_tool_chain_for_ctx(ctx)
         completed_agents_v2_output = None
-        if (str(getattr(ctx, "mode", "") or "") == MODE_AGENT_V2
+        if (CtxItem.uses_agent_timeline(ctx)
                 and (rebuild or self._ctx_has_final_answer(ctx))):
             # Support both a full context rebuild and the direct runtime render
             # path used right after the final response has been committed.
@@ -4184,13 +4856,18 @@ class Renderer(BaseRenderer):
             include_workflow_statuses=replay_statuses,
             include_tool_calls=show_tool_chain,
             compact_workflow_statuses=bool(
-                rebuild
-                and replay_statuses
-                and self._workflow_single_status_history()
+                replay_statuses
+                and (
+                    self._workflow_single_status_history()
+                    if rebuild
+                    else self._workflow_single_status_live()
+                )
             ),
         )
         collapsed_workflow = None
+        compact_agents_v2_final = None
         if completed_agents_v2_output is not None and not full_workflow:
+            final_part_key = self._agent_v2_final_part_key(ctx)
             workflow_timeline = self._build_partial_timeline(
                 ctx,
                 final_only_text=False,
@@ -4201,14 +4878,34 @@ class Renderer(BaseRenderer):
                 ctx,
                 workflow_timeline,
             )
-            if (workflow_timeline
-                    and self._agent_v2_collapsed_workflow_part_count(
-                        ctx,
-                        include_tool_calls=show_tool_chain,
-                    ) > 1):
+            workflow_step_count = self._agent_v2_collapsed_workflow_step_count(
+                workflow_timeline
+            )
+            # ``agents_v2_compact_final`` is an instruction to the incremental
+            # frontend that there is *pre-final workflow DOM to fold away*.  Do
+            # not emit it for a plain one-shot final response.  Previously every
+            # completed Agents v2 turn carried this marker, so the JS collapse
+            # path could run even when the final response was the only timeline
+            # segment.
+            if workflow_step_count > 0:
+                # A plain one-shot answer produces zero pre-final workflow
+                # segments. Anything above zero means there was real visible work
+                # before the authoritative final response (partial/status/tool),
+                # even if it was only one step. Keep that work reachable through
+                # the Processed accordion instead of deleting it as a supposedly
+                # trivial single response.
+                compact_agents_v2_final = {
+                    "final_part_id": final_part_key,
+                    "workflow_steps": workflow_step_count,
+                }
                 collapsed_workflow = {
                     "label": self._format_agent_v2_processing_label(ctx),
+                    "expanded": False,
                     "timeline": workflow_timeline,
+                    # Runtime finalization uses this key to preserve the exact
+                    # streamed final DOM node while collapsing all preceding
+                    # workflow partials around it.
+                    "final_part_id": final_part_key,
                 }
             # Keep the authoritative final answer as the normal message body.
             # The preceding workflow is carried separately and starts collapsed.
@@ -4298,6 +4995,9 @@ class Renderer(BaseRenderer):
                 "text": md_text,
                 "timestamp": ctx.output_timestamp if hasattr(ctx, "output_timestamp") else None,
             }
+            agent_name_prefix = self._legacy_agent_name_prefix(ctx, prefer_final=True)
+            if agent_name_prefix:
+                block.output["agent_name_prefix"] = agent_name_prefix
 
             # extras (images/files/urls/actions)
             images, files, urls, extra_actions = self.body.build_extras_dicts(
@@ -4354,6 +5054,7 @@ class Renderer(BaseRenderer):
                 "tool_calls": tool_calls,
                 "partial_timeline": partial_timeline,
                 "collapsed_workflow": collapsed_workflow,
+                "agents_v2_compact_final": compact_agents_v2_final,
                 "tool_result": tool_result_display,
                 "tool_output": tool_output,
                 "tool_output_visible": tool_output_visible,

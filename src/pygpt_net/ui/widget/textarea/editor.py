@@ -14,6 +14,7 @@ from PySide6.QtGui import QAction, QIcon, QKeySequence, QFontMetrics
 from PySide6.QtWidgets import QTextEdit
 
 from pygpt_net.core.text.finder import Finder
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 
 
@@ -127,28 +128,17 @@ class BaseCodeEditor(QTextEdit):
 
     def wheelEvent(self, event):
         if event.modifiers() & Qt.ControlModifier:
-            prev = self.value
-            if event.angleDelta().y() > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-
-            if self.value != prev:
-                self.update_stylesheet(f"QTextEdit {{ font-size: {self.value}px }};")
+            delta = event.angleDelta().y()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size')
             event.accept()
         else:
             super().wheelEvent(event)
 
     def on_zoom_changed(self, value: int):
-        """
-        On font size changed
-
-        :param value: New font size
-        """
-        self.value = value
-        self.update_stylesheet(f"QTextEdit {{ font-size: {value}px }};")
+        zoom_text(self, self.window, value, 'font_size')
 
     def focusInEvent(self, e):
         super().focusInEvent(e)

@@ -560,6 +560,7 @@ class Files:
         :param: reload: reload explorer root dir
         """
         data = {}  # indexed file rows are lazy-loaded by the explorer model
+        self.window.core.tabs.refresh_files_tooltips()
         self.window.ui.nodes['output_files'].index_data = data
         if reload:
             root = self.window.core.filesystem.get_data_dir()
@@ -567,6 +568,10 @@ class Files:
             self.window.ui.nodes['output_files'].update_view()
             self.window.ui.nodes['output_files'].path_label.setText(root)
         self.window.ui.nodes['output_files'].model.update_idx_status(data)
+        try:
+            self.window.ui.nodes['output_files'].refresh_empty_state()
+        except (AttributeError, KeyError, RuntimeError):
+            pass
 
     def use_attachment(self, path: Union[str, list]):
         """

@@ -107,7 +107,7 @@ class OptionInput(QLineEdit):
             if "read_only" in self.option and self.option["read_only"]:
                 self.setReadOnly(True)
             if "placeholder" in self.option and self.option["placeholder"]:
-                self.setPlaceholderText(trans(self.option["placeholder"]))
+                self.setPlaceholderText(trans(self.option["placeholder"], domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(self.option["placeholder"]))
 
         # on update hook
         self.textChanged.connect(
@@ -120,6 +120,15 @@ class OptionInput(QLineEdit):
                 only_hook=True,
             )
         )
+
+    def update_locale(self):
+        """Refresh an optional translated placeholder."""
+        if not self.option or not self.option.get("placeholder"):
+            return
+        placeholder = self.option["placeholder"]
+        if self.option.get('_use_locale', True):
+            placeholder = trans(placeholder, domain=self.option.get('_locale_domain'))
+        self.setPlaceholderText(str(placeholder))
 
     def keyPressEvent(self, event):
         """

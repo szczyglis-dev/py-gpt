@@ -22,10 +22,11 @@ def dummy_window():
     tokens.from_user.return_value = 10
     tokens.from_text.return_value = 20
     config = MagicMock()
-    config.get.side_effect = lambda key: {
+    config.get.side_effect = lambda key, default=None: {
+        'completion.as_chat': True,
         'max_total_tokens': 1000,
-        'use_context': True
-    }[key]
+        'use_context': True,
+    }.get(key, default)
     gpt = MagicMock()
     client = MagicMock()
     client.completions.create.return_value = {"result": "response"}
@@ -86,10 +87,11 @@ def test_build_with_context(dummy_window, dummy_model):
     assert comp.input_tokens == 20
 
 def test_build_without_context(dummy_window, dummy_model):
-    dummy_window.core.config.get.side_effect = lambda key: {
+    dummy_window.core.config.get.side_effect = lambda key, default=None: {
+        'completion.as_chat': True,
         'max_total_tokens': 1000,
-        'use_context': False
-    }[key]
+        'use_context': False,
+    }.get(key, default)
     comp = Completion(window=dummy_window)
     message = comp.build("Test prompt", "System prompt", dummy_model, history=[], ai_name="GPT", user_name="User")
     expected = "System prompt\nUser: Test prompt\nGPT:"

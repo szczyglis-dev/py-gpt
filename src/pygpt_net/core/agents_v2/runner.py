@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.09.26 21:15:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -55,11 +55,15 @@ class Runner:
             self.last_error = exc
             self.window.core.debug.log(exc)
             try:
+                # Close the Agents v2 stream cleanly, but do not turn an exception
+                # into a successful/final assistant answer. Returning False lets
+                # BridgeWorker route the stored exception through the normal chat
+                # error path, which shows the frontend alert and unlocks the input.
                 emitter.clear_status()
-                emitter.finish(f"Chat with Agents: {exc}")
+                emitter.finish()
             except Exception:
                 pass
-            return True
+            return False
         finally:
             self.current_runtime = None
 

@@ -84,7 +84,11 @@ def _extension_importer(original_import):
             module = ModuleType(name)
             for attr in fromlist:
                 if attr != "*":
-                    setattr(module, attr, type(attr, (), {"__module__": name}))
+                    cls = type(attr, (), {
+                        "__module__": name,
+                        "__init__": lambda self, *args, **kwargs: None,
+                    })
+                    setattr(module, attr, cls)
             return module
         return original_import(name, globals, locals, fromlist, level)
 

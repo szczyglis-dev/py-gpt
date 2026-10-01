@@ -63,7 +63,15 @@ class EditorFileDialog(BaseDialog):
 
         :return: True if file was changed
         """
-        return self.window.ui.editor[self.id].toPlainText() != self.base_content
+        editor = self.window.ui.editor[self.id]
+        changed = editor.toPlainText() != self.base_content
+        # Keep Qt's modified flag aligned with the actual baseline comparison.
+        # Undoing edits back to the exact opened/saved contents therefore clears
+        # both the title marker and any modified-state consumers.
+        document = editor.document()
+        if document.isModified() != changed:
+            document.setModified(changed)
+        return changed
 
     def setup_menu(self) -> QMenuBar:
         """

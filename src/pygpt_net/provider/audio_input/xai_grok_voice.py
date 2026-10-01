@@ -365,7 +365,7 @@ class XAIGrokVoiceAudioInput(BaseProvider):
         Resolve xAI API key from the app's configuration.
         """
         # Prefer explicit xAI key if present
-        key = self.plugin.window.core.config.get("api_key_xai")
+        key = self.plugin.window.core.llm.get_config("x_ai", "api_key")
         if key:
             return key
 

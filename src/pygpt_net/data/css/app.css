@@ -8,11 +8,9 @@ QPushButton {{
 
 QLineEdit {{
   color: #ffffff; 
-  border: 1px solid #5c5c5c;
 }}
 QTextEdit {{
   color: #ffffff; 
-  border: 1px solid #5c5c5c;
   padding: 10px !important;
 }}
 
@@ -26,4 +24,127 @@ QListView::item {{
 QMenuBar::item {{
   padding-top: 14px;
   padding-bottom: 14px;
+}}
+
+/* Tabs use only the active bottom underline. Remove the top edge supplied
+ * by qt-material from every tab in every theme. */
+QTabWidget#agentOptionsTabs::pane {{
+  border: 0px;
+}}
+QTabBar::tab,
+QTabBar::tab:top,
+QTabBar::tab:bottom,
+QTabBar::tab:left,
+QTabBar::tab:right {{
+  border-top-width: 0px;
+  border-top-style: none;
+  border-top-color: transparent;
+}}
+
+/* Do not draw the native QTabBar base. With drawBase enabled Qt leaves a
+ * horizontal edge visible above the inactive tabs; the selected tab covers
+ * that edge, which makes it look like a top border only on inactive tabs. */
+QTabBar {{
+  qproperty-drawBase: false;
+}}
+
+
+/* Shared control geometry. XML palettes supply APP_* colors and dimensions. */
+QLineEdit,
+QPlainTextEdit,
+QTextEdit,
+QListView,
+QTreeView,
+QComboBox,
+QComboBox:editable,
+QComboBox[frame="false"] {{
+  background-color: {APP_CONTROL_BACKGROUND};
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
+  border-radius: {APP_RADIUS};
+}}
+
+QTableView,
+QTableView:enabled {{
+  background-color: {APP_LIST_BACKGROUND};
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
+  border-radius: {APP_RADIUS};
+}}
+
+QLineEdit:disabled,
+QPlainTextEdit:disabled,
+QTextEdit:disabled,
+QListView:disabled,
+QTreeView:disabled,
+QComboBox:disabled {{
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
+}}
+
+/* Keep the content rectangle fixed when focusing or opening a control. */
+QLineEdit:focus,
+QPlainTextEdit:focus,
+QTextEdit:focus,
+QComboBox:focus,
+QComboBox:focus:hover,
+QComboBox:on,
+QComboBox:editable:focus,
+QComboBox:editable:on,
+QComboBox[frame="false"]:focus {{
+  color: {APP_TEXT_COLOR};
+  border: 1px solid {APP_FOCUS_BORDER_COLOR};
+  border-width: 1px;
+  background-color: {APP_FOCUS_BACKGROUND};
+}}
+
+
+/* Files preview text editor is intentionally borderless. Keep the regular
+ * editor borders everywhere else. */
+QPlainTextEdit#filesPreviewText,
+QPlainTextEdit#filesPreviewText:focus {{
+  border: 0;
+  border-width: 0;
+}}
+
+
+/* Searchable combos (including Painter) use a child editor for display. */
+QComboBox QLineEdit#comboDisplayEditor,
+QComboBox QLineEdit#comboDisplayEditor:focus {{
+  border: 0;
+  border-width: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}}
+
+QHeaderView::section {{
+  margin-left: 0px;
+  padding-left: 6px;
+}}
+
+/* Custom and native combo popups share the regular control outline. */
+QComboBox QAbstractItemView,
+QListView#ComboPopupList {{
+  border: 1px solid {APP_BORDER_COLOR};
+  border-width: 1px;
+  border-radius: {APP_RADIUS};
+}}
+QMenu#chatInputModelMenu,
+QMenu#chatInputReasoningEffortMenu {{
+  border: none;
+  border-width: 0px;
+  border-radius: {APP_RADIUS};
+  padding: 4px;
+}}
+
+/* These embedded lists deliberately have no outer frame, including focus. */
+.ctx-list,
+.ctx-list:focus,
+.ctx-list:disabled,
+.file-explorer QTreeView,
+.file-explorer QTreeView:focus,
+.file-explorer QTreeView:disabled {{
+  border: 0;
+  border-width: 0;
 }}

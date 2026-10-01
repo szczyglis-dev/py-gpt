@@ -233,3 +233,23 @@ def get_current_user_image_path(core, mode: str, ctx: Optional[CtxItem] = None) 
         if path:
             return path
     return None
+
+
+def get_current_turn_user_reference_image_path(core, mode: str, ctx: Optional[CtxItem] = None) -> Optional[str]:
+    """
+    Return a reusable image reference for the active turn only.
+
+    First prefer the currently attached image from the live attachment queue.
+    If it has already been cached in the current ctx item earlier in the same
+    turn (for example after prompt preparation), reuse that cached value.
+    Unlike ``get_last_user_reference_image_path()``, this helper never falls
+    back to an older conversation turn.
+    """
+    path = get_current_user_image_path(core, mode, ctx=ctx)
+    if path:
+        return path
+
+    has_reference, path = _get_user_reference_path_from_ctx(core, ctx)
+    if has_reference:
+        return path
+    return None

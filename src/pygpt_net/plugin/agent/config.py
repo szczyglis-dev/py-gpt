@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 11:30:00                  #
+# Updated Date: 2026.09.21 22:30:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
@@ -69,6 +69,25 @@ class Config(BaseConfig):
             value=False,
             label="Always continue",
             description="If enabled, plugin will always continue to the next iteration, even if the goal is reached.",
+        )
+        plugin.add_option(
+            "dynamic_continue",
+            type="bool",
+            value=True,
+            label="Dynamic continuous prompt",
+            description="If enabled, after every completed pass a hidden call to the selected model acts as a judge, reviews the configured tail of the current Human/Assistant run, and generates the instruction for the next pass.",
+        )
+        plugin.add_option(
+            "dynamic_continue_messages",
+            type="int",
+            value=3,
+            label="Responses to judge",
+            description="Number of the most recent Autonomous assistant responses included in each judge request. The original user input is always included. Set to 0 to include all responses produced since that user input.",
+            min=0,
+            max=100,
+            multiplier=1,
+            step=1,
+            slider=True,
         )
         plugin.add_option(
             "reverse_roles",

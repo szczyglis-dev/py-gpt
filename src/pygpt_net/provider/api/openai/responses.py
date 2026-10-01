@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 13:40:00                  #
+# Updated Date: 2026.09.24 18:30:00                  #
 # ================================================== #
 
 import base64
@@ -286,6 +286,7 @@ class Responses:
             self.prev_response_id = None
 
         is_tool_output = False  # reset
+        runtime_tool_output_msg = None
 
         # tokens config
         mode = MODE_CHAT
@@ -423,6 +424,7 @@ class Responses:
                                                     }
                                                     is_tool_output = True
                                                     messages.append(msg)
+                                                    runtime_tool_output_msg = msg
 
                                     # computer call output
                                     elif output_type == "computer_call":
@@ -489,11 +491,15 @@ class Responses:
                             self.prev_response_id = item.msg_id  # previous response ID to use in current input
 
         # A Files I/O tool may attach a local image only for this continuation.
-        # Function-call output objects do not have a portable image payload across
-        # APIs, so send the image immediately after the function_call_output as a
-        # normal multimodal user item. The marker is transport-only and never
-        # enters the durable chat attachment list.
-        if is_tool_output and model.is_image_input() and attachments:
+        # Responses API function_call_output supports image/file content directly.
+        # Keep the runtime image inside the matching tool output instead of adding
+        # a synthetic user message. This is important when the Computer tool is
+        # exposed: OpenAI rejects ordinary input_image content combined with
+        # previous_response_id in a Computer-enabled continuation.
+        if (is_tool_output
+                and runtime_tool_output_msg is not None
+                and model.is_image_input()
+                and attachments):
             runtime_images = {
                 key: attachment
                 for key, attachment in attachments.items()
@@ -504,14 +510,12 @@ class Responses:
             }
             if runtime_images:
                 runtime_content = self.window.core.api.openai.vision.build_content(
-                    content="Image attachment returned by the preceding tool for native analysis.",
+                    content=str(runtime_tool_output_msg.get("output") or
+                                "Image attachment returned by the preceding tool for native analysis."),
                     attachments=runtime_images,
                     responses_api=True,
                 )
-                messages.append({
-                    "role": "user",
-                    "content": runtime_content,
-                })
+                runtime_tool_output_msg["output"] = runtime_content
 
         # use vision and audio if available in current model
         if not is_tool_output:  # append current prompt only if not tool output
@@ -613,6 +617,7 @@ class Responses:
             image_base64 = image_data[0]
             with open(img_path, "wb") as f:
                 f.write(base64.b64decode(image_base64))
+            self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
             if not isinstance(ctx.images, list):
                 ctx.images = []
             ctx.images += [img_path]
@@ -756,6 +761,7 @@ class Responses:
                 img_path = self.window.core.image.gen_unique_path(ctx)
                 with open(img_path, "wb") as f:
                     f.write(base64.b64decode(img_result))
+                self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
                 if not isinstance(ctx.images, list):
                     ctx.images = []
                 ctx.images += [img_path]
@@ -842,7 +848,7 @@ class Responses:
                     (model.has_mode(MODE_COMPUTER)
                      or supports_future_computer_mode(model.provider, model.id))
                     and (
-                        self.window.core.config.get("remote_tools.computer_use", False)
+                        self.window.core.llm.get("openai").is_remote_tool_enabled("computer_use")
                         or preset_computer_use
                     )
                 )
@@ -853,7 +859,7 @@ class Responses:
                 # check mode
                 elif (mode in self.RESPONSES_ALLOWED_MODES
                         and effective_parent_mode in self.RESPONSES_ALLOWED_MODES
-                        and self.window.core.config.get('api_use_responses', False)):
+                        and self.window.core.llm.get_config('openai', 'responses_api', False)):
                     allowed = True  # use responses API for chat mode, only OpenAI models
 
                     # Expert manager requests use the same global Responses

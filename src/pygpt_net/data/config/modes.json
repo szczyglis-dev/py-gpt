@@ -19,7 +19,7 @@
         },
         "agent_v2": {
             "id": "agent_v2",
-            "name": "Chat with Agents",
+            "name": "Agents",
             "label": "mode.agent_v2",
             "default": false
         },
@@ -53,24 +53,10 @@
             "label": "mode.computer",
             "default": false
         },
-        "agent_llama": {
-            "id": "agent_llama",
-            "name": "Agent (LlamaIndex)",
-            "label": "mode.agent_llama",
-            "default": false,
-            "legacy": true
-        },
         "agent_openai": {
             "id": "agent_openai",
             "name": "Agent (OpenAI)",
             "label": "mode.agent_openai",
-            "default": false,
-            "legacy": true
-        },
-        "agent": {
-            "id": "agent",
-            "name": "Agent (legacy)",
-            "label": "mode.agent",
             "default": false,
             "legacy": true
         },
@@ -79,6 +65,19 @@
             "name": "Experts",
             "label": "mode.expert",
             "default": false
+        },
+        "agent": {
+            "id": "agent",
+            "name": "Autonomous mode",
+            "label": "mode.agent",
+            "default": false
+        },
+        "agent_llama": {
+            "id": "agent_llama",
+            "name": "Custom agents",
+            "label": "mode.agent_llama",
+            "default": false,
+            "legacy": false
         }
     }
 }

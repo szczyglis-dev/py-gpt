@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.03 14:23:00                  #
+# Updated Date: 2026.09.28 20:10:00                  #
 # ================================================== #
 
 import datetime
@@ -16,13 +16,16 @@ import struct
 import sys
 from typing import Union
 
-from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect, QItemSelectionModel
+from PySide6.QtCore import Qt, QModelIndex, QDir, QObject, QEvent, QUrl, QPoint, QMimeData, QTimer, QRect, QItemSelectionModel, QSize
 from PySide6.QtGui import QAction, QIcon, QCursor, QResizeEvent, QGuiApplication, QKeySequence, QShortcut, QClipboard, QDrag
 from PySide6.QtWidgets import QTreeView, QMenu, QWidget, QVBoxLayout, QFileSystemModel, QLabel, QHBoxLayout, \
-    QPushButton, QSizePolicy, QAbstractItemView, QFrame
+    QPushButton, QSizePolicy, QAbstractItemView, QFrame, QSplitter, QLineEdit, QHeaderView, QStackedWidget
+
+from .preview import PreviewPanel
+from .search import TreeSearch
 
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.ui.widget.element.button import ContextMenuButton
+from pygpt_net.ui.widget.element.button import ButtonPopupMenu
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
@@ -211,6 +214,7 @@ class MultiDragTreeView(QTreeView):
                     except Exception:
                         pass
                     self._sel_anchor_index = self._md_press_index
+                    self.clicked.emit(self._md_press_index)
                 else:
                     self.setCurrentIndex(QModelIndex())
 
@@ -582,6 +586,107 @@ class ExplorerDropHandler(QObject):
         return False
 
 
+class EmptyFilesState(QWidget):
+    """Compact clickable upload target shown when the Files list is empty."""
+
+    def __init__(self, window, target_dir, parent=None):
+        super().__init__(parent)
+        self.window = window
+        self.target_dir = target_dir
+        # Mouse hover/click belongs only to this compact affordance. Drag & drop
+        # is handled by the whole file-list column (EmptyFilesDropPanel).
+        self.setAcceptDrops(False)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.setMinimumWidth(320)
+        self.setMaximumWidth(460)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(8)
+
+        self.icon_label = QLabel(self)
+        self.icon_label.setPixmap(QIcon(":/icons/upload.svg").pixmap(QSize(64, 64)))
+        self.icon_label.setAlignment(Qt.AlignCenter)
+        self.icon_label.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        layout.addWidget(self.icon_label)
+
+        self.text_label = QLabel(trans("files.empty.upload_or_drop"), self)
+        self.text_label.setWordWrap(True)
+        self.text_label.setAlignment(Qt.AlignCenter)
+        self.text_label.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        layout.addWidget(self.text_label)
+
+    def set_target_dir(self, path: str):
+        self.target_dir = path
+
+    def retranslate(self):
+        self.text_label.setText(trans("files.empty.upload_or_drop"))
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.window.controller.files.upload_local(self.target_dir)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+
+class EmptyFilesDropPanel(QWidget):
+    """Right Files column drop target used while the workdir is empty."""
+
+    def __init__(self, explorer, parent=None):
+        super().__init__(parent)
+        self.explorer = explorer
+        self.setAcceptDrops(True)
+
+    @staticmethod
+    def _local_paths(event):
+        paths = []
+        try:
+            mime = event.mimeData()
+            if not mime or not mime.hasUrls():
+                return paths
+            for url in mime.urls():
+                if url.isLocalFile():
+                    path = url.toLocalFile()
+                    if path:
+                        paths.append(path)
+        except Exception:
+            pass
+        return paths
+
+    def _accept_external_files(self, event) -> bool:
+        # This parent is the fallback drop target for the whole right column.
+        # When files exist, the tree view keeps its normal drop/move handling.
+        if not self.explorer._root_is_empty():
+            return False
+        if not self._local_paths(event):
+            return False
+        event.setDropAction(Qt.CopyAction)
+        event.acceptProposedAction()
+        return True
+
+    def dragEnterEvent(self, event):
+        if not self._accept_external_files(event):
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if not self._accept_external_files(event):
+            event.ignore()
+
+    def dropEvent(self, event):
+        if not self.explorer._root_is_empty():
+            event.ignore()
+            return
+        paths = self._local_paths(event)
+        if not paths:
+            event.ignore()
+            return
+        self.explorer.window.controller.files.upload_paths(paths, self.explorer.directory)
+        event.setDropAction(Qt.CopyAction)
+        event.acceptProposedAction()
+
+
 class FileExplorer(QWidget):
     def __init__(self, window, directory, index_data):
         """
@@ -623,48 +728,97 @@ class FileExplorer(QWidget):
         )
         self.btn_open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.btn_upload = QPushButton(QIcon(":/icons/upload.svg"), trans('files.local.upload'))
+        self.btn_upload = QPushButton(QIcon(":/icons/upload.svg"), "")
+        self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
         self.btn_upload.setMaximumHeight(40)
         self.btn_upload.clicked.connect(self.window.controller.files.upload_local)
         self.btn_upload.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.btn_idx = ContextMenuButton(trans('idx.btn.index_all'), self)
-        self.btn_idx.action = self.idx_context_menu
-        self.btn_idx.setMaximumHeight(40)
-        self.btn_idx.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
-        self.btn_clear = ContextMenuButton(trans('idx.btn.clear'), self)
-        self.btn_clear.action = self.clear_context_menu
-        self.btn_clear.setMaximumHeight(40)
-        self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
-        self.btn_tool = QPushButton(QIcon(":/icons/db.svg"), "")
-        self.btn_tool.setMaximumHeight(40)
-        self.btn_tool.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.btn_tool.clicked.connect(
-            lambda: self.window.tools.get("indexer").toggle()
+        self.btn_options = ButtonPopupMenu(
+            self,
+            menu_builder=self._build_options_menu,
+            object_name='filesOptionsButton',
+            menu_object_name='filesOptionsMenu',
         )
+        self.btn_options.setMaximumHeight(40)
+        self.btn_options.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.path_label = QLabel(self.directory)
+        self.btn_swap = QPushButton(QIcon(":/icons/sync.svg"), "")
+        self.btn_swap.setToolTip(trans('files.columns.swap'))
+        self.btn_swap.setMaximumHeight(40)
+        self.btn_swap.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.btn_swap.clicked.connect(self.toggle_columns)
+
+        self.path_label = QLabel(self.directory, self)
+        self.path_label.setTextFormat(Qt.PlainText)
+        path_font = self.path_label.font()
+        path_font.setBold(True)
+        self.path_label.setFont(path_font)
         self.path_label.setMaximumHeight(40)
-        self.path_label.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.path_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.path_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.path_label.setMinimumWidth(0)
+        self.path_label.setToolTip(self.directory)
 
-        header.addWidget(self.btn_open)
-        header.addWidget(self.btn_upload)
-        header.addStretch()
-        header.addWidget(self.path_label)
-        header.addStretch()
-
-        header.addWidget(self.btn_tool)
-        header.addWidget(self.btn_idx)
-        header.addWidget(self.btn_clear)
+        self.footer_layout = header
         self.layout = QVBoxLayout()
 
         self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
 
-        self.layout.addWidget(self.treeView)
-        self.layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
+        self.preview = PreviewPanel(self.window, self.directory, self)
+        self.preview.directoryRequested.connect(self.navigate_directory)
+
+        self.search = QLineEdit()
+        self.search.setPlaceholderText(trans('files.search.placeholder'))
+        self.search.setClearButtonEnabled(True)
+        self.search.setAcceptDrops(False)
+        self.search.addAction(QIcon(':/icons/search.svg'), QLineEdit.LeadingPosition)
+        self.search_status = QLabel()
+        self.searching_text = trans('files.search.searching')
+        search_bar = QHBoxLayout()
+        search_bar.addWidget(self.search, 1)
+        search_bar.addWidget(self.search_status)
+        search_bar.addWidget(self.btn_upload)
+        search_bar.addWidget(self.btn_open)
+
+        self.empty_files = EmptyFilesState(self.window, self.directory, self)
+        self.empty_files_wrapper = QWidget(self)
+        empty_files_layout = QVBoxLayout(self.empty_files_wrapper)
+        empty_files_layout.setContentsMargins(0, 0, 0, 0)
+        empty_files_layout.addWidget(self.empty_files, 0, Qt.AlignCenter)
+
+        self.files_stack = QStackedWidget(self)
+        self.files_stack.addWidget(self.treeView)
+        self.files_stack.addWidget(self.empty_files_wrapper)
+
+        self.files_panel = EmptyFilesDropPanel(self, self)
+        files_layout = QVBoxLayout(self.files_panel)
+        files_layout.setContentsMargins(0, 0, 0, 0)
+        files_layout.addLayout(search_bar)
+        files_layout.addWidget(self.files_stack)
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.addWidget(self.files_panel)
+        self.splitter.addWidget(self.preview)
+        self.columns_swapped = self._load_columns_swap()
+        self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
+        self.layout.addWidget(self.splitter, 1)
+        self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.treeView.clicked.connect(self.on_tree_clicked)
+        self.treeView.activated.connect(self.preview_index)
+        self.tree_search = TreeSearch(self)
+
+        # Toggle the file-list column between the tree and the centered upload
+        # state whenever the root directory becomes empty/non-empty.
+        self.model.rowsInserted.connect(self.refresh_empty_state)
+        self.model.rowsRemoved.connect(self.refresh_empty_state)
+        self.model.modelReset.connect(self.refresh_empty_state)
+        self.model.directoryLoaded.connect(self.refresh_empty_state)
+        self.refresh_empty_state()
+
         self.layout.addLayout(header)
+        self.layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
@@ -673,26 +827,20 @@ class FileExplorer(QWidget):
         self.treeView.setColumnWidth(0, int(self.width() / 2))
 
         self.header = self.treeView.header()
-        self.header.setStretchLastSection(True)
+        self.header.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.header.customContextMenuRequested.connect(self.header_context_menu)
+        self.header.setStretchLastSection(False)
         self.header.setContentsMargins(0, 0, 0, 0)
+        self.header.setSectionsClickable(True)
+        self.header.setSortIndicatorShown(True)
+        self.header.setSortIndicator(0, Qt.AscendingOrder)
+        self.treeView.setSortingEnabled(True)
+        self.model.sort(0, Qt.AscendingOrder)
 
-        # Persisted column widths across model refreshes/layout changes
-        self._saved_column_widths = {}
-        self._is_restoring_columns = False
-
-        # Re-apply widths when user resizes columns or model refreshes
-        try:
-            self.header.sectionResized.connect(self._on_header_section_resized)
-            self.model.modelAboutToBeReset.connect(self._on_model_about_to_reset)
-            self.model.modelReset.connect(self._on_model_reset)
-            self.model.layoutAboutToBeChanged.connect(self._on_layout_about_to_change)
-            self.model.layoutChanged.connect(self._on_layout_changed)
-            self.model.directoryLoaded.connect(self._on_model_directory_loaded)
-        except Exception:
-            pass
-
-        self.column_proportion = 0.3
-        self.adjustColumnWidths()  # initial layout
+        self.model.modelReset.connect(self._schedule_restore_columns)
+        self.model.layoutChanged.connect(lambda *_: self._schedule_restore_columns())
+        self.model.directoryLoaded.connect(lambda *_: self._schedule_restore_columns())
+        self.adjustColumnWidths()
 
         self.header.setStyleSheet("""
            QHeaderView::section {
@@ -753,69 +901,152 @@ class FileExplorer(QWidget):
 
         self._dnd_handler = ExplorerDropHandler(self)
 
-    def _on_header_section_resized(self, logical_index: int, old: int, new: int):
-        """Track user-driven column width changes."""
-        if self._is_restoring_columns:
-            return
+    def _load_columns_swap(self) -> bool:
+        """Return persisted Files column order; missing/invalid values mean default order."""
         try:
-            self._saved_column_widths[logical_index] = int(new)
+            value = self.window.core.config.get('files.columns.swap', False)
+            return value is True
         except Exception:
-            pass
+            return False
 
-    def _on_model_about_to_reset(self):
-        """Save current widths before model reset."""
-        self._save_current_column_widths()
+    def _rebuild_footer(self, swapped: bool):
+        """Mirror the footer order to the current Files column order."""
+        while self.footer_layout.count():
+            self.footer_layout.takeAt(0)
 
-    def _on_model_reset(self):
-        """Restore widths right after model reset."""
-        self._schedule_restore_columns()
+        controls = (self.btn_swap, self.btn_options)
+        self.footer_layout.addWidget(self.path_label, 1)
+        for widget in controls:
+            self.footer_layout.addWidget(widget)
+        self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        return
+        if swapped:
+            for widget in controls:
+                self.footer_layout.addWidget(widget)
+            self.footer_layout.addWidget(self.path_label, 1)
+            self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        else:
+            self.footer_layout.addWidget(self.path_label, 1)
+            for widget in controls:
+                self.footer_layout.addWidget(widget)
+            self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
-    def _on_layout_about_to_change(self):
-        """Save widths before layout changes."""
-        self._save_current_column_widths()
-
-    def _on_layout_changed(self):
-        """Restore widths after layout changes."""
-        self._schedule_restore_columns()
-
-    def _on_model_directory_loaded(self, path: str):
-        """Ensure widths are re-applied when a directory finishes loading."""
-        self._schedule_restore_columns()
-
-    def _save_current_column_widths(self):
-        """Persist current column widths."""
-        try:
-            count = self.model.columnCount()
-            for i in range(count):
-                w = self.treeView.columnWidth(i)
-                if w > 0:
-                    self._saved_column_widths[i] = int(w)
-        except Exception:
-            pass
-
-    def _restore_columns_now(self):
-        """Best-effort restoration of column widths with proportional fallback."""
-        try:
-            self._is_restoring_columns = True
-            col_count = self.model.columnCount()
-            self.adjustColumnWidths()  # apply proportional baseline
-            if self._saved_column_widths:
-                for i, w in list(self._saved_column_widths.items()):
-                    if 0 <= i < col_count and w > 0:
-                        try:
-                            self.treeView.setColumnWidth(i, int(w))
-                        except Exception:
-                            pass
+    def _apply_columns_layout(self, swapped: bool, preserve_sizes: bool = True):
+        """Apply list/preview order and the matching footer order immediately."""
+        files_size, preview_size = 400, 600
+        if preserve_sizes:
             try:
-                self.header.setStretchLastSection(True)
+                sizes = self.splitter.sizes()
+                if len(sizes) >= 2 and sum(sizes[:2]) > 0:
+                    if self.columns_swapped:
+                        preview_size, files_size = sizes[0], sizes[1]
+                    else:
+                        files_size, preview_size = sizes[0], sizes[1]
             except Exception:
                 pass
-        finally:
-            self._is_restoring_columns = False
 
-    def _schedule_restore_columns(self, delay_ms: int = 0):
-        """Defer restoration to allow view/header to settle after reset."""
-        QTimer.singleShot(max(0, delay_ms), self._restore_columns_now)
+        if swapped:
+            self.splitter.insertWidget(0, self.preview)
+            self.splitter.insertWidget(1, self.files_panel)
+            self.splitter.setStretchFactor(0, 3)
+            self.splitter.setStretchFactor(1, 2)
+            self.splitter.setSizes([preview_size, files_size])
+        else:
+            self.splitter.insertWidget(0, self.files_panel)
+            self.splitter.insertWidget(1, self.preview)
+            self.splitter.setStretchFactor(0, 2)
+            self.splitter.setStretchFactor(1, 3)
+            self.splitter.setSizes([files_size, preview_size])
+
+        self.columns_swapped = swapped
+        self._rebuild_footer(swapped)
+
+    def toggle_columns(self):
+        """Swap Files columns in runtime and persist the selected order."""
+        swapped = not self.columns_swapped
+        self._apply_columns_layout(swapped)
+        try:
+            config = self.window.core.config
+            config.set('files.columns.swap', swapped)
+            config.save()
+        except Exception as e:
+            try:
+                self.window.core.debug.log(e)
+            except Exception:
+                pass
+
+    def _root_is_empty(self) -> bool:
+        try:
+            with os.scandir(self.directory) as entries:
+                return next(entries, None) is None
+        except (FileNotFoundError, NotADirectoryError):
+            return True
+        except OSError:
+            return False
+
+    def refresh_empty_state(self, *args):
+        """Show upload affordance instead of the tree when the workdir is empty."""
+        if self._root_is_empty():
+            self.files_stack.setCurrentWidget(self.empty_files_wrapper)
+        else:
+            self.files_stack.setCurrentWidget(self.treeView)
+
+    def retranslate(self):
+        """Refresh Files labels/tooltips after a runtime language change."""
+        self.btn_open.setToolTip(trans('action.open'))
+        self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
+        self.btn_swap.setToolTip(trans('files.columns.swap'))
+        self.btn_options.retranslate()
+        self.path_label.setText(self.directory)
+        self.search.setPlaceholderText(trans('files.search.placeholder'))
+        self.searching_text = trans('files.search.searching')
+        self.empty_files.retranslate()
+        if self.preview.path is None:
+            self.preview.show_empty()
+
+    def header_context_menu(self, position):
+        menu = QMenu(self.header)
+        menu.addAction(trans('files.tree.collapse_all'), self.tree_search.collapse_all)
+        menu.addAction(trans('files.tree.expand_all'), self.tree_search.expand_all)
+        menu.exec(self.header.mapToGlobal(position))
+        menu.deleteLater()
+
+    def on_tree_clicked(self, index):
+        """Handle a single left-click in the file tree.
+
+        Files are previewed as before. Directories toggle their expanded state,
+        so navigating the tree does not depend on the branch indicator.
+        """
+        path = self.model.filePath(index)
+        if os.path.isdir(path):
+            if self.treeView.isExpanded(index):
+                self.treeView.collapse(index)
+            else:
+                self.treeView.expand(index)
+            return
+        self.preview_index(index)
+
+    def preview_index(self, index):
+        path = self.model.filePath(index)
+        if os.path.isfile(path):
+            if not self.preview.open_file(path) and self.preview.path:
+                self.treeView.setCurrentIndex(self.model.index(self.preview.path))
+
+    def navigate_directory(self, path):
+        self.search.clear()
+        self.tree_search.start()
+        index = self.model.index(path)
+        ancestor = index
+        while ancestor.isValid() and ancestor != self.treeView.rootIndex():
+            self.treeView.expand(ancestor)
+            ancestor = ancestor.parent()
+        if index.isValid():
+            self.treeView.setCurrentIndex(index)
+            self.treeView.scrollTo(index)
+
+    def _schedule_restore_columns(self):
+        """Keep the single name column after filesystem model refreshes."""
+        QTimer.singleShot(0, self.adjustColumnWidths)
 
     def eventFilter(self, source, event):
         """
@@ -827,7 +1058,7 @@ class FileExplorer(QWidget):
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
-                self.window.controller.ui.tabs.on_column_focus(col_idx)
+                self.window.controller.tabs.on_column_focus(col_idx)
         return super().eventFilter(source, event)
 
     def set_tab(self, tab: Tab):
@@ -855,13 +1086,67 @@ class FileExplorer(QWidget):
         return self.owner
 
     def update_view(self):
-        """Update explorer view keeping column widths intact."""
-        self._save_current_column_widths()
+        """Refresh the root and restart the current recursive search."""
+        if not self.preview.set_root(self.directory):
+            self.directory = self.preview.root
+            return
+        self.empty_files.set_target_dir(self.directory)
+        self.path_label.setText(self.directory)
+        self.path_label.setToolTip(self.directory)
         self.model.beginResetModel()
         self.model.setRootPath(self.directory)
         self.model.endResetModel()
         self.treeView.setRootIndex(self.model.index(self.directory))
+        self.tree_search.start()
+        self.refresh_empty_state()
         self._schedule_restore_columns()
+
+    def _build_options_menu(self, menu: QMenu):
+        """Populate the Files footer options popup."""
+        action = menu.addAction(QIcon(":/icons/db.svg"), trans('files.indexer.open'))
+        action.triggered.connect(
+            lambda checked=False: self.window.tools.get("indexer").toggle()
+        )
+
+        menu.addSeparator()
+
+        idx_menu = menu.addMenu(trans('idx.btn.index_all'))
+        if not self._populate_index_all_menu(idx_menu):
+            idx_menu.setEnabled(False)
+
+        clear_menu = menu.addMenu(trans('idx.btn.clear'))
+        if not self._populate_clear_index_menu(clear_menu):
+            clear_menu.setEnabled(False)
+
+    def _populate_index_all_menu(self, menu: QMenu) -> bool:
+        """Add available indexes to an Index all menu and return whether any were added."""
+        idx_list = list(self.window.core.config.get('llama.idx.list') or [])
+        if self.window.core.idx.project.get_current_group_id() is not None:
+            idx_list.insert(0, {
+                'id': self.window.core.idx.project.VIRTUAL_ID,
+                'name': trans('idx.current_project'),
+            })
+        for idx in idx_list:
+            idx_id = idx['id']
+            name = idx['name'] if self.window.core.idx.project.is_virtual(idx_id) \
+                else f"{idx['name']} ({idx_id})"
+            action = menu.addAction(f"IDX: {name}")
+            action.triggered.connect(
+                lambda checked=False, id=idx_id: self.window.controller.idx.indexer.index_all_files(id)
+            )
+        return bool(idx_list)
+
+    def _populate_clear_index_menu(self, menu: QMenu) -> bool:
+        """Add configured indexes to a Clear index menu and return whether any were added."""
+        idx_list = list(self.window.core.config.get('llama.idx.list') or [])
+        for idx in idx_list:
+            idx_id = idx['id']
+            name = f"{idx['name']} ({idx_id})"
+            action = menu.addAction(f"IDX: {name}")
+            action.triggered.connect(
+                lambda checked=False, id=idx_id: self.window.controller.idx.indexer.clear(id)
+            )
+        return bool(idx_list)
 
     def idx_context_menu(self, parent, pos):
         """
@@ -871,19 +1156,7 @@ class FileExplorer(QWidget):
         :param pos: mouse  position
         """
         menu = QMenu(self)
-        idx_list = list(self.window.core.config.get('llama.idx.list') or [])
-        if self.window.core.idx.project.get_current_group_id() is not None:
-            idx_list.insert(0, {'id': self.window.core.idx.project.VIRTUAL_ID, 'name': trans('idx.current_project')})
-        if len(idx_list) > 0:
-            for idx in idx_list:
-                id = idx['id']
-                name = idx['name'] if self.window.core.idx.project.is_virtual(id) \
-                    else f"{idx['name']} ({id})"
-                action = menu.addAction(f"IDX: {name}")
-                action.triggered.connect(
-                    lambda checked=False,
-                           id=id: self.window.controller.idx.indexer.index_all_files(id)
-                )
+        self._populate_index_all_menu(menu)
         menu.exec(parent.mapToGlobal(pos))
 
     def clear_context_menu(self, parent, pos):
@@ -894,30 +1167,14 @@ class FileExplorer(QWidget):
         :param pos: mouse position
         """
         menu = QMenu(self)
-        idx_list = self.window.core.config.get('llama.idx.list')
-        if len(idx_list) > 0:
-            for idx in idx_list:
-                id = idx['id']
-                name = f"{idx['name']} ({idx['id']})"
-                action = menu.addAction(f"IDX: {name}")
-                action.triggered.connect(
-                    lambda checked=False,
-                           id=id: self.window.controller.idx.indexer.clear(id)
-                )
+        self._populate_clear_index_menu(menu)
         menu.exec(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
-        """Adjust column widths and persist them."""
-        total_width = self.treeView.width()
-        col_count = self.model.columnCount()
-        first_column_width = int(total_width * self.column_proportion)
-        self.treeView.setColumnWidth(0, first_column_width)
-        if col_count > 1:
-            remaining = max(total_width - first_column_width, 0)
-            per_col = remaining // (col_count - 1) if col_count > 1 else 0
-            for column in range(1, col_count):
-                self.treeView.setColumnWidth(column, per_col)
-        self._save_current_column_widths()
+        """Show only the filename, filling the tree panel."""
+        for column in range(1, self.model.columnCount()):
+            self.treeView.setColumnHidden(column, True)
+        self.header.setSectionResizeMode(0, QHeaderView.Stretch)
 
     def resizeEvent(self, event: QResizeEvent):
         """
@@ -1021,6 +1278,13 @@ class FileExplorer(QWidget):
 
             use_menu = QMenu(trans('action.use'), self)
 
+            # Keep the direct AI action first in the Use submenu.
+            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
+            actions['use_read_cmd'].triggered.connect(
+                lambda: self.window.controller.files.make_read_cmd(target_multi)
+            )
+            use_menu.addAction(actions['use_read_cmd'])
+
             files_only = all(os.path.isfile(p) for p in paths)
             if files_only:
                 actions['use_attachment'] = QAction(self._icons['attachment'], trans('action.use.attachment'), self)
@@ -1046,14 +1310,8 @@ class FileExplorer(QWidget):
                 lambda: self.window.controller.files.copy_sys_path(target_multi)
             )
 
-            actions['use_read_cmd'] = QAction(self._icons['read'], trans('action.use.read_cmd'), self)
-            actions['use_read_cmd'].triggered.connect(
-                lambda: self.window.controller.files.make_read_cmd(target_multi)
-            )
-
             use_menu.addAction(actions['use_copy_work_path'])
             use_menu.addAction(actions['use_copy_sys_path'])
-            use_menu.addAction(actions['use_read_cmd'])
             menu.addMenu(use_menu)
 
             allowed_any = any(self.window.core.idx.indexing.is_allowed(p) for p in paths)
@@ -1137,14 +1395,14 @@ class FileExplorer(QWidget):
                 a_unpack.triggered.connect(lambda: self.action_unpack(target_multi))
                 menu.addAction(a_unpack)
 
-            menu.addSeparator()            
+            menu.addSeparator()
             menu.addAction(actions['refresh'])
             menu.addAction(actions['touch'])
             menu.addAction(actions['mkdir'])
-            menu.addAction(actions['upload'])
             menu.addSeparator()
-
+            menu.addAction(actions['upload'])
             menu.addAction(actions['download'])
+            menu.addSeparator()
             menu.addAction(actions['rename'])
             menu.addAction(actions['duplicate'])
             menu.addAction(actions['delete'])
@@ -1682,16 +1940,88 @@ class IndexedFileSystemModel(QFileSystemModel):
         self.window = window
         self.index_dict = index_dict
         self._status_cache = {}
+        # QFileSystemModel reports every not-yet-loaded directory as having
+        # children.  That keeps directory loading lazy, but it also makes Qt
+        # draw a disclosure arrow for empty directories.  Cache a lightweight
+        # one-entry probe so the probe is not repeated during every paint.
+        self._children_hint_cache = {}
         self.directoryLoaded.connect(self.refresh_path)
+        self.rowsInserted.connect(self._invalidate_children_hint)
+        self.rowsRemoved.connect(self._invalidate_children_hint)
+        self.modelReset.connect(self._clear_children_hints)
         try:
             self.setReadOnly(False)
         except Exception:
             pass
 
+    def _clear_children_hints(self):
+        self._children_hint_cache.clear()
+
+    @staticmethod
+    def _children_hint_key(path):
+        """Normalize cache keys so Qt/native Windows path forms share one hint."""
+        return os.path.normcase(os.path.normpath(path))
+
+    def _invalidate_children_hint(self, parent=QModelIndex(), *_):
+        """Invalidate only the directory whose contents changed."""
+        try:
+            index = parent.siblingAtColumn(0) if parent.isValid() else QModelIndex()
+            path = self.filePath(index) if index.isValid() else self.rootPath()
+            if path:
+                self._children_hint_cache.pop(self._children_hint_key(path), None)
+        except Exception:
+            # A full clear is still cheap and avoids keeping a stale hint if Qt
+            # emits a model notification while the root index is changing.
+            self._children_hint_cache.clear()
+
+    def hasChildren(self, parent=QModelIndex()) -> bool:
+        """Return accurate expandability without repeatedly scanning directories."""
+        if not parent.isValid():
+            return super().hasChildren(parent)
+
+        try:
+            index = parent.siblingAtColumn(0)
+        except Exception:
+            index = parent
+
+        if not self.isDir(index):
+            return False
+
+        # Once QFileSystemModel has loaded the directory, use its asynchronous
+        # cache only.  This is the fast path used for expanded/visited folders.
+        if not self.canFetchMore(index):
+            return self.rowCount(index) > 0
+
+        path = self.filePath(index)
+        if not path:
+            return super().hasChildren(index)
+
+        cache_key = self._children_hint_key(path)
+        cached = self._children_hint_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        # For an unloaded directory QFileSystemModel otherwise returns True
+        # unconditionally.  Probe only until the first entry and cache the
+        # result.  This preserves lazy loading and avoids an os.listdir()/full
+        # scan on every hasChildren()/paint call.
+        try:
+            with os.scandir(path) as entries:
+                has_children = next(entries, None) is not None
+            self._children_hint_cache[cache_key] = has_children
+            return has_children
+        except OSError:
+            # Keep QFileSystemModel's default lazy behaviour for inaccessible
+            # or transient paths rather than incorrectly hiding the arrow.
+            return super().hasChildren(index)
+        except Exception:
+            return super().hasChildren(index)
+
     def refresh_path(self, path):
         index = self.index(path)
         if index.isValid():
             self._status_cache.clear()
+            self._children_hint_cache.pop(self._children_hint_key(path), None)
             self.dataChanged.emit(index, index)
 
     def columnCount(self, parent=QModelIndex()) -> int:

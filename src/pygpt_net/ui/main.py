@@ -129,8 +129,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         if self.args is not None:
             if "debug" in self.args and (self.args["debug"] == "1" or self.args["debug"] == "2"):
                 render_debug = True
-            if "legacy" in self.args and self.args["legacy"] == "1":
-                self.core.config.set("render.engine", "legacy")
             if "disable-gpu" in self.args and self.args["disable-gpu"] == "1":
                 self.core.config.set("render.open_gl", False)
 
@@ -368,16 +366,26 @@ class MainWindow(QMainWindow, QtStyleTools):
         This method is called when the application is closing.
         """
         if self.is_closing:
-            print("Application is already closing...")
             return
         self.is_closing = True
         print("Closing...")
+        # Remove the desktop tray surface immediately. If a native audio/provider
+        # teardown needs a moment, the app must not look as if it is still alive.
+        try:
+            self.ui.tray.shutdown()
+        except Exception as e:
+            self.core.debug.log(e)
         print("Stopping camera...")
         try:
             self.controller.camera.shutdown()
         except Exception as e:
             self.core.debug.log(e)
-        print("Sending terminate signal to all...")
+        print("Shutting down plugins...")
+        try:
+            self.controller.plugins.shutdown()
+        except Exception as e:
+            self.core.debug.log(e)
+        print("Terminating kernel...")
         self.controller.kernel.terminate()
         print("Saving context and projects...")
         self.controller.ctx.save_all()

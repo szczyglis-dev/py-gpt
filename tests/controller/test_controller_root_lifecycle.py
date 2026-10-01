@@ -13,12 +13,12 @@ def _bare_controller():
         "debug", "kernel", "chat", "layout", "ui", "lang", "agent_workflow", "assistant",
         "remote_store", "agent", "agents_v2", "tools", "ctx", "presets", "idx",
         "dialogs", "audio", "attachment", "camera", "access", "realtime",
-        "media", "settings", "plugins", "model", "launcher", "calendar",
-        "painter", "notepad", "files", "theme", "profile_exporter", "skills", "connectors",
+        "media", "settings", "plugins", "model", "mode", "launcher", "calendar",
+        "painter", "notepad", "files", "theme", "profile_exporter", "skills", "connectors", "extensions", "packages",
     ):
         setattr(controller, name, MagicMock())
 
-    controller.ui.tabs = MagicMock()
+    controller.tabs = MagicMock()
     controller.plugins.settings = MagicMock()
     controller.model.editor = MagicMock()
     controller.dialogs.info = MagicMock()
@@ -40,7 +40,7 @@ def test_controller_setup_calls_all_primary_components():
     controller.chat.init.assert_called_once_with()
     controller.layout.setup.assert_called_once_with()
     controller.ui.setup.assert_called_once_with()
-    controller.ui.tabs.setup.assert_called_once_with()
+    controller.tabs.setup.assert_called_once_with()
     controller.lang.setup.assert_called_once_with()
     controller.agent_workflow.setup.assert_called_once_with()
     controller.assistant.setup.assert_called_once_with()
@@ -56,6 +56,7 @@ def test_controller_setup_calls_all_primary_components():
     controller.dialogs.setup.assert_called_once_with()
     controller.skills.setup.assert_called_once_with()
     controller.connectors.setup.assert_called_once_with()
+    controller.extensions.setup.assert_called_once_with()
     controller.audio.setup.assert_called_once_with()
     controller.attachment.setup.assert_called_once_with()
     controller.camera.setup_ui.assert_called_once_with()
@@ -74,11 +75,10 @@ def test_controller_post_setup_does_not_open_license_when_accepted():
     controller.plugins.settings.setup.assert_called_once_with()
     controller.model.editor.setup.assert_called_once_with()
     controller.agents_v2.setup.assert_called_once_with()
-    controller.launcher.post_setup.assert_called_once_with()
     controller.calendar.setup.assert_called_once_with()
     controller.painter.setup.assert_called_once_with()
     controller.debug.post_setup.assert_called_once_with()
-    controller.ui.tabs.restore_data.assert_called_once_with()
+    controller.tabs.restore_data.assert_called_once_with()
     controller.dialogs.info.toggle.assert_not_called()
 
 
@@ -100,9 +100,12 @@ def test_controller_post_setup_opens_license_when_not_accepted():
 def test_controller_after_setup_updates_plugins():
     controller = _bare_controller()
 
-    controller.after_setup()
+    with patch("pygpt_net.controller.QTimer.singleShot", side_effect=lambda delay, callback: callback()):
+        controller.after_setup()
 
     controller.plugins.update.assert_called_once_with()
+    controller.launcher.after_setup.assert_called_once_with()
+    controller.packages.check_addons.assert_called_once_with()
 
 
 def test_controller_init_loads_settings():
@@ -123,17 +126,18 @@ def test_controller_reload_success_unlocks_and_restarts_components():
     controller.presets.lock.assert_called_once_with()
     controller.presets.unlock.assert_called_once_with()
     controller.window.core.reload.assert_called_once_with()
-    controller.ui.tabs.reload.assert_called_once_with(restore_data=False)
+    controller.tabs.reload.assert_called_once_with(restore_data=False)
     controller.ctx.reload.assert_called_once_with()
-    controller.ui.tabs.restore_after_ctx_reload.assert_called_once_with()
+    controller.tabs.restore_after_ctx_reload.assert_called_once_with()
     controller.skills.reload.assert_called_once_with()
     controller.connectors.reload.assert_called_once_with()
+    controller.extensions.reload.assert_called_once_with()
     controller.agents_v2.reload.assert_called_once_with()
-    controller.ui.tabs.reload_after.assert_called_once_with()
+    controller.tabs.reload_after.assert_called_once_with()
     controller.ctx.reload_after.assert_called_once_with()
     controller.kernel.restart.assert_called_once_with()
     controller.theme.reload_all.assert_called_once_with()
-    controller.ui.tabs.finalize_profile_reload.assert_called_once_with()
+    controller.tabs.finalize_profile_reload.assert_called_once_with()
     controller.window.tools.on_reload.assert_called_once_with()
     mem_clean.assert_called_once_with(force=True)
 

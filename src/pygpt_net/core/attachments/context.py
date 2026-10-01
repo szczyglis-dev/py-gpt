@@ -9,15 +9,15 @@
 # Updated Date: 2026.02.06 01:00:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import copy
 import os
 import shutil
 import uuid
 
 from shutil import copyfile
-from typing import Optional, List, Dict, Any, Tuple
+from typing import TYPE_CHECKING, Optional, List, Dict, Any, Tuple
 
-from llama_index.core import Document
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
@@ -26,6 +26,8 @@ from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxMeta, CtxItem, group_additional_ctx_items
 
+if TYPE_CHECKING:
+    from llama_index.core import Document
 
 class Context:
     def __init__(self, window=None):

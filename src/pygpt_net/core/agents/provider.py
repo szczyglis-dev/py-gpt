@@ -12,7 +12,7 @@
 import copy
 from typing import List, Dict, Any, Optional
 
-from pygpt_net.core.types import MODE_CHAT, MODE_AGENT_LLAMA
+from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_OPENAI
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.agents.base import BaseAgent
 
@@ -27,6 +27,15 @@ class Provider:
         self.window = window
         self.agents = {}
         self.hidden = ["openai_custom", "llama_custom"]  # builder hidden agents (hide provider on list)
+
+    @staticmethod
+    def resolve_id(id, mode=MODE_AGENT_LLAMA):
+        # Saved conversations/presets still referring to removed provider types
+        # use the ordinary LlamaIndex function-calling workflow.
+        from .compatibility import RETIRED_LLAMA_PROVIDERS
+        if mode == MODE_AGENT_LLAMA and id in RETIRED_LLAMA_PROVIDERS:
+            return "llama_agent_base"
+        return id
 
     def get_ids(self) -> List[str]:
         """
@@ -44,6 +53,7 @@ class Provider:
         :param mode: agent mode, used for custom agents (optional)
         :return: True if exists
         """
+        id = self.resolve_id(id, mode)
         custom = self.get_custom(id, mode) # shared instance
         if custom is not None:
             return True
@@ -58,6 +68,7 @@ class Provider:
         :return: agent provider
         """
         # custom agents
+        id = self.resolve_id(id, mode)
         custom = self.get_custom(id, mode)  # shared instance
         if custom is not None:
             return custom
@@ -172,19 +183,51 @@ class Provider:
         from openai import AsyncOpenAI
         from agents import (
             OpenAIChatCompletionsModel,
+            OpenAIResponsesModel,
+            set_tracing_disabled,
         )
         models = self.window.core.models
         if isinstance(model, str):
             model = models.get(model)
 
+        # Auxiliary legacy-agent presets may still reference a model that was
+        # removed from the current registry (for example an old default such as
+        # ``gpt-4o``).  Never pass ``None`` to the Agents SDK: a missing model
+        # makes the SDK fall back to its global MultiProvider, which in turn
+        # expects credentials from environment variables instead of PyGPT's
+        # configured client.  Fall back to the currently selected PyGPT model.
+        if model is None or not getattr(model, "id", None):
+            current_model_id = self.window.core.config.get("model")
+            model = models.get(current_model_id) if current_model_id else None
+
+        if model is None or not getattr(model, "id", None):
+            raise ValueError("Unable to resolve a model for the OpenAI Agents SDK")
+
         model_id = model.id
-        if model.provider in ("openai", "azure_openai"):
-            return model.id
-        elif model.provider == "open_router":
+        if model.provider == "open_router":
             model_id = models.get_openrouter_model(model)
 
-        args = models.prepare_client_args(MODE_CHAT, model)
+        # Bind a concrete SDK model to the client already configured by PyGPT.
+        # openai-agents >= 0.18 resolves string model names through its own
+        # MultiProvider. That provider creates a separate AsyncOpenAI client and
+        # expects OPENAI_API_KEY in the process environment, which is incorrect
+        # for PyGPT because credentials/endpoints live in application config.
+        args = models.prepare_client_args(MODE_AGENT_OPENAI, model)
+        client = AsyncOpenAI(**args)
+        set_tracing_disabled(True)
+
+        # Native OpenAI/Azure agents used the SDK's Responses path when the
+        # model was supplied as a string. Keep that behaviour while providing
+        # the explicit PyGPT client so previous_response_id and Responses tools
+        # continue to work. OpenAI-compatible third-party endpoints keep the
+        # Chat Completions compatibility path used by PyGPT.
+        if model.provider in ("openai", "azure_openai"):
+            return OpenAIResponsesModel(
+                model=model_id,
+                openai_client=client,
+            )
+
         return OpenAIChatCompletionsModel(
             model=model_id,
-            openai_client=AsyncOpenAI(**args),
+            openai_client=client,
         )

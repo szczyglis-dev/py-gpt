@@ -17,6 +17,7 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.utils import trans
 
 
 class Loaders:
@@ -112,21 +113,26 @@ class Loaders:
         loaders = self.window.core.idx.indexing.get_external_instructions()
         for loader in loaders:
             params = loaders[loader]
+            domain = params.get('_locale_domain') if isinstance(params, dict) else None
             inputs[loader] = {}
             group = QVBoxLayout()
             for k in params["args"]:
+                arg_meta = params["args"][k]
+                arg_domain = arg_meta.get('_locale_domain', domain) if isinstance(arg_meta, dict) else domain
                 label = k
                 description = None
                 is_label = False
                 if "label" in params["args"][k]:
-                    label = params["args"][k]["label"]
+                    label = trans(params["args"][k]["label"], domain=arg_domain)
                     is_label = True
                 if "description" in params["args"][k]:
-                    description = params["args"][k]["description"]
+                    description = trans(params["args"][k]["description"], domain=arg_domain)
                 option_id = "web.loader." + loader + ".option." + k
                 option_widget = OptionInput(self.window, "tool.indexer", option_id, {
                     "label": label,
                     "value": "",
+                    "_use_locale": False,
+                    "_locale_domain": arg_domain,
                 })
                 option_widget.setPlaceholderText(params["args"][k]["type"])
                 inputs[loader][k] = option_widget
@@ -165,18 +171,21 @@ class Loaders:
             inputs[loader] = {}
             group = QVBoxLayout()
             for k in params:
+                domain = params[k].get('_locale_domain') if isinstance(params[k], dict) else None
                 label = k
                 description = None
                 is_label = False
                 if "label" in params[k]:
-                    label = params[k]["label"]
+                    label = trans(params[k]["label"], domain=domain)
                     is_label = True
                 if "description" in params[k]:
-                    description = params[k]["description"]
+                    description = trans(params[k]["description"], domain=domain)
                 option_id = "web.loader." + loader + ".config." + k
                 option_widget = OptionInput(self.window, "tool.indexer", option_id, {
                     "label": label,
                     "value": params[k]["value"],
+                    "_use_locale": False,
+                    "_locale_domain": domain,
                 })
                 try:
                     if params[k]["value"] is not None:

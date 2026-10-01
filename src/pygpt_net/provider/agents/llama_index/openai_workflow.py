@@ -9,14 +9,18 @@
 # Updated Date: 2025.08.14 03:00:00                  #
 # ================================================== #
 
-from typing import Dict, Any, List
+from __future__ import annotations
+
+from typing import Dict, Any, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.tools.types import BaseTool
+    from llama_index.core.llms.llm import LLM
 
 from pygpt_net.core.types import (
     AGENT_TYPE_LLAMA,
     AGENT_MODE_WORKFLOW,
 )
-from llama_index.core.llms.llm import LLM
-from llama_index.core.tools.types import BaseTool
 
 from ..base import BaseAgent
 
@@ -42,11 +46,13 @@ class OpenAIAgent(BaseAgent):
         llm: LLM = kwargs.get("llm", None)
         verbose: bool = kwargs.get("verbose", False)
         system_prompt: str = kwargs.get("system_prompt", None)
-        max_steps: int = kwargs.get("max_steps", 12)
+        max_steps: int = kwargs.get("max_iterations", 12)
 
         return OpenAIWorkflowAgent(
             tools=tools,
             llm=llm,
             system_prompt=system_prompt,
             verbose=verbose,
+            max_function_calls=max_steps,
+            input_builder=kwargs.get("input_builder"),
         )

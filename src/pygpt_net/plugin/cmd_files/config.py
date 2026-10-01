@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 15:50:00                  #
+# Updated Date: 2026.10.01 00:45:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -94,7 +94,7 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "send_file",
             instruction=(
-                "send file as a normal persistent chat attachment; use attach_runtime_file instead when a local "
+                "send file as a normal persistent chat attachment; use attach_runtime_file (if available) instead when a local "
                 "file should be passed only to the immediate next model request for native analysis without adding "
                 "it to the persistent chat attachment list"
             ),
@@ -149,9 +149,34 @@ class Config(BaseConfig):
             description="Enable: Attach runtime file for model analysis",
         )
         plugin.add_cmd(
+            "runtime_artifacts",
+            instruction=(
+                "resolve files/images created or downloaded by provider-native remote tools or other PyGPT tools "
+                "into shared temporary runtime storage before using them with local Python/IPython/System tools; "
+                "omit path to resolve artifacts already present in the current tool context, or provide explicit "
+                "path(s). The result returns path, host_path, sandbox_path and runtime_paths. When invoking a "
+                "specific local tool, prefer runtime_paths.code_interpreter for Python/IPython and "
+                "runtime_paths.system for System/OS. Use sandbox_path inside Docker and host_path for Built-in/host "
+                "execution; do not show these internal paths to the user unless asked"
+            ),
+            params=[
+                {
+                    "name": "path",
+                    "type": "list",
+                    "description": "optional local artifact path(s); omit to use current generated/downloaded artifacts",
+                    "required": False,
+                },
+            ],
+            enabled=True,
+            description="Enable: Prepare generated/downloaded files for local runtime tools",
+        )
+        plugin.add_cmd(
             "read_file",
-            instruction=("read data from files; when a local image should be visually inspected by the active "
-                         "multimodal model, use attach_runtime_file instead of read_file"),
+            instruction=(
+                "read text/data from local files. Do not call filesystem tools merely to access an image that the "
+                "user already supplied through the chat attachment UI; System handles user images through the "
+                "chat/vision attachment pipeline. Binary images are not meaningfully inspected with read_file."
+            ),
             params=[
                 {
                     "name": "path",

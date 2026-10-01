@@ -147,7 +147,7 @@ class Plugin(BasePlugin):
 
         :return: True if sandbox mode is enabled
         """
-        return bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        return bool(self.window.core.config.get("computer_use.sandbox", False))
 
     def get_worker(self):
         """

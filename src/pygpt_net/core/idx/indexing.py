@@ -6,26 +6,28 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 20:10:00                  #
+# Updated Date: 2026.09.27 17:35:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import datetime
 import os
 import time
 
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any
+import copy
+from typing import TYPE_CHECKING, Optional, Tuple, List, Dict, Any
 
 from sqlalchemy import text
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core.schema import Document
-from llama_index.core import SimpleDirectoryReader
 
 from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.loaders.base import BaseLoader
 from pygpt_net.utils import parse_args, pack_arg
 
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
+    from llama_index.core.schema import Document
 
 class Indexing:
     def __init__(self, window=None):
@@ -78,7 +80,16 @@ class Indexing:
                 if loader.instructions:
                     for item in loader.instructions:
                         cmd = list(item.keys())[0]
-                        self.external_instructions[cmd] = item[cmd]
+                        instruction = copy.deepcopy(item[cmd])
+                        domain = loader.get_locale_domain() if hasattr(loader, 'get_locale_domain') else None
+                        if domain and isinstance(instruction, dict):
+                            instruction['_locale_domain'] = domain
+                            args = instruction.get('args', {})
+                            if isinstance(args, dict):
+                                for arg in args.values():
+                                    if isinstance(arg, dict):
+                                        arg.setdefault('_locale_domain', domain)
+                        self.external_instructions[cmd] = instruction
                 if loader.init_args:
                     for key in loader.init_args:
                         if loader.id not in self.external_config:
@@ -89,6 +100,8 @@ class Indexing:
                             "type": "str",  # default = str
                             "label": key,
                             "description": None,
+                            "_locale_domain": loader.get_locale_domain()
+                            if hasattr(loader, 'get_locale_domain') else None,
                         }
                         # from config
                         if key in loader.args:
@@ -307,16 +320,31 @@ class Indexing:
         :param loader_kwargs: additional keyword arguments for loader
         :return: list of documents
         """
+        from llama_index.core import SimpleDirectoryReader
+
         # TODO: if .zip then unpack here, and return path to /tmp
         if not silent:
             self.window.core.idx.log(f"Reading documents from path: {path}")
         if os.path.isdir(path):
-            reader = SimpleDirectoryReader(
-                input_dir=path,
-                recursive=True,
-                exclude_hidden=False,
-            )
-            documents = reader.load_data()
+            # Do not let SimpleDirectoryReader choose its own default readers here.
+            # That bypasses PyGPT's registered/configured loaders (notably the
+            # video/audio loader) and may instantiate optional readers such as
+            # LlamaIndex VideoAudioReader, which requires a local Whisper install.
+            # Route every file through get_documents() instead, so the same loader
+            # selection and exclusion rules are used for files and directories.
+            documents = []
+            for root, dirs, files in os.walk(path):
+                dirs.sort()
+                files.sort()
+                for name in files:
+                    file_path = os.path.join(root, name)
+                    documents.extend(self.get_documents(
+                        file_path,
+                        force=force,
+                        silent=silent,
+                        loader_kwargs=loader_kwargs,
+                    ))
+            return documents
         else:
             # get extension
             ext = os.path.splitext(path)[1][1:].lower()
@@ -629,6 +657,8 @@ class Indexing:
         :param updated_ts: timestamp
         :return: list of documents
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -701,6 +731,8 @@ class Indexing:
         :param updated_ts: timestamp from which to get data
         :return: list of documents
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         query = f"""
@@ -744,6 +776,8 @@ class Indexing:
         prevents a later project-wide incremental update from inserting the
         manually indexed conversation a second time.
         """
+        from llama_index.core.schema import Document
+
         db = self.window.core.db.get_db()
         documents = []
         store = self.window.core.idx.get_current_store()

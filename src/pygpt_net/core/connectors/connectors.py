@@ -22,11 +22,6 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-try:
-    import yaml
-except ImportError:  # pragma: no cover
-    yaml = None
-
 try:  # Python >= 3.11
     import tomllib  # type: ignore
 except ImportError:  # pragma: no cover - Python 3.10
@@ -49,10 +44,10 @@ class Connectors:
     OpenCode, MCPorter and generic MCP JSON/TOML/YAML) into that registry.
     """
 
-    DEFAULT_CATALOG_URL = (
-        "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/"
-        "src/pygpt_net/data/connectors/catalog.json"
-    )
+    DEFAULT_CATALOG_URL = "https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/mcp.json"
+    LEGACY_CATALOG_URLS = {
+        "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/connectors/catalog.json",
+    }
     MAX_DOWNLOAD_BYTES = 32 * 1024 * 1024
     MAX_CATALOG_BYTES = 4 * 1024 * 1024
     CONFIG_NAMES = {
@@ -132,6 +127,40 @@ class Connectors:
             self.window.core.plugins.enable("mcp")
 
     @staticmethod
+    def get_server_id(server: dict) -> str:
+        """Return the stable textual ID used by presets for an MCP item."""
+        return str(server.get("label") or "").strip()
+
+    def get_active_ids(self) -> List[str]:
+        """Return textual IDs of active configured MCP servers."""
+        out = []
+        for server in self.get_servers():
+            server_id = self.get_server_id(server)
+            if server_id and bool(server.get("active", False)):
+                out.append(server_id)
+        return out
+
+    def set_active_ids(self, ids: Iterable[str], save: bool = True) -> List[str]:
+        """Apply an MCP active-server selection by textual ID.
+
+        Missing IDs are ignored. Every currently available server not present
+        in the requested selection is deactivated.
+        """
+        selected = {str(item).strip() for item in (ids or []) if str(item).strip()}
+        servers = self.get_servers()
+        active = []
+        for server in servers:
+            server_id = self.get_server_id(server)
+            is_active = bool(server_id and server_id in selected)
+            server["active"] = is_active
+            if is_active:
+                active.append(server_id)
+        self.set_servers(servers, save=save)
+        if active:
+            self.window.core.plugins.enable("mcp")
+        return active
+
+    @staticmethod
     def _identity(server: dict) -> Tuple[str, str]:
         return (
             str(server.get("label") or "").strip().lower(),
@@ -177,7 +206,9 @@ class Connectors:
 
     def get_catalog_url(self) -> str:
         value = str(self.window.core.config.get("connectors.catalog.url", "") or "").strip()
-        return value or self.DEFAULT_CATALOG_URL
+        if not value or value in self.LEGACY_CATALOG_URLS:
+            return self.DEFAULT_CATALOG_URL
+        return value
 
     def set_catalog_url(self, value: str):
         self.window.core.config.set("connectors.catalog.url", str(value or "").strip())
@@ -191,7 +222,7 @@ class Connectors:
         raw = None
         if target:
             try:
-                raw = self._download_bytes(target, self.MAX_CATALOG_BYTES)
+                raw = self._download_bytes(self._normalize_catalog_url(target), self.MAX_CATALOG_BYTES)
             except Exception as exc:
                 self._log(exc)
                 if target != self.DEFAULT_CATALOG_URL:
@@ -528,6 +559,10 @@ class Connectors:
             return value
 
     def _decode_config(self, text: str, hint: str) -> dict:
+        try:
+            import yaml
+        except ImportError:  # pragma: no cover
+            yaml = None
         lower = str(hint).lower()
         suffix = os.path.splitext(urlparse(lower).path)[1]
         errors = []
@@ -655,6 +690,18 @@ class Connectors:
                 return value
 
     # NETWORK -------------------------------------------------------------
+
+    @staticmethod
+    def _normalize_catalog_url(url: str) -> str:
+        parsed = urlparse(url)
+        if parsed.netloc.lower() not in {"github.com", "www.github.com"}:
+            return url
+        parts = [part for part in parsed.path.split("/") if part]
+        if len(parts) == 3 and parts[2].lower().endswith(".json"):
+            return f"https://raw.githubusercontent.com/{parts[0]}/{parts[1]}/main/{parts[2]}"
+        if len(parts) >= 5 and parts[2] == "blob":
+            return f"https://raw.githubusercontent.com/{parts[0]}/{parts[1]}/{parts[3]}/{'/'.join(parts[4:])}"
+        return url
 
     def _download_bytes(self, url: str, limit: int) -> bytes:
         req = Request(url, headers={"User-Agent": "PyGPT Connectors/1.0", "Accept": "application/json, text/plain, */*"})

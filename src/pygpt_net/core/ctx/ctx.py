@@ -644,7 +644,9 @@ class Ctx:
         """
         if item is None:
             return False
-        return should_persist_ctx_partials(getattr(item, "mode", None))
+        return should_persist_ctx_partials(getattr(item, "mode", None)) or (
+            isinstance(item.extra, dict) and item.extra.get("agent_timeline") is True
+        )
 
     def ensure_part(
             self,
@@ -1198,6 +1200,28 @@ class Ctx:
                 self.update_part_task(task)
                 self._set_ctx_tool_history_ui_ready(item, task, ready)
 
+    def continuation_closes_tool_series(self, continuation: CtxItem) -> bool:
+        """Return True when a provider continuation ends the transient tool series.
+
+        Consecutive tool-only responses keep completed calls hidden from the
+        durable Tool/Tools control so the live UI can reuse one animated status
+        row.  Visible assistant text, or a tool-free response (including an empty
+        final response), is the boundary at which the completed calls may be
+        materialized.
+        """
+        if continuation is None:
+            return True
+        raw_output = str(getattr(continuation, "output", None) or "")
+        legacy_cmds = self.window.core.command.extract_cmds(raw_output)
+        visible_output = self.window.core.command.strip_cmds(raw_output) or ""
+        has_text = bool(visible_output.strip())
+        has_tool_request = bool(
+            getattr(continuation, "tool_calls", None)
+            or getattr(continuation, "cmds_before", None)
+            or legacy_cmds
+        )
+        return has_text or not has_tool_request
+
     def merge_continuation(self, continuation: CtxItem) -> CtxItem:
         """Merge a post-tool model response into the same durable user turn.
 
@@ -1209,6 +1233,9 @@ class Ctx:
         parent = continuation.turn_parent
         if parent is None:
             return continuation
+
+        parent._sent_annotation_batches.extend(continuation._sent_annotation_batches)
+        continuation._sent_annotation_batches = []
 
         current_part = parent.get_active_part()
         if current_part is None:
@@ -1259,9 +1286,12 @@ class Ctx:
             if value not in parent.transport_images:
                 parent.transport_images.append(value)
 
-        # Promote only tasks that existed before this provider call. New calls
-        # from the response are recorded afterwards, so they remain pending.
-        self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True, item=parent)
+        # Keep consecutive tool-only rounds transient.  Promote the previous
+        # completed calls only once the model emits visible prose or returns a
+        # tool-free response (including an empty final response). New calls from
+        # the current response are recorded afterwards and therefore stay pending.
+        if self.continuation_closes_tool_series(continuation):
+            self.mark_part_tasks_ui_ready(continuation.turn_previous_part, True, item=parent)
 
         for attr in ("urls", "images", "files", "attachments", "results", "doc_ids"):
             target = getattr(parent, attr, None)
@@ -1599,12 +1629,18 @@ class Ctx:
         else:
             return self.load(meta_id)
 
+    def _clear_agent_session_memory(self, meta=None):
+        """Standalone context stores have no application-owned agent cache."""
+        if self.window is not None:
+            self.window.core.agents.clear_session_memory(meta)
+
     def remove(self, id: int):
         """
         Delete ctx by id
 
         :param id: ctx id
         """
+        self._clear_agent_session_memory(id)
         if id in self.meta:
             del self.meta[id]
             self.provider.remove(id)
@@ -1619,6 +1655,7 @@ class Ctx:
         for i, item in enumerate(items):
             if item.id == id:
                 items.pop(i)
+                self._clear_agent_session_memory(item.meta or self.current)
                 self.provider.remove_item(id)
                 break
 
@@ -1635,12 +1672,14 @@ class Ctx:
         """
         items = [item for item in self.get_items() if item.id < item_id]
         self.set_items(items)
+        self._clear_agent_session_memory(meta_id)
         return self.provider.remove_items_from(meta_id, item_id)
 
     def truncate(self):
         """Delete all ctx"""
         self.meta = {}
         self.provider.truncate()
+        self._clear_agent_session_memory()
 
     def clear(self):
         """Clear ctx items"""
@@ -2296,6 +2335,26 @@ class Ctx:
 
         return i, context_tokens
 
+    def get_history_items_limit(self) -> int:
+        """Return the configured model-facing history item limit (0 = unlimited)."""
+        try:
+            return max(0, int(self.window.core.config.get("context.max_history_items") or 0))
+        except (TypeError, ValueError):
+            return 0
+
+    def limit_history_items(self, history_items: List[CtxItem]) -> List[CtxItem]:
+        """Limit model-facing conversation history to the newest configured items.
+
+        A value of 0 keeps the full available history. The limit is applied to
+        durable conversation items before protocol/tool expansion, so one chat
+        turn counts as one history item regardless of its internal partials.
+        """
+        items = list(history_items or [])
+        limit = self.get_history_items_limit()
+        if limit <= 0 or len(items) <= limit:
+            return items
+        return items[-limit:]
+
     def get_history(
             self,
             history_items: List[CtxItem],
@@ -2329,6 +2388,7 @@ class Ctx:
         )
         source_items = history_items[:-1] if ignore_first and history_items else history_items
         source_items = self.window.core.context_manager.filter_history(source_items)
+        source_items = self.limit_history_items(source_items)
         expanded_items = self.expand_history(
             source_items,
             target_mode=mode,
@@ -2876,6 +2936,7 @@ class Ctx:
 
         :param id: meta id
         """
+        self._clear_agent_session_memory(id)
         if id in self.meta:
             self.provider.clear_meta(id)
             self.meta[id].initialized = False
@@ -2914,6 +2975,7 @@ class Ctx:
 
     def reset(self):
         """Reset all data"""
+        self._clear_agent_session_memory()
         self.meta = {}
         self.clear_items()
         self.current = None

@@ -16,17 +16,17 @@ from pygpt_net.core.agents.legacy import Legacy
 
 def test_get_idx_default_none():
     window = MagicMock()
-    window.core.config.get.return_value = None
+    window.controller.idx.get_current.return_value = None
     legacy = Legacy(window)
 
     assert legacy.get_idx() is None
-    window.core.config.get.assert_called_once_with("agent.idx")
+    window.controller.idx.get_current.assert_called_once_with()
 
 
 def test_get_idx():
     window = MagicMock()
-    window.core.config.get.return_value = "agent123"
+    window.controller.idx.get_current.return_value = "agent123"
     legacy = Legacy(window)
 
     assert legacy.get_idx() == "agent123"
-    window.core.config.get.assert_called_once_with("agent.idx")
+    window.controller.idx.get_current.assert_called_once_with()

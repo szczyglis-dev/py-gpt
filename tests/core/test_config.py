@@ -46,14 +46,22 @@ def test_get_user_path(mock_window_conf):
     assert config.get_user_path() == "test_path"
 
 
-def test_get_available_langs(mock_window_conf, monkeypatch):
+def test_get_available_langs(mock_window_conf, tmp_path):
     config = _bare_config()
-    config.get_app_path = MagicMock(return_value="test_path")
-    config.get_user_path = MagicMock(return_value="test_path")
-    exists_mock = MagicMock(return_value=True)
-    listdir_mock = MagicMock(return_value=["locale.en.ini", "locale.de.ini", "locale.fr.ini"])
-    monkeypatch.setattr(os.path, "exists", exists_mock)
-    monkeypatch.setattr(os, "listdir", listdir_mock)
+    app = tmp_path / "app"
+    base = tmp_path / "base"
+    user = tmp_path / "user"
+    locale_dir = app / "data" / "locale"
+    locale_dir.mkdir(parents=True)
+    base.mkdir()
+    user.mkdir()
+    for lang in ("en", "de", "fr"):
+        (locale_dir / f"locale.{lang}.ini").write_text("[LOCALE]\n", encoding="utf-8")
+
+    config.get_app_path = MagicMock(return_value=str(app))
+    config.get_base_workdir = MagicMock(return_value=str(base))
+    config.get_user_path = MagicMock(return_value=str(user))
+
     assert config.get_available_langs() == ["en", "de", "fr"]
 
 
@@ -166,6 +174,17 @@ def test_prepare_workdir_creates_and_reads_path_cfg_without_process_env(monkeypa
     assert Config.prepare_workdir() == str(alternate)
 
 
+def test_prepare_workdir_test_mode_does_not_touch_user_config(monkeypatch, tmp_path):
+    base = tmp_path / "missing-base"
+    fake_os = SimpleNamespace(environ={"ENV_TEST": "1"}, path=os.path)
+    monkeypatch.setattr(config_module, "os", fake_os)
+    monkeypatch.setattr(Config, "get_base_workdir", staticmethod(lambda: str(base)))
+
+    assert Config.prepare_workdir() == str(base)
+    assert not base.exists()
+    assert not (base / "path.cfg").exists()
+
+
 def test_set_workdir_and_patch_delegate_to_provider():
     cfg = _bare_config()
     cfg.initialized = True
@@ -200,10 +219,10 @@ def test_get_workdir_prefix_switches_for_sandbox():
     filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value='/user/data'))
     cfg.window = SimpleNamespace(core=SimpleNamespace(plugins=plugins, filesystem=filesystem))
 
-    plugins.get_option.return_value = False
+    plugins.get_option.return_value = "disabled"
     assert cfg.get_workdir_prefix() == "/user/data"
-    plugins.get_option.return_value = True
-    assert cfg.get_workdir_prefix() == "/data"
+    plugins.get_option.return_value = "docker"
+    assert cfg.get_workdir_prefix() == "/mnt/data"
 
 
 def test_plugin_config_update_and_remove():
@@ -350,6 +369,12 @@ def test_load_config_base_and_from_base_copy():
     cfg.provider.load.return_value = {"z": 1, "a": 2}
     cfg.load_config(all=False)
     assert list(cfg.data) == ["a", "z"]
+
+    cfg.provider.load.return_value = None
+    cfg.load_config(all=False)
+    assert cfg.data == {}
+    assert cfg.has("lang") is False
+    assert cfg.get("lang", "en") == "en"
 
     cfg.provider.load_base.return_value = {"z": {"v": 1}, "a": 2}
     cfg.load_base_config()

@@ -78,7 +78,7 @@ def test_schedule_tasks_adds_timer_without_real_clock_or_croniter(mock_window):
     cron = MagicMock()
     cron.get_next.return_value = next_dt
     with patch("pygpt_net.plugin.crontab.plugin.datetime") as dt_mock, \
-            patch("pygpt_net.plugin.crontab.plugin.croniter", return_value=cron):
+            patch("croniter.croniter", return_value=cron):
         dt_mock.now.return_value = datetime(2030, 1, 2, 3, 4, 0)
         plugin.schedule_tasks()
     assert plugin.timers == [{"item": item, "next_time": next_dt}]
@@ -95,7 +95,7 @@ def test_schedule_tasks_runs_due_timer_with_fixed_datetime(mock_window):
     cron = MagicMock()
     cron.get_next.side_effect = [datetime(2030, 1, 2, 3, 5), datetime(2030, 1, 2, 3, 6)]
     with patch("pygpt_net.plugin.crontab.plugin.datetime") as dt_mock, \
-            patch("pygpt_net.plugin.crontab.plugin.croniter", return_value=cron):
+            patch("croniter.croniter", return_value=cron):
         dt_mock.now.return_value = due
         plugin.schedule_tasks()
     plugin.job.assert_called_once_with(item)

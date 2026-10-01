@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.15 03:00:00                  #
+# Updated Date: 2026.09.26 13:00:00                  #
 # ================================================== #
 
 import datetime
@@ -42,6 +42,57 @@ class Note:
         else:
             ny, nm = year, month + 1
         return (py, pm), (ny, nm)
+
+    def _get_or_load_note(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ):
+        """Return a cached note or load an existing note for the date."""
+        cal = self.window.core.calendar
+        note = cal.get_by_date(year, month, day)
+        if note is not None:
+            return note
+
+        loaded = cal.provider.load(year, month, day)
+        if (
+            loaded is not None
+            and loaded.year == year
+            and loaded.month == month
+            and loaded.day == day
+        ):
+            key = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
+            cal.items[key] = loaded
+            return loaded
+        return None
+
+    def get_content(
+            self,
+            year: int,
+            month: int,
+            day: int
+    ) -> str:
+        """Return note content for a date without creating a new note."""
+        note = self._get_or_load_note(year, month, day)
+        if note is None or note.content is None:
+            return ""
+        return str(note.content)
+
+    def get_preview(
+            self,
+            year: int,
+            month: int,
+            day: int,
+            limit: int = 20
+    ) -> str:
+        """Return a compact single-line day-note preview."""
+        content = " ".join(self.get_content(year, month, day).split())
+        if not content:
+            return ""
+        if limit > 0 and len(content) > limit:
+            return content[:limit] + "..."
+        return content
 
     def update(self):
         """Update on content change"""
@@ -88,8 +139,8 @@ class Note:
         :param day: day
         """
         ui_note = self.window.ui.calendar['note']
-        note = self.window.core.calendar.get_by_date(year, month, day)
-        new_text = "" if note is None else note.content
+        note = self._get_or_load_note(year, month, day)
+        new_text = "" if note is None or note.content is None else str(note.content)
         if ui_note.toPlainText() != new_text:
             ui_note.setPlainText(new_text)
         ui_note.on_update()
@@ -107,8 +158,14 @@ class Note:
         :param month: month
         :param day: day
         """
-        suffix = f"{year:04d}-{month:02d}-{day:02d}"
-        self.window.ui.calendar['note.label'].setText(f"{trans('calendar.note.label')} ({suffix})")
+        label = self.window.ui.calendar.get('note.label')
+        if label is not None:
+            suffix = f"{year:04d}-{month:02d}-{day:02d}"
+            label.setText(f"{trans('calendar.note.label')} ({suffix})")
+
+        popup = self.window.ui.calendar.get('note.popup')
+        if popup is not None:
+            popup.refresh_translation()
 
     def update_current(self):
         """Update label to current selected date"""
@@ -324,6 +381,38 @@ class Note:
         self.window.core.config.set("ctx.counters.all", state)
         self.window.core.config.save()
         self.window.controller.calendar.update_ctx_counters()
+
+    def append_text_today(self, text: str):
+        """Append text to the day note for the current local date."""
+        content = "" if text is None else str(text).strip()
+        if not content:
+            return
+
+        today = datetime.date.today()
+        year, month, day = today.year, today.month, today.day
+        cal = self.window.core.calendar
+        note = self._get_or_load_note(year, month, day)
+
+        if note is None:
+            note = self.create(year, month, day)
+            note.content = content
+            cal.add(note)
+        else:
+            current = "" if note.content is None else str(note.content)
+            note.content = (current + "\n" + content) if current.strip() else content
+            cal.update(note)
+
+        # Keep the visible calendar marker and an already-open editor in sync.
+        select = self.window.ui.calendar.get('select')
+        if select is not None:
+            self.refresh_num(select.currentYear, select.currentMonth)
+        ctrl_cal = self.window.controller.calendar
+        if (
+            ctrl_cal.selected_year == year
+            and ctrl_cal.selected_month == month
+            and ctrl_cal.selected_day == day
+        ):
+            self.update_content(year, month, day)
 
     def append_text(self, text: str):
         """

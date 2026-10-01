@@ -412,6 +412,8 @@ class CodeActAgent(BaseWorkflowAgent):
 
         last_chat_response = ChatResponse(message=ChatMessage())
         full_response_text = ""
+        from pygpt_net.core.agents.runners.llama_events import CodeActTextFilter
+        text_filter = CodeActTextFilter()
 
         async for last_chat_response in response:
 
@@ -428,13 +430,20 @@ class CodeActAgent(BaseWorkflowAgent):
             )
             ctx.write_event_to_stream(
                 AgentStream(
-                    delta=delta,
+                    delta=text_filter.feed(delta),
                     response=full_response_text,
                     tool_calls=[],
                     raw=raw,
                     current_agent_name=self._display_agent_name,  # always "CodeAct"
                 )
             )
+
+        tail = text_filter.feed("", final=True)
+        if tail:
+            ctx.write_event_to_stream(AgentStream(
+                delta=tail, response=full_response_text, tool_calls=[], raw={},
+                current_agent_name=self._display_agent_name,
+            ))
 
         code = self._extract_code_from_response(full_response_text)
         plugin_calls = self._extract_plugin_tool_calls(full_response_text)

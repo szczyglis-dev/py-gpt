@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 10:02:00                  #
+# Updated Date: 2026.09.29 20:35:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -24,7 +24,7 @@ class Confirm:
     def accept(
             self,
             type: str,
-            id: Optional[str] = None,
+            id: Optional[Any] = None,
             parent_object: Any = None
     ):
         """
@@ -106,13 +106,15 @@ class Confirm:
                 self.window.controller.agent.common.disable_infinity_loop_confirm()
             self.window.controller.chat.input.send_input(force=True)
 
+        # Canvas browser history
+        elif type == 'canvas.history.clear':
+            plugin = self.window.core.plugins.get("canvas_web")
+            if plugin is not None:
+                plugin.clear_browser_history(force=True)
+
         # interpreter
         elif type == 'interpreter.clear':
             self.window.tools.get("interpreter").clear(True)
-
-        # html canvas
-        elif type == 'html_canvas.clear':
-            self.window.tools.get("html_canvas").clear(True)
 
         # translator
         elif type == 'translator.clear':
@@ -197,7 +199,13 @@ class Confirm:
 
         # tab close all
         elif type == 'tab.close_all':
-            self.window.controller.ui.tabs.close_all(id, 0, True)  # by type
+            if isinstance(id, dict):
+                tab_type = id.get('type')
+                column_idx = id.get('column_idx', 0)
+            else:
+                tab_type = id
+                column_idx = 0
+            self.window.controller.tabs.close_all(tab_type, column_idx, True)
 
         # editor
         elif type == 'editor.changed.clear':
@@ -265,6 +273,18 @@ class Confirm:
             self.window.controller.settings.editor.load_editor_defaults_user(True)
         elif type == 'settings.editor.defaults.app':
             self.window.controller.settings.editor.load_editor_defaults_app(True)
+
+        # sandbox / Docker rebuilds
+        elif type == 'tools.sandbox.rebuild.ipython_docker':
+            self.window.controller.tools.rebuild_ipython_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.python_legacy_docker':
+            self.window.controller.tools.rebuild_python_legacy_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.system_docker':
+            self.window.controller.tools.rebuild_system_docker(force=True)
+        elif type == 'tools.sandbox.rebuild.python_builtin':
+            self.window.controller.tools.rebuild_python_builtin(force=True)
+        elif type == 'tools.sandbox.rebuild.system_builtin':
+            self.window.controller.tools.rebuild_system_builtin(force=True)
 
         # plugins
         elif type == 'plugin.settings.defaults.user':
@@ -374,7 +394,9 @@ class Confirm:
                 workdir=workdir,
             )
         elif type == 'tab':
-            self.window.controller.ui.tabs.update_name(id, name, True)
+            self.window.controller.tabs.update_name(id, name, True)
+        elif type == 'tab.pid':
+            self.window.controller.tabs.update_name_by_pid(id, name, True)
         elif type == 'attachment':
             self.window.controller.attachment.update_name(id, name)
         elif type == 'attachment_uploaded':

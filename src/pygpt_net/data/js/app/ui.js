@@ -34,9 +34,9 @@ class UIManager {
 			'.code-wrapper pre { overflow: visible; margin-top: 0; }',
 			'.code-wrapper pre code { display: block; white-space: pre; max-height: 100dvh; overflow: auto;',
 			'  overscroll-behavior: contain; -webkit-overflow-scrolling: touch; overflow-anchor: none; scrollbar-gutter: stable both-edges; scroll-behavior: auto; }',
-			'#_loader_.hidden { display: none !important; visibility: hidden !important; }',
-			'#_loader_.reserved { display: block !important; visibility: hidden !important; pointer-events: none !important; }',
-			'#_loader_.visible { display: block; visibility: visible; }',
+			'#_loader_.hidden { display: none !important; opacity: 0; visibility: hidden !important; pointer-events: none !important; }',
+			'#_loader_.reserved { display: block !important; opacity: 0; visibility: hidden !important; pointer-events: none !important; }',
+			'#_loader_.visible { display: block; opacity: 1; visibility: visible; pointer-events: auto; }',
 
 			/* User message collapse (uc-*)
 			   Collapsed content now fades out towards the bottom using a CSS mask.
@@ -103,6 +103,17 @@ class UIManager {
 
 		const arrow = button.querySelector('.extra-items-toggle-arrow');
 		if (arrow) arrow.classList.toggle('toggle-expanded', isHidden);
+
+		const label = button.querySelector('.extra-items-toggle-label');
+		if (label) {
+			if (!button.dataset.collapsedLabel) {
+				button.dataset.collapsedLabel = label.textContent || '';
+			}
+			const lessLabel = (typeof window !== 'undefined' && window.LOCALE_LESS)
+				? String(window.LOCALE_LESS)
+				: 'Less';
+			label.textContent = isHidden ? lessLabel : button.dataset.collapsedLabel;
+		}
 
 		const expandTitle = (typeof window !== 'undefined' && window.LOCALE_EXPAND)
 			? String(window.LOCALE_EXPAND)

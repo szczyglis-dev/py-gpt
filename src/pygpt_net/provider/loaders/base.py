@@ -9,11 +9,19 @@
 # Updated Date: 2024.11.26 04:00:00                  #
 # ================================================== #
 
-from llama_index.core.readers.base import BaseReader
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.readers.base import BaseReader
+
+from pygpt_net.core.locale import LocaleDomain
 
 
-class BaseLoader:
+class BaseLoader(LocaleDomain):
     def __init__(self, *args, **kwargs):
+        self.init_locale_domain()
         self.window = None
         self.id = ""
         self.name = ""
@@ -98,7 +106,7 @@ class BaseLoader:
         """
         return False
 
-    def get(self) -> BaseReader:
+    def get(self) -> "BaseReader":
         """
         Get reader instance
 

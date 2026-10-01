@@ -9,6 +9,7 @@ def _tool(tool_id, **overrides):
     tool.id = tool_id
     tool.setup_menu.return_value = {}
     tool.get_lang_mappings.return_value = {}
+    tool.get_locale_domain.return_value = f"tool.{tool_id}"
     for key, value in overrides.items():
         setattr(tool, key, value)
     return tool
@@ -156,6 +157,11 @@ def test_tools_get_lang_mappings_merges_sections_without_overwriting_existing_en
     manager.tools = {"a": a, "b": b, "c": c}
 
     assert manager.get_lang_mappings() == {
-        "menu.text": {"a": "key.a", "b": "key.b"},
-        "menu.tooltip": {"x": "tip.x"},
+        "menu.text": {
+            "a": {"key": "key.a", "domain": "tool.a"},
+            "b": {"key": "key.b", "domain": "tool.b"},
+        },
+        "menu.tooltip": {
+            "x": {"key": "tip.x", "domain": "tool.a"},
+        },
     }

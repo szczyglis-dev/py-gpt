@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.12 20:20:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import uuid
@@ -26,6 +26,15 @@ class Tabs:
 
     # number of columns
     NUM_COLS = 2
+
+    # These tools are application-wide singletons. Keep the invariant even
+    # during early profile restore, before the tool registry is guaranteed to
+    # be fully available.
+    EARLY_SINGLE_INSTANCE_TOOL_IDS = {
+        "web_browser",
+        "agent_workflow",
+        "interpreter",
+    }
 
     def __init__(self, window=None):
         """
@@ -52,6 +61,28 @@ class Tabs:
             Tab.TAB_TOOL_CALENDAR: "output.tab.calendar",
             Tab.TAB_TOOL: "output.tab.tool",
         }
+
+    def _get_existing_single_instance_tool(self, type: int, tool_id: Optional[str]) -> Optional[Tab]:
+        """Return an existing tab when the target tool is single-instance.
+
+        This is the hard invariant below the UI controller. It protects direct
+        core tab creation, profile restore and any future caller that bypasses
+        ``controller.tabs.append``.
+        """
+        if type != Tab.TAB_TOOL or not tool_id:
+            return None
+        tools = getattr(self.window, "tools", None)
+        tool = tools.get(tool_id) if tools is not None else None
+        # Selected application-wide tools are known singletons even during very
+        # early profile restore, before the tool registry is guaranteed to be
+        # ready. Other tools opt in through ``single_instance``.
+        if (tool_id not in self.EARLY_SINGLE_INSTANCE_TOOL_IDS
+                and (tool is None or not getattr(tool, "single_instance", False))):
+            return None
+        for tab in self.pids.values():
+            if tab.type == Tab.TAB_TOOL and tab.tool_id == tool_id:
+                return tab
+        return None
 
     def get_tab_by_index(
             self,
@@ -133,12 +164,8 @@ class Tabs:
 
         :return: PID
         """
-        current_column_idx = self.window.controller.ui.tabs.get_current_column_idx()
-        tabs = self.window.ui.layout.get_tabs_by_idx(current_column_idx)
-        tab = self.get_tab_by_index(tabs.currentIndex(), current_column_idx)
-        if tab is None:
-            return 0
-        return tab.pid
+        pid = self.window.controller.tabs.get_current_pid()
+        return 0 if pid is None else pid
 
     def add(
             self,
@@ -160,6 +187,10 @@ class Tabs:
         :param tool_id: Tool ID
         :return: Tab
         """
+        existing = self._get_existing_single_instance_tool(type, tool_id)
+        if existing is not None:
+            return existing
+
         self.last_pid += 1  # PID++, start from 0
 
         tab = Tab()
@@ -206,6 +237,10 @@ class Tabs:
         :param column_idx: index of the column in which the tab will be added
         :return: Tab
         """
+        existing = self._get_existing_single_instance_tool(type, tool_id)
+        if existing is not None:
+            return existing
+
         self.last_pid += 1  # PID++, start from 0
         title = ""
         icon = self.icons[type]
@@ -256,6 +291,10 @@ class Tabs:
 
         :param data: Tab data
         """
+        existing = self._get_existing_single_instance_tool(data.get("type"), data.get("tool_id"))
+        if existing is not None:
+            return existing
+
         tab = Tab()
         tab.uuid = data["uuid"]
         tab.pid = data["pid"]
@@ -669,6 +708,28 @@ class Tabs:
         if tab.type != Tab.TAB_CHAT:
             tab.tooltip = "" if tab.title is None else str(tab.title)
 
+    def get_files_tooltip(self) -> str:
+        """Return the active project-aware Files root for the tab tooltip."""
+        try:
+            path = str(self.window.core.filesystem.get_data_dir(create=False) or "")
+            if not path:
+                return ""
+            return f"{trans('output.tab.files.workdir')}: {path}"
+        except Exception:
+            return ""
+
+    def refresh_files_tooltips(self):
+        """Refresh Files-tab tooltips after context/project workdir changes."""
+        tooltip = self.get_files_tooltip()
+        for tab in self.pids.values():
+            if tab.type != Tab.TAB_FILES:
+                continue
+            tab.tooltip = tooltip
+            tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+            if tabs is None or tab.idx is None or tab.idx < 0 or tab.idx >= tabs.count():
+                continue
+            tabs.setTabToolTip(tab.idx, tooltip)
+
     def add_chat(self, tab: Tab):
         """
         Add chat tab
@@ -728,7 +789,7 @@ class Tabs:
         tabs = column.get_tabs()
         tab.parent = column
         tab.child = self.window.ui.chat.output.explorer.setup()
-        self._sync_tooltip_with_title(tab)
+        tab.tooltip = self.get_files_tooltip()
         tab.idx = self.insert_tab(tabs, tab)
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
@@ -1044,7 +1105,7 @@ class Tabs:
         context/browser titles should use False so they remain synchronizable.
         """
         if column_idx is None:
-            column_idx = self.window.controller.ui.tabs.get_current_column_idx()
+            column_idx = self.window.controller.tabs.get_current_column_idx()
         tabs = self.window.ui.layout.get_tabs_by_idx(column_idx)
         tab = self.get_tab_by_index(idx, column_idx)
         if tab is None:

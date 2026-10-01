@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.22 13:11:00                  #
 # ================================================== #
 
 import asyncio
@@ -243,6 +243,16 @@ class GoogleLiveClient:
         self._ensure_background_loop()
         self._bg.run_sync(self._reset_session_internal(ctx, opts, on_text, on_audio, should_stop), timeout=timeout)
 
+    def cancel_response_sync(self, timeout: float = 0.5):
+        """Interrupt the app-side turn without closing the Google Live session.
+
+        Google Live uses user activity for server-side barge-in. The controller
+        marks the current CtxItem interrupted immediately; the existing receive
+        task keeps draining that server turn against its original CtxItem. The
+        next microphone audio then interrupts generation on the same live session.
+        """
+        return
+
     def shutdown_sync(self, timeout: float = 5.0):
         """
         Shutdown background loop and close session (sync).
@@ -394,12 +404,17 @@ class GoogleLiveClient:
 
     async def _close_session_internal(self):
         """Close persistent Live session (if open)."""
-        if self._turn_task and not self._turn_task.done():
+        # Closing/interrupting a realtime conversation must not wait for the
+        # current receive turn to finish naturally. Cancel it first so barge-in
+        # and application shutdown can release the Live session immediately.
+        turn_task = self._turn_task
+        self._turn_task = None
+        if turn_task is not None and not turn_task.done():
             try:
-                await asyncio.wait_for(self._turn_task, timeout=2.0)
+                turn_task.cancel()
+                await asyncio.gather(turn_task, return_exceptions=True)
             except Exception:
                 pass
-        self._turn_task = None
 
         if self._session_cm:
             try:
@@ -522,7 +537,7 @@ class GoogleLiveClient:
                         self._response_done.clear()
                     except Exception:
                         self._response_done = asyncio.Event()
-                self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn")
+                self._turn_task = asyncio.create_task(self._recv_one_turn(self._ctx), name="google-live-turn")
 
             elif has_audio and not has_text:
                 # AUDIO-ONLY
@@ -544,7 +559,7 @@ class GoogleLiveClient:
                         self._response_done = asyncio.Event()
 
                 # Start receiving before sending any audio
-                self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn")
+                self._turn_task = asyncio.create_task(self._recv_one_turn(self._ctx), name="google-live-turn")
 
                 if use_auto:
                     self._auto_audio_in_flight = True
@@ -589,7 +604,7 @@ class GoogleLiveClient:
                         self._response_done = asyncio.Event()
 
                 # Start receiver, then send audio
-                self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn")
+                self._turn_task = asyncio.create_task(self._recv_one_turn(self._ctx), name="google-live-turn")
 
                 if use_auto:
                     self._auto_audio_in_flight = True
@@ -819,8 +834,14 @@ class GoogleLiveClient:
             except Exception:
                 pass
 
-    async def _recv_one_turn(self):
-        """Receive one turn until serverContent.turnComplete or toolCall."""
+    async def _recv_one_turn(self, turn_ctx: Optional[CtxItem] = None):
+        """Receive one turn until serverContent.turnComplete or toolCall.
+
+        ``turn_ctx`` is captured when the receiver starts. It must not follow
+        ``self._ctx`` if the user creates a new microphone turn while this response
+        is still being interrupted/drained.
+        """
+        turn_ctx = turn_ctx or self._ctx
         if self.debug:
             print("[google._recv_one_turn] start")
 
@@ -855,7 +876,7 @@ class GoogleLiveClient:
                     # First output from model -> emit commit once (auto-turn only)
                     self._maybe_emit_auto_commit()
                     self._saw_data_stream = True
-                    await self._audio_push(bytes(data), final=False)
+                    await self._audio_push(bytes(data), final=False, ctx=turn_ctx)
 
                 # 3) Server content
                 sc = getattr(response, "server_content", None) or getattr(response, "serverContent", None)
@@ -873,7 +894,7 @@ class GoogleLiveClient:
                         if delta.strip():
                             self._turn_text_parts.append(delta)
                             try:
-                                await self._on_text(delta)
+                                await self._on_text(delta, turn_ctx)
                             except Exception:
                                 pass
 
@@ -936,7 +957,7 @@ class GoogleLiveClient:
                                     self._turn_text_parts.append(hdr + str(code_txt))
                                     try:
                                         if self._on_text:
-                                            await self._on_text(hdr + str(code_txt))
+                                            await self._on_text(hdr + str(code_txt), turn_ctx)
                                     except Exception:
                                         pass
                                     self._rt_state["is_code"] = True
@@ -944,7 +965,7 @@ class GoogleLiveClient:
                                     self._turn_text_parts.append(str(code_txt))
                                     try:
                                         if self._on_text:
-                                            await self._on_text(str(code_txt))
+                                            await self._on_text(str(code_txt), turn_ctx)
                                     except Exception:
                                         pass
 
@@ -954,7 +975,7 @@ class GoogleLiveClient:
                                 self._turn_text_parts.append(tail)
                                 try:
                                     if self._on_text:
-                                        await self._on_text(tail)
+                                        await self._on_text(tail, turn_ctx)
                                 except Exception:
                                     pass
                                 self._rt_state["is_code"] = False
@@ -972,14 +993,15 @@ class GoogleLiveClient:
                                         elif isinstance(pdata, str):
                                             img_bytes = base64.b64decode(pdata)
                                         if img_bytes:
-                                            save_path = self.window.core.image.gen_unique_path(self._ctx)
+                                            save_path = self.window.core.image.gen_unique_path(turn_ctx)
                                             with open(save_path, "wb") as f:
                                                 f.write(img_bytes)
+                                            self.window.core.filesystem.materialize_runtime_artifact(save_path, ctx=turn_ctx)
                                             self._rt_state["image_paths"].append(save_path)
-                                            if not isinstance(self._ctx.images, list):
-                                                self._ctx.images = []
-                                            if save_path not in self._ctx.images:
-                                                self._ctx.images.append(save_path)
+                                            if not isinstance(turn_ctx.images, list):
+                                                turn_ctx.images = []
+                                            if save_path not in turn_ctx.images:
+                                                turn_ctx.images.append(save_path)
                                     except Exception:
                                         pass
 
@@ -989,9 +1011,36 @@ class GoogleLiveClient:
                         except Exception:
                             pass
 
-                    # Turn complete signal
+                    # Turn completion follows google-genai 2.23+ semantics:
+                    # when interaction_status is set to a concrete value, IDLE is
+                    # authoritative. For older SDKs (or UNSPECIFIED status), keep
+                    # the historical turn_complete fallback.
                     try:
-                        if bool(getattr(sc, "turn_complete", None) or getattr(sc, "turnComplete", None)):
+                        turn_complete = bool(
+                            getattr(sc, "turn_complete", None)
+                            or getattr(sc, "turnComplete", None)
+                        )
+                        interaction_status = (
+                            getattr(sc, "interaction_status", None)
+                            or getattr(sc, "interactionStatus", None)
+                        )
+                        if interaction_status is not None:
+                            status_value = (
+                                getattr(interaction_status, "value", None)
+                                or getattr(interaction_status, "name", None)
+                                or interaction_status
+                            )
+                            status_name = str(status_value).rsplit(".", 1)[-1].upper()
+                            if status_name not in (
+                                "UNSPECIFIED",
+                                "INTERACTION_STATUS_UNSPECIFIED",
+                                "NONE",
+                                "",
+                            ):
+                                turn_finished = status_name == "IDLE"
+                            elif turn_complete:
+                                turn_finished = True
+                        elif turn_complete:
                             turn_finished = True
                     except Exception:
                         pass
@@ -1029,40 +1078,41 @@ class GoogleLiveClient:
                     break
 
             # Flush jitter buffer
-            await self._audio_push(b"", final=True)
+            await self._audio_push(b"", final=True, ctx=turn_ctx)
 
         except asyncio.CancelledError:
             try:
-                await self._audio_push(b"", final=True)
+                await self._audio_push(b"", final=True, ctx=turn_ctx)
             except Exception:
                 pass
         except Exception as e:
             if self.debug:
                 print(f"[google._recv_one_turn] exception: {e!r}")
             try:
-                await self._audio_push(b"", final=True)
+                await self._audio_push(b"", final=True, ctx=turn_ctx)
             except Exception:
                 pass
         finally:
             # Persist textual output
             try:
-                if self.window and self.window.core and self._ctx:
+                if (self.window and self.window.core and turn_ctx
+                        and not getattr(turn_ctx, "_realtime_interrupted", False)):
                     txt = coalesce_text(self._turn_text_parts)
                     if has_unclosed_code_tag(txt):
                         txt += "\n```"
                     if txt:
-                        self._ctx.output = txt
+                        turn_ctx.output = txt
                     # Tokens usage
                     up = (self._rt_state or {}).get("usage_payload") or {}
                     if up:
                         in_tok = up.get("in")
                         out_tok = up.get("out")
-                        self._ctx.set_tokens(in_tok if in_tok is not None else (self._ctx.input_tokens or 0),
+                        turn_ctx.set_tokens(in_tok if in_tok is not None else (turn_ctx.input_tokens or 0),
                                              out_tok if out_tok is not None else 0)
                         try:
-                            if not isinstance(self._ctx.extra, dict):
-                                self._ctx.extra = {}
-                            self._ctx.extra["usage"] = {
+                            if not isinstance(turn_ctx.extra, dict):
+                                turn_ctx.extra = {}
+                            turn_ctx.extra["usage"] = {
                                 "vendor": "google",
                                 "input_tokens": in_tok,
                                 "output_tokens": out_tok,
@@ -1075,20 +1125,20 @@ class GoogleLiveClient:
                     # Citations to ctx.urls
                     cites = (self._rt_state or {}).get("citations") or []
                     if cites:
-                        if self._ctx.urls is None:
-                            self._ctx.urls = []
+                        if turn_ctx.urls is None:
+                            turn_ctx.urls = []
                         for u in cites:
-                            if u not in self._ctx.urls:
-                                self._ctx.urls.append(u)
+                            if u not in turn_ctx.urls:
+                                turn_ctx.urls.append(u)
 
                     # Images to ctx.images
                     imgs = (self._rt_state or {}).get("image_paths") or []
                     if imgs:
-                        if not isinstance(self._ctx.images, list):
-                            self._ctx.images = []
+                        if not isinstance(turn_ctx.images, list):
+                            turn_ctx.images = []
                         for p in imgs:
-                            if p not in self._ctx.images:
-                                self._ctx.images.append(p)
+                            if p not in turn_ctx.images:
+                                turn_ctx.images.append(p)
 
                     # Unpack tool calls
                     tcs = (self._rt_state or {}).get("tool_calls") or []
@@ -1097,16 +1147,17 @@ class GoogleLiveClient:
                             fn = tc.get("function") or {}
                             if isinstance(fn.get("arguments"), dict):
                                 fn["arguments"] = json.dumps(fn["arguments"], ensure_ascii=False)
-                        self._ctx.force_call = bool((self._rt_state or {}).get("force_func_call"))
+                        turn_ctx.force_call = bool((self._rt_state or {}).get("force_func_call"))
                         self.window.core.debug.info("[google.live] Tool calls found, unpacking...")
-                        self.window.core.command.unpack_tool_calls_chunks(self._ctx, tcs)
+                        self.window.core.command.unpack_tool_calls_chunks(turn_ctx, tcs)
 
-                    self.window.core.ctx.update_item(self._ctx)
+                    self.window.core.ctx.update_item(turn_ctx)
             except Exception:
                 pass
 
             # Mark done for waiters
             self._response_active = False
+            pending_next_ctx = self._ctx is not None and self._ctx is not turn_ctx
             if self._response_done:
                 try:
                     self._response_done.set()
@@ -1117,7 +1168,7 @@ class GoogleLiveClient:
             try:
                 if self._last_opts and hasattr(self._last_opts, "rt_signals"):
                     safe_emit(self._last_opts.rt_signals, "response", RealtimeEvent(RealtimeEvent.RT_OUTPUT_TURN_END, {
-                        "ctx": self._ctx,
+                        "ctx": turn_ctx,
                     }))
             except Exception:
                 pass
@@ -1125,6 +1176,15 @@ class GoogleLiveClient:
             # Reset per-turn state
             self._rt_state = None
             self._auto_audio_in_flight = False
+
+            # A user can start the next microphone turn while the old response is
+            # still being drained. Start the receiver for that pending turn only
+            # after this coroutine returns, avoiding two concurrent receive() loops.
+            if pending_next_ctx and self._session:
+                try:
+                    asyncio.get_running_loop().call_soon(self._ensure_auto_receiver_started)
+                except Exception:
+                    pass
 
             if self.debug:
                 print("[google._recv_one_turn] done")
@@ -1347,7 +1407,7 @@ class GoogleLiveClient:
                 except Exception:
                     self._response_done = asyncio.Event()
 
-            self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-turn-followup")
+            self._turn_task = asyncio.create_task(self._recv_one_turn(self._ctx), name="google-live-turn-followup")
 
             if wait_for_done:
                 try:
@@ -1372,7 +1432,7 @@ class GoogleLiveClient:
             pass
         return "Kore"
 
-    async def _audio_push(self, data: bytes, final: bool = False):
+    async def _audio_push(self, data: bytes, final: bool = False, ctx: Optional[CtxItem] = None):
         """
         Push audio data to the output callback in ~100 ms chunks.
         """
@@ -1385,18 +1445,18 @@ class GoogleLiveClient:
             chunk = self._audio_buf[:threshold]
             del self._audio_buf[:threshold]
             try:
-                await self._on_audio(bytes(chunk), "audio/pcm", self._OUT_RATE, 1, False)
+                await self._on_audio(bytes(chunk), "audio/pcm", self._OUT_RATE, 1, False, ctx)
             except Exception:
                 pass
         if final:
             if self._audio_buf:
                 try:
-                    await self._on_audio(bytes(self._audio_buf), "audio/pcm", self._OUT_RATE, 1, False)
+                    await self._on_audio(bytes(self._audio_buf), "audio/pcm", self._OUT_RATE, 1, False, ctx)
                 except Exception:
                     pass
                 self._audio_buf.clear()
             try:
-                await self._on_audio(b"", "audio/pcm", self._OUT_RATE, 1, True)
+                await self._on_audio(b"", "audio/pcm", self._OUT_RATE, 1, True, ctx)
             except Exception:
                 pass
 
@@ -1451,28 +1511,52 @@ class GoogleLiveClient:
                 except Exception:
                     return None
 
-        prompt = (getattr(um_obj, "prompt_token_count", None)
+        prompt = (getattr(um_obj, "total_input_tokens", None)
+                  or getattr(um_obj, "prompt_token_count", None)
                   or getattr(um_obj, "promptTokenCount", None)
                   or getattr(um_obj, "prompt_tokens", None)
+                  or getattr(um_obj, "input_tokens", None)
                   or None)
-        total = (getattr(um_obj, "total_token_count", None)
+        total = (getattr(um_obj, "total_tokens", None)
+                 or getattr(um_obj, "total_token_count", None)
                  or getattr(um_obj, "totalTokenCount", None)
-                 or getattr(um_obj, "total_tokens", None)
                  or None)
-        candidates = (getattr(um_obj, "candidates_token_count", None)
+        explicit_output = getattr(um_obj, "total_output_tokens", None)
+        candidates = (explicit_output
+                      if explicit_output is not None else
+                      getattr(um_obj, "candidates_token_count", None)
                       or getattr(um_obj, "candidatesTokenCount", None)
+                      or getattr(um_obj, "completion_tokens", None)
                       or getattr(um_obj, "output_tokens", None)
                       or None)
-        reasoning = (getattr(um_obj, "candidates_reasoning_token_count", None)
+        reasoning = (getattr(um_obj, "total_thought_tokens", None)
+                     or getattr(um_obj, "thoughts_token_count", None)
+                     or getattr(um_obj, "candidates_reasoning_token_count", None)
                      or getattr(um_obj, "candidatesReasoningTokenCount", None)
                      or getattr(um_obj, "reasoning_tokens", None)
                      or 0)
+        cached = (getattr(um_obj, "total_cached_tokens", None)
+                  or getattr(um_obj, "cached_content_token_count", None)
+                  or 0)
+        tool_use = (getattr(um_obj, "total_tool_use_tokens", None) or 0)
         p = as_int(prompt)
         t = as_int(total)
         c = as_int(candidates)
         r = as_int(reasoning) or 0
-        out_total = max(0, (t or 0) - (p or 0)) if (t is not None and p is not None) else c
-        self._rt_state["usage_payload"] = {"in": p, "out": out_total, "reasoning": r, "total": t}
+        explicit_out = as_int(explicit_output)
+        out_total = (
+            explicit_out
+            if explicit_out is not None
+            else max(0, (t or 0) - (p or 0)) if (t is not None and p is not None) else c
+        )
+        self._rt_state["usage_payload"] = {
+            "in": p,
+            "out": out_total,
+            "reasoning": r,
+            "cached": as_int(cached) or 0,
+            "tool_use": as_int(tool_use) or 0,
+            "total": t,
+        }
 
     def _collect_google_citations_from_server_content(self, sc: Any):
         """
@@ -1826,7 +1910,7 @@ class GoogleLiveClient:
                 except Exception:
                     self._response_done = asyncio.Event()
 
-            self._turn_task = asyncio.create_task(self._recv_one_turn(), name="google-live-auto-turn")
+            self._turn_task = asyncio.create_task(self._recv_one_turn(self._ctx), name="google-live-auto-turn")
 
     def update_session_autoturn_sync(
             self,

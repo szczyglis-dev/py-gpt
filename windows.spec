@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import shutil
 import sys
 
 from PyInstaller.utils.hooks import (
@@ -22,6 +23,29 @@ def add_data_tree(datas, src_root, dest_root):
         dest = dest_root if rel == "." else os.path.join(dest_root, rel)
         for filename in files:
             datas.append((os.path.join(root, filename), dest))
+
+
+def find_uv_binary():
+    """Locate uv.exe installed in the build environment for bundling."""
+    candidates = []
+    try:
+        import uv
+        try:
+            candidates.append(os.fspath(uv.find_uv_bin()))
+        except (AttributeError, FileNotFoundError, OSError):
+            pass
+    except ImportError:
+        pass
+    found = shutil.which('uv.exe') or shutil.which('uv')
+    if found:
+        candidates.append(found)
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return [(path, '.')]
+    raise RuntimeError("uv executable not found; install uv==0.12.15 in the PyInstaller build environment")
+
+
+uv_bins = find_uv_binary()
 
 
 hiddenimports = [
@@ -73,6 +97,8 @@ for pkg in [
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert',
     'win32com', 'aiosqlite',
+    # OpenAI Agents SDK imports parts of the sandbox/runtime stack lazily.
+    'agents',
     # Kernel modules are partly imported lazily/dynamically at runtime.
     'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
     'debugpy', 'zmq.backend.cython',
@@ -81,6 +107,19 @@ for pkg in [
         hiddenimports += collect_submodules(pkg)
     except Exception:
         pass
+
+# LiteLLM selects providers/backends lazily via dynamic imports, so static
+# Analysis cannot discover the full import graph. Include every LiteLLM submodule.
+try:
+    hiddenimports += collect_submodules('litellm', on_error='ignore')
+except Exception:
+    pass
+
+litellm_bins = []
+try:
+    litellm_bins += collect_dynamic_libs('litellm')
+except Exception:
+    pass
 
 debugpy_bins = []
 try:
@@ -95,6 +134,40 @@ except Exception:
     pass
 
 datas = []
+
+# LiteLLM relies heavily on dynamic imports and importlib.resources.
+# Collect the complete package data tree (tokenizer JSON/cache files, model map,
+# templates, etc.) instead of chasing individual runtime resources.
+try:
+    datas += collect_data_files('litellm')
+except Exception:
+    pass
+
+# LiteLLM checks its installed distribution metadata at runtime.
+try:
+    datas += copy_metadata('litellm')
+except Exception:
+    pass
+
+# OpenAI Agents SDK ships runtime prompt/template files (for example
+# agents/sandbox/memory/prompts/*.md) that are read with pathlib at runtime.
+# They must exist as physical files in the frozen distribution, not only as
+# Python modules inside PyInstaller's PYZ archive.
+try:
+    datas += collect_data_files(
+        'agents',
+        include_py_files=False,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+# Preserve distribution metadata used by importlib.metadata/version checks.
+try:
+    datas += copy_metadata('openai-agents')
+except Exception:
+    pass
+
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')
@@ -123,44 +196,16 @@ try:
 except Exception:
     pass
 
+# Bundle the complete application data tree recursively.
+# Keep the same directory layout below data/ so new resources and
+# subdirectories are picked up automatically without updating this spec.
 add_data_tree(
     datas,
-    r'src\pygpt_net\data\css',
-    r'data\css',
+    r'src\pygpt_net\data',
+    r'data',
 )
 
 datas += [
-    (r'src\pygpt_net\data\config\presets\*', r'data\config\presets'),
-    (r'src\pygpt_net\data\config\config.json', r'data\config'),
-    (r'src\pygpt_net\data\config\models.json', r'data\config'),
-    (r'src\pygpt_net\data\config\modes.json', r'data\config'),
-    (r'src\pygpt_net\data\config\settings.json', r'data\config'),
-    (r'src\pygpt_net\data\config\settings_section.json', r'data\config'),
-    (r'src\pygpt_net\data\banners\*', r'data\banners'),
-    (r'src\pygpt_net\data\icons\*', r'data\icons'),
-    (r'src\pygpt_net\data\icons\chat\*', r'data\icons\chat'),
-    (r'src\pygpt_net\data\locale\*', r'data\locale'),
-    (r'src\pygpt_net\data\audio\*', r'data\audio'),
-    (r'src\pygpt_net\data\fixtures\*', r'data\fixtures'),
-    (r'src\pygpt_net\data\skills\*', r'data\skills'),
-    (r'src\pygpt_net\data\connectors\*', r'data\connectors'),
-    (r'src\pygpt_net\data\fonts\Lato\*', r'data\fonts\Lato'),
-    (r'src\pygpt_net\data\fonts\SpaceMono\*', r'data\fonts\SpaceMono'),
-    (r'src\pygpt_net\data\fonts\MonaspaceArgon\*', r'data\fonts\MonaspaceArgon'),
-    (r'src\pygpt_net\data\fonts\MonaspaceKrypton\*', r'data\fonts\MonaspaceKrypton'),
-    (r'src\pygpt_net\data\fonts\MonaspaceNeon\*', r'data\fonts\MonaspaceNeon'),
-    (r'src\pygpt_net\data\fonts\MonaspaceRadon\*', r'data\fonts\MonaspaceRadon'),
-    (r'src\pygpt_net\data\fonts\MonaspaceXenon\*', r'data\fonts\MonaspaceXenon'),
-    (r'src\pygpt_net\data\js\highlight\styles\*', r'data\js\highlight\styles'),
-    (r'src\pygpt_net\data\prompts.csv', r'data'),
-    (r'src\pygpt_net\data\languages.csv', r'data'),
-    (r'src\pygpt_net\data\banners.json', r'data'),
-    (r'src\pygpt_net\data\logo.png', r'data'),
-    (r'src\pygpt_net\data\logo_splash.png', r'data'),
-    (r'src\pygpt_net\data\icon.ico', r'data'),
-    (r'src\pygpt_net\data\icon_tray_idle.ico', r'data'),
-    (r'src\pygpt_net\data\icon_tray_busy.ico', r'data'),
-    (r'src\pygpt_net\data\icon_tray_error.ico', r'data'),
     (r'src\pygpt_net\CHANGELOG.txt', r'.'),
     (r'src\pygpt_net\LICENSE', r'.'),
     (r'src\pygpt_net\data\icon.png', r'.'),
@@ -180,7 +225,7 @@ datas += [
 a = Analysis(
     [r'src\pygpt_net\app.py'],
     pathex=[r'src', r'src\pygpt_net'],
-    binaries=debugpy_bins,
+    binaries=litellm_bins + debugpy_bins + uv_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
@@ -192,6 +237,10 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+# Optional runtime packages must resolve against versions bundled in this build.
+import runpy
+runpy.run_path(os.path.join(SPECPATH, 'bin', 'pyinstaller_runtime_metadata.py'))['add_runtime_metadata'](a)
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -210,6 +259,9 @@ exe = EXE(
     strip=False,
     upx=True,
     console=True,
+    # Keep diagnostic output, but do not foreground a new console when launched
+    # by Explorer/MSI. An existing terminal used for a CLI launch is unaffected.
+    hide_console='minimize-early',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

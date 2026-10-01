@@ -9,9 +9,9 @@
 # Updated Date: 2026.01.21 13:00:00                  #
 # ================================================== #
 
+from functools import cached_property
 from typing import Optional, Dict, Any
 
-import anthropic
 from pygpt_net.core.types import (
     MODE_ASSISTANT,
     MODE_AUDIO,
@@ -24,16 +24,6 @@ from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types.chunk import ChunkType
 from pygpt_net.item.model import ModelItem
 
-from .chat import Chat
-from .tools import Tools
-from .vision import Vision
-from .audio import Audio
-from .image import Image
-from .remote_tools import RemoteTools
-from .computer import Computer
-from .store import Store
-
-
 class ApiAnthropic:
     def __init__(self, window=None):
         """
@@ -42,23 +32,55 @@ class ApiAnthropic:
         :param window: Window instance
         """
         self.window = window
-        self.chat = Chat(window)
-        self.tools = Tools(window)
-        self.vision = Vision(window)
-        self.audio = Audio(window)   # stub helpers (no official audio out/in in SDK as of now)
-        self.image = Image(window)   # stub: no image generation in Anthropic
-        self.remote_tools = RemoteTools(window)
-        self.computer = Computer(window)
-        self.store = Store(window)
-        self.client: Optional[anthropic.Anthropic] = None
+        self.client = None
         self.locked = False
         self.last_client_args: Optional[Dict[str, Any]] = None
+
+    @cached_property
+    def chat(self):
+        from .chat import Chat
+        return Chat(self.window)
+
+    @cached_property
+    def tools(self):
+        from .tools import Tools
+        return Tools(self.window)
+
+    @cached_property
+    def vision(self):
+        from .vision import Vision
+        return Vision(self.window)
+
+    @cached_property
+    def audio(self):
+        from .audio import Audio
+        return Audio(self.window)
+
+    @cached_property
+    def image(self):
+        from .image import Image
+        return Image(self.window)
+
+    @cached_property
+    def remote_tools(self):
+        from .remote_tools import RemoteTools
+        return RemoteTools(self.window)
+
+    @cached_property
+    def computer(self):
+        from .computer import Computer
+        return Computer(self.window)
+
+    @cached_property
+    def store(self):
+        from .store import Store
+        return Store(self.window)
 
     def get_client(
             self,
             mode: str = MODE_CHAT,
             model: ModelItem = None,
-    ) -> anthropic.Anthropic:
+    ):
         """
         Get or create Anthropic client
 
@@ -66,6 +88,8 @@ class ApiAnthropic:
         :param model: ModelItem
         :return: anthropic.Anthropic instance
         """
+        import anthropic
+
         # Build minimal args from app config
         args = self.window.core.models.prepare_client_args(mode, model)
         filtered = {}

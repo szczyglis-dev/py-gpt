@@ -10,6 +10,7 @@
 # ================================================== #
 
 import copy
+import json
 from typing import Optional, Any, Dict
 
 from pygpt_net.core.events import Event
@@ -74,12 +75,29 @@ class Editor:
                 if 'type' not in self.options[key]:
                     continue
                 options[key] = self.options[key]
-                options[key]['value'] = self.window.core.config.get(key)  # append current config value
+                if self.options[key].get('_provider_dynamic'):
+                    provider = self.window.core.llm.get(self.options[key].get('_provider'))
+                    if provider is not None:
+                        if '_remote_tool_key' in self.options[key]:
+                            tool_key = self.options[key]['_remote_tool_key']
+                            value = provider.get_remote_tool_config(tool_key)
+                            field = provider.get_remote_tools_schema()[tool_key]
+                            if field.get('value_type') == 'optional_bool':
+                                value = '' if value is None else str(bool(value)).lower()
+                            elif field.get('type') == 'textarea' and isinstance(value, (dict, list)):
+                                value = json.dumps(value, ensure_ascii=False, indent=2)
+                            elif field.get('type') == 'text' and isinstance(value, list):
+                                value = ', '.join(str(item) for item in value)
+                            elif value is None and field.get('type') in ('text', 'str', 'textarea'):
+                                value = ''
+                            options[key]['value'] = value
+                        else:
+                            options[key]['value'] = provider.get_config(self.options[key].get('_provider_key'))
+                    else:
+                        options[key]['value'] = self.options[key].get('value')
+                else:
+                    options[key]['value'] = self.window.core.config.get(key)  # append current config value
             self.window.controller.config.load_options('config', options)
-            # Index choices are context-sensitive: refresh after loading values so
-            # the virtual Current project entry is available when Settings is
-            # opened from a project and an existing __project__ value is kept.
-            self.window.controller.idx.settings.update_idx_choices()
 
     def load(self):
         """Load settings options from config file"""
@@ -113,7 +131,15 @@ class Editor:
                 key=key, 
                 option=self.options[key],
             )
-            self.window.core.config.set(key, value)
+            if self.options[key].get('_provider_dynamic'):
+                provider = self.window.core.llm.get(self.options[key].get('_provider'))
+                if provider is not None:
+                    if '_remote_tool_key' in self.options[key]:
+                        provider.set_remote_tool_config(self.options[key]['_remote_tool_key'], value)
+                    else:
+                        provider.set_config(self.options[key].get('_provider_key'), value)
+            else:
+                self.window.core.config.set(key, value)
 
 
         if not self.window.core.config.get('layout.tray'):
@@ -186,7 +212,6 @@ class Editor:
 
         # update idx list
         if self.config_changed('llama.idx.list'):
-            self.window.controller.idx.settings.update_idx_choices()
             self.window.tools.get("indexer").reload()
 
         # update idx storage
@@ -208,7 +233,7 @@ class Editor:
 
         # Response timestamps are now configured in Chats -> Render and apply
         # only to the plain-text renderer. Refresh them immediately when that
-        # renderer is active; normal Web/Markdown output intentionally ignores
+        # renderer is active; normal WebEngine output intentionally ignores
         # this setting.
         if (self.config_changed('output_timestamp')
                 and self.window.core.config.get('render.plain')):

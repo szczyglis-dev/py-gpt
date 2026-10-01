@@ -17,7 +17,7 @@
   "audio": false,
   "computer": true,
   "filename": "current.computer",
-  "model": "gpt-5.6-sol",
+  "model": "gpt-5.6-luna",
   "tools": {
     "function": []
   },

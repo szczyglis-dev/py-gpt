@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 23:05:00                  #
+# Updated Date: 2026.09.25 18:45:00                  #
 # ================================================== #
 
 import threading
@@ -42,7 +42,7 @@ class AgentWorkflow(QObject):
         self.signals.run_started.connect(self._on_run_started)
 
     def _on_run_started(self):
-        """Show the Agent Workflow onboarding only after a real Agents v2 run begins."""
+        """Show Agent Workflow onboarding only after a real user-facing agent run begins."""
         try:
             tool = self.window.tools.get("agent_workflow")
             if tool is not None:
@@ -64,7 +64,7 @@ class AgentWorkflow(QObject):
                 return True
 
             tabs_controller = getattr(
-                getattr(getattr(self.window, "controller", None), "ui", None),
+                getattr(self.window, "controller", None),
                 "tabs",
                 None,
             )
@@ -76,7 +76,12 @@ class AgentWorkflow(QObject):
             if tabs_controller.is_split_screen_enabled():
                 visible_columns.append(1)
 
-            current_by_column = getattr(tabs_controller, "col", {}) or {}
+            # TabState owns the selected PID for each output column.  Use its
+            # public snapshot instead of the removed ``controller.ui.tabs`` /
+            # ``col`` cache so a selected workflow tab in either visible
+            # split-screen column is treated as an active consumer even when
+            # keyboard focus is currently in the other column.
+            current_by_column = tabs_controller.get_column_pids()
             for column_idx in visible_columns:
                 pid = current_by_column.get(column_idx)
                 if pid is None:

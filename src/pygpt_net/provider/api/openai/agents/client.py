@@ -46,7 +46,7 @@ def append_reasoning_model_settings(
 ) -> None:
     """Merge the current runtime reasoning effort into Agent ModelSettings.
 
-    openai-agents==0.6.9 forwards ``ModelSettings.reasoning.effort`` to
+    openai-agents==0.18.3 forwards ``ModelSettings.reasoning.effort`` to
     Chat Completions as ``reasoning_effort``.  Merge instead of replacing so
     helper-agent settings such as ``tool_choice="required"`` remain intact.
     """
@@ -110,6 +110,6 @@ def set_openai_env(window):
 
     :param window: Window instance
     """
-    os.environ['OPENAI_API_KEY'] = str(window.core.config.get('api_key'))
-    os.environ['OPENAI_API_BASE'] = str(window.core.config.get('api_endpoint'))
-    os.environ['OPENAI_ORGANIZATION'] = str(window.core.config.get('organization_key'))
+    os.environ['OPENAI_API_KEY'] = str(window.core.llm.get_config('openai', 'api_key', ''))
+    os.environ['OPENAI_API_BASE'] = str(window.core.llm.get_config('openai', 'api_base', ''))
+    os.environ['OPENAI_ORGANIZATION'] = str(window.core.llm.get_config('openai', 'organization', ''))

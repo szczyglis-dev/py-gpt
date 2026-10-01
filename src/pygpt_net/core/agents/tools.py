@@ -9,18 +9,12 @@
 # Updated Date: 2026.09.05 14:45:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import json
-from typing import List, Dict, Any
+from typing import TYPE_CHECKING, List, Dict, Any
 
-from agents import (
-    FunctionTool as OpenAIFunctionTool,
-    RunContextWrapper,
-)
-from llama_index.core.chat_engine.types import AgentChatResponse
-from llama_index.core.tools import BaseTool, FunctionTool, QueryEngineTool, ToolMetadata
 
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
 from pygpt_net.core.types import (
     TOOL_QUERY_ENGINE_NAME,
     TOOL_QUERY_ENGINE_DESCRIPTION,
@@ -28,16 +22,22 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.item.ctx import CtxItem
 
+if TYPE_CHECKING:
+    from agents import FunctionTool as OpenAIFunctionTool
+    from llama_index.core.chat_engine.types import AgentChatResponse
+    from llama_index.core.tools import BaseTool
+    from agents import RunContextWrapper
 
 class Tools:
 
-    def __init__(self, window=None):
+    def __init__(self, window=None, executor=None):
         """
         Agent tools
 
         :param window: Window instance
         """
         self.window = window
+        self.executor = executor  # per-run asynchronous plugin bridge
         self.cmd_blacklist = []
         self.verbose = False
         self.agent_idx = None  # agent index, used for query engine tool
@@ -91,6 +91,8 @@ class Tools:
         :param verbose: verbose mode
         :return: list of tools
         """
+        from llama_index.core.tools import QueryEngineTool, ToolMetadata
+
         tool = None
 
         # add query engine tool if idx is provided. Resolve the virtual
@@ -133,14 +135,25 @@ class Tools:
         :param verbose: verbose mode
         :return: OpenAIFunctionTool instance
         """
-        async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
-            name = run_ctx.tool_name
+        from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
+
+        async def run_function(_run_ctx, args: str) -> str:
+            # openai-agents 0.18.x passes a plain RunContextWrapper when the
+            # callback explicitly declares that type; tool_name lives only on
+            # ToolContext. This tool has a fixed name, so do not depend on the
+            # SDK-specific richer context here.
+            name = TOOL_QUERY_ENGINE_NAME
             print(f"[Plugin] Tool call: {name} with args: {args}")
             cmd = {
                 "cmd": name,
                 "params": json.loads(args)  # args should be a JSON string
             }
             return self.tool_exec(name, cmd["params"])
+
+        # ``from __future__ import annotations`` stores annotations as strings.
+        # RunContextWrapper is imported locally to keep the Agents SDK optional,
+        # so expose the concrete runtime type to introspection explicitly.
+        run_function.__annotations__["_run_ctx"] = RunContextWrapper[Any]
 
         schema = {"type": "object", "properties": {
             "query": {
@@ -170,6 +183,9 @@ class Tools:
         :param force: force to get functions even if not needed
         :return: List of BaseTool instances
         """
+        from llama_index.core.tools import FunctionTool
+        from pygpt_net.core.command.tool_schema import JsonSchemaToolMetadata
+
         tools = []
         functions = self.window.core.command.get_functions(force=force)
         for item in functions:
@@ -220,15 +236,29 @@ class Tools:
                     return func
 
                 func = make_func(name, description, schema)
-                metadata = PluginToolMetadata(
+                metadata = JsonSchemaToolMetadata(
                     name=name,
                     description=description,
                     schema=schema,
                 )
-                tool = FunctionTool(
-                    fn=func,
-                    metadata=metadata,
-                )
+                async_fn = None
+                if self.executor is not None:
+                    def make_async(tool_name, tool_schema):
+                        async def invoke(**kwargs):
+                            args = dict(kwargs)
+                            for wrapper in ("params", "arguments"):
+                                if len(args) == 1 and isinstance(args.get(wrapper), dict):
+                                    args = dict(args[wrapper])
+                                    break
+                            required = list(tool_schema.get("required") or [])
+                            missing = [key for key in required if args.get(key) is None]
+                            if missing:
+                                return json.dumps({"error": "Missing required tool parameter(s).",
+                                                   "tool": tool_name, "missing": missing})
+                            return await self.executor(tool_name, args)
+                        return invoke
+                    async_fn = make_async(name, schema)
+                tool = FunctionTool(fn=func, async_fn=async_fn, metadata=metadata)
                 tools.append(tool)
             except Exception as e:
                 self.window.core.debug.log(e)
@@ -248,6 +278,8 @@ class Tools:
         :param force: force to get functions even if not needed
         :return: List of OpenAIFunctionTool instances
         """
+        from agents import FunctionTool as OpenAIFunctionTool, RunContextWrapper
+
         tools = []
         functions = self.window.core.command.get_functions(force=force)
         blacklist = []
@@ -258,15 +290,21 @@ class Tools:
                     continue
                 description = item['desc']
 
-                async def run_function(run_ctx: RunContextWrapper[Any], args: str) -> str:
-                    name = run_ctx.tool_name
-                    print(f"[Plugin] Tool call: {name} with args: {args}")
-                    cmd = {
-                        "cmd": name,
-                        "params": json.loads(args)  # args should be a JSON string
-                    }
-                    return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                def make_run_function(tool_name: str):
+                    async def run_function(_run_ctx, args: str) -> str:
+                        # Capture the tool name explicitly. In openai-agents
+                        # 0.18.x RunContextWrapper itself has no ``tool_name``
+                        # attribute; that metadata belongs to ToolContext.
+                        print(f"[Plugin] Tool call: {tool_name} with args: {args}")
+                        cmd = {
+                            "cmd": tool_name,
+                            "params": json.loads(args)  # args should be a JSON string
+                        }
+                        return self.window.controller.plugins.apply_cmds_all(ctx, [cmd])
+                    run_function.__annotations__["_run_ctx"] = RunContextWrapper[Any]
+                    return run_function
 
+                run_function = make_run_function(name)
                 schema = json.loads(item['params'])  # from JSON to dict
                 extra = ""
                 # fix schema for OpenAI FunctionTool
@@ -508,8 +546,3 @@ class Tools:
         if self.verbose:
             print(msg)
             self.window.core.debug.add(msg)
-
-class PluginToolMetadata(JsonSchemaToolMetadata):
-    """Legacy/Chat-with-Files plugin metadata using the real plugin JSON schema."""
-
-    pass

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 20:25:00                  #
+# Updated Date: 2026.09.20 12:45:00
 # ================================================== #
 
 from pygpt_net.utils import trans
@@ -39,7 +39,7 @@ class Plugins:
             plugin = plugins_dict[plugin_id]
             if not plugin.use_locale:
                 continue
-            domain = f'plugin.{plugin_id}'
+            domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f'plugin.{plugin_id}'
             trans('', True, domain)
 
         for plugin_id in plugin_ids:
@@ -58,7 +58,7 @@ class Plugins:
 
             if not plugin.use_locale:
                 continue
-            domain = f'plugin.{plugin_id}'
+            domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f'plugin.{plugin_id}'
 
             name_txt = trans('plugin.name', False, domain)
 
@@ -81,7 +81,7 @@ class Plugins:
             if not options:
                 continue
 
-            cfg_domain = ui_config.get(domain)
+            cfg_domain = ui_config.get(f'plugin.{plugin_id}')
             for option_id, option in options.items():
                 # Command widgets localize their own generic labels and
                 # plugin-specific descriptions in update_locale().
@@ -91,17 +91,25 @@ class Plugins:
                 label_key = f'plugin.{plugin_id}.{option_id}.label'
                 desc_key = f'plugin.{plugin_id}.{option_id}.desc'
 
+                # Combo item captions may use global locale keys. Refresh them
+                # after a language switch without changing the stored value.
+                if option.get('type') == 'combo' and cfg_domain and option_id in cfg_domain:
+                    widget = cfg_domain[option_id]
+                    if hasattr(widget, 'update_locale'):
+                        widget.update_locale()
+
                 is_bool = option.get('type') == 'bool'
                 need_label = (label_key in ui_nodes) or (is_bool and cfg_domain and option_id in cfg_domain)
                 need_desc = desc_key in ui_nodes
 
+                option_domain = option.get('_locale_domain') or domain
                 label_str = None
                 if need_label:
-                    label_str = trans(f'{option_id}.label', False, domain)
+                    label_str = trans(f'{option_id}.label', False, option_domain)
 
                 if need_desc:
-                    desc_str = trans(f'{option_id}.description', False, domain)
-                    tooltip_str = trans(f'{option_id}.tooltip', False, domain)
+                    desc_str = trans(f'{option_id}.description', False, option_domain)
+                    tooltip_str = trans(f'{option_id}.tooltip', False, option_domain)
                     if tooltip_str == f'{option_id}.tooltip':
                         tooltip_str = desc_str
                     ui_nodes[desc_key].setText(desc_str)

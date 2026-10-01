@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
 
@@ -54,7 +55,7 @@ class ExtraInput(QTextEdit):
         self._auto_debounce_ms = 0  # coalesce updates in next event loop turn
         self._auto_updating = False  # reentrancy guard
         self._splitter_resize_in_progress = False
-        self._splitter_connected = False
+        self._splitter_connections = set()
         self._user_adjusting_splitter = False
         self._auto_pause_ms_after_user_drag = 350
         self._last_target_container_h = None
@@ -382,30 +383,16 @@ class ExtraInput(QTextEdit):
             super().keyPressEvent(event)
 
     def wheelEvent(self, event):
-        """
-        Wheel event: set font size
-
-        :param event: Event
-        """
         if event.modifiers() & Qt.ControlModifier:
-            prev = self.value
-            dy = event.angleDelta().y()
-            if dy > 0:
-                if self.value < self.max_font_size:
-                    self.value += 1
-            else:
-                if self.value > self.min_font_size:
-                    self.value -= 1
-
-            if self.value != prev:
-                self.window.core.config.data['font_size.input'] = self.value
-                self.window.core.config.save()
-                self.window.controller.ui.update_font_size()
-                # Reflow may change number of lines; adjust auto-height next tick
-                QTimer.singleShot(0, self._schedule_auto_resize)
+            delta = event.angleDelta().y()
+            if delta:
+                value = max(self.min_font_size, min(self.max_font_size, self.value + (1 if delta > 0 else -1)))
+                if value != self.value:
+                    zoom_text(self, self.window, value, 'font_size.input')
+                    QTimer.singleShot(0, self._schedule_auto_resize)
             event.accept()
-            return
-        super().wheelEvent(event)
+        else:
+            super().wheelEvent(event)
 
     def changeEvent(self, event):
         super().changeEvent(event)
@@ -427,13 +414,14 @@ class ExtraInput(QTextEdit):
 
     def _ensure_splitter_hook(self):
         """Lazy-connect to main splitter to detect manual drags."""
-        if self._splitter_connected:
-            return
         splitter = self._get_main_splitter()
         if splitter is not None:
+            key = id(splitter)
+            if key in self._splitter_connections:
+                return
             try:
                 splitter.splitterMoved.connect(self._on_splitter_moved_by_user)
-                self._splitter_connected = True
+                self._splitter_connections.add(key)
             except Exception:
                 pass
 

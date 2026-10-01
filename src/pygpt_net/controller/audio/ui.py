@@ -23,6 +23,7 @@ class UI:
         self.recording = False
 
         self._input_bar = None
+        self._input_record_bar = None
         self._input_btn = None
         self._input_control_bar = None
         self._input_control_btn = None
@@ -41,6 +42,19 @@ class UI:
             return None
         self._input_bar = self.window.ui.plugin_addon['audio.input.btn'].bar
         return self._input_bar
+
+    def get_input_record_bar(self):
+        """
+        Get dedicated input recording status bar widget.
+
+        :return: input recording widget
+        """
+        if self._input_record_bar is not None:
+            return self._input_record_bar
+        if "audio.input.bar" not in self.window.ui.plugin_addon:
+            return None
+        self._input_record_bar = self.window.ui.plugin_addon['audio.input.bar']
+        return self._input_record_bar
 
     def get_input_control_bar(self):
         """
@@ -117,11 +131,33 @@ class UI:
         for widget in self._notepad_widgets():
             if hasattr(widget, 'set_mic_visible'):
                 widget.set_mic_visible(visible)
+            if not visible and hasattr(widget, 'reset_recording_ui'):
+                widget.reset_recording_ui()
 
     def _set_notepad_mic_state(self, active: bool):
         for widget in self._notepad_widgets():
             if hasattr(widget, 'set_mic_state'):
                 widget.set_mic_state(active)
+
+    def _set_notepad_record_pending(self):
+        for widget in self._notepad_widgets():
+            if hasattr(widget, 'set_record_pending'):
+                widget.set_record_pending()
+
+    def _set_notepad_recording_active(self):
+        for widget in self._notepad_widgets():
+            if hasattr(widget, 'set_recording_active'):
+                widget.set_recording_active()
+
+    def _set_notepad_record_level(self, value: int):
+        for widget in self._notepad_widgets():
+            if hasattr(widget, 'set_record_level'):
+                widget.set_record_level(value)
+
+    def _reset_notepad_recording_ui(self):
+        for widget in self._notepad_widgets():
+            if hasattr(widget, 'reset_recording_ui'):
+                widget.reset_recording_ui()
 
     # --- Input events ---
 
@@ -132,9 +168,21 @@ class UI:
         :param value: slider value
         :param mode: 'input' or 'control' mode
         """
-        bar = self.get_output_bar()
+        if mode == 'control':
+            bar = self.get_input_control_bar()
+            if bar:
+                bar.setLevel(value)
+            return
+
+        bar = self.get_input_bar()
         if bar:
             bar.setLevel(value)
+
+        status = self.get_input_record_bar()
+        if status:
+            status.setLevel(value)
+
+        self._set_notepad_record_level(value)
 
     def on_input_device_change(self, index: int):
         """
@@ -153,6 +201,10 @@ class UI:
         self.window.ui.nodes['input'].set_icon_visible("mic", True)
         if mode == "input":
             self._set_notepad_mic_visible(True)
+            status = self.get_input_record_bar()
+            if status:
+                status.reset()
+            self._reset_notepad_recording_ui()
             return
         btn = self.get_input_btn() if mode == 'input' else self.get_input_control_btn()
         if btn:
@@ -167,6 +219,10 @@ class UI:
         self.window.ui.nodes['input'].set_icon_visible("mic", False)
         if mode == "input":
             self._set_notepad_mic_visible(False)
+            status = self.get_input_record_bar()
+            if status:
+                status.reset()
+            self._reset_notepad_recording_ui()
             return
         btn = self.get_input_btn() if mode == 'input' else self.get_input_control_btn()
         if btn:
@@ -203,6 +259,10 @@ class UI:
         self.window.ui.nodes['input'].set_icon_state("mic", True)
         if mode == "input":
             self._set_notepad_mic_state(True)
+            self._set_notepad_recording_active()
+            status = self.get_input_record_bar()
+            if status:
+                status.show_recording()
         if mode in ["input", "realtime"]:
             self.window.controller.chat.common.lock_input()
             return
@@ -220,6 +280,10 @@ class UI:
         self.window.ui.nodes['input'].set_icon_state("mic", False)
         if mode == "input":
             self._set_notepad_mic_state(False)
+            self._reset_notepad_recording_ui()
+            status = self.get_input_record_bar()
+            if status:
+                status.reset()
         if mode in ["input", "realtime"]:
             self.window.controller.chat.common.unlock_input()
             return
@@ -231,7 +295,28 @@ class UI:
         """
         Input cancel button click event
         """
-        pass
+        status = self.get_input_record_bar()
+        if status:
+            status.abort()
+        self._reset_notepad_recording_ui()
+
+    def on_input_toggle_requested(self, mode: str = 'input'):
+        """Show the compact pending indicator immediately after the mic click."""
+        if mode != 'input':
+            return
+        status = self.get_input_record_bar()
+        if status:
+            status.show_pending()
+        self._set_notepad_record_pending()
+
+    def on_input_abort(self, mode: str = 'input'):
+        """Hide the compact pending/recording indicator after a failed start."""
+        if mode != 'input':
+            return
+        status = self.get_input_record_bar()
+        if status:
+            status.abort()
+        self._reset_notepad_recording_ui()
 
     # --- Output events ---
 

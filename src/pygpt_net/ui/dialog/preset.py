@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QSplitter, QWidget, QSizePolicy, \
-    QTabWidget, QFileDialog, QScrollArea, QFrame
+    QTabWidget, QFileDialog, QScrollArea, QFrame, QTreeWidget, QAbstractItemView
 
 from pygpt_net.core.types import (
     MODE_AGENT,
@@ -23,11 +23,9 @@ from pygpt_net.core.types import (
     MODE_EXPERT,
     MODE_IMAGE,
     MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX,
     MODE_VISION,
     MODE_RESEARCH,
     MODE_COMPUTER,
-    MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
 )
 from pygpt_net.ui.base.config_dialog import BaseConfigDialog
@@ -109,7 +107,7 @@ class Preset(BaseConfigDialog):
         # modes
         mode_keys_left = [
             MODE_CHAT,
-            MODE_LLAMA_INDEX,
+            MODE_AGENT_V2,
             MODE_AUDIO,
             MODE_RESEARCH,
         ]
@@ -121,10 +119,8 @@ class Preset(BaseConfigDialog):
             MODE_EXPERT,
         ]
         mode_keys_right = [
-            MODE_AGENT_V2,
-            MODE_AGENT_LLAMA,
-            MODE_AGENT_OPENAI,
             MODE_AGENT,
+            MODE_AGENT_LLAMA,
         ]
 
         rows_mode_left = QVBoxLayout()
@@ -201,9 +197,9 @@ class Preset(BaseConfigDialog):
             "filename",
             "name",
             "model",
+            "idx",
             "agent_provider",
             "agent_provider_openai",
-            "idx",
         ]
         # personalize tab
         personalize_keys = [
@@ -271,6 +267,55 @@ class Preset(BaseConfigDialog):
 
         widget_remote_tools = QWidget()
         widget_remote_tools.setLayout(rows_remote_tools)
+
+        # MCP preset list. The checkbox controls whether selecting this preset
+        # restores its saved MCP selection; the list itself is populated at
+        # editor init from currently configured MCP servers.
+        mcp_tree = QTreeWidget()
+        mcp_tree.setColumnCount(1)
+        mcp_tree.setHeaderHidden(True)
+        mcp_tree.setRootIsDecorated(False)
+        mcp_tree.setAlternatingRowColors(True)
+        mcp_tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        mcp_tree.setUniformRowHeights(True)
+        self.window.ui.nodes['preset.editor.mcp.list'] = mcp_tree
+        rows_mcp = QVBoxLayout()
+        rows_mcp.setContentsMargins(10, 10, 10, 10)
+        rows_mcp.addLayout(options['mcp_use'])
+        rows_mcp.addWidget(mcp_tree, 1)
+        rows_mcp.addWidget(self.add_description("preset.mcp_list.desc"))
+        widget_mcp = QWidget()
+        widget_mcp.setLayout(rows_mcp)
+
+        # Agent Skills list is available only to Chat with Agents presets.
+        skills_tree = QTreeWidget()
+        skills_tree.setColumnCount(1)
+        skills_tree.setHeaderHidden(True)
+        skills_tree.setRootIsDecorated(False)
+        skills_tree.setAlternatingRowColors(True)
+        skills_tree.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        skills_tree.setUniformRowHeights(True)
+        self.window.ui.nodes['preset.editor.skills.list'] = skills_tree
+        rows_skills = QVBoxLayout()
+        rows_skills.setContentsMargins(10, 10, 10, 10)
+        rows_skills.addLayout(options['agent_skills_use'])
+        rows_skills.addWidget(skills_tree, 1)
+        rows_skills.addWidget(self.add_description("preset.skills_list.desc"))
+        widget_skills = QWidget()
+        widget_skills.setLayout(rows_skills)
+
+        # Runtime restore options. Values stored in the preset are always kept
+        # as snapshots, while these switches decide which of them are applied
+        # when the preset becomes active.
+        rows_options = QVBoxLayout()
+        rows_options.setContentsMargins(10, 10, 10, 0)
+        rows_options.addLayout(options['plugin_preset'])
+        rows_options.addLayout(options['plugin_preset_use'])
+        rows_options.addLayout(options['model_use'])
+        rows_options.addLayout(options['idx_use'])
+        rows_options.addStretch(1)
+        widget_options = QWidget()
+        widget_options.setLayout(rows_options)
 
         # personalize
         personalize_rows = QVBoxLayout()
@@ -346,6 +391,13 @@ class Preset(BaseConfigDialog):
         tabs.addTab(splitter, trans("preset.tab.general"))
         tabs.addTab(widget_personalize, trans("preset.tab.personalize"))
         tabs.addTab(widget_remote_tools, trans("preset.tab.remote_tools"))
+        tabs.addTab(widget_mcp, trans("preset.tab.mcp"))
+        from pygpt_net.ui.widget.lists.experts import ExpertsEditor
+        experts = ExpertsEditor(self.window)
+        self.window.ui.nodes["preset.editor.experts"] = experts
+        tabs.addTab(experts, trans("preset.tab.experts"))
+        tabs.addTab(widget_skills, trans("preset.tab.skills"))
+        tabs.addTab(widget_options, trans("preset.tab.options"))
         self.window.ui.tabs['preset.editor.tabs'] = tabs
 
         layout = QVBoxLayout()

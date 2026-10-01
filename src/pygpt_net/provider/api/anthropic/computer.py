@@ -260,7 +260,7 @@ class Computer:
             return model is None or self.get_tool_type(model) == "computer_toolset_20260801"
 
         try:
-            enabled = bool(self.window.core.config.get("remote_tools.anthropic.computer_use", False))
+            enabled = bool(self.window.core.llm.get("anthropic").is_remote_tool_enabled("computer_use"))
         except Exception:
             enabled = False
         return enabled and (model is None or self.get_tool_type(model) == "computer_toolset_20260801")
@@ -297,7 +297,7 @@ class Computer:
                 "configs": {"zoom": {"enabled": False}},
             }
 
-        is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        is_sandbox = bool(self.window.core.config.get("computer_use.sandbox", False))
         screen_w, screen_h = self._resolve_display_size(is_sandbox=is_sandbox)
         return {
             "name": "computer",

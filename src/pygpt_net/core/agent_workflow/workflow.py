@@ -20,11 +20,13 @@ from typing import Any, Dict, Optional, Tuple
 
 
 class AgentWorkflow:
-    """Runtime-only, human-readable Agents v2 workflow state.
+    """Runtime-only, human-readable agent workflow state.
 
-    The verbose logger feeds this component with already-redacted, JSON-safe
-    events.  It deliberately keeps no database state: every top-level Agents v2
-    run starts with a clean view and Clear view only affects this live monitor.
+    Agents v2 feeds the monitor directly and legacy LlamaIndex/OpenAI agent
+    runtimes use ``AgentWorkflowBridge`` to translate their native events into
+    the same vocabulary. It deliberately keeps no database state: every
+    top-level agent run starts with a clean view and Clear view only affects
+    this live monitor.
     """
 
     ROOT_ID = "orchestrator"
@@ -381,7 +383,7 @@ class AgentWorkflow:
             event["tool_output"] = self._text(output)
 
     def ingest(self, event: str, data: Any = None, actor: str = "orchestrator", run_id: str = "", text: bool = False):
-        """Consume one redacted Agents v2 diagnostic event."""
+        """Consume one normalized, redacted agent-runtime event."""
         name = str(event or "").strip().upper()
         changed = False
         with self._lock:

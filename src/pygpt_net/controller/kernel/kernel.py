@@ -12,7 +12,7 @@
 import threading
 from typing import Any, Dict, Optional, Union, List
 
-from PySide6.QtCore import QEventLoop, QTimer, Slot
+from PySide6.QtCore import QEventLoop, Slot
 from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.types import (
@@ -186,20 +186,37 @@ class Kernel:
         w.controller.chat.input.generating = True
         w.controller.chat.common.sync_send_stop_buttons()
 
+        # Realtime has its own explicit response-activity boundary: first visible
+        # text token or actual audio playback. Do not delay its loader, otherwise
+        # a fast first token can cancel the pending show before the spinner ever
+        # becomes visible. The input gate still guarantees correct placement
+        # below the newly materialized user row.
+        loading_delay_ms = 100
+        try:
+            if w.controller.realtime.is_enabled():
+                loading_delay_ms = 0
+        except Exception:
+            pass
+
         self.set_state(KernelEvent(KernelEvent.STATE_BUSY, {
             "id": data.get("id", "chat"),
             "msg": data.get("msg", trans("status.sending")),
             "meta": meta,
+            # The chat output loader belongs visually *after* the user row.
+            # Arm it now, but do not let it enter layout before APPEND_INPUT has
+            # materialized the row. Non-realtime requests retain the short delay
+            # that avoids flashing the loader for very fast responses.
+            "loading_delay_ms": loading_delay_ms,
+            "loading_wait_for_input": True,
         }))
 
         if data.get("clear", False):
             w.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
 
-        # PRE-SEND must become visible before any following work starts.
-        # WebEngine's runJavaScript(showLoading()) is asynchronous and crosses
-        # the Chromium process boundary, so the processEvents() performed by
-        # set_status() can finish before the DOM change is actually executed.
-        # Give Qt one real event-loop turn here, at the PRE-SEND boundary only.
+        # PRE-SEND button/status state must become visible before any following
+        # work starts.  The WebView loader itself is intentionally delayed until
+        # the input row is materialized, so there is no reason to wait for a
+        # Chromium paint here.
         self.flush_send_init_ui()
         return True
 
@@ -214,23 +231,7 @@ class Kernel:
             QApplication.sendPostedEvents()
             QApplication.processEvents(QEventLoop.AllEvents)
 
-            # QWebEngine executes runJavaScript asynchronously in Chromium. A
-            # plain processEvents() may return while that IPC is still in flight.
-            # Keep the Qt loop alive for roughly one frame so showLoading() can
-            # execute and the compositor can publish the PRE-SEND state. This is
-            # intentionally limited to SEND_INIT, not every STATE_BUSY update.
-            render = getattr(self.window.controller.chat, "render", None)
-            is_web = (
-                render is not None
-                and getattr(render, "engine", None) == "web"
-                and not self.window.core.config.get("render.plain")
-            )
-            if is_web:
-                loop = QEventLoop()
-                QTimer.singleShot(20, loop.quit)
-                loop.exec()
-
-            # Drain updates produced during the WebEngine turn as well.
+            # Drain updates produced during the first UI turn as well.
             QApplication.sendPostedEvents()
             QApplication.processEvents(QEventLoop.AllEvents)
         except RuntimeError:
@@ -271,7 +272,12 @@ class Kernel:
         elif name in self._OUTPUT_EVENTS:
             return self.output(context, extra, event)
         elif name in self._STACK_ADD_EVENTS:
-            return self.stack.add(context.reply_context)
+            result = self.stack.add(context.reply_context)
+            # Evaluator feedback arrives after the previous output lifecycle
+            # drained the stack. Resume it here, on the signal receiver thread.
+            if name == KernelEvent.AGENT_CONTINUE and (extra or {}).get("execute"):
+                self.stack.handle()
+            return result
         elif name in self._CALL_EVENTS:
             return self.call(context, extra, event)
 
@@ -387,12 +393,16 @@ class Kernel:
 
     def terminate(self):
         """
-        Terminate the kernel by dispatching a terminate event, stopping the window, and destroying plugins.
+        Terminate the kernel and force-release realtime/audio resources.
         """
         self.window.dispatch(KernelEvent(KernelEvent.TERMINATE))
+        # Stop microphone/output immediately, before generic STOP can allow any
+        # final realtime input callback to race with provider shutdown.
+        self.window.controller.audio.force_stop()
         self.stop(exit=True)
-        self.window.controller.plugins.destroy()
         self.window.controller.realtime.shutdown()
+        self.window.controller.audio.shutdown()
+        self.window.controller.plugins.destroy()
 
     def stop(self, exit: bool = False):
         """
@@ -428,6 +438,10 @@ class Kernel:
         if state_meta is None:
             state_meta = w.core.ctx.output.get_request_meta()
         render_data = {"meta": state_meta} if state_meta is not None else {}
+        if "loading_delay_ms" in event.data:
+            render_data["loading_delay_ms"] = event.data.get("loading_delay_ms")
+        if "loading_wait_for_input" in event.data:
+            render_data["loading_wait_for_input"] = event.data.get("loading_wait_for_input")
 
         if name == KernelEvent.STATE_BUSY:
             self.busy = True

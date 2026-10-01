@@ -29,6 +29,7 @@ from .delegation import AgentDelegateBridge
 from .memory import AgentsV2MemoryStore
 from .mode import AGENT_MODE, AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
 from .prompt_builder import RuntimePromptBuilder
+from .prompts import agents_directory_exists
 from .state import WorkerState
 from .status import RuntimeStatus
 from .strategy import get_agent_strategy
@@ -189,8 +190,11 @@ class AgentsV2Runtime:
         self.memory_store = AgentsV2MemoryStore(window)
         self.allow_local_tools = bool(getattr(self.preset, "agent_v2_allow_local_tools", True))
         self.allow_remote_tools = bool(getattr(self.preset, "agent_v2_allow_remote_tools", True))
-        self.index_id = (getattr(self.preset, "idx", None) if self.preset is not None else None) or context.idx
-        if self.index_id == "_":
+        # Preset selection is synchronized into the shared RAG selector by the
+        # presets controller. Runtime reads that selector as the single source of
+        # truth so a manual toolbox change after selecting a preset takes effect.
+        self.index_id = getattr(context, "idx", None)
+        if self.index_id in ("_", "-"):
             self.index_id = None
         self.rag_context_text = ""
 
@@ -209,12 +213,12 @@ class AgentsV2Runtime:
         self._persist_input_images()
         self.shared_context_text = self._build_shared_context()
         self.runtime_system_context = self._build_runtime_system_context()
-        # Project rules are loaded lazily by main_agent_prompt(), immediately
-        # before the first top-level agent input. Keeping the cache here avoids
-        # touching AGENTS.md in runtimes (for example Experts) that reuse this
-        # backend but do not use the Chat with Agents main prompt.
-        self.project_rules_text = ""
-        self.project_rules_loaded = False
+        # Resolve .agents once for this run against the conversation/project that
+        # started it. Prompt composition then uses the cached state consistently.
+        self.agents_directory_exists = agents_directory_exists(
+            self.window,
+            ctx=getattr(self.context, "ctx", None),
+        )
         # BridgeWorker has already executed POST_PROMPT_END before Agents v2 is
         # started. Consume that final prompt verbatim so every enabled plugin
         # (Real Time, Files I/O, Extra Prompt, Vision, etc.) contributes exactly
@@ -366,7 +370,7 @@ class AgentsV2Runtime:
     @property
     def main_agent_description(self) -> str:
         if self.agent_definition is not None:
-            return "Custom Chat with Agents workflow"
+            return "Custom Agents workflow"
         return self.strategy.main_description
 
     def main_event(self, suffix: str) -> str:
@@ -569,6 +573,12 @@ class AgentsV2Runtime:
 
     def _provider_id(self) -> str:
         return self.artifact_api._provider_id()
+
+    def register_provider_image_base64(self, data: str, actor_id: Optional[str] = None):
+        return self.artifact_api.register_provider_image_base64(data, actor_id=actor_id)
+
+    def register_provider_container_files(self, files, actor_id: Optional[str] = None):
+        return self.artifact_api.register_provider_container_files(files, actor_id=actor_id)
 
     def collect_llm_artifacts(
             self,

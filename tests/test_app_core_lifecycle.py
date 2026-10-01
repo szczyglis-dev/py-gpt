@@ -16,6 +16,7 @@ _COMPONENTS = {
     "access": ("pygpt_net.core.access", "Access"),
     "agents": ("pygpt_net.core.agents", "Agents"),
     "agents_v2": ("pygpt_net.core.agents_v2", "AgentsV2"),
+    "agent_workflow": ("pygpt_net.core.agent_workflow", "AgentWorkflow"),
     "api": ("pygpt_net.provider.api", "Api"),
     "assistants": ("pygpt_net.core.assistants", "Assistants"),
     "attachments": ("pygpt_net.core.attachments", "Attachments"),
@@ -27,10 +28,13 @@ _COMPONENTS = {
     "command": ("pygpt_net.core.command", "Command"),
     "config": ("pygpt_net.config", "Config"),
     "ctx": ("pygpt_net.core.ctx", "Ctx"),
+    "context_manager": ("pygpt_net.core.context_manager", "ContextManager"),
+    "connectors": ("pygpt_net.core.connectors", "Connectors"),
     "db": ("pygpt_net.core.db", "Database"),
     "debug": ("pygpt_net.core.debug", "Debug"),
     "dispatcher": ("pygpt_net.core.dispatcher", "Dispatcher"),
     "experts": ("pygpt_net.core.experts", "Experts"),
+    "extensions": ("pygpt_net.core.extensions", "Extensions"),
     "filesystem": ("pygpt_net.core.filesystem", "Filesystem"),
     "idx": ("pygpt_net.core.idx", "Idx"),
     "image": ("pygpt_net.core.image", "Image"),
@@ -40,12 +44,15 @@ _COMPONENTS = {
     "modes": ("pygpt_net.core.modes", "Modes"),
     "notepad": ("pygpt_net.core.notepad", "Notepad"),
     "platforms": ("pygpt_net.core.platforms", "Platforms"),
+    "packages": ("pygpt_net.core.runtime_packages", "RuntimePackages"),
     "plugins": ("pygpt_net.core.plugins", "Plugins"),
     "presets": ("pygpt_net.core.presets", "Presets"),
     "prompt": ("pygpt_net.core.prompt", "Prompt"),
+    "profile_exporter": ("pygpt_net.core.profile_exporter", "ProfileExporter"),
     "remote_store": ("pygpt_net.core.remote_store", "RemoteStore"),
     "security": ("pygpt_net.core.security", "Security"),
     "settings": ("pygpt_net.core.settings", "Settings"),
+    "skills": ("pygpt_net.core.skills", "Skills"),
     "tabs": ("pygpt_net.core.tabs", "Tabs"),
     "text": ("pygpt_net.core.text", "Text"),
     "tokens": ("pygpt_net.core.tokens", "Tokens"),
@@ -97,6 +104,7 @@ def test_core_initializes_all_components_with_window(app_core_module, monkeypatc
 def _bare_core(app_core_module):
     core = object.__new__(app_core_module.Core)
     core.config = MagicMock()
+    core.packages = MagicMock()
     core.platforms = MagicMock()
     core.updater = MagicMock()
     core.db = MagicMock()
@@ -115,6 +123,7 @@ def test_core_lifecycle_delegates_to_components(app_core_module):
     core.reload()
 
     core.config.init.assert_called_once_with(all=True)
+    core.packages.activate.assert_called_once_with()
     core.platforms.init.assert_called_once_with()
     assert core.updater.patch.call_count == 2
     core.db.reload.assert_called_once_with()

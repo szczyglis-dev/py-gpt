@@ -96,6 +96,7 @@ class Stack:
                     # separate from tool replies (reply=True), so other internal
                     # INPUT_SYSTEM callers keep their existing behaviour.
                     "agent_continue": True,
+                    "inline_message": getattr(context, "extra", {}).get("inline_message"),
                 },
             }))
 

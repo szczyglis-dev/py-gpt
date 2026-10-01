@@ -22,3 +22,7 @@ class StepEvent(Event):
     index: Optional[int] = None
     total: Optional[int] = None
     meta: Dict[str, Any] = Field(default_factory=dict)
+
+class StatusEvent(Event):
+    """Transient workflow progress; never persisted as assistant prose."""
+    status: str

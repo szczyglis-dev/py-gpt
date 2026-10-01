@@ -111,6 +111,7 @@ class Reply:
                     not (isinstance(task.extra, dict) and task.extra.get("status") == "completed")
                     for task in part_tasks
                 )
+
                 # Hidden calls may intentionally have no durable task at all.
                 # Keep the reply batch open until every command in the current
                 # tool round has produced its model-facing response.
@@ -130,6 +131,12 @@ class Reply:
                     ctx.results = []
                     return []
 
+                # Tool results stay transient for the whole consecutive tool
+                # series. Do not expose durable Tool/Tools controls and do not
+                # alter the live Tool row here: it keeps animating while the
+                # provider decides whether another tool call follows. Each next
+                # TOOL_BEGIN reuses the same DOM row and only replaces its label.
+                # Completed tasks are promoted at a non-tool/final boundary.
                 self.append(ctx)
             else:
                 # Legacy contexts keep the old pid-based guard for backward
@@ -290,9 +297,9 @@ class Reply:
         if root_ctx.tool_calls:
             prev_ctx.extra["prev_tool_calls"] = list(root_ctx.tool_calls)
 
-        # Do not expose a finished button yet. The waiting status is cleared and
-        # the task is promoted to UI-ready only after the model consumes this
-        # result and returns its next response.
+        # Tool results remain transient across consecutive tool-only rounds.
+        # Durable promotion happens only when the model continuation reaches a
+        # non-tool/final boundary; until then TOOL_BEGIN reuses one status row.
         self.clear()
 
         # send reply

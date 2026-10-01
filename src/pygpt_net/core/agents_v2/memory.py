@@ -332,6 +332,7 @@ class OrchestratorMemoryStore:
                     notes_tokens = int(self.window.core.tokens.from_text(notes, model_id) or 0)
         except Exception as exc:
             self.window.core.debug.log(exc)
+        history_items_limit = self.window.core.ctx.get_history_items_limit()
         if max_tokens > 0:
             items = self.window.core.ctx.get_history(
                 items,
@@ -341,6 +342,8 @@ class OrchestratorMemoryStore:
                 int(max_tokens or 0),
                 ignore_first=False,
             )
+        elif history_items_limit > 0:
+            items = self.window.core.ctx.limit_history_items(items)
 
         from_ctx = self.window.core.tokens.from_ctx
         total = notes_tokens + sum(from_ctx(item, MODE_AGENT_V2, model_id) for item in items)
@@ -451,6 +454,7 @@ class OrchestratorMemoryStore:
                 model_ctx = int(getattr(model, "ctx", 0) or 0)
                 if model_ctx > 0 and (max_tokens <= 0 or max_tokens > model_ctx):
                     max_tokens = model_ctx
+                history_items_limit = self.window.core.ctx.get_history_items_limit()
                 if max_tokens > 0:
                     items = self.window.core.ctx.get_history(
                         items,
@@ -460,6 +464,8 @@ class OrchestratorMemoryStore:
                         max_tokens,
                         ignore_first=False,
                     )
+                elif history_items_limit > 0:
+                    items = self.window.core.ctx.limit_history_items(items)
             except Exception as exc:
                 self.window.core.debug.log(exc)
 

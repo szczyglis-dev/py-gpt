@@ -23,6 +23,7 @@ class Connectors:
         self._workers = set()
         self._refreshing = False
         self._catalog = []
+        self._explore_auto_loaded = False
         self._status_state = {"installed": None, "explore": None}
 
     def setup(self):
@@ -34,6 +35,8 @@ class Connectors:
         explore_tree.itemChanged.connect(self._update_install_button)
         explore_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         explore_tree.customContextMenuRequested.connect(self.show_explore_context_menu)
+        self.window.ui.nodes["connectors.tabs"].currentChanged.connect(self._on_tab_changed)
+        self.window.ui.nodes["connectors.search"].textChanged.connect(self._apply_filter)
         self.window.ui.nodes["connectors.catalog.url"].setText(
             self.window.core.connectors.get_catalog_url()
         )
@@ -41,6 +44,7 @@ class Connectors:
         self._update_install_button()
 
     def reload(self):
+        self._explore_auto_loaded = False
         if "connectors.catalog.url" in self.window.ui.nodes:
             self.window.ui.nodes["connectors.catalog.url"].setText(
                 self.window.core.connectors.get_catalog_url()
@@ -54,13 +58,12 @@ class Connectors:
         tabs = self.window.ui.nodes.get("connectors.tabs")
         if tabs is not None:
             tabs.setCurrentIndex(1 if explore else 0)
+            self._on_tab_changed(tabs.currentIndex())
         self.refresh_installed()
         dialog.resize(1040, 680)
         dialog.show()
         dialog.raise_()
         dialog.activateWindow()
-        if explore:
-            self.refresh_catalog()
 
     def refresh_installed(self):
         tree = self.window.ui.nodes.get("connectors.installed.list")
@@ -83,6 +86,7 @@ class Connectors:
                     item.setToolTip(4, extra)
             for column in (0, 1, 2, 4):
                 tree.resizeColumnToContents(column)
+            self._apply_filter()
             self._set_status_key(
                 "connectors.status.installed",
                 targets=("installed",),
@@ -113,6 +117,8 @@ class Connectors:
         self.window.core.connectors.set_active(
             int(idx), item.checkState(0) == Qt.CheckState.Checked
         )
+        self.window.controller.presets.sync_mcp_from_global()
+        self.window.controller.plugins.update_info()
 
     def add_manual(self):
         server = {
@@ -127,6 +133,8 @@ class Connectors:
             return
         self.window.core.connectors.add_servers([value])
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
+        self.window.controller.plugins.update_info()
 
     def edit_selected(self):
         idx = self._selected_index()
@@ -143,6 +151,8 @@ class Connectors:
             return
         self.window.core.connectors.update_server(idx, value)
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
+        self.window.controller.plugins.update_info()
 
     def remove_selected(self):
         idx = self._selected_index()
@@ -186,6 +196,8 @@ class Connectors:
             return
         self.window.core.connectors.remove_server(idx)
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
+        self.window.controller.plugins.update_info()
         if self._catalog:
             self._render_catalog(self._catalog)
 
@@ -226,11 +238,27 @@ class Connectors:
         if path:
             self._start_worker("import_local", path=path)
 
+    def _on_tab_changed(self, index: int):
+        if int(index) != 1 or self._explore_auto_loaded:
+            return
+        if self._load_catalog(show_error_dialog=False):
+            self._explore_auto_loaded = True
+
     def refresh_catalog(self):
+        return self._load_catalog(show_error_dialog=True)
+
+    def refresh_catalog_silent(self):
+        return self._load_catalog(show_error_dialog=False)
+
+    def _load_catalog(self, show_error_dialog: bool):
         node = self.window.ui.nodes.get("connectors.catalog.url")
         value = str(node.text() if node is not None else "").strip()
         self.window.core.connectors.set_catalog_url(value)
-        self._start_worker("catalog", url=value or None)
+        return self._start_worker(
+            "catalog",
+            url=value or None,
+            show_error_dialog=show_error_dialog,
+        )
 
     def show_explore_context_menu(self, pos):
         tree = self.window.ui.nodes.get("connectors.explore.list")
@@ -328,6 +356,7 @@ class Connectors:
         tree.resizeColumnToContents(3)
         tree.clearSelection()
         tree.setCurrentItem(None)
+        self._apply_filter()
         self._update_install_button()
         self._set_status_key(
             "connectors.status.catalog",
@@ -335,7 +364,21 @@ class Connectors:
             total=len(self._catalog),
         )
 
-    def _start_worker(self, action: str, **kwargs):
+    def _apply_filter(self, *_args):
+        node = self.window.ui.nodes.get("connectors.search")
+        query = str(node.text() if node is not None else "").strip().casefold()
+        for key in ("connectors.installed.list", "connectors.explore.list"):
+            tree = self.window.ui.nodes.get(key)
+            if tree is None:
+                continue
+            for row in range(tree.topLevelItemCount()):
+                item = tree.topLevelItem(row)
+                text = "\n".join(
+                    item.text(column) for column in range(tree.columnCount())
+                ).casefold()
+                item.setHidden(bool(query) and query not in text)
+
+    def _start_worker(self, action: str, show_error_dialog: bool = True, **kwargs):
         targets = self._status_targets_for_action(action)
         if action == "catalog":
             self._set_status_key(
@@ -365,8 +408,11 @@ class Connectors:
             )
         )
         worker.signals.finished.connect(lambda a, r, w=worker: self._on_worker_finished(w, a, r))
-        worker.signals.error.connect(lambda a, e, w=worker: self._on_worker_error(w, a, e))
+        worker.signals.error.connect(
+            lambda a, e, w=worker, show=show_error_dialog: self._on_worker_error(w, a, e, show)
+        )
         QThreadPool.globalInstance().start(worker)
+        return True
 
     @staticmethod
     def _status_targets_for_action(action: str):
@@ -410,6 +456,8 @@ class Connectors:
             self._render_catalog(result)
             return
         self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
+        self.window.controller.plugins.update_info()
         if action == "install_catalog_many":
             self._render_catalog(self._catalog)
         names = [str(item.get("label")) for item in (result or []) if isinstance(item, dict)]
@@ -426,7 +474,7 @@ class Connectors:
                 targets=targets,
             )
 
-    def _on_worker_error(self, worker, action: str, error):
+    def _on_worker_error(self, worker, action: str, error, show_error_dialog: bool = True):
         self._workers.discard(worker)
         if action == "install_catalog_many":
             self._update_install_button()
@@ -435,4 +483,5 @@ class Connectors:
             targets=self._status_targets_for_action(action),
             error=error,
         )
-        self.window.ui.dialogs.alert(str(error))
+        if action != "catalog" or show_error_dialog:
+            self.window.ui.dialogs.alert(str(error))

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.04 00:00:00                  #
+# Updated Date: 2026.09.24 18:45:00                  #
 # ================================================== #
 
 from dataclasses import dataclass
@@ -40,8 +40,21 @@ class RenderEvent(BaseEvent):
     CLEAR_OUTPUT = "render.clear.output"
 
     CTX_APPEND = "render.ctx.append"
-    INPUT_APPEND = "render.input.append"
-    OUTPUT_APPEND = "render.output.append"
+    # Message transport (semantic operations). Keep the historical aliases below
+    # so plugins/controllers compiled against older names continue to work.
+    APPEND_INPUT = "render.input.append"
+    APPEND_OUTPUT = "render.output.append"
+    REPLACE_INPUT = "render.input.replace"
+    REPLACE_OUTPUT = "render.output.replace"
+    SYNC_OUTPUT = "render.output.sync"
+    FINALIZE_OUTPUT = "render.output.finalize"
+
+    APPEND_ARTIFACT = "render.artifact.append"
+    APPEND_ARTIFACTS = "render.artifacts.append"
+    REPLACE_ARTIFACTS = "render.artifacts.replace"
+
+    INPUT_APPEND = APPEND_INPUT
+    OUTPUT_APPEND = APPEND_OUTPUT
 
     EXTRA_APPEND = "render.extra.append"
     EXTRA_BEGIN = "render.extra.begin"

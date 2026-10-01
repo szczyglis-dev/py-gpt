@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 11:05:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import os
@@ -41,13 +41,13 @@ class Audio:
         if self.window.core.config.get("audio.input.continuous", False):
             self.window.ui.plugin_addon['audio.input.btn'].continuous.setChecked(True)
 
-        # auto turn (VAD)
-        if self.window.core.config.get("audio.input.auto_turn", False):
+        # Auto VAD owns continuous conversation looping. Keep the legacy config
+        # key synchronized for compatibility with older profiles, but expose no
+        # separate Loop control in the toolbox.
+        auto_turn = bool(self.window.core.config.get("audio.input.auto_turn", False))
+        self.window.core.config.set("audio.input.loop", auto_turn)
+        if auto_turn:
             self.window.ui.nodes['audio.auto_turn'].box.setChecked(True)
-
-        # loop recording
-        if self.window.core.config.get("audio.input.loop", False):
-            self.window.ui.nodes['audio.loop'].box.setChecked(True)
 
     def is_muted(self) -> bool:
         """
@@ -85,16 +85,45 @@ class Audio:
         return self.window.core.plugins.get("audio_input").is_recording()
 
     def toggle_auto_turn(self):
-        """Toggle auto turn setting"""
+        """Toggle Auto VAD and its implicit continuous conversation loop."""
         value = self.window.ui.nodes['audio.auto_turn'].box.isChecked()
         self.window.core.config.set("audio.input.auto_turn", value)
+        self.window.core.config.set("audio.input.loop", value)  # legacy profile compatibility
+        if not value:
+            self.window.controller.realtime.cancel_auto_loop()
         self.window.core.config.save()
 
     def toggle_loop(self):
-        """Toggle loop recording setting"""
-        value = self.window.ui.nodes['audio.loop'].box.isChecked()
+        """Compatibility shim: Loop now follows Auto VAD and has no separate UI."""
+        value = bool(self.window.core.config.get("audio.input.auto_turn", False))
         self.window.core.config.set("audio.input.loop", value)
         self.window.core.config.save()
+
+    def force_stop(self):
+        """Force-stop simple microphone capture and realtime playback."""
+        try:
+            plugin = self.window.core.plugins.get("audio_input")
+            handler = getattr(plugin, "handler_simple", None)
+            if handler is not None and getattr(handler, "is_recording", False):
+                handler.force_stop()
+        except Exception as e:
+            self.window.core.debug.log(e)
+        try:
+            self.window.core.audio.output.interrupt_realtime()
+        except Exception:
+            pass
+
+    def shutdown(self):
+        """Release initialized audio backends during application shutdown."""
+        self.force_stop()
+        try:
+            self.window.core.audio.capture.shutdown()
+        except Exception as e:
+            self.window.core.debug.log(e)
+        try:
+            self.window.core.audio.output.shutdown()
+        except Exception as e:
+            self.window.core.debug.log(e)
 
     def toggle_input(
             self,
@@ -463,7 +492,7 @@ class Audio:
             is_advanced = event.data['value']
         if is_enabled:
             # show/hide extra options
-            tab = self.window.controller.ui.tabs.get_current_tab()
+            tab = self.window.controller.tabs.get_current_tab()
             if not tab:
                 return
             if tab.type == Tab.TAB_NOTEPAD:

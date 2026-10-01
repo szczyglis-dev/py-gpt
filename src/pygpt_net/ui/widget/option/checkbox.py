@@ -6,14 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QLabel
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.utils import trans
 
 class OptionCheckbox(QWidget):
@@ -49,7 +49,16 @@ class OptionCheckbox(QWidget):
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None \
                     and self.option["label"] != "":
-                self.title = self.trans_or_not(self.option["label"])
+                if self.option.get('_use_locale', True):
+                    self.title = self.trans_or_not(self.option["label"], self.option.get('_locale_domain'))
+                else:
+                    self.title = str(self.option["label"])
+                params = self.option.get('_label_params') or {}
+                if params:
+                    try:
+                        self.title = self.title.format(**params)
+                    except (KeyError, ValueError):
+                        pass
             if "value" in self.option:
                 self.value = self.option["value"]
             if "real_time" in self.option:
@@ -66,8 +75,7 @@ class OptionCheckbox(QWidget):
                 self.box.isChecked()
             )
         )
-        self.label = QLabel(self.title)
-        self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.label = ElideLabel(self.title)
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
 
@@ -78,19 +86,18 @@ class OptionCheckbox(QWidget):
             ico.setPixmap(pixmap)
             self.layout.addWidget(ico)
 
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
+        self.layout.addWidget(self.label, 1)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
-    def trans_or_not(self, label: str):
+    def trans_or_not(self, label: str, domain: str = None):
         """
         Translate label or return it as is if translation is not available
 
         :param label: Label to translate
         :return: Translated label or original if not found
         """
-        txt = trans(label)
+        txt = trans(label, domain=domain)
         if txt == label:
             if txt.startswith("dictionary."):
                 # get only last part after the dot

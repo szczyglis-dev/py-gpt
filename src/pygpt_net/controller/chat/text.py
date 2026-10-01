@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 14:00:00
+# Updated Date: 2026.09.30 16:05:00
 # ================================================== #
 
 from typing import Optional
@@ -37,6 +37,16 @@ class Text:
         """
         self.window = window
         self.ctx_pid = 0  # sequence number for context items
+        self.annotations = {}
+
+    def get_annotations(self, meta):
+        """Return the annotation session owned by this conversation."""
+        if meta is None or meta.id is None:
+            return None
+        from pygpt_net.ui.widget.textarea.annotations import ChatAnnotations
+        if meta.id not in self.annotations:
+            self.annotations[meta.id] = ChatAnnotations(self.window, meta.id)
+        return self.annotations[meta.id]
 
     def send(
             self,
@@ -48,6 +58,7 @@ class Text:
             mode_override: Optional[str] = None,
             model_override: Optional[str] = None,
             agent_continue: bool = False,
+            inline_message: Optional[dict] = None,
             runtime_attachments: Optional[dict] = None,
     ) -> CtxItem:
         """
@@ -61,6 +72,7 @@ class Text:
         :param mode_override: originating mode for an internal tool reply/agent continuation
         :param model_override: originating model key for an internal tool reply/agent continuation
         :param agent_continue: autonomous Agent continuation within the current durable turn
+        :param inline_message: optional UI-only message metadata attached to this continuation
         :param runtime_attachments: ephemeral tool-produced attachments for this provider call only
         :return: CtxItem instance
         """
@@ -99,6 +111,15 @@ class Text:
 
         # prepare mode, model, etc.
         mode = mode_override or (getattr(continuation_parent, "mode", None) if continuation_parent else None) or config.get("mode")
+
+        # Handle realtime audio continuations or interruptions
+        controller.realtime.on_text_send(
+            mode=mode,
+            internal=internal,
+            reply=reply,
+            continuation=continuation_parent is not None,
+        )
+
         model = model_override or (getattr(continuation_parent, "model", None) if continuation_parent else None) or config.get("model")
         model_data = core.models.get(model)
         sys_prompt = config.get("prompt")
@@ -156,16 +177,34 @@ class Text:
                 # front. The internal continuation prompt is metadata only: it is
                 # never rendered as another user message/CtxItem, but history
                 # expansion can restore the exact provider role sequence.
+                part_extra = {
+                    "agent_continue": True,
+                    "input_before": text,
+                }
+                if isinstance(inline_message, dict):
+                    msg_type = str(inline_message.get("type") or "").strip()
+                    msg_text = str(inline_message.get("text") or "").strip()
+                    if msg_text:
+                        part_extra["inline_messages"] = [{
+                            "type": msg_type or "message",
+                            "text": msg_text,
+                        }]
                 ctx.turn_part = core.ctx.begin_part(
                     continuation_parent,
                     name=ai_name,
                     output=None,
-                    extra={
-                        "agent_continue": True,
-                        "input_before": text,
-                    },
+                    extra=part_extra,
                     joiner="\n\n" if (continuation_parent.compose_output() or "").strip() else "",
                 )
+                if part_extra.get("inline_messages"):
+                    # Paint inline UI messages before the next provider stream.
+                    # They live only in partial metadata, so they stay visible
+                    # without becoming another user CtxItem/turn.
+                    dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                        "meta": continuation_parent.meta,
+                        "ctx": continuation_parent,
+                        "reason": "inline_message",
+                    }))
             else:
                 # Do not allocate a new partial for every tool round. A partial is
                 # a textual assistant fragment; tool-only continuations keep
@@ -210,10 +249,28 @@ class Text:
             reply=reply,
             internal=internal,
         )
+        annotations = self.annotations.get(getattr(meta, "id", None))
+        if annotations is not None:
+            block = annotations.prompt_block(ctx=ctx)
+            if block:
+                sys_prompt = (sys_prompt or "").rstrip() + "\n\n" + block
+                sys_prompt_raw = (sys_prompt_raw or "").rstrip() + "\n\n" + block
 
         log("Appending input to chat window...")
 
         if continuation_parent is None:
+            # Realtime audio can start a new microphone turn while the previous
+            # response is still being cancelled/finalized. Give the new durable
+            # row its database ID *before* BEGIN/APPEND_INPUT reaches the WebView.
+            # The streaming input transport uses that ID as its ownership token;
+            # without it, a late finalization from the superseded response can
+            # clear or fold the new ``...`` input into the previous visual turn.
+            # Other modes keep the historical render-before-store ordering.
+            stored_before_render = mode == MODE_AUDIO
+            if stored_before_render:
+                core.ctx.add(ctx)
+                core.ctx.set_last_item(ctx)
+
             # One BEGIN/input pair per user-visible turn. Tool feedback never
             # creates another chat row.
             dispatch(RenderEvent(RenderEvent.BEGIN, {
@@ -221,12 +278,13 @@ class Text:
                 "ctx": ctx,
                 "stream": stream,
             }))
-            dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+            dispatch(RenderEvent(RenderEvent.APPEND_INPUT, {
                 "meta": ctx.meta,
                 "ctx": ctx,
             }))
-            core.ctx.add(ctx)
-            core.ctx.set_last_item(ctx)
+            if not stored_before_render:
+                core.ctx.add(ctx)
+                core.ctx.set_last_item(ctx)
             controller.ctx.update(reload=True, all=False)
             if mode == MODE_AGENT_V2:
                 # STATE_BUSY is emitted before INPUT_ACCEPT creates/resolves the
@@ -326,7 +384,5 @@ class Text:
             return False  # LlamaIndex agent workflow uses its own streaming lifecycle
         elif mode == MODE_LLAMA_INDEX:
             if core.config.get("llama.idx.mode") == "retrieval":
-                return False
-            if not core.idx.chat.is_stream_allowed(model):
                 return False
         return stream

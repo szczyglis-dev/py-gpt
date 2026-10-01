@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 13:55:00                  #
+# Updated Date: 2026.09.21 15:45:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QEvent, QObject
@@ -128,7 +128,7 @@ class ToolboxSectionHover(QObject):
 
 
 class ToolboxMain:
-    MIN_WIDTH = 256
+    MIN_WIDTH = 200
 
     def __init__(self, window=None):
         """
@@ -146,12 +146,17 @@ class ToolboxMain:
         self.presets = Presets(window)
         self.prompt = Prompt(window)
 
-    def setup(self) -> QSplitter:
+    def setup(self) -> QWidget:
         """
-        Setup toolbox
+        Setup toolbox.
 
-        :return: QSplitter
-        :rtype: QSplitter
+        The mode/model area and System prompt remain inside the vertical
+        splitter.  Mode-specific controls and the global footer live outside
+        that splitter, at the bottom of the toolbox, so moving the splitter
+        cannot compress or hide them.
+
+        :return: Toolbox widget
+        :rtype: QWidget
         """
         ui = self.window.ui
         nodes = ui.nodes
@@ -191,32 +196,43 @@ class ToolboxMain:
         nodes['toolbox.mode'] = toolbox_mode
         nodes['toolbox.mode.layout'] = layout
 
+        # The lower splitter pane now contains only the System prompt.  Keep the
+        # node for compatibility with code/plugins which may reference it.
         bottom_widget = QWidget(self.window)
         bottom_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         bottom_widget.setMinimumWidth(0)
         bottom = QVBoxLayout(bottom_widget)
-        bottom.addWidget(prompt_widget)
-        bottom.addWidget(footer_widget)
+        bottom.addWidget(prompt_widget, 1)
         bottom.setContentsMargins(0, 0, 0, 0)
+        nodes['toolbox.bottom'] = bottom_widget
 
-        # rows
+        # Only the upper toolbox content and System prompt are resizable.  The
+        # footer is deliberately not a splitter child: it always stays at its
+        # natural height at the bottom and therefore cannot be hidden by moving
+        # the vertical splitter handle.
         splitter = QSplitter(Qt.Vertical, self.window)
         splitter.setProperty('class', 'toolbox')
-        # Keep one stable minimum width regardless of which mode-specific
-        # widgets are currently visible. QSizePolicy.Ignored makes the parent
-        # splitter ignore changing child size hints while the explicit minimum
-        # below still prevents collapsing the toolbox too far.
         splitter.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
-        splitter.setMinimumWidth(self.MIN_WIDTH)
-        splitter.addWidget(toolbox_mode)  # mode/model
-        splitter.addWidget(bottom_widget)  # system prompt, footer (names, temp, logo, etc.)
+        splitter.setMinimumWidth(0)
+        splitter.addWidget(toolbox_mode)
+        splitter.addWidget(bottom_widget)
 
-        # Keep the system-prompt/footer pane at the user-selected height across
-        # window resizes. The upper toolbox area is the elastic pane.
+        # Keep the System prompt pane at the user-selected height across window
+        # resizes. The upper toolbox area absorbs the remaining height.
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 0)
 
-        hover = ToolboxSectionHover(splitter)
+        toolbox = QWidget(self.window)
+        toolbox.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+        toolbox.setMinimumWidth(self.MIN_WIDTH)
+        toolbox_layout = QVBoxLayout(toolbox)
+        toolbox_layout.addWidget(splitter, 1)
+        toolbox_layout.addWidget(footer_widget, 0)
+        toolbox_layout.setContentsMargins(0, 0, 0, 0)
+        toolbox_layout.setSpacing(0)
+        nodes['toolbox'] = toolbox
+
+        hover = ToolboxSectionHover(toolbox)
         hover.register(mode_widget)
         hover.register(model_widget)
         hover.register(presets_widget)
@@ -229,7 +245,10 @@ class ToolboxMain:
         for section in self.footer.hover_sections:
             hover.register(section)
         # Keep an explicit Python reference in addition to QObject parenting.
-        splitter._toolbox_section_hover = hover
+        toolbox._toolbox_section_hover = hover
 
+        # Preserve the existing splitter key and saved geometry format.  The
+        # stored two sizes now control mode/model vs System prompt only; footer
+        # height is derived from its visible contents and is not user-resizable.
         ui.splitters['toolbox'] = splitter
-        return splitter
+        return toolbox

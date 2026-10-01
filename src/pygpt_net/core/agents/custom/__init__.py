@@ -176,6 +176,11 @@ class Custom:
                                 "type": "combo",
                                 "use": "models",
                                 "default": MODEL_DEFAULT,
+                            },
+                            "model_overwrite": {
+                                "label": trans("agent.option.model.overwrite"),
+                                "type": "bool",
+                                "default": False,
                             }
                         }
                         if "slots" in node:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:18:00                  #
+# Updated Date: 2026.09.22 11:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
@@ -75,7 +75,7 @@ class BridgeWorker(QRunnable):
             # Apply the global prompt-injection annotation after all late system
             # prompt hooks so external-context warnings remain the final policy.
             self.context.system_prompt = core.security.append_prompt_injection_guard(
-                self.context.system_prompt, ensure_last=True
+                self.context.system_prompt, ensure_last=True, mode=self.mode
             )
 
             # Langchain
@@ -138,60 +138,50 @@ class BridgeWorker(QRunnable):
                 else:
                     self.extra["error"] = str(core.agents.runner.get_error())
 
-            # LlamaIndex: plain-text completion for all configured providers.
-            # OpenAI chat models are adapted to Chat Completions by the provider,
-            # while legacy instruct models still use the Completions endpoint.
+            # Completion normally uses the LlamaIndex completion provider so all
+            # configured backends share one path. Keep one narrow exception for
+            # OpenAI's legacy instruct model: without active chat-style RAG it
+            # must use the native OpenAI SDK Completions endpoint. A selected RAG
+            # index is intentionally ignored when Completion "As chat" is off.
             elif self.mode == MODE_COMPLETION \
                     and self.context.model is not None:
-                core.debug.info("[bridge] Using LlamaIndex completion provider.")
-                result = core.idx.completion.call(
+                model = self.context.model
+                completion_as_chat = bool(
+                    core.config.get("completion.as_chat", True)
+                )
+                native_openai_completion = (
+                    model.provider == "openai"
+                    and model.id == "gpt-3.5-turbo-instruct"
+                    and (
+                        not completion_as_chat
+                        or not core.idx.is_valid(self.context.idx)
+                    )
+                )
+                if native_openai_completion:
+                    core.debug.info(
+                        "[bridge] Using native OpenAI SDK completion provider."
+                    )
+                    result = core.bridge.call_api(
+                        context=self.context,
+                        extra=self.extra,
+                        rt_signals=self.rt_signals,
+                        signals=self.signals,
+                    )
+                else:
+                    core.debug.info("[bridge] Using LlamaIndex completion provider.")
+                    result = core.idx.completion.call(
+                        context=self.context,
+                        extra=self.extra,
+                    )
+
+            # API/provider dispatch with the same LlamaIndex fallback as quick calls.
+            else:
+                result = core.bridge.call_api(
                     context=self.context,
                     extra=self.extra,
+                    rt_signals=self.rt_signals,
+                    signals=self.signals,
                 )
-
-            # API SDK: chat, completion, vision, image, assistants
-            else:
-                sdk = "openai"  # default to OpenAI SDK
-                model = self.context.model
-                if model.provider == "google":
-                    if core.config.get("api_native_google", False):
-                        sdk = "google"
-                elif model.provider == "anthropic":
-                    if core.config.get("api_native_anthropic", False):
-                        sdk = "anthropic"
-                elif model.provider == "x_ai":
-                    if core.config.get("api_native_xai", False):
-                        sdk = "x_ai"
-
-                # call appropriate SDK
-                if sdk == "google":
-                    core.debug.info("[bridge] Using Google SDK.")
-                    result = core.api.google.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "anthropic":
-                    core.debug.info("[bridge] Using Anthropic SDK.")
-                    result = core.api.anthropic.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "x_ai":
-                    core.debug.info("[bridge] Using xAI SDK.")
-                    result = core.api.xai.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
-                elif sdk == "openai":
-                    core.debug.info("[bridge] Using OpenAI SDK.")
-                    result = core.api.openai.call(
-                        context=self.context,
-                        extra=self.extra,
-                        rt_signals=self.rt_signals,
-                    )
         except Exception as e:
             if self.extra is not None:
                 self.extra["error"] = e

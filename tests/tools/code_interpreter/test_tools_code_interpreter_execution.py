@@ -18,14 +18,15 @@ def _tool():
         set_checkbox_all=_sig(),
         toggle_all_visible=_sig(),
     )
-    tabs = MagicMock(); tabs.column_idx = 0
+    tabs = MagicMock(); tabs.get_current_column_idx.return_value = 0
     window = SimpleNamespace(
         controller=SimpleNamespace(
             kernel=MagicMock(),
             command=MagicMock(),
-            ui=SimpleNamespace(tabs=tabs),
+            ui=SimpleNamespace(),
+            tabs=tabs,
         ),
-        core=SimpleNamespace(config=MagicMock()),
+        core=SimpleNamespace(config=MagicMock(), dispatcher=MagicMock()),
         ui=SimpleNamespace(dialogs=MagicMock(), nodes={"icon.interpreter": MagicMock()}),
         dispatch=MagicMock(),
     )
@@ -36,8 +37,10 @@ def _tool():
     return tool
 
 
-def _assert_execute_event(tool, expected_cmd, expected_code, auto_init=None):
-    event = tool.window.controller.command.dispatch_only.call_args.args[0]
+def _assert_execute_event(tool, expected_cmd, expected_code, auto_init=None, execute_all=False):
+    tool.window.core.dispatcher.apply.assert_called_once()
+    plugin_id, event = tool.window.core.dispatcher.apply.call_args.args
+    assert plugin_id == "cmd_code_interpreter"
     command = event.data["commands"][0]
     assert command["cmd"] == expected_cmd
     assert command["params"]["code"] == expected_code
@@ -46,6 +49,7 @@ def _assert_execute_event(tool, expected_cmd, expected_code, auto_init=None):
         assert command["params"].get("auto_init") is auto_init
     assert command["silent"] is True
     assert command["force"] is True
+    assert bool(command.get("_execute_all", False)) is execute_all
     assert event.data["silent"] is True
     assert event.ctx is not None
 
@@ -61,7 +65,7 @@ def test_code_interpreter_send_input_normalizes_tabs_dispatches_ipython_and_clea
 
     tool.window.controller.kernel.resume.assert_called_once_with()
     tool.store_history.assert_called_once_with(widget)
-    _assert_execute_event(tool, "ipython_execute", "print(1)", auto_init=True)
+    _assert_execute_event(tool, "ipython_exec", "print(1)", auto_init=True)
     widget.input.clear.assert_called_once_with()
     widget.input.setFocus.assert_called_once_with()
 
@@ -79,7 +83,7 @@ def test_code_interpreter_send_input_respects_auto_clear_and_execute_all():
     tool.send_input(widget)
 
     tool.clear_output.assert_called_once_with()
-    _assert_execute_event(tool, "code_execute_all", "x = 1", auto_init=True)
+    _assert_execute_event(tool, "python_exec", "x = 1", auto_init=True, execute_all=True)
 
 
 def test_code_interpreter_send_input_empty_non_ipython_does_not_dispatch():
@@ -91,7 +95,7 @@ def test_code_interpreter_send_input_empty_non_ipython_does_not_dispatch():
     widget.input.toPlainText.return_value = "   "
 
     tool.send_input(widget)
-    tool.window.controller.command.dispatch_only.assert_not_called()
+    tool.window.core.dispatcher.apply.assert_not_called()
 
 
 def test_code_interpreter_send_input_restart_and_clear_commands_short_circuit():
@@ -104,7 +108,7 @@ def test_code_interpreter_send_input_restart_and_clear_commands_short_circuit():
     widget.input.toPlainText.return_value = "/restart now"
     tool.send_input(widget)
     tool.restart_kernel.assert_called_once_with()
-    tool.window.controller.command.dispatch_only.assert_not_called()
+    tool.window.core.dispatcher.apply.assert_not_called()
     widget.input.clear.assert_called_once_with()
     widget.input.setFocus.assert_called_once_with()
 
@@ -112,7 +116,7 @@ def test_code_interpreter_send_input_restart_and_clear_commands_short_circuit():
     widget.input.toPlainText.return_value = "/clear please"
     tool.send_input(widget)
     tool.clear.assert_called_once_with(force=True)
-    assert tool.window.controller.command.dispatch_only.call_count == 0
+    assert tool.window.core.dispatcher.apply.call_count == 0
 
 
 def test_code_interpreter_run_input_dispatches_native_and_ipython_modes():
@@ -120,12 +124,12 @@ def test_code_interpreter_run_input_dispatches_native_and_ipython_modes():
     tool.ipython = False
     tool.is_all = MagicMock(return_value=False)
     tool.run_input("print(2)")
-    _assert_execute_event(tool, "code_execute", "print(2)")
+    _assert_execute_event(tool, "python_exec", "print(2)")
 
-    tool.window.controller.command.dispatch_only.reset_mock()
+    tool.window.core.dispatcher.apply.reset_mock()
     tool.ipython = True
     tool.run_input("print(3)")
-    _assert_execute_event(tool, "ipython_execute", "print(3)")
+    _assert_execute_event(tool, "ipython_exec", "print(3)")
 
 
 def test_code_interpreter_run_input_execute_all_empty_and_control_commands():
@@ -133,12 +137,12 @@ def test_code_interpreter_run_input_execute_all_empty_and_control_commands():
     tool.ipython = False
     tool.is_all = MagicMock(return_value=True)
     tool.run_input("x")
-    _assert_execute_event(tool, "code_execute_all", "x")
+    _assert_execute_event(tool, "python_exec", "x", execute_all=True)
 
-    tool.window.controller.command.dispatch_only.reset_mock()
+    tool.window.core.dispatcher.apply.reset_mock()
     tool.is_all.return_value = False
     tool.run_input("")
-    tool.window.controller.command.dispatch_only.assert_not_called()
+    tool.window.core.dispatcher.apply.assert_not_called()
 
     tool.restart_kernel = MagicMock(); tool.clear = MagicMock()
     tool.run_input("/restart"); tool.restart_kernel.assert_called_once_with()
@@ -151,7 +155,9 @@ def test_code_interpreter_restart_kernel_dispatches_command_and_timezone_free_st
         tool.restart_kernel()
 
     tool.window.controller.kernel.resume.assert_called_once_with()
-    command_event = tool.window.controller.command.dispatch_only.call_args.args[0]
+    tool.window.core.dispatcher.apply.assert_called_once()
+    plugin_id, command_event = tool.window.core.dispatcher.apply.call_args.args
+    assert plugin_id == "cmd_code_interpreter"
     command = command_event.data["commands"][0]
     assert command == {
         "cmd": "ipython_kernel_restart",
@@ -208,17 +214,17 @@ def test_code_interpreter_open_close_toggle_and_show_hide():
 
 def test_code_interpreter_auto_open_current_or_existing_tab_vs_dialog():
     tool = _tool()
-    tabs = tool.window.controller.ui.tabs
+    tabs = tool.window.controller.tabs
     tool.open = MagicMock()
 
     tabs.is_current_tool.return_value = True
     tabs.get_tool_column.return_value = 1
-    tabs.column_idx = 0
+    tabs.get_current_column_idx.return_value = 0
     tool.auto_open()
     tabs.enable_split_screen.assert_called_once_with(True)
     tool.open.assert_not_called()
 
-    tabs.reset_mock(); tabs.column_idx = 0
+    tabs.reset_mock(); tabs.get_current_column_idx.return_value = 0
     tabs.is_current_tool.return_value = False
     tabs.is_tool.return_value = True
     tabs.get_first_tab_by_tool.return_value = SimpleNamespace(idx=5, column_idx=1)

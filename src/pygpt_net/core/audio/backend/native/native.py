@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -15,7 +15,6 @@ from typing import List, Tuple
 from bs4 import UnicodeDammit
 
 import time
-import numpy as np
 import wave
 
 from PySide6.QtMultimedia import QMediaDevices, QAudioFormat, QAudioSource, QAudio
@@ -24,7 +23,6 @@ from PySide6.QtCore import QTimer, QObject, QLoggingCategory
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RealtimeEvent
 
-from .realtime import RealtimeSession
 from ..shared import (
     qaudio_dtype,
     qaudio_norm_factor,
@@ -32,12 +30,14 @@ from ..shared import (
     convert_s16_pcm,
     build_rt_input_delta_event,
     build_output_volume_event,
+    InputLevelMeter,
 )
-from .player import NativePlayer
+
+from ..shared.capture import has_minimum_audio
+
 
 class NativeBackend(QObject):
 
-    MIN_FRAMES = 25  # minimum frames to start transcription
     AUTO_CONVERT_TO_WAV = False  # automatically convert to WAV format
 
     def __init__(self, window=None):
@@ -85,11 +85,15 @@ class NativeBackend(QObject):
         self._dtype = None
         self._norm = None
 
-        self._rt_session: Optional[RealtimeSession] = None
+        # Immediate speech-band input meter.
+        self._input_meter = InputLevelMeter()
+
+        self._rt_session = None
+        self._rt_ctx = None
         self._rt_signals = None  # set by core.audio.output on initialize()
 
         # dedicated player wrapper (file playback + envelope metering)
-        self._player = NativePlayer(window=self.window, chunk_ms=self.chunk_ms)
+        self._player = None
 
         # Reduce WASAPI debug spam on Windows-like backends (non-invasive).
         try:
@@ -160,10 +164,8 @@ class NativeBackend(QObject):
         self.prepare_device()
         if not self.selected_device:
             print("No audio input device selected")
-            return
-        if self.disconnected:
-            print("Audio source disconnected, please connect the audio source")
             return False
+        self.disconnected = False
 
         # Prevent multiple recordings
         if self.audio_source is not None:
@@ -177,7 +179,8 @@ class NativeBackend(QObject):
         # This ensures process_audio_input() will start updating the UI.
         if self.audio_source is not None and self.audio_io_device is not None:
             self._is_recording = True
-        return True
+            return True
+        return False
 
     def stop(self) -> bool:
         """
@@ -192,6 +195,11 @@ class NativeBackend(QObject):
         self._is_recording = False
 
         if self.audio_source is not None:
+            # Preserve the final partial chunk before stop discards Qt's buffer.
+            if self.audio_io_device is not None:
+                data = self.audio_io_device.readAll()
+                if not data.isEmpty():
+                    self.frames.append(data.data())
             # Disconnect the readyRead signal
             try:
                 if self.audio_io_device is not None:
@@ -243,21 +251,17 @@ class NativeBackend(QObject):
         return False
 
     def has_min_frames(self) -> bool:
-        """
-        Check if min required audio frames
-
-        :return: True if min frames
-        """
-        if self.frames:
-            frames = self.get_frames()
-            if len(frames) < self.MIN_FRAMES:
-                return False
-            else:
-                return True
-        return False
+        """Return whether at least 100 ms of PCM audio was captured."""
+        if not self.frames or self.actual_audio_format is None:
+            return False
+        fmt = self.actual_audio_format
+        return has_minimum_audio(
+            self.frames, fmt.sampleRate(), fmt.channelCount(), fmt.bytesPerSample(),
+        )
 
     def reset_audio_level(self):
         """Reset the audio level bar"""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -428,6 +432,7 @@ class NativeBackend(QObject):
         normalization_factor = self._norm if self._norm is not None else qaudio_norm_factor(sample_format)
 
         # Convert bytes to NumPy array of the appropriate type
+        import numpy as np
         samples = np.frombuffer(data_bytes, dtype=dtype)
         if samples.size == 0:
             return
@@ -437,17 +442,13 @@ class NativeBackend(QObject):
             samples = samples.astype(np.int16)
             samples -= 128
 
-        # Compute RMS of the audio samples as float64 for precision
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
-
-        # Normalize RMS value based on the sample format
-        level = rms / normalization_factor
-
-        # Ensure level is within 0.0 to 1.0
-        level = min(max(level, 0.0), 1.0)
-
-        # Scale to 0-100
-        level_percent = level * 100
+        # Meter only the current chunk's speech-band energy.
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self.actual_audio_format.sampleRate(),
+            full_scale=normalization_factor,
+            channels=self.actual_audio_format.channelCount(),
+        )
 
         # Update the level bar widget
         self.update_audio_level(level_percent)
@@ -499,16 +500,19 @@ class NativeBackend(QObject):
             out_bytes = raw
             sample_size = 2
         elif sample_format == QAudioFormat.SampleFormat.UInt8:
+            import numpy as np
             arr = np.frombuffer(raw, dtype=np.uint8).astype(np.int16)
             arr = (arr - 128) << 8
             out_bytes = arr.tobytes()
             sample_size = 2
         elif sample_format == QAudioFormat.SampleFormat.Int32:
+            import numpy as np
             arr = np.frombuffer(raw, dtype=np.int32)
             arr = (arr >> 16).astype(np.int16)
             out_bytes = arr.tobytes()
             sample_size = 2
         elif sample_format == QAudioFormat.SampleFormat.Float:
+            import numpy as np
             arr = np.frombuffer(raw, dtype=np.float32)
             arr = np.clip(arr, -1.0, 1.0)
             arr = (arr * 32767.0).astype(np.int16)
@@ -542,6 +546,13 @@ class NativeBackend(QObject):
         """
         return qaudio_norm_factor(sample_format)
 
+    def _get_player(self):
+        """Return the native file player, creating it only when playback is used."""
+        if self._player is None:
+            from .player import NativePlayer
+            self._player = NativePlayer(window=self.window, chunk_ms=self.chunk_ms)
+        return self._player
+
     def play_after(
             self,
             audio_file: str,
@@ -559,7 +570,7 @@ class NativeBackend(QObject):
         :return: True if started
         """
         # delegate to player wrapper to keep logic isolated
-        self._player.play_after(
+        self._get_player().play_after(
             audio_file=audio_file,
             event_name=event_name,
             stopped=stopped,
@@ -568,9 +579,34 @@ class NativeBackend(QObject):
             select_output_device=self._select_output_device,
         )
 
+    def shutdown(self):
+        """Hard-stop Qt audio input/output objects owned by this backend."""
+        try:
+            self.stop()
+        except Exception:
+            pass
+        try:
+            self.interrupt_realtime()
+        except Exception:
+            pass
+        try:
+            self.stop_playback()
+        except Exception:
+            pass
+        try:
+            self.stop_timers()
+        except Exception:
+            pass
+        self._rt_session = None
+        self._rt_ctx = None
+        self.audio_source = None
+        self.audio_io_device = None
+        self.initialized = False
+
     def stop_timers(self):
         """Stop playback timers."""
-        self._player.stop_timers()
+        if self._player is not None:
+            self._player.stop_timers()
 
     def play(
             self,
@@ -599,7 +635,8 @@ class NativeBackend(QObject):
         """
         if self._rt_session:
             self._rt_session.stop()
-        self._player.stop(signals=signals)
+        if self._player is not None:
+            self._player.stop(signals=signals)
         return False
 
     def calculate_envelope(
@@ -623,7 +660,8 @@ class NativeBackend(QObject):
 
         :param signals: Signals object to emit volume changed event.
         """
-        self._player.update_volume(signals)
+        if self._player is not None:
+            self._player.update_volume(signals)
 
     def get_input_devices(self) -> List[Tuple[int, str]]:
         """
@@ -746,12 +784,22 @@ class NativeBackend(QObject):
             return
         safe_emit(self._rt_signals, "response", build_output_volume_event(int(value)))
 
+    def _emit_output_playback_start(self) -> None:
+        """Emit event when realtime audio is actually handed to the device."""
+        if not self._rt_signals:
+            return
+        safe_emit(
+            self._rt_signals,
+            "response",
+            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START, {"ctx": self._rt_ctx}),
+        )
+
     def _ensure_rt_session(
             self,
             mime: str,
             rate: Optional[int],
             channels: Optional[int]
-    ) -> RealtimeSession:
+    ):
         """
         Ensure a realtime audio playback session exists with the device's preferred (or nearest) format.
         Keep it simple: prefer Int16, reuse session if format unchanged.
@@ -791,26 +839,35 @@ class NativeBackend(QObject):
                     return self._rt_session
             except Exception:
                 pass
-            # NOTE: hard stop old one (we keep things simple)
-            try:
-                self._rt_session.stop()
-            except Exception:
-                pass
-            self._rt_session = None
+            # A replacement session must drop any queued PCM immediately.
+            self._interrupt_realtime_session()
 
+        from .realtime import RealtimeSession
         session = RealtimeSession(
             device=device,
             fmt=fmt,
             parent=self,
-            volume_emitter=self._emit_output_volume
+            volume_emitter=self._emit_output_volume,
+            playback_start_emitter=self._emit_output_playback_start
         )
-        # NOTE: when device actually stops (buffer empty), inform UI
-        session.on_stopped = lambda: (
-            self._rt_signals and safe_emit(self._rt_signals, "response", 
-                RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"})
-            ),
-            setattr(self, "_rt_session", None)
-        )
+        # NOTE: when device actually stops (buffer empty), inform UI.
+        # Guard against a stale callback clearing a newer replacement session.
+        def _on_stopped(current=session):
+            if self._rt_session is not current:
+                return
+            if self._rt_signals:
+                safe_emit(
+                    self._rt_signals,
+                    "response",
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {
+                        "source": "device",
+                        "ctx": self._rt_ctx,
+                    }),
+                )
+            self._rt_session = None
+            self._rt_ctx = None
+
+        session.on_stopped = _on_stopped
         self._rt_session = session
         return session
 
@@ -862,6 +919,27 @@ class NativeBackend(QObject):
         except Exception:
             return data
 
+    def _interrupt_realtime_session(self) -> None:
+        """Hard-stop the current realtime response without emitting AUDIO_END."""
+        session = self._rt_session
+        self._rt_session = None
+        if session is None:
+            return
+        try:
+            interrupt = getattr(session, "interrupt", None)
+            if callable(interrupt):
+                interrupt()
+            else:
+                session.on_stopped = None
+                session.stop()
+        except Exception:
+            pass
+
+    def interrupt_realtime(self) -> None:
+        """Immediately abort the current realtime playback generation."""
+        self._interrupt_realtime_session()
+        self._rt_ctx = None
+
     def stop_realtime(self):
         """Stop realtime audio playback session (simple/friendly)."""
         s = self._rt_session
@@ -910,6 +988,19 @@ class NativeBackend(QObject):
             rate = int(payload.get("rate", 24000) or 24000)
             channels = int(payload.get("channels", 1) or 1)
             final = bool(payload.get("final", False))
+            ctx = payload.get("ctx", None)
+
+            # Each realtime response is a separate playback generation. If a
+            # newer response starts while the previous one is still buffered,
+            # abort the old generation instead of queueing the new PCM behind it.
+            if ctx is not None:
+                if (
+                    self._rt_session is not None
+                    and self._rt_ctx is not None
+                    and ctx is not self._rt_ctx
+                ):
+                    self._interrupt_realtime_session()
+                self._rt_ctx = ctx
 
             # only raw PCM/L16
             if ("pcm" not in mime) and ("l16" not in mime):

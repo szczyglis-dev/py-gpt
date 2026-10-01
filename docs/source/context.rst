@@ -21,9 +21,9 @@ Advanced context handling is designed for conversations and agent workflows that
 
 When the unsummarized model-facing conversation reaches the configured checkpoint threshold, PyGPT creates compact **conversation-scoped continuation notes** from older completed turns and advances a checkpoint. Newer turns remain verbatim in the active context tail, while turns already represented by the checkpoint are omitted from subsequent model-facing history. The notes preserve useful state such as goals, constraints, decisions, completed work, important findings, identifiers, and pending work. They are stored in the ``memory_ctx`` table with one row per conversation (``ctx_meta``).
 
-The feature is independent from global/project long-term memory. Conversation continuation notes belong only to one conversation and are never shared automatically with other chats in the same project. They can also be accessed explicitly through ``memory_ctx_get``, ``memory_ctx_add`` and ``memory_ctx_replace``. In Chat with Agents these tools remain available as core context tools when advanced context handling is enabled even if the optional ``Memory (inline)`` plugin is disabled; the Memory plugin exposes the same conversation-note operations to its supported inline-tool flow.
+The feature is independent from global/project long-term memory. Conversation continuation notes belong only to one conversation and are never shared automatically with other chats in the same project. They can also be accessed explicitly through ``memory_ctx_get``, ``memory_ctx_add`` and ``memory_ctx_replace``. In Agents these tools remain available as core context tools when advanced context handling is enabled even if the optional ``Memory (inline)`` plugin is disabled; the Memory plugin exposes the same conversation-note operations to its supported inline-tool flow.
 
-For Chat with Agents, PyGPT additionally uses bounded rolling LlamaIndex memory. The main agent's compact continuation state is persisted to ``memory_ctx`` so it can survive context-window rollover and later turns, while worker rolling summaries remain runtime-local and do not overwrite the canonical conversation notes. Stateful provider chains are restarted when necessary after a checkpoint so provider-side history does not silently continue to grow beyond the locally compacted window. The Chat with Agents setting ``Restore full workflow history on next request`` is respected here as well: when it is disabled, checkpoint token estimates and continuation snapshots use each completed turn's final response instead of its full persisted workflow.
+For Agents, PyGPT additionally uses bounded rolling LlamaIndex memory. The main agent's compact continuation state is persisted to ``memory_ctx`` so it can survive context-window rollover and later turns, while worker rolling summaries remain runtime-local and do not overwrite the canonical conversation notes. Stateful provider chains are restarted when necessary after a checkpoint so provider-side history does not silently continue to grow beyond the locally compacted window. The Agents setting ``Restore full workflow history on next request`` is respected here as well: when it is disabled, checkpoint token estimates and continuation snapshots use each completed turn's final response instead of its full persisted workflow.
 
 The related settings are:
 
@@ -56,7 +56,7 @@ directory.
 The active project data workdir is resolved at runtime. The ``Files`` tab,
 ``Files I/O``, Python interpreter, filesystem-aware tools and model-facing data
 paths use the data directory that belongs to the current conversation. In
-Docker sandboxes the same host directory is exposed as ``/data``. Switching to
+Docker sandboxes the same host directory is exposed as ``/mnt/data``. Switching to
 a conversation in another project therefore changes the effective ``data``
 root without changing the application's base workdir.
 
@@ -94,10 +94,10 @@ Tool requests and results can contain large payloads, for example file contents,
 The available modes are:
 
 * ``Do not store`` - tool calls and results are used normally during the live request, but are not written to durable history.
-* ``Store truncated`` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends ``....``. Object keys and nesting are preserved.
-* ``Store full input/output`` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
+* ``Store truncated`` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends ``....``. Object keys and nesting are preserved. **This is the default for fresh profiles.**
+* ``Store full input/output`` - stores complete tool requests and results, matching the previous full-storage behavior. Enable it when you explicitly need complete persisted tool payloads or want to restore persisted tool protocol after reloading a conversation.
 
-The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence.
+The storage policy applies to all modes that use tools, including Chat (with or without RAG), Custom agents, and Agents. It affects only durable database persistence.
 
 Tool-call rendering is configured separately in ``Settings -> Chats -> Render -> Display tool calls JSON``. When enabled (default), completed calls can be shown as expandable request/response JSON blocks. When disabled, those blocks are hidden and live tool activity is shown only as one aggregated ``Tool/Tools`` status row. This display option does not change tool execution, persistence, or replay to the model.
 

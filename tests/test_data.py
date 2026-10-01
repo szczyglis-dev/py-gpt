@@ -47,7 +47,9 @@ def test_settings():
     path = os.path.join(config.get_app_path(), "data", "config", "settings.json")
     with open(path, "r") as f:
         data = json.load(f)
-    assert "api_key" in data
+    # Provider API settings are declared dynamically by LLM providers and
+    # are no longer stored as top-level entries in settings.json.
+    assert "api_key" not in data
     assert "api_custom_providers" in data
     custom = data["api_custom_providers"]
     assert custom["section"] == "custom_providers"
@@ -132,36 +134,44 @@ def test_fonts():
 def test_locale():
     config = Config()
     path = os.path.join(config.get_app_path(), "data", "locale")
-    files = [
-        "locale.en.ini",
-        "plugin.agent.en.ini",
-        "plugin.audio_output.en.ini",
-        "plugin.audio_input.en.ini",
-        "plugin.cmd_api.en.ini",
-        "plugin.cmd_code_interpreter.en.ini",
-        "plugin.cmd_custom.en.ini",
-        "plugin.cmd_files.en.ini",
-        "plugin.cmd_serial.en.ini",
-        "plugin.cmd_web.en.ini",
-        "plugin.crontab.en.ini",
-        "plugin.idx_llama_index.en.ini",
-        "plugin.openai_dalle.en.ini",
-        "plugin.openai_vision.en.ini",
-        "plugin.real_time.en.ini",
-    ]
-    for file in files:
-        assert os.path.exists(os.path.join(path, file))
 
-    all_files = os.listdir(path)
-    # check if .ini is parsing correctly
-    for file in all_files:
-        if file.endswith(".ini"):
+    # Core application locales stay at data/locale/locale.<lang>.ini.
+    assert os.path.exists(os.path.join(path, "locale.en.ini"))
+
+    # Plugin locales are isolated in per-plugin locale domains.
+    plugin_ids = [
+        "agent",
+        "audio_output",
+        "audio_input",
+        "cmd_api",
+        "cmd_code_interpreter",
+        "cmd_custom",
+        "cmd_files",
+        "cmd_serial",
+        "cmd_web",
+        "crontab",
+        "idx_llama_index",
+        "openai_dalle",
+        "openai_vision",
+        "real_time",
+    ]
+    for plugin_id in plugin_ids:
+        plugin_locale = os.path.join(path, "plugin", plugin_id, "locale.en.ini")
+        assert os.path.exists(plugin_locale)
+
+    # Every bundled INI, including nested plugin domains, must parse cleanly.
+    for dirpath, _, filenames in os.walk(path):
+        for file in filenames:
+            if not file.endswith(".ini"):
+                continue
             ini = configparser.ConfigParser()
-            path = os.path.join(config.get_app_path(), "data", "locale", file)
-            data = io.open(path, mode="r", encoding="utf-8")
-            ini.read_string(data.read())
+            file_path = os.path.join(dirpath, file)
+            with io.open(file_path, mode="r", encoding="utf-8") as data:
+                ini.read_string(data.read())
             assert len(ini) > 0
-            if file.startswith("locale."):
+
+            # These keys belong to the core locale domain only.
+            if dirpath == path and file.startswith("locale."):
                 locale = ini["LOCALE"]
                 for key in (
                     "settings.section.custom_providers",
@@ -172,3 +182,4 @@ def test_locale():
                     "settings.custom_providers.api_key",
                 ):
                     assert key in locale
+

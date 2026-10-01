@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.06 01:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import copy
@@ -860,7 +860,7 @@ class Attachment(QObject):
             "meta": request_meta,
         }))
         self.window.core.ctx.output.finish_request(meta=request_meta)
-        self.window.controller.ui.tabs.sync_focused_chat_context()
+        self.window.controller.tabs.sync_focused_chat_context()
 
     @Slot(str)
     def handle_upload_success(self, text: str):

@@ -25,7 +25,7 @@ class Runtime {
 		this.codeScroll = new CodeScrollState(this.cfg, this.raf);
 		this.highlighter = new Highlighter(this.cfg, this.codeScroll, this.raf);
 		this.scrollMgr = new ScrollManager(this.cfg, this.dom, this.raf);
-		this.toolOutput = new ToolOutput();
+		this.toolOutput = new ToolOutput(this.scrollMgr);
 		this.loading = new Loading(this.dom);
 		this.nodes = new NodesManager(this.dom, this.renderer, this.highlighter, this.math, this.toolOutput);
 		this.bridge = new BridgeManager(this.cfg, this.logger);
@@ -45,6 +45,10 @@ class Runtime {
 		this._lastHeavyResetMs = 0;
 		this._turnSession = 0;
 		this._agentsV2FinalActive = false;
+		this._workflowCollapseSeq = 0;
+		// Message ids whose response lifecycle is still active. Action buttons for
+		// these messages stay invisible while their footer slot remains in layout.
+		this._activeTurnIds = new Set();
 		// Live post-tool prose is rendered as a nested partial of an existing
 		// durable bot message, never as a second msg-box / CtxItem row.
 		this._partialStreams = new Map();
@@ -135,6 +139,7 @@ class Runtime {
 			return;
 		}
 		if (t === 'final_reset') {
+			this.api_clearAgentWorking();
 			try { this.loading.hide(false); } catch (_) {}
 			// Keep the already materialized durable CtxItem and clear only the
 			// transient global stream/status area. Final prose will be appended via
@@ -154,16 +159,49 @@ class Runtime {
 	};
 
 	// API: begin stream.
-	api_beginStream = (chunk = false) => {
+	api_beginStream = (chunk = false, preserveParentId = null) => {
 		this._agentsV2FinalActive = false;
 		this._turnSession += 1;
 		this.tips && this.tips.hide();
+
+		// Consecutive tool-only continuations belong to one visual turn. If the
+		// id-bound workflow host already exists, preserve it instead of clearing
+		// and recreating the same Tool row on every provider round. This removes
+		// the otherwise visible vertical jump between tools.
+		const parentKey = String(preserveParentId || '');
+		// STREAM_BEGIN always carries the durable owner id when available. This is
+		// the reliable ownership point for freshly-created contexts whose BEGIN may
+		// have fired before ctx.id was allocated.
+		if (parentKey) this._markTurnActive(parentKey);
+		const existingWorkflowHost = parentKey ? this._statusMessageHost(parentKey, false) : null;
+		const streamContainer = this.dom.getStreamContainer();
+		const preserveWorkflowHost = !!(
+			existingWorkflowHost && streamContainer &&
+			streamContainer.contains(existingWorkflowHost.box)
+		);
 		this.resetStreamState('beginStream', {
-			clearMsg: true,
+			clearMsg: !preserveWorkflowHost,
 			finalizeActive: false,
-			forceHeavy: true
+			forceHeavy: !preserveWorkflowHost
 		});
-		this.stream.beginStream(chunk);
+		this.stream.beginStream(chunk, !preserveWorkflowHost);
+		// beginStream() may clear/reset the transient containers, so install the
+		// owner hint only afterwards. The actual box is usually created by the first
+		// text delta and will claim this id lazily in DOMRefs.getStreamMsg().
+		if (this.dom && typeof this.dom.setStreamOwnerHint === 'function') {
+			this.dom.setStreamOwnerHint(parentKey);
+		}
+	};
+
+	// Bind/refresh ownership when Python learns the durable ctx id after STREAM_BEGIN.
+	// This is intentionally idempotent and refuses to steal a live box owned by
+	// another turn.
+	api_bindStreamOwner = (msgId) => {
+		const id = String(msgId || '');
+		if (!id) return false;
+		this._markTurnActive(id);
+		if (!this.dom || typeof this.dom.setStreamOwnerHint !== 'function') return false;
+		return !!this.dom.setStreamOwnerHint(id);
 	};
 
 	// API: end stream.
@@ -260,7 +298,42 @@ class Runtime {
 		return { box, msg, timeline };
 	};
 
-	_findPartialStreamHost = (parentId, partId, create = false) => {
+	_setAgentNamePrefix = (container, agentName, beforeNode = null) => {
+		if (!container) return null;
+		const name = String(agentName || '').trim();
+		if (!name) return null;
+
+		let prefix = null;
+		try { prefix = container.querySelector(':scope > .agent-name-prefix'); }
+		catch (_) { prefix = null; }
+		if (!prefix) {
+			prefix = document.createElement('span');
+			prefix.className = 'agent-name-prefix';
+			container.insertBefore(prefix, beforeNode || container.firstChild || null);
+		}
+		prefix.textContent = name;
+		return prefix;
+	};
+
+	_bindMainStreamAgentPrefix = (timeline, partId, agentName) => {
+		const name = String(agentName || '').trim();
+		if (!timeline || !name) return null;
+
+		let root = null;
+		try { root = timeline.querySelector(':scope > .md-snapshot-root'); }
+		catch (_) { root = null; }
+		if (!root) return null;
+
+		const prefix = this._setAgentNamePrefix(timeline, name, root);
+		if (prefix) {
+			prefix.dataset.streamAgentPrefix = '1';
+			if (partId) prefix.dataset.partId = String(partId);
+			if (prefix.nextSibling !== root) timeline.insertBefore(prefix, root);
+		}
+		return prefix;
+	};
+
+	_findPartialStreamHost = (parentId, partId, create = false, agentName = '') => {
 		const host = this._workflowMessageHost(parentId, create);
 		if (!host || !host.timeline) return null;
 
@@ -307,6 +380,7 @@ class Runtime {
 			root.className = 'md-snapshot-root';
 			part.appendChild(root);
 		}
+		this._setAgentNamePrefix(part, agentName, root);
 		return { ...host, part, root };
 	};
 
@@ -349,11 +423,11 @@ class Runtime {
 	// Append streamed Markdown into a nested partial of an existing assistant
 	// turn. A missing durable node gets a provisional id-bound stream host; it is
 	// never rendered as an unrelated second message.
-	api_appendPartialStream = (parentId, partId, chunk, begin = false) => {
+	api_appendPartialStream = (parentId, partId, chunk, begin = false, agentName = '') => {
 		const key = this._partialStreamKey(parentId, partId);
 		let state = this._partialStreams.get(key) || null;
 		if (begin || !state || (state.root && !state.root.isConnected)) {
-			const host = this._findPartialStreamHost(parentId, partId, true);
+			const host = this._findPartialStreamHost(parentId, partId, true, agentName);
 			if (!host) {
 				const finalLatch = this._agentsV2FinalActive;
 				// Python owns loader visibility and knows whether this is hidden
@@ -366,6 +440,10 @@ class Runtime {
 				state = { ...host, text: '' };
 				this._partialStreams.set(key, state);
 			}
+		}
+
+		if (state && !state.fallback && agentName) {
+			this._setAgentNamePrefix(state.part, agentName, state.root || null);
 		}
 
 		const value = String(chunk || '');
@@ -435,6 +513,7 @@ class Runtime {
 			if (!node || node.nodeType !== Node.ELEMENT_NODE) return false;
 			const el = node;
 			if (el.classList && el.classList.contains('msg-part-status')) return false;
+			if (el.classList && el.classList.contains('agent-name-prefix')) return false;
 			if (el === streamRoot || (el.classList && el.classList.contains('md-snapshot-root'))) {
 				return !!(String(el.textContent || '').trim() || (el.children && el.children.length > 0));
 			}
@@ -451,28 +530,32 @@ class Runtime {
 		}
 		const rootHasContent = !!(streamRoot && nodeHasPayload(streamRoot));
 		if (streamRoot && !rootHasContent && !hasEarlierPayload) {
-			host.timeline.insertBefore(part, streamRoot);
+			let streamPrefix = null;
+			try { streamPrefix = host.timeline.querySelector(':scope > .agent-name-prefix[data-stream-agent-prefix="1"]'); }
+			catch (_) { streamPrefix = null; }
+			host.timeline.insertBefore(part, streamPrefix || streamRoot);
 		} else {
 			host.timeline.appendChild(part);
 		}
 	};
 
-	_setWorkflowStatus = (parentId, statusId, kind, labelText, active = true) => {
+	_setWorkflowStatus = (parentId, statusId, kind, labelText, active = true, options = null) => {
+		const opts = Object.assign({
+			moveExisting: true
+		}, options || {});
 		let status = this._findWorkflowStatus(statusId);
+		const existed = !!status;
 		if (!status) status = this._createWorkflowStatus(parentId, statusId, kind);
 		if (!status) return null;
-		else {
-			// In single-status-per-part mode Python deliberately reuses the same
-			// status id as the current part advances from "before text" to "after
-			// text/tool". Move that one row to the newest chronological position
-			// instead of leaving the updated label at its original location.
+		if (existed && opts.moveExisting) {
+			// Normal agent/status updates may advance to the newest chronological
+			// slot. Tool-series updates explicitly opt out: one Tool row must keep
+			// exactly the same DOM position for the whole consecutive tool round.
 			const host = this._statusMessageHost(parentId, false);
 			if (host) this._placeWorkflowStatus(host, status);
 		}
 		status.dataset.statusKind = String(kind || 'agent');
 		if (statusId) status.dataset.workflowStatusId = String(statusId);
-		if (active) status.classList.add('agents-v2-status--active');
-		else status.classList.remove('agents-v2-status--active');
 		let label = status.querySelector('.agents-v2-status__text');
 		if (!label) {
 			label = document.createElement('span');
@@ -480,6 +563,13 @@ class Runtime {
 			status.appendChild(label);
 		}
 		label.textContent = String(labelText || '');
+		if (active) {
+			// Keep an already-active node active. Consecutive tool calls only change
+			// its label, so the shimmer continues without a CSS animation restart.
+			status.classList.add('agents-v2-status--active');
+		} else {
+			status.classList.remove('agents-v2-status--active');
+		}
 		return status;
 	};
 
@@ -498,9 +588,49 @@ class Runtime {
 		if (wantedParent && !host) return;
 		const root = host ? host.timeline : document;
 		for (const node of root.querySelectorAll('.agents-v2-status--active')) {
+			if (node.classList.contains('agent-working')) continue;
 			if (kind && String(node.dataset.statusKind || '') !== String(kind)) continue;
 			node.classList.remove('agents-v2-status--active');
 		}
+	};
+
+	// One transient header per live response. Reuse the same label node so the
+	// status shimmer is continuous while the elapsed text changes each second.
+	api_setAgentWorking = (parentId, data) => {
+		const id = String(parentId || '');
+		if (!id || !data || this._agentsV2FinalActive) return;
+		if (this._agentWorking && this._agentWorking.id === id) return;
+		this.api_clearAgentWorking();
+		const row = document.createElement('div');
+		row.className = 'agent-working agents-v2-status agents-v2-status--active';
+		const label = document.createElement('span');
+		label.className = 'agents-v2-status__text';
+		row.appendChild(label);
+		const elapsed = Math.max(0, Date.now() / 1000 - Number(data.started || Date.now() / 1000));
+		const started = performance.now();
+		const units = Array.isArray(data.units) ? data.units : ['h', 'm', 's'];
+		const tick = () => {
+			const host = this._statusMessageHost(id, false);
+			if (host && host.msg && row.parentNode !== host.msg) {
+				host.msg.insertBefore(row, host.msg.firstChild);
+			}
+			const seconds = Math.floor(elapsed + (performance.now() - started) / 1000);
+			const values = [];
+			if (seconds >= 3600) values.push(`${Math.floor(seconds / 3600)}${units[0]}`);
+			if (seconds >= 60) values.push(`${Math.floor(seconds / 60) % 60}${units[1]}`);
+			values.push(`${seconds % 60}${units[2]}`);
+			label.textContent = String(data.label || 'Working for {duration}').replace('{duration}', values.join(' '));
+		};
+		this._agentWorking = {id, row, timer: setInterval(tick, 1000)};
+		tick();
+	};
+
+	api_clearAgentWorking = (parentId = null) => {
+		const state = this._agentWorking;
+		if (!state || (parentId != null && String(parentId) !== state.id)) return;
+		clearInterval(state.timer);
+		state.row.remove();
+		this._agentWorking = null;
 	};
 
 	api_setAgentStatus = (text, parentId = null, statusId = null) => {
@@ -547,17 +677,26 @@ class Runtime {
 			return;
 		}
 
-		this.api_freezeWorkflowStatus(parentId);
-		this._setWorkflowStatus(parentId, statusId, 'tool', this._toolStatusLabel(values), true);
+		// A tool call replaces the label of the existing tool row. Freeze only
+		// the previous agent-status row; never toggle the active class on the tool
+		// row itself, otherwise the continuous shimmer can visibly restart.
+		this.api_freezeWorkflowStatus(parentId, 'agent');
+		this._setWorkflowStatus(
+			parentId,
+			statusId,
+			'tool',
+			this._toolStatusLabel(values),
+			true,
+			{ moveExisting: false }
+		);
 		this.scrollMgr.scheduleScroll(true);
 	};
 
 	api_clearToolStatus = (parentId = null, immediate = true) => {
-		// Normal tool completion clears the Python-side workflow record immediately,
-		// but keeps the already-painted waiting row in the DOM until the durable
-		// Tool/Tools block is rebuilt. That rebuild replaces the DOM synchronously,
-		// so the user never sees an empty gap between "Tool: ..." and the button.
-		// STOP/error paths pass immediate=true and remove the row right away.
+		// Called only when the consecutive tool series reaches a real boundary.
+		// The live Tool row intentionally stays active between individual results.
+		// With a durable Tool/Tools block ready we remove it atomically; compact
+		// status mode freezes it here. STOP/error paths remove it immediately.
 		if (!immediate) {
 			this.api_freezeWorkflowStatus(parentId, 'tool');
 			return;
@@ -577,19 +716,31 @@ class Runtime {
 	// After beginStream() clears the transient output area, recreate the id-bound
 	// stream shell and restore UI-only status history before the first text chunk.
 	// This prevents "Planning/Using tool" rows from disappearing at stream start.
-	api_bindWorkflowStream = (parentId, nameHeader = '', records = []) => {
+	api_bindWorkflowStream = (parentId, nameHeader = '', records = [], partId = '', agentName = '') => {
 		const value = String(parentId || '');
 		if (!value) return;
-		const msg = this.dom.getStreamMsg(true, String(nameHeader || ''));
-		if (!msg) return;
-		const box = msg.closest ? msg.closest('.msg-box.msg-bot') : null;
-		if (box) {
-			box.id = `msg-bot-${value}`;
-			box.dataset.workflowParentId = value;
+
+		// Reuse the already visible workflow message whenever possible. Creating a
+		// fresh empty stream box while the durable parent already exists changes
+		// document height for one frame and makes the Tool row/loading indicator
+		// jump between consecutive calls. A provisional box is needed only before
+		// the parent message has been materialized anywhere.
+		let host = this._statusMessageHost(value, false);
+		let msg = host ? host.msg : null;
+		let box = host ? host.box : null;
+		let timeline = host ? host.timeline : null;
+		if (!msg || !box || !timeline) {
+			msg = this.dom.getStreamMsg(true, String(nameHeader || ''));
+			if (!msg) return;
+			box = msg.closest ? msg.closest('.msg-box.msg-bot') : null;
+			if (box) {
+				box.id = `msg-bot-${value}`;
+				box.dataset.workflowParentId = value;
+			}
+			timeline = (this.dom && typeof this.dom.getMsgTimeline === 'function')
+				? this.dom.getMsgTimeline(msg, true)
+				: msg;
 		}
-		const timeline = (this.dom && typeof this.dom.getMsgTimeline === 'function')
-			? this.dom.getMsgTimeline(msg, true)
-			: msg;
 		if (!timeline) return;
 
 		const rows = Array.isArray(records) ? records.slice() : [];
@@ -601,27 +752,782 @@ class Runtime {
 			let label = String(record.text || '');
 			if (!label && kind === 'tool') label = this._toolStatusLabel(record.tool_names || []);
 			if (!label) continue;
-			this._setWorkflowStatus(value, sid, kind, label, !!record.active);
+			this._setWorkflowStatus(
+				value, sid, kind, label, !!record.active,
+				{ moveExisting: false }
+			);
+		}
+
+		this._bindMainStreamAgentPrefix(timeline, partId, agentName);
+	};
+
+	// ------------------------------------------------------------------
+	// Unified renderer mutation transport.
+	// ------------------------------------------------------------------
+	_parseRenderMutation = (payload) => {
+		let obj = payload;
+		if (typeof obj === 'string') {
+			const text = obj.trim();
+			if (!text || text[0] !== '{') return null;
+			try { obj = JSON.parse(text); } catch (_) { return null; }
+		}
+		if (!obj || typeof obj !== 'object' || !obj.mutation || typeof obj.mutation !== 'object') return null;
+		return obj.mutation;
+	};
+
+	_flushStreamQueueNow = () => {
+		try {
+			let guard = 0;
+			while (this.streamQ && this.streamQ._qCount && this.streamQ._qCount() > 0 && guard++ < 10000) {
+				this.streamQ.drain();
+			}
+		} catch (_) {}
+	};
+
+	_mutationElement = (block, role) => {
+		if (!block) return null;
+		try {
+			const html = this.templates.renderNode(block);
+			const tmp = document.createElement('div');
+			tmp.innerHTML = html;
+			return tmp.querySelector(role === 'user' ? '.msg-box.msg-user' : '.msg-box.msg-bot');
+		} catch (_) { return null; }
+	};
+
+	_appendDurableInput = (block) => {
+		if (!block || !block.input || !block.input.text) return;
+		const id = String(block.id == null ? '' : block.id);
+		if (!id) return;
+		if (document.getElementById(`msg-user-${id}`)) {
+			try { this.loading.inputReady(); } catch (_) {}
+			return;
+		}
+		const nodes = this.dom.get('_nodes_');
+		if (!nodes) return;
+		try {
+			const inputOnly = Object.assign({}, block, {output: null});
+			const html = this.templates.renderNode(inputOnly);
+			nodes.insertAdjacentHTML('beforeend', html);
+			nodes.classList.remove('empty_list');
+			this.nodes._materializeUserMdAsPlainText(nodes);
+			this.nodes._userCollapse.apply(nodes);
+			this.nodes._ensureUserCopyIcons(nodes);
+			// SEND_INIT may have armed a delayed loader that is gated on the
+			// user row. Reserve/show it only now, after the input is in DOM.
+			try { this.loading.inputReady(); } catch (_) {}
+		} catch (_) {}
+
+		// Input is transient too. Never let a late sync for an older turn clear
+		// the input row that already belongs to a newer request.
+		try {
+			const input = this.dom.get('_append_input_');
+			const owner = input && input.dataset ? String(input.dataset.renderMsgId || '') : '';
+			if (!owner || owner === id) {
+				this.dom.clearInput();
+				if (input && input.dataset) delete input.dataset.renderMsgId;
+			}
+		} catch (_) {}
+	};
+
+	_replaceInputMutation = (mutation) => {
+		const block = mutation.block || null;
+		if (!block) return;
+		const id = String(mutation.msg_id != null ? mutation.msg_id : (block.id != null ? block.id : ''));
+		if (!id) return;
+		const target = document.getElementById(`msg-user-${id}`);
+		const desired = this._mutationElement(block, 'user');
+		if (!desired) return;
+		if (target) target.replaceWith(desired);
+		else {
+			const nodes = this.dom.get('_nodes_');
+			if (!nodes) return;
+			nodes.appendChild(desired);
+			nodes.classList.remove('empty_list');
+		}
+		try {
+			this.nodes._materializeUserMdAsPlainText(desired.parentNode || desired);
+			this.nodes._userCollapse.apply(desired.parentNode || desired);
+			this.nodes._ensureUserCopyIcons(desired.parentNode || desired);
+		} catch (_) {}
+	};
+
+	_postMutation = (root) => {
+		if (!root) return;
+		try {
+			const maybe = this.renderer.renderPendingMarkdown(root);
+			const done = () => {
+				try { this.nodes._onBox(root); } catch (_) {}
+				try { this.nodes._refreshToolGroups(this.dom.get('_nodes_')); } catch (_) {}
+				try { this.scrollMgr.endMessageMutation(root); } catch (_) {}
+				try { this.scrollMgr.syncBottomNowIfFollowing(); } catch (_) {}
+				this.scrollMgr.scheduleMessageVirtualizationRefresh();
+				this.scrollMgr.scheduleScroll(true);
+			};
+			if (maybe && typeof maybe.then === 'function') maybe.then(done); else done();
+		} catch (_) {
+			try { this.scrollMgr.endMessageMutation(root); } catch (__) {}
+		}
+	};
+
+	_directTimelineChild = (timeline, predicate) => {
+		if (!timeline || !timeline.children || typeof predicate !== 'function') return null;
+		for (const child of Array.from(timeline.children)) {
+			try { if (predicate(child)) return child; } catch (_) {}
+		}
+		return null;
+	};
+
+	_timelinePartById = (timeline, partId, kind = '') => {
+		const value = String(partId || '');
+		if (!timeline || !value) return null;
+		return this._directTimelineChild(timeline, (el) => {
+			if (!el.classList || !el.classList.contains('msg-part')) return false;
+			if (String((el.dataset && el.dataset.partId) || '') !== value) return false;
+			if (kind === 'inline') return el.classList.contains('msg-part-inline');
+			if (kind === 'content') {
+				return !el.classList.contains('msg-part-inline')
+					&& !el.classList.contains('msg-part-status');
+			}
+			return true;
+		});
+	};
+
+	_syncTimelineStructuralNodes = (timeline, desiredTimeline) => {
+		if (!timeline || !desiredTimeline) return;
+
+		// Inline Autonomous/judge messages are part of the currently followed turn.
+		// Remember FOLLOW ownership before changing geometry: if the user did not
+		// manually stop following, materializing a new inline row must immediately
+		// move the viewport behind that row instead of waiting for async Markdown
+		// post-processing or for the next stream chunk.
+		const followInlineInsert = !!(this.scrollMgr && this.scrollMgr.autoFollow === true);
+		let inlineInserted = false;
+
+		// Block-level tool output is structural: update it from the authoritative
+		// snapshot, but never touch neighboring streamed prose.
+		try {
+			Array.from(timeline.children).forEach((el) => {
+				if (el.classList && el.classList.contains('tool-output')
+						&& !el.classList.contains('agent-workflow-output')) el.remove();
+			});
+			for (const el of Array.from(desiredTimeline.children)) {
+				if (el.classList && el.classList.contains('tool-output')
+						&& !el.classList.contains('agent-workflow-output')) {
+					timeline.appendChild(el.cloneNode(true));
+				}
+			}
+		} catch (_) {}
+
+		// Partial timelines are incremental. Add only structural rows that cannot
+		// be produced by token streaming: Autonomous inline messages and tool-only
+		// partials. Text-bearing partials are deliberately left untouched.
+		try {
+			for (const desiredPart of Array.from(desiredTimeline.children)) {
+				if (!desiredPart.classList || !desiredPart.classList.contains('msg-part')) continue;
+				const partId = String((desiredPart.dataset && desiredPart.dataset.partId) || '');
+				const isInline = desiredPart.classList.contains('msg-part-inline');
+				const hasText = !!desiredPart.querySelector('.md-block');
+				const hasTool = !!desiredPart.querySelector('.tool-output');
+				if (!isInline && (!hasTool || hasText)) continue;
+
+				let existing = partId ? this._timelinePartById(timeline, partId, isInline ? 'inline' : 'content') : null;
+				if (!existing) {
+					timeline.appendChild(desiredPart.cloneNode(true));
+					if (isInline) inlineInserted = true;
+					continue;
+				}
+				if (isInline) continue;
+
+				// A tool result may become UI-ready after the partial itself already
+				// exists. Reconcile only its tool controls, preserving prose nodes.
+				Array.from(existing.children).forEach((child) => {
+					if (child.classList && child.classList.contains('tool-output')) child.remove();
+				});
+				for (const child of Array.from(desiredPart.children)) {
+					if (child.classList && child.classList.contains('tool-output')) {
+						existing.appendChild(child.cloneNode(true));
+					}
+				}
+			}
+		} catch (_) {}
+
+		if (inlineInserted && followInlineInsert) {
+			try {
+				// Reassert FOLLOW synchronously after the DOM insertion. This is not a
+				// forced user scroll: it only runs when FOLLOW already owned the viewport.
+				// resumeAutoFollow(true) also marks the resulting scroll as programmatic,
+				// so the scroll listener cannot misclassify it as manual upward movement.
+				this.scrollMgr.resumeAutoFollow(true);
+			} catch (_) {}
+		}
+	};
+
+	_insertCollapsedWorkflowSummary = (timeline, desiredSummary, finalNode, token, target) => {
+		if (!timeline || !desiredSummary) return;
+		if (target && target.dataset && String(target.dataset.workflowCollapseToken || '') !== String(token)) return;
+		let existing = this._directTimelineChild(timeline, (el) =>
+			el.classList && el.classList.contains('agent-workflow-output')
+		);
+		if (existing) existing.remove();
+
+		const summary = desiredSummary.cloneNode(true);
+		try {
+			if (finalNode && finalNode.parentNode === timeline) timeline.insertBefore(summary, finalNode);
+			else timeline.insertBefore(summary, timeline.firstChild || null);
+		} catch (_) { return; }
+
+		try {
+			const reduced = typeof window !== 'undefined' && window.matchMedia
+				&& window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			if (!reduced && typeof summary.animate === 'function') {
+				summary.animate(
+					[{opacity: 0, transform: 'translateY(-3px)'}, {opacity: 1, transform: 'translateY(0)'}],
+					{duration: 140, easing: 'ease-out'}
+				);
+			}
+		} catch (_) {}
+
+		try {
+			const maybe = this.renderer.renderPendingMarkdown(summary);
+			const done = () => {
+				try { this.nodes._onBox(target || summary); } catch (_) {}
+				try { this.scrollMgr.scheduleMessageVirtualizationRefresh(); } catch (_) {}
+				try { this.scrollMgr.scheduleScroll(true); } catch (_) {}
+			};
+			if (maybe && typeof maybe.then === 'function') maybe.then(done); else done();
+		} catch (_) {}
+	};
+
+	_collapseCompletedWorkflow = (target, timeline, desiredTimeline, block) => {
+		if (!target || !timeline || !desiredTimeline || !block) return false;
+		const workflow = block.extra && block.extra.collapsed_workflow;
+		const compactFinal = block.extra && block.extra.agents_v2_compact_final;
+		const workflowSteps = compactFinal ? Number(compactFinal.workflow_steps || 0) : 0;
+		// Compact-final is a collapse command, not merely a marker that a final
+		// response exists. A one-shot Agents v2 answer has no preceding workflow
+		// and must never enter the fold/remove path.
+		if (!workflow && (!compactFinal || workflowSteps <= 0)) return false;
+		const desiredSummary = this._directTimelineChild(desiredTimeline, (el) =>
+			el.classList && el.classList.contains('agent-workflow-output')
+		);
+		// Never remove live partials/tool/status rows unless the authoritative
+		// snapshot contains the Processed accordion that will replace them. This
+		// also protects against backend/frontend version skew where compact-final
+		// metadata exists but no collapsed workflow was rendered.
+		if (!desiredSummary) return false;
+
+		const already = this._directTimelineChild(timeline, (el) =>
+			el.classList && el.classList.contains('agent-workflow-output')
+		);
+		if (already) return true;
+
+		const finalPartId = String((compactFinal && compactFinal.final_part_id) || (workflow && workflow.final_part_id) || '');
+		const finalNodes = [];
+		let finalNode = finalPartId ? this._timelinePartById(timeline, finalPartId, 'content') : null;
+		if (finalNode) finalNodes.push(finalNode);
+
+		// Legacy LlamaIndex agents can reach their first visible prose only after a
+		// tool call. In that case AGENT_V2_BEGIN sees the already-created final part
+		// as the active part, so the prose is streamed through the main
+		// .md-snapshot-root instead of a nested .msg-part. bindWorkflowStream() still
+		// tags the UI-only agent prefix with the durable part id; use that tag to keep
+		// the prefix + streamed root together as the authoritative final response.
+		if (!finalNodes.length && finalPartId) {
+			let streamPrefix = null;
+			try {
+				streamPrefix = this._directTimelineChild(timeline, (el) =>
+					el.classList && el.classList.contains('agent-name-prefix')
+					&& String((el.dataset && el.dataset.partId) || '') === finalPartId
+				);
+			} catch (_) {}
+			if (streamPrefix) {
+				finalNodes.push(streamPrefix);
+				const root = streamPrefix.nextElementSibling;
+				if (root && root.classList && root.classList.contains('md-snapshot-root')) {
+					finalNodes.push(root);
+					finalNode = root;
+				} else {
+					finalNode = streamPrefix;
+				}
+			}
+		}
+
+		if (!finalNodes.length) {
+			const textNodes = Array.from(timeline.children || []).filter((el) => {
+				if (!el || !el.classList) return false;
+				if (el.classList.contains('msg-part-inline') || el.classList.contains('msg-part-status')) return false;
+				if (el.classList.contains('md-snapshot-root')) {
+					return !!(String(el.textContent || '').trim() || (el.children && el.children.length));
+				}
+				try { return !!el.querySelector('.md-block') || el.classList.contains('md-block'); }
+				catch (_) { return false; }
+			});
+			finalNode = textNodes.length ? textNodes[textNodes.length - 1] : null;
+			if (finalNode) {
+				const previous = finalNode.previousElementSibling;
+				if (finalNode.classList.contains('md-snapshot-root') && previous
+						&& previous.classList && previous.classList.contains('agent-name-prefix')) {
+					finalNodes.push(previous);
+				}
+				finalNodes.push(finalNode);
+			}
+		}
+
+		// If a version/race mismatch left no recognizable live final node, restore
+		// only the authoritative final body from the desired snapshot. This is a
+		// narrow fallback: normal streams keep their exact DOM and never get rebuilt.
+		if (!finalNodes.length) {
+			const desiredFinal = Array.from(desiredTimeline.children || []).filter((el) =>
+				el && el.classList && (el.classList.contains('agent-name-prefix') || el.classList.contains('md-block'))
+			);
+			for (const source of desiredFinal) {
+				const clone = source.cloneNode(true);
+				timeline.appendChild(clone);
+				finalNodes.push(clone);
+			}
+			finalNode = finalNodes.length ? finalNodes[0] : null;
+		}
+
+		const finalAnchor = finalNodes.length ? finalNodes[0] : finalNode;
+		const keepFinal = new Set(finalNodes);
+		const stale = Array.from(timeline.children || []).filter((el) =>
+			!keepFinal.has(el) && !(el.classList && el.classList.contains('agent-workflow-output'))
+		);
+		const token = String(++this._workflowCollapseSeq);
+		if (target.dataset) target.dataset.workflowCollapseToken = token;
+
+		if (!stale.length) {
+			if (desiredSummary) {
+				this._insertCollapsedWorkflowSummary(timeline, desiredSummary, finalAnchor, token, target);
+			}
+			return true;
+		}
+
+		let reduced = false;
+		try {
+			reduced = typeof window !== 'undefined' && window.matchMedia
+				&& window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		} catch (_) {}
+		const duration = reduced || (workflow && workflow.expanded === true) ? 0 : 180;
+		const animations = [];
+		for (const el of stale) {
+			if (!el) continue;
+			if (duration <= 0 || typeof el.animate !== 'function') continue;
+			try {
+				const rect = el.getBoundingClientRect();
+				const style = window.getComputedStyle ? window.getComputedStyle(el) : null;
+				const fromMarginTop = style ? style.marginTop : '0px';
+				const fromMarginBottom = style ? style.marginBottom : '0px';
+				const animation = el.animate([
+					{opacity: 1, height: `${Math.max(0, rect.height)}px`, marginTop: fromMarginTop, marginBottom: fromMarginBottom, overflow: 'hidden'},
+					{opacity: 0, height: '0px', marginTop: '0px', marginBottom: '0px', overflow: 'hidden'}
+				], {duration, easing: 'ease-in-out', fill: 'forwards'});
+				animations.push(animation.finished.catch(() => {}));
+			} catch (_) {}
+		}
+
+		const finish = () => {
+			if (target.dataset && String(target.dataset.workflowCollapseToken || '') !== token) return;
+			for (const el of stale) {
+				try { if (el && el.parentNode === timeline) el.remove(); } catch (_) {}
+			}
+			if (desiredSummary) {
+				this._insertCollapsedWorkflowSummary(timeline, desiredSummary, finalAnchor, token, target);
+			}
+		};
+		if (!animations.length) finish();
+		else Promise.all(animations).then(finish).catch(finish);
+		return true;
+	};
+
+	_turnId = (value) => {
+		if (value == null) return '';
+		return String(value).trim();
+	};
+
+	_messageActionSlot = (target, create = false) => {
+		if (!target) return null;
+		let msg = null;
+		try { msg = target.querySelector(':scope > .msg') || target.querySelector('.msg'); }
+		catch (_) { try { msg = target.querySelector('.msg'); } catch (__) {} }
+		if (!msg) return null;
+		let actions = null;
+		try { actions = msg.querySelector(':scope > .action-icons'); }
+		catch (_) { try { actions = msg.querySelector('.action-icons'); } catch (__) {} }
+		if (!actions && create && this.dom && typeof this.dom._ensureStreamFooterPlaceholder === 'function') {
+			actions = this.dom._ensureStreamFooterPlaceholder(msg);
+		}
+		return actions || null;
+	};
+
+	_setMessageActionsPending = (target, pending) => {
+		const actions = this._messageActionSlot(target, true);
+		if (!actions) return;
+		if (pending) {
+			actions.dataset.runtimePending = '1';
+			actions.setAttribute('aria-hidden', 'true');
+		} else {
+			delete actions.dataset.runtimePending;
+			if (String(actions.dataset.streamFooterPlaceholder || '') === '1') {
+				actions.setAttribute('aria-hidden', 'true');
+			} else {
+				actions.removeAttribute('aria-hidden');
+			}
+		}
+	};
+
+	_markTurnActive = (msgId) => {
+		const id = this._turnId(msgId);
+		if (!id) return;
+		this._activeTurnIds.add(id);
+		this._setMessageActionsPending(document.getElementById(`msg-bot-${id}`), true);
+		try {
+			const live = this.dom.getStreamContainer();
+			const box = live && live.querySelector('.msg-box.msg-bot');
+			if (box && this._streamBoxOwner(box) === id) this._setMessageActionsPending(box, true);
+		} catch (_) {}
+	};
+
+	_markTurnEnded = (msgId) => {
+		this.api_clearAgentWorking(msgId || null);
+		const id = this._turnId(msgId);
+		if (id) {
+			this._activeTurnIds.delete(id);
+			this._setMessageActionsPending(document.getElementById(`msg-bot-${id}`), false);
+			try {
+				const live = this.dom.getStreamContainer();
+				const box = live && live.querySelector('.msg-box.msg-bot');
+				if (box && this._streamBoxOwner(box) === id) this._setMessageActionsPending(box, false);
+			} catch (_) {}
+			return;
+		}
+		// Compatibility path for legacy END callers without a message id.
+		for (const actions of Array.from(document.querySelectorAll('.action-icons[data-runtime-pending="1"]'))) {
+			delete actions.dataset.runtimePending;
+			if (String(actions.dataset.streamFooterPlaceholder || '') !== '1') actions.removeAttribute('aria-hidden');
+		}
+		this._activeTurnIds.clear();
+	};
+
+	_syncMessageActionVisibility = (target, block) => {
+		if (!target || !block) return;
+		const id = this._turnId(block.id);
+		const ctxExtra = block.extra && block.extra.ctx_extra;
+		const interrupted = !!(ctxExtra && ctxExtra.response_interrupted === true);
+		if (interrupted && id) this._activeTurnIds.delete(id);
+		if (ctxExtra && (interrupted || ctxExtra.response_final === true)) this.api_clearAgentWorking(id);
+		this._setMessageActionsPending(target, !!(id && this._activeTurnIds.has(id) && !interrupted));
+	};
+
+	_patchBotMutation = (target, block, replaceText = false) => {
+		if (!target || !block) return target;
+		try { this.scrollMgr.beginMessageMutation(target); } catch (_) {}
+		const desired = this._mutationElement(block, 'bot');
+		if (!desired) {
+			try { this.scrollMgr.endMessageMutation(target); } catch (_) {}
+			return target;
+		}
+
+		try {
+			for (const attr of ['data-tool-only', 'data-tool-chain-continuation']) {
+				if (desired.hasAttribute(attr)) target.setAttribute(attr, desired.getAttribute(attr));
+				else target.removeAttribute(attr);
+			}
+		} catch (_) {}
+
+		try {
+			const oldHeader = target.querySelector(':scope > .name-header');
+			const newHeader = desired.querySelector(':scope > .name-header');
+			if (newHeader) {
+				if (oldHeader) oldHeader.replaceWith(newHeader.cloneNode(true));
+				else target.insertBefore(newHeader.cloneNode(true), target.firstChild || null);
+			} else if (oldHeader) oldHeader.remove();
+		} catch (_) {}
+
+		let msg = null;
+		let desiredMsg = null;
+		try { msg = target.querySelector(':scope > .msg') || target.querySelector('.msg'); } catch (_) { msg = target.querySelector('.msg'); }
+		try { desiredMsg = desired.querySelector(':scope > .msg') || desired.querySelector('.msg'); } catch (_) { desiredMsg = desired.querySelector('.msg'); }
+		if (!msg || !desiredMsg) {
+			try { this.scrollMgr.endMessageMutation(target); } catch (_) {}
+			return target;
+		}
+
+		const timeline = this.dom.getMsgTimeline(msg, true);
+		const desiredTimeline = this.dom.getMsgTimeline(desiredMsg, true);
+		if (replaceText && timeline && desiredTimeline) {
+			timeline.replaceChildren(...Array.from(desiredTimeline.childNodes).map(n => n.cloneNode(true)));
+		} else if (timeline && desiredTimeline) {
+			// Preserve token-streamed prose. Structural rows are reconciled around it.
+			// Completed Agents v2 turns get a dedicated transition so their final
+			// streamed node remains untouched while preceding work folds away.
+			const collapsingWorkflow = this._collapseCompletedWorkflow(
+				target, timeline, desiredTimeline, block
+			);
+			if (!collapsingWorkflow) this._syncTimelineStructuralNodes(timeline, desiredTimeline);
+		}
+
+		for (const selector of ['.msg-tool-extra', '.msg-extra']) {
+			try {
+				const dst = msg.querySelector(`:scope > ${selector}`) || msg.querySelector(selector);
+				const src = desiredMsg.querySelector(`:scope > ${selector}`) || desiredMsg.querySelector(selector);
+				if (!src) {
+					if (dst) dst.remove();
+					continue;
+				}
+				const clone = src.cloneNode(true);
+				if (dst) dst.replaceWith(clone);
+				else {
+					const actions = msg.querySelector(':scope > .action-icons');
+					if (actions) msg.insertBefore(clone, actions);
+					else msg.appendChild(clone);
+				}
+			} catch (_) {}
+		}
+
+		try {
+			let oldActions = msg.querySelector(':scope > .action-icons');
+			const newActions = desiredMsg.querySelector(':scope > .action-icons');
+			if (!oldActions && this.dom && typeof this.dom._ensureStreamFooterPlaceholder === 'function') {
+				oldActions = this.dom._ensureStreamFooterPlaceholder(msg);
+			}
+			if (oldActions && newActions) {
+				// Reconcile in place. Replacing the whole footer node caused a visible
+				// disappear/reappear cycle in Autonomous continuations. Keeping the slot
+				// node stable means only its contents/visibility change, never its height.
+				oldActions.replaceChildren(...Array.from(newActions.childNodes).map(n => n.cloneNode(true)));
+				oldActions.dataset.footerSlot = '1';
+				delete oldActions.dataset.streamFooterPlaceholder;
+				const dataId = newActions.getAttribute('data-id');
+				if (dataId != null) oldActions.setAttribute('data-id', dataId);
+				else oldActions.removeAttribute('data-id');
+			} else if (oldActions && !newActions && !this._activeTurnIds.has(this._turnId(block.id))) {
+				// No actions in an authoritative completed snapshot: keep the footer
+				// footprint, but return it to an invisible placeholder.
+				if (this.dom && typeof this.dom._setActionFooterPlaceholder === 'function') {
+					this.dom._setActionFooterPlaceholder(oldActions);
+				}
+			}
+		} catch (_) {}
+		this._syncMessageActionVisibility(target, block);
+
+		// Finalize stream-only markers without reconstructing the prose DOM. This is
+		// especially important for inline post-tool/Agents v2 partial streams.
+		this._finalizePartialDom(block.id, target, desired);
+		this._postMutation(target);
+		return target;
+	};
+
+	_streamBoxOwner = (box) => {
+		if (!box) return '';
+		const explicit = box.dataset ? String(box.dataset.workflowParentId || '') : '';
+		if (explicit) return explicit;
+		const id = String(box.id || '');
+		return id.startsWith('msg-bot-') ? id.slice('msg-bot-'.length) : '';
+	};
+
+	_finalizePartialDom = (msgId, target, desired = null) => {
+		if (!target) return;
+		const prefix = `${String(msgId)}::`;
+		for (const key of Array.from(this._partialStreams.keys())) {
+			if (String(key).startsWith(prefix)) this._partialStreams.delete(key);
+		}
+
+		let desiredParts = null;
+		try {
+			desiredParts = desired ? desired.querySelectorAll('.msg-part[data-part-id]') : [];
+		} catch (_) { desiredParts = []; }
+		const desiredById = new Map();
+		for (const part of Array.from(desiredParts || [])) {
+			desiredById.set(String(part.dataset.partId || ''), part);
+		}
+
+		try {
+			for (const part of Array.from(target.querySelectorAll('.msg-part[data-live-part="1"]'))) {
+				const partId = String(part.dataset.partId || '');
+				const snapshot = desiredById.get(partId) || null;
+				part.removeAttribute('data-live-part');
+				part.classList.remove('msg-part-live');
+				if (snapshot && snapshot.className) part.className = snapshot.className;
+			}
+		} catch (_) {}
+		try { this.stream.defuseOrphanActiveBlocks(target); } catch (_) {}
+	};
+
+	_finalizeOutputMutation = (mutation) => {
+		const block = mutation.block || null;
+		if (!block) return;
+		const id = String(mutation.msg_id != null ? mutation.msg_id : (block.id != null ? block.id : ''));
+		if (!id) return;
+
+		const nodes = this.dom.get('_nodes_');
+		const before = this.dom.get('_append_output_before_');
+		const streamContainer = this.dom.getStreamContainer();
+		let liveBox = null;
+		try { liveBox = streamContainer && streamContainer.querySelector('.msg-box.msg-bot'); } catch (_) {}
+		const ownsLive = !!(liveBox && this._streamBoxOwner(liveBox) === id);
+
+		let beforeBoxes = [];
+		try { beforeBoxes = before ? Array.from(before.querySelectorAll('.msg-box.msg-bot')) : []; } catch (_) {}
+		const ownsBefore = beforeBoxes.length > 0 && beforeBoxes.every((box) => this._streamBoxOwner(box) === id);
+
+		// High-frequency stream state is global to this WebView, so touch it only
+		// when the live node is owned by this mutation. A stale finalization may
+		// legitimately arrive after the next request has already begun.
+		if (ownsLive) {
+			this._flushStreamQueueNow();
+			try { if (this.stream && this.stream.isStreaming) this.stream.endStream(); } catch (_) {}
+		}
+
+		this._appendDurableInput(block);
+
+		let target = document.getElementById(`msg-bot-${id}`);
+		let targetIsDurable = !!(target && nodes && nodes.contains(target));
+
+		if (!targetIsDurable && ownsLive && !ownsBefore && liveBox && nodes) {
+			liveBox.id = `msg-bot-${id}`;
+			nodes.appendChild(liveBox); // move, do not clone: preserve streamed DOM exactly
+			nodes.classList.remove('empty_list');
+			target = liveBox;
+			targetIsDurable = true;
+		} else if (!targetIsDurable && ownsBefore) {
+			// ``nextStream`` produced multiple transient boxes. No single live node can
+			// represent the durable message, so use the explicit replacement fallback.
+			target = null;
+		}
+
+		// If there is no promotable node (multi-segment legacy stream, non-stream
+		// snapshot, or a stale final whose transient node is already gone), render
+		// this one message from its authoritative snapshot. Never rebuild the chat.
+		if (!target && nodes) {
+			const desired = this._mutationElement(block, 'bot');
+			if (desired) {
+				nodes.appendChild(desired);
+				nodes.classList.remove('empty_list');
+				target = desired;
+				mutation.replace_text = true;
+			}
+		}
+
+		if (ownsBefore) {
+			try { this.dom.fastClearHidden('_append_output_before_'); } catch (_) {}
+		}
+		if (ownsLive) {
+			try { this.dom.fastClearHidden('_append_output_'); } catch (_) {}
+			try { this.dom.resetEphemeral(); } catch (_) {}
+		}
+		if (target) this._patchBotMutation(target, block, !!mutation.replace_text);
+	};
+
+	_appendArtifactsMutation = (mutation) => {
+		const extra = mutation.extra || {};
+		const html = String(extra.html || '');
+		const id = mutation.msg_id;
+		if (html && id != null) {
+			this.nodes.appendExtra(id, html, this.scrollMgr);
+			return;
+		}
+		if (mutation.block) this._syncOutputMutation(Object.assign({}, mutation, {replace_text: false}));
+	};
+
+	_syncOutputMutation = (mutation) => {
+		const block = mutation.block || null;
+		if (!block) return;
+		this._appendDurableInput(block);
+		const id = String(mutation.msg_id != null ? mutation.msg_id : (block.id != null ? block.id : ''));
+		if (!id) return;
+		let target = document.getElementById(`msg-bot-${id}`);
+		const nodes = this.dom.get('_nodes_');
+		const targetIsDurable = !!(target && nodes && nodes.contains(target));
+		if (!targetIsDurable) {
+			// A live stream box already carries the message id. Promote that exact DOM
+			// only when it belongs to this message; a newer stream may already exist.
+			const live = this.dom.getStreamContainer();
+			let liveBox = null;
+			try { liveBox = live && live.querySelector('.msg-box.msg-bot'); } catch (_) {}
+			if (liveBox && this._streamBoxOwner(liveBox) === id && (!target || target === liveBox)) {
+				this._finalizeOutputMutation(Object.assign({}, mutation, {replace_text: false}));
+				target = document.getElementById(`msg-bot-${id}`);
+			}
+		}
+		if (!target) {
+			const nodes = this.dom.get('_nodes_');
+			const desired = this._mutationElement(block, 'bot');
+			if (nodes && desired) {
+				nodes.appendChild(desired);
+				nodes.classList.remove('empty_list');
+				target = desired;
+			}
+		}
+		if (target) this._patchBotMutation(target, block, !!mutation.replace_text);
+	};
+
+	api_applyMutation = (mutation) => {
+		if (!mutation || typeof mutation !== 'object') return false;
+		const op = String(mutation.op || '');
+		const block = mutation.block || null;
+		switch (op) {
+			case 'finalize_output':
+				this._finalizeOutputMutation(mutation);
+				return true;
+			case 'sync_output':
+				this._syncOutputMutation(mutation);
+				return true;
+			case 'replace_output':
+				this._syncOutputMutation(Object.assign({}, mutation, {replace_text: true}));
+				return true;
+			case 'replace_input':
+				this._replaceInputMutation(mutation);
+				return true;
+			case 'append_input':
+				this._appendDurableInput(block);
+				return true;
+			case 'append_output':
+				this._syncOutputMutation(Object.assign({}, mutation, {replace_text: true}));
+				return true;
+			case 'append_artifact':
+			case 'append_artifacts':
+				this._appendArtifactsMutation(mutation);
+				return true;
+			case 'replace_artifacts':
+				this._syncOutputMutation(Object.assign({}, mutation, {replace_text: false}));
+				return true;
+			case 'remove_message':
+				this.nodes.removeNode(mutation.msg_id, this.scrollMgr);
+				return true;
+			case 'remove_from':
+				this.nodes.removeNodesFromId(mutation.msg_id, this.scrollMgr);
+				return true;
+			default:
+				return false;
 		}
 	};
 
 	// API: append/replace messages (non-streaming).
 	api_appendNode = (payload) => {
+		const mutation = this._parseRenderMutation(payload);
+		if (mutation && this.api_applyMutation(mutation)) return;
 		this.resetStreamState('appendNode');
 		this.data.append(payload);
 		this.scrollMgr.scheduleScroll();
 	};
 
 	api_replaceNodes = (payload) => {
+		this.api_clearAgentWorking();
 		this._clearPartialStreamState();
 		this.resetStreamState('replaceNodes', {
 			clearMsg: true,
 			forceHeavy: true
 		});
-		// A full context rebuild makes the durable nodes authoritative. Leaving
-		// _append_output_ alive here produced a second copy of the just-finished
-		// workflow below the message footer (exactly the duplicated status rows
-		// seen after RELOAD). Drop the transient stream DOM before replacing nodes.
+		// A full context rebuild makes the durable nodes authoritative. Clear every
+		// transient turn container and replace history in this same JS task so the
+		// browser never gets a chance to paint an empty intermediate frame. This is
+		// most noticeable after the first streamed turn, when no older nodes exist.
+		this.dom.clearInput();
+		try {
+			const input = this.dom.get('_append_input_');
+			if (input && input.dataset) delete input.dataset.renderMsgId;
+		} catch (_) {}
 		this.dom.clearOutput();
 		this.dom.clearNodes();
 		this.data.replace(payload);
@@ -629,7 +1535,24 @@ class Runtime {
 
 	// API: append to input area.
 	api_appendToInput = (payload) => {
+		// Tag the transient input with the same message id used by durable mutations.
+		// This makes late cross-turn syncs harmless instead of relying on focus/time.
+		try {
+			const prefix = '__PYGPT_INPUT_V1__';
+			const raw = String(payload || '');
+			if (raw.startsWith(prefix)) {
+				const data = JSON.parse(raw.slice(prefix.length));
+				const input = this.dom.get('_append_input_');
+				if (input && input.dataset && data && data.msg_id != null) {
+					input.dataset.renderMsgId = String(data.msg_id);
+				}
+			}
+		} catch (_) {}
 		this.nodes.appendToInput(payload);
+		// The transient input row is now materialized. If SEND_INIT armed the
+		// loader, this reserves its footprint after the input (never before it)
+		// and lets the 500 ms visibility gate complete independently.
+		try { this.loading.inputReady(); } catch (_) {}
 
 		// A newly sent turn explicitly returns ownership to FOLLOW. Enable the
 		// permanent bottom anchor now; the forced non-live snap below establishes it.
@@ -647,6 +1570,7 @@ class Runtime {
 
 	// API: clear messages list.
 	api_clearNodes = () => {
+		this.api_clearAgentWorking();
 		this._clearPartialStreamState();
 		this.dom.clearNodes();
 		this.resetStreamState('clearNodes', {
@@ -661,6 +1585,10 @@ class Runtime {
 			forceHeavy: true
 		});
 		this.dom.clearInput();
+		try {
+			const input = this.dom.get('_append_input_');
+			if (input && input.dataset) delete input.dataset.renderMsgId;
+		} catch (_) {}
 	};
 
 	// API: clear output area.
@@ -788,7 +1716,7 @@ class Runtime {
 	};
 
 	// API: show/hide loading overlay.
-	api_showLoading = () => this.loading.show();
+	api_showLoading = (delayMs = 0, waitForInput = false) => this.loading.show(delayMs, waitForInput);
 	api_hideLoading = (reserveSpace = false) => this.loading.hide(reserveSpace);
 
 	// API: restore collapsed state of codes in a given root.
@@ -804,9 +1732,15 @@ class Runtime {
 
 	// API: begin/end. A new visible turn gets a fresh status session so
 	// transient Tool/Agents-v2 rows can never attach to the previous turn.
-	api_begin = () => { this._turnSession += 1; };
-	api_end = () => {
-	    this.scrollMgr.forceScrollToBottomImmediateAtEnd();
+	// Action buttons are hidden by visibility (not display), preserving the
+	// permanent footer footprint until the exact turn reaches END/STOP.
+	api_begin = (msgId = '') => {
+		this._turnSession += 1;
+		this._markTurnActive(msgId);
+	};
+	api_end = (msgId = '') => {
+		this._markTurnEnded(msgId);
+		this.scrollMgr.forceScrollToBottomImmediateAtEnd();
 	}
 
 	// API: custom markup rules control.
@@ -912,23 +1846,24 @@ Object.defineProperty(window, 'SE', {
 	}
 });
 
-window.beginStream = (chunk) => runtime.api_beginStream(chunk);
+window.beginStream = (chunk, preserveParentId = null) => runtime.api_beginStream(chunk, preserveParentId);
+window.bindStreamOwner = (msgId) => runtime.api_bindStreamOwner(msgId);
 window.endStream = () => runtime.api_endStream();
 window.applyStream = (name, chunk) => runtime.api_applyStream(name, chunk);
 window.appendStream = (name, chunk) => runtime.api_appendStream(name, chunk);
 window.appendStreamTyped = (type, name, chunk) => runtime.api_onChunk(name, chunk, type);
 window.nextStream = () => runtime.api_nextStream();
 window.clearStream = () => runtime.api_clearStream();
-window.appendPartialStream = (parentId, partId, chunk, begin) => runtime.api_appendPartialStream(parentId, partId, chunk, begin);
-window.bindWorkflowStream = (parentId, nameHeader, records) => runtime.api_bindWorkflowStream(parentId, nameHeader, records);
+window.appendPartialStream = (parentId, partId, chunk, begin, agentName) => runtime.api_appendPartialStream(parentId, partId, chunk, begin, agentName);
+window.bindWorkflowStream = (parentId, nameHeader, records, partId, agentName) => runtime.api_bindWorkflowStream(parentId, nameHeader, records, partId, agentName);
 window.setAgentStatus = (text, parentId, statusId) => runtime.api_setAgentStatus(text, parentId, statusId);
 window.clearAgentStatus = (parentId) => runtime.api_clearAgentStatus(parentId);
 window.setToolStatus = (names, parentId, statusId) => runtime.api_setToolStatus(names, parentId, statusId);
 window.clearToolStatus = (parentId, immediate = true) => runtime.api_clearToolStatus(parentId, immediate);
 window.freezeWorkflowStatus = (parentId, kind) => runtime.api_freezeWorkflowStatus(parentId, kind);
 
-window.begin = () => runtime.api_begin();
-window.end = () => runtime.api_end();
+window.begin = (msgId = '') => runtime.api_begin(msgId);
+window.end = (msgId = '') => runtime.api_end(msgId);
 
 window.appendNode = (payload) => runtime.api_appendNode(payload);
 window.replaceNodes = (payload) => runtime.api_replaceNodes(payload);
@@ -968,7 +1903,7 @@ window.updateCSS = (s) => runtime.api_updateCSS(s);
 window.getScrollPosition = () => runtime.api_getScrollPosition();
 window.setScrollPosition = (pos) => runtime.api_setScrollPosition(pos);
 
-window.showLoading = () => runtime.api_showLoading();
+window.showLoading = (delayMs = 0, waitForInput = false) => runtime.api_showLoading(delayMs, waitForInput);
 window.hideLoading = (reserveSpace = false) => runtime.api_hideLoading(reserveSpace);
 
 window.restoreCollapsedCode = (root) => runtime.api_restoreCollapsedCode(root);
@@ -1034,3 +1969,5 @@ setInterval(() => {
   const g = gaugeSE(runtime.stream);
   console.log('[SE gauge]', g);
 }, 2000);*/
+window.setAgentWorking = (parentId, data) => runtime.api_setAgentWorking(parentId, data);
+window.clearAgentWorking = () => runtime.api_clearAgentWorking();

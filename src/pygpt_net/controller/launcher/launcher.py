@@ -24,19 +24,39 @@ class Launcher:
         :param window: Window instance
         """
         self.window = window
+        self._startup_checks_started = False
 
-    def post_setup(self):
-        """Post setup launcher"""
-        # Check for updates first, then synchronize banners. Both operations
-        # are asynchronous and never block the UI thread.
+    def after_setup(self):
+        """Schedule startup network checks after the first main-window paint."""
+        # Launcher.run() calls controller.after_setup() after show(), but before
+        # QApplication.exec(). MainWindow.appReady is emitted after the first
+        # paint, which guarantees that an available-update dialog can never race
+        # ahead of the actual application window.
+        if getattr(self.window, "_app_ready_emitted", False):
+            self._run_startup_checks()
+            return
+        try:
+            self.window.appReady.connect(self._run_startup_checks)
+        except (AttributeError, RuntimeError):
+            self._run_startup_checks()
+
+    def _run_startup_checks(self):
+        """Start the asynchronous update check and banner synchronization once."""
+        if self._startup_checks_started:
+            return
+        self._startup_checks_started = True
+
+        # Both network operations are independent and asynchronous. Start them
+        # only after the main window has painted; banner UI itself is created
+        # lazily only when a displayable remote item is returned.
+        self.window.core.banners.run_load()
+
         if self.window.core.config.get('updater.check.launch'):
             self.window.core.updater.run_check(
                 force=True,
-                on_finished=self.window.core.banners.run_load,
                 event="launch",
+                quiet=True,
             )
-        else:
-            self.window.core.banners.run_load()
 
     def show_api_monit(self):
         """Show empty API KEY monit"""

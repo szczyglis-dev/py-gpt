@@ -24,6 +24,10 @@ def make_window(config=None, model=None):
     window.core = SimpleNamespace()
     window.core.config = SimpleNamespace()
     window.core.config.get = lambda key, default=None: config.get(key, default)
+    window.core.llm = SimpleNamespace()
+    window.core.llm.get_config = lambda provider, key, default=None: config.get(
+        f"{provider}.{key}", default
+    )
     window.core.models = SimpleNamespace()
     window.core.models.get = MagicMock(return_value=model)
     window.core.api = SimpleNamespace()
@@ -59,22 +63,22 @@ def test_get_provider_native_sdks():
     google = make_model("google", "gemini-test")
     native = Native(make_window({
         "ctx.attachment.native_upload": True,
-        "api_native_google": True,
-        "api_native_google.use_vertex": False,
+        "google.native": True,
+        "google.use_vertex": False,
     }, google))
     assert native.get_provider(MODE_CHAT, google) == "google"
 
     anthropic = make_model("anthropic", "claude-test")
     native = Native(make_window({
         "ctx.attachment.native_upload": True,
-        "api_native_anthropic": True,
+        "anthropic.native": True,
     }, anthropic))
     assert native.get_provider(MODE_CHAT, anthropic) == "anthropic"
 
     xai = make_model("x_ai", "grok-4.5")
     native = Native(make_window({
         "ctx.attachment.native_upload": True,
-        "api_native_xai": True,
+        "x_ai.native": True,
     }, xai))
     assert native.get_provider(MODE_CHAT, xai) == "x_ai"
 
@@ -83,8 +87,8 @@ def test_google_vertex_disables_file_api_route():
     model = make_model("google", "gemini-test")
     native = Native(make_window({
         "ctx.attachment.native_upload": True,
-        "api_native_google": True,
-        "api_native_google.use_vertex": True,
+        "google.native": True,
+        "google.use_vertex": True,
     }, model))
     assert native.get_provider(MODE_CHAT, model) is None
 

@@ -104,6 +104,11 @@ def test_save(mock_window):
     with patch('builtins.open', mock_open()) as mocked_file:
         with patch('json.dumps', return_value=dump) as mock_json_dumps:
             provider.save(items)
-            mock_json_dumps.assert_called_once_with(data, indent=4)
+            mock_json_dumps.assert_called_once()
+            saved_data = mock_json_dumps.call_args.args[0]
+            assert saved_data["items"] == ary
+            assert saved_data["__meta__"]["version"] == data["__meta__"]["version"]
+            assert saved_data["__meta__"]["app.version"] == data["__meta__"]["app.version"]
+            assert saved_data["__meta__"]["updated_at"]
             mocked_file.assert_called_once_with(path, 'w', encoding="utf-8")
             mocked_file().write.assert_called_once_with(dump)

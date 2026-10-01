@@ -140,6 +140,14 @@ class CtxItem:
     # Computer Use screenshots). This field is intentionally omitted from
     # to_dict()/from_dict() and therefore never persisted in images_json/extra_json.
     transport_images: list = field(default_factory=list, repr=False)
+    # Ephemeral copies of provider/tool generated files prepared for local
+    # execution backends. Deliberately omitted from to_dict()/from_dict().
+    runtime_artifacts: list = field(default_factory=list, repr=False)
+    # Runtime-only annotation delivery receipts; never persisted by to_dict().
+    _sent_annotation_batches: list = field(default_factory=list, repr=False, compare=False)
+    # Runtime realtime lifecycle; omitted from persistence and never shared with
+    # the ordinary chat StreamWorker. Each tool continuation has its own state.
+    _realtime_state: str = field(default="", repr=False, compare=False)
     # Exact fully composed system prompt used by the current Agents v2 main
     # actor. Runtime-only: intentionally omitted from to_dict()/from_dict().
     agents_v2_system_prompt: str = field(default="", repr=False)
@@ -227,6 +235,9 @@ class CtxItem:
         # Runtime-only provider/tool transport images. CtxItem defines a custom
         # __init__, so dataclass defaults are not assigned automatically.
         self.transport_images = []
+        self.runtime_artifacts = []
+        self._sent_annotation_batches = []
+        self._realtime_state = ""
         # Runtime-only exact prompt passed to the Agents v2 main actor.
         self.agents_v2_system_prompt = ""
         self.index_meta = {}  # llama-index metadata ctx used
@@ -323,6 +334,12 @@ class CtxItem:
             return "" if any(getattr(part, "output", None) == "" for part in self.parts) else self.output
         return "".join(chunks)
 
+    def uses_agent_timeline(self) -> bool:
+        """Whether this turn uses the shared durable agent timeline protocol."""
+        return str(getattr(self, "mode", "") or "") == "agent_v2" or (
+            isinstance(getattr(self, "extra", None), dict) and self.extra.get("agent_timeline") is True
+        )
+
     def sync_output_from_parts(self) -> Optional[str]:
         """Refresh the parent output cache from durable partials.
 
@@ -331,7 +348,7 @@ class CtxItem:
         response. Unfinished/interrupted turns still compose all partials.
         """
         extra = self.extra if isinstance(self.extra, dict) else {}
-        if str(self.mode or "") == "agent_v2" and extra.get("response_final") is True:
+        if self.uses_agent_timeline() and extra.get("response_final") is True:
             final_output = self.get_agents_v2_final_output()
             if final_output is not None and str(final_output).strip():
                 self.output = final_output
@@ -413,7 +430,7 @@ class CtxItem:
         partial explicitly marked ``agents_v2_final`` is the source of truth.
         If that final does not exist, callers must fall back to the full partials.
         """
-        if str(getattr(self, "mode", "") or "") != "agent_v2":
+        if not self.uses_agent_timeline():
             return None
         extra = self.extra if isinstance(getattr(self, "extra", None), dict) else {}
         if extra.get("response_final") is not True:

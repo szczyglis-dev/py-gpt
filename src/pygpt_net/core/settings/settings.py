@@ -83,8 +83,13 @@ class Settings:
         return persist_options
 
     def load(self):
-        """Load settings options"""
-        self.options = self.window.core.config.get_options()
+        """Load static settings plus provider-owned API configuration."""
+        static_options = self.window.core.config.get_options() or {}
+        provider_options = self.window.core.llm.get_settings_options() or {}
+        # Provider fields come first so API Keys tabs follow provider
+        # registration order; static non-LLM entries (e.g. plugin credentials)
+        # remain supported without hard-coding them in the LLM layer.
+        self.options = {**provider_options, **static_options}
         self.sections = self.window.core.config.get_sections()
         self.initialized = True
 
@@ -113,6 +118,18 @@ class Settings:
         # restore persisted values
         for option in persist_values:
             self.window.core.config.set(option, persist_values[option])
+
+        # The providers container also holds persistent API credentials. Reset
+        # its non-persistent tool fields individually rather than retaining
+        # their previous values when the whole container is restored above.
+        for option in settings_options.values():
+            key = option.get('_remote_tool_key')
+            if key is None or option.get('persist'):
+                continue
+            provider = self.window.core.llm.get(option['_provider'])
+            if provider is not None:
+                field = provider.get_remote_tools_schema().get(key, {})
+                provider.set_remote_tool_config(key, copy.deepcopy(field.get('default')))
 
     def load_default_editor(self):
         """Load defaults from file"""
@@ -153,7 +170,10 @@ class Settings:
         try:
             with open(path, 'r', encoding="utf-8") as f:
                 txt = f.read()
-                self.window.ui.editor['config'].setPlainText(txt)
+                editor = self.window.ui.editor['config']
+                if hasattr(editor, 'set_path'):
+                    editor.set_path(path)
+                editor.setPlainText(txt)
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.update_status(f"Error loading file: {e}")
@@ -224,5 +244,4 @@ class Settings:
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.update_status(f"Error reloading saved file: {path}")
-
 

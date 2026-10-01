@@ -51,33 +51,25 @@ def test_update(mock_window):
     theme.window.controller.ui.restore_state.assert_called_once_with()
 
 
-def test_get_legacy_css(mock_window):
-    """Legacy renderer CSS is generated in Python; markdown*.css assets are no longer used."""
-    theme = _create_theme(mock_window, theme="light")
+def test_get_web_css(mock_window):
+    """Return the currently loaded WebEngine chat CSS without legacy fallbacks."""
+    theme = _create_theme(mock_window, theme="light", style="standard")
+    theme.common.normalize_style = MagicMock(return_value="standard")
+    theme.markdown.css["web"] = "WEB-CSS"
+    theme.markdown.web_style = "standard"
 
-    css = theme.markdown.get_legacy_css()
-
-    assert ".msg-user" in css
-    assert "#e9e9e9" in css
-    assert "markdown.css" not in css
+    assert theme.markdown.get_web_css() == "WEB-CSS"
 
 
 def test_apply(mock_window):
-    """Apply generated legacy CSS and notify the current renderer about a theme change."""
+    """Notify the active renderer about a theme change."""
     theme = _create_theme(mock_window, theme="light")
-    output = MagicMock()
-    mock_window.ui.nodes = {"output": {1: output}}
 
     theme.markdown.apply()
 
-    output.setStyleSheet.assert_called_once()
-    css = output.setStyleSheet.call_args.args[0]
-    assert ".msg-bot" in css
-    events = [args[0] for args, _ in mock_window.dispatch.call_args_list if args]
-    assert any(
-        isinstance(event, RenderEvent) and event.name == RenderEvent.ON_THEME_CHANGE
-        for event in events
-    )
+    event = mock_window.dispatch.call_args.args[0]
+    assert isinstance(event, RenderEvent)
+    assert event.name == RenderEvent.ON_THEME_CHANGE
 
 
 def test_load(mock_window):

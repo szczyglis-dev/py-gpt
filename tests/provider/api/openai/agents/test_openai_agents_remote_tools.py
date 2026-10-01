@@ -11,15 +11,17 @@
 from unittest.mock import MagicMock
 
 import pytest
+from tests.remote_tools_helpers import bind_remote_providers
 import json
 from types import SimpleNamespace
 from pygpt_net.provider.api.openai.agents.remote_tools import is_computer_tool, append_tools, get_remote_tools
 import pygpt_net.provider.api.openai.agents.remote_tools as tools
 from agents import ModelSettings
+from pygpt_net.item.model import ModelItem
 
-class DummyModel:
+class DummyModel(ModelItem):
     def __init__(self, id, is_gpt_value=True):
-        self.id = id
+        super().__init__(id)
         self._is_gpt = is_gpt_value
     def is_gpt(self):
         return self._is_gpt
@@ -43,6 +45,7 @@ class DummyCore:
 class DummyWindow:
     def __init__(self, settings):
         self.core = DummyCore(settings)
+        bind_remote_providers(self, settings)
         self.controller = SimpleNamespace(chat=SimpleNamespace(remote_tools=SimpleNamespace(enabled=MagicMock(return_value=True))))
 
 def test_is_computer_tool_non_gpt():

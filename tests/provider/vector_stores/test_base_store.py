@@ -49,7 +49,7 @@ def test_index_from_store_forwards_all_arguments():
     expected = object()
 
     with patch(
-        "pygpt_net.provider.vector_stores.base.VectorStoreIndex.from_vector_store",
+        "llama_index.core.indices.vector_store.base.VectorStoreIndex.from_vector_store",
         return_value=expected,
     ) as from_vector_store:
         result = store.index_from_store(
@@ -74,7 +74,7 @@ def test_index_from_empty_uses_requested_embedding_model():
     expected = object()
 
     with patch(
-        "pygpt_net.provider.vector_stores.base.VectorStoreIndex",
+        "llama_index.core.indices.vector_store.base.VectorStoreIndex",
         return_value=expected,
     ) as index_cls:
         result = store.index_from_empty(embed_model=embed_model)
@@ -166,7 +166,7 @@ def test_remove_document_uses_mock_embedding_and_persists_updated_index():
     store.get = MagicMock(return_value=index)
     store.store = MagicMock()
 
-    with patch("pygpt_net.provider.vector_stores.base.MockEmbedding") as embedding_cls:
+    with patch("llama_index.core.embeddings.mock_embed_model.MockEmbedding") as embedding_cls:
         embedding = object()
         embedding_cls.return_value = embedding
 

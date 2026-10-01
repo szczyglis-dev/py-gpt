@@ -25,6 +25,7 @@ from pygpt_net.ui.dialog.debug import Debug
 from pygpt_net.ui.dialog.dictionary import Dictionary
 from pygpt_net.ui.dialog.editor import Editor
 from pygpt_net.ui.dialog.find import Find
+from pygpt_net.ui.dialog.extensions import Extensions
 from pygpt_net.ui.dialog.image import Image
 from pygpt_net.ui.dialog.license import License
 from pygpt_net.ui.dialog.logger import Logger
@@ -34,6 +35,7 @@ from pygpt_net.ui.dialog.plugins import Plugins
 from pygpt_net.ui.dialog.preset import Preset
 from pygpt_net.ui.dialog.preset_plugins import PresetPlugins
 from pygpt_net.ui.dialog.profile import Profile, ProfileEdit
+from pygpt_net.ui.dialog.quick_start import QuickStart
 from pygpt_net.ui.dialog.remote_store import RemoteStore
 from pygpt_net.ui.dialog.rename import Rename
 from pygpt_net.ui.dialog.settings import Settings
@@ -67,11 +69,13 @@ class Dialogs:
         self.dictionary = Dictionary(self.window)
         self.editor = Editor(self.window)
         self.find = Find(self.window)
+        self.extensions = Extensions(self.window)
         self.image = Image(self.window)
         self.license = License(self.window)
         self.logger = Logger(self.window)
         self.preset = Preset(self.window)
         self.profile_item = ProfileEdit(self.window)
+        self.quick_start = QuickStart(self.window)
         self.rename = Rename(self.window)
         self.snap = Snap(self.window)
         self.skills = Skills(self.window)

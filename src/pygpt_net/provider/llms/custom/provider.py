@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.09.30 08:14:00                  #
+# ================================================== #
+
+from __future__ import annotations
+
+from typing import Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+
+from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_EMBEDDINGS
+from pygpt_net.item.model import ModelItem
+from pygpt_net.provider.llms.base import BaseLLM
+
+
+class CustomLLM(BaseLLM):
+    """Runtime OpenAI Chat Completions-compatible provider."""
+
+    def __init__(
+            self,
+            provider_id: str,
+            name: str,
+            api_base: str,
+            api_key: str = "",
+    ):
+        super(CustomLLM, self).__init__()
+        self.id = provider_id
+        self.name = name
+        self.api_base = api_base
+        self.api_key = api_key or ""
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+        self.is_runtime_custom = True
+
+    def setup(self) -> dict:
+        return {"openai_compatible": True}
+
+    def get_api_key(self) -> str:
+        """Return configured API key or a harmless SDK placeholder for no-auth endpoints."""
+        return self.api_key or "custom"
+
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+    ) -> LlamaBaseLLM:
+        """Return LlamaIndex OpenAILike wrapper for Chat with Files/agents."""
+        from llama_index.llms.openai_like import OpenAILike
+
+        args = self.prepare_openai_compatible_args(window, model)
+        if "is_chat_model" not in args:
+            args["is_chat_model"] = True
+        if "is_function_calling_model" not in args:
+            args["is_function_calling_model"] = model.tool_calls
+        if model.ctx and "context_window" not in args:
+            args["context_window"] = model.ctx
+
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
+        return OpenAILike(**args)
+
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None,
+    ) -> BaseEmbedding:
+        """Return OpenAI-compatible embeddings for a runtime custom provider."""
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        return OpenAILikeEmbedding(**args)

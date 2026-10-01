@@ -6,11 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 13:15:00                  #
+# Updated Date: 2026.09.21 15:20:00                  #
 # ================================================== #
 
 import os
-import webbrowser
 from typing import Dict, List, Optional, Any
 
 from PySide6.QtCore import QSize, Qt, QTimer, Slot
@@ -21,7 +20,7 @@ from PySide6.QtWidgets import QLabel
 class Banner:
     """Toolbox banner UI wrapper."""
 
-    WIDTH = 256
+    WIDTH = 200
     HEIGHT = 36
 
     def __init__(self, window=None):
@@ -202,6 +201,7 @@ class BannerWidget(QLabel):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton and self.current_url:
+            import webbrowser
             webbrowser.open(self.current_url, new=2)
             event.accept()
             return

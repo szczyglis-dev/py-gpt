@@ -45,7 +45,7 @@ def test_capture_google_usage_prefers_total_minus_prompt_and_tracks_reasoning():
     utils.capture_google_usage(state, usage)
 
     assert state.usage_vendor == "google"
-    assert state.usage_payload == {"in": 10, "out": 7, "reasoning": 2, "total": 17}
+    assert state.usage_payload == {"in": 10, "out": 7, "reasoning": 2, "cached": 0, "tool_use": 0, "total": 17}
 
 
 def test_capture_google_usage_falls_back_to_candidate_count_without_total():
@@ -53,7 +53,7 @@ def test_capture_google_usage_falls_back_to_candidate_count_without_total():
 
     utils.capture_google_usage(state, {"input_tokens": 5, "output_tokens": 8})
 
-    assert state.usage_payload == {"in": 5, "out": 8, "reasoning": 0, "total": None}
+    assert state.usage_payload == {"in": 5, "out": 8, "reasoning": 0, "cached": 0, "tool_use": 0, "total": None}
 
 
 def test_capture_google_usage_ignores_empty_metadata():

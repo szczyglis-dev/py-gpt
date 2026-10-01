@@ -1,5 +1,106 @@
 # CHANGELOG
 
+## 2.8.36 (2026-09-30)
+
+- Moved external Add-ons to the shared application-wide `addons` directory, with automatic migration from profile workdirs.
+- Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
+- Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
+- Improved Realtime + audio flow, stability and voice interaction handling.
+- Added a separate audio input level bar for microphone input.
+- Added a right-click hint to the New context button and a new `Config -> Open global base dir` option.
+
+## 2.8.35 (2026-09-29)
+
+- Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.
+- Added an application-wide **Package Manager** for optional runtime dependencies, with packages stored per Python version under `<application base workdir>/extra_packages/<major.minor>`.
+- Added shared text editor preferences for indentation, tab width, and word wrap across the Text Editor, Files preview/editor, and Canvas source editor.
+- Added a search field to the Model Importer.
+- Added optional model-defined runtime MCP connections, with separate permissions for HTTP/SSE and stdio transports and integration with MCP tool discovery and caching.
+- Improved Canvas browser controls, source editing, and persistent address history/search behavior.
+- Improved local Whisper dependency installation through the Package Manager.
+- Added comprehensive Add-ons examples and API reference documentation. See **Documentation -> Add-ons API**.
+- Added various UI and CSS/QSS fixes and refinements.
+
+## 2.8.34 (2026-09-28)
+
+- Fixed LiteLLM issues by downgrading to version 1.81.16; fixed issue #214.
+- Added line numbers and annotations to file previews in the Files tab.
+- Added a recent chats list to the tray menu.
+- Added agent final result summaries to system notifications.
+- Added support for the `.agents` directory convention in Agents and Custom Agents.
+- Optimized file search in the Files tab.
+- Improved annotation handling.
+- Improved markers in Notepad.
+- Improved CSS/QSS styling.
+
+## 2.8.33 (2026-09-27)
+
+- Moved old legacy agent modes to Custom Agents; refactored legacy agent workflows; legacy agents now use the same runtime as Agents v2.
+- Added column sorting to the Files tool.
+- Added search engine support to the Canvas browser.
+- Added file preview and editing support to the Files tab.
+- Added filters and search input to the Skills, Connectors, and Add-ons lists.
+- Added pop-up daily notes to the Calendar tool.
+- Added annotations to the chat view via RMB → Annotate for AI.
+- Moved the Skills menu to Config.
+- Refactored LLM providers; setup options were moved to provider classes.
+- Improved toolbox responsiveness.
+- UI fixes.
+
+## 2.8.32 (2026-09-26)
+
+- Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
+- Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
+- Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
+- Fixed equal split-screen column widths when enabling split-screen mode.
+- Agent Workflow tool connected to legacy agents.
+- Added auto-updater.
+- UI improvements.
+
+## 2.8.31 (2026-09-25)
+
+- Refactored and improved tab management.
+- Refactored and improved message rendering and event flow.
+- Improved the Canvas plugin.
+- Added the ability to send sketches and images directly from Painter to the model in real time via the Canvas plugin.
+- Improved and fixed runtime attachment and image handling.
+- Optimized memory usage and Python module initialization.
+- Added a new Jev / System One plugin - see the documentation for more information.
+- Various UI fixes and improvements.
+- Other fixes and improvements.
+
+## 2.8.30 (2026-09-24)
+
+- Added a new **Canvas** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. See the new **Canvas** section in the documentation for details.
+- The chat input field is now pinned to its corresponding chat column.
+- Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
+
+## 2.8.29 (2026-09-22)
+
+- Renamed **Chat with Agents** mode to **Agents**.
+- Updated default agent preset models to `gpt-5.6-luna`.
+- Fixed compatibility errors in legacy Agent modes.
+- Simplified LlamaIndex fallback for models without native tools to standard LLM.
+- Added support for passing a reference image directly from a chat attachment to the image generation tool.
+- Added and unified **local/remote tool permissions** across more agent workflow roles.
+- Improved runtime artifact sharing between host, Docker Python/IPython, System/OS tools, and agent workflows.
+- Google GenAI SDK upgraded to v2.25.0, OpenAI Agents upgraded to v0.18.3.
+
+## 2.8.28 (2026-09-22)
+
+- Integrated **Chat with Files** into the standard **Chat** mode. RAG is now available across all supported modes.
+- Added a **Judge** mode to **Autonomous**, providing improved response evaluation and continuation guidance after each step.
+- Added support for defining preinstalled packages in the built-in **Python Interpreter** and **System / OS** sandboxes.
+- Added an option to manually rebuild the built-in sandbox virtual environment.
+- Optimized Python command execution.
+- Other fixes and improvements.
+
+## 2.8.27 (2026-09-20)
+
+- Added a built-in sandboxed Python interpreter running in its own virtual environment, managed by `uv`, available as the default third sandbox option in the Python Interpreter and System / OS plugins. It allows Python code to be executed without requiring Python to be installed on the host system and without using Docker, as the interpreter is bundled and managed directly by PyGPT. See the documentation: Plugins -> Python Interpreter.
+- Fixed HTML / Canvas base directory handling for relative paths and local assets.
+- UI and CSS fixes, refinements, and visual improvements.
+
 ## 2.8.26 (2026-09-20)
 
 - Refactored, improved, and simplified QSS/QML handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.

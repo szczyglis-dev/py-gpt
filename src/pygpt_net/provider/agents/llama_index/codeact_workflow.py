@@ -44,8 +44,8 @@ class CodeActAgent(BaseAgent):
         context = kwargs.get("context", BridgeContext())
         tools = kwargs.get("plugin_tools", {})
         specs = kwargs.get("plugin_specs", [])
-        retriever_tool = kwargs.get("retriever_tools", None)
-        workdir = kwargs.get("workdir", "/data")
+        retriever_tool = kwargs.get("retriever_tool", None)
+        workdir = kwargs.get("workdir", "/mnt/data")
         llm = kwargs.get("llm", None)
         preset = context.preset
         system_prompt = self.get_option(preset, "additional", "prompt")
@@ -53,9 +53,24 @@ class CodeActAgent(BaseAgent):
         code_prompt = self.get_option(preset, "base", "prompt")
         if not code_prompt:
             code_prompt = DEFAULT_CODE_ACT_PROMPT  # use default prompt if not set
+        agent_tools = kwargs.get("agent_tools", window.core.agents.tools)
+        executor = agent_tools.executor
+
+        async def execute_plugin(cmd: str, params: Dict[str, Any]):
+            if cmd not in tools:
+                return f"Tool is not enabled: {cmd}"
+            if executor is None:
+                raise RuntimeError("CodeAct requires the asynchronous plugin bridge")
+            return await executor(cmd, params)
+
+        async def execute_code(code: str):
+            # IPython preserves variables across snippets, as CodeAct promises.
+            command = "ipython_exec" if "ipython_exec" in tools else "python_exec"
+            return await execute_plugin(command, {"code": code})
+
         kwargs = {
-            "code_execute_fn": window.core.agents.tools.code_execute_fn.execute,
-            "plugin_tool_fn": window.core.agents.tools.tool_exec,
+            "code_execute_fn": execute_code,
+            "plugin_tool_fn": execute_plugin,
             "plugin_tools": tools,
             "plugin_specs": specs,
             "tool_retriever": retriever_tool,

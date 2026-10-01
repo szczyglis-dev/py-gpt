@@ -69,7 +69,7 @@ class Video:
         cols.addWidget(conf_global['video.resolution'], 2)
         cols.addWidget(conf_global['video.aspect_ratio'], 2)
         cols.addWidget(conf_global['video.duration'], 1)
-        cols.setContentsMargins(2, 5, 5, 5)
+        cols.setContentsMargins(2, 5, 0, 5)
 
         rows = QVBoxLayout()
         rows.addLayout(cols)

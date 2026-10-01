@@ -11,42 +11,18 @@
 # Updated Date: 2026.09.05 14:45:00                  #
 # ================================================== #
 
+import json
 import re
 from typing import Optional, Literal, List, Callable, Any
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, field_validator
 from llama_index.core.workflow import Workflow, Context, StartEvent, StopEvent, Event, step
 from llama_index.core.agent.workflow import FunctionAgent, AgentStream
 from llama_index.core.memory import Memory
 
-# ==== Prompts ====
-SUPERVISOR_PROMPT = """
-You are the “Supervisor” – the main orchestrator. Do not use tools directly.
-Your tasks:
-- Break down the user's task into steps and create precise instructions for the “Worker” agent.
-- Do not pass your history/memory to the Worker. Only pass minimal, self-sufficient instructions.
-- After each Worker response, assess progress towards the Definition of Done (DoD). If not met – generate a better instruction.
-- Ask the user only when absolutely necessary. Then stop and return the question.
-- When the task is complete – return the final answer to the user.
-Always return only ONE JSON object:
-{
-  "action": "task" | "final" | "ask_user",
-  "instruction": "<Worker's instruction or ''>",
-  "final_answer": "<final answer or ''>",
-  "question": "<user question or ''>",
-  "reasoning": "<brief reasoning and quality control>",
-  "done_criteria": "<list/text of DoD criteria>"
-}
-Ensure proper JSON (no comments, no trailing commas). Respond in the user's language.
-"""
+from .supervisor_prompts import SUPERVISOR_PROMPT, WORKER_PROMPT
 
-WORKER_PROMPT = """
-You are the “Worker” – executor of the Supervisor's instructions. You have your own memory and tools.
-- Execute the Supervisor's instructions precisely and concisely.
-- Use the available tools and return a brief result + relevant data/reasoning.
-- Maintain the working context in your memory (only Worker).
-- Return plain text (not JSON) unless instructed otherwise by the Supervisor.
-- Respond in the user's language.
-"""
+# ==== Prompts ====
+
 
 
 # ==== Supervisor's JSON Structures ====
@@ -58,38 +34,187 @@ class SupervisorDirective(BaseModel):
     reasoning: str = ""
     done_criteria: str = ""
 
-JSON_RE = re.compile(r"\{[\s\S]*\}$", re.MULTILINE)
+    @field_validator("action", mode="before")
+    @classmethod
+    def normalize_action(cls, value: Any) -> str:
+        return str(value or "").strip().lower()
 
-def parse_supervisor_json(text: str) -> SupervisorDirective:
-    """
-    Parse the Supervisor's JSON response from text.
+    @field_validator(
+        "instruction",
+        "final_answer",
+        "question",
+        "reasoning",
+        "done_criteria",
+        mode="before",
+    )
+    @classmethod
+    def normalize_text_fields(cls, value: Any) -> str:
+        """Accept common model variants while keeping one stable string schema."""
+        if value is None:
+            return ""
+        if isinstance(value, str):
+            return value
+        if isinstance(value, (list, tuple)):
+            return "\n".join(str(item) for item in value if item is not None)
+        if isinstance(value, dict):
+            return json.dumps(value, ensure_ascii=False)
+        return str(value)
 
-    :param text: The text response from the Supervisor.
-    :return: SupervisorDirective: Parsed directive from the Supervisor.
+
+def response_to_text(value: Any) -> str:
+    """Extract plain assistant text from LlamaIndex agent/workflow return types.
+
+    Depending on the LlamaIndex version, ``FunctionAgent.run()`` may resolve to
+    a string, ChatMessage/ChatResponse-like object, or AgentOutput whose actual
+    message is stored under ``response``.  ``str(value)`` is not safe for
+    structured output because it can produce an object repr rather than the JSON
+    emitted by the model.
     """
-    try:
-        return SupervisorDirective.model_validate_json(text)
-    except Exception:
-        pass
-    fence = re.search(r"```json\s*([\s\S]*?)\s*```", text, re.IGNORECASE)
-    if fence:
+    seen = set()
+
+    def _extract(obj: Any) -> str:
+        if obj is None:
+            return ""
+        if isinstance(obj, str):
+            return obj.strip()
+
+        obj_id = id(obj)
+        if obj_id in seen:
+            return ""
+        seen.add(obj_id)
+
+        # AgentOutput -> response; ChatResponse -> message.
+        for attr in ("response", "message"):
+            nested = getattr(obj, attr, None)
+            if nested is not None and nested is not obj:
+                text = _extract(nested)
+                if text:
+                    return text
+
+        # ChatMessage and response/block variants.
+        content = getattr(obj, "content", None)
+        if isinstance(content, str):
+            return content.strip()
+        if isinstance(content, (list, tuple)):
+            parts = []
+            for block in content:
+                block_text = getattr(block, "text", None)
+                if isinstance(block_text, str):
+                    parts.append(block_text)
+                    continue
+                extracted = _extract(block)
+                if extracted:
+                    parts.append(extracted)
+            if parts:
+                return "".join(parts).strip()
+
+        text = getattr(obj, "text", None)
+        if isinstance(text, str):
+            return text.strip()
+
+        return ""
+
+    extracted = _extract(value)
+    if extracted:
+        return extracted
+    return str(value or "").strip()
+
+def _validate_supervisor_payload(payload: Any) -> SupervisorDirective:
+    """Validate one decoded Supervisor payload, unwrapping common envelopes."""
+    if isinstance(payload, SupervisorDirective):
+        return payload
+
+    if hasattr(payload, "model_dump") and not isinstance(payload, (str, bytes, dict)):
         try:
-            return SupervisorDirective.model_validate_json(fence.group(1).strip())
+            payload = payload.model_dump()
         except Exception:
             pass
-    tail = JSON_RE.findall(text)
-    for candidate in tail[::-1]:
+
+    if isinstance(payload, str):
+        payload = json.loads(payload)
+        # Some providers/models return a JSON string whose contents are another
+        # JSON object. Decode that one extra layer as well.
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+
+    if isinstance(payload, dict) and "action" not in payload:
+        for key in ("directive", "response", "output", "result"):
+            nested = payload.get(key)
+            if isinstance(nested, dict) and "action" in nested:
+                payload = nested
+                break
+
+    return SupervisorDirective.model_validate(payload)
+
+
+def parse_supervisor_json(text: Any) -> SupervisorDirective:
+    """Parse the Supervisor response robustly without accepting arbitrary code.
+
+    Handles a plain JSON object, Markdown fences, provider envelopes, and JSON
+    followed by explanatory text. Pydantic then validates/normalizes the fields.
+    """
+    if not isinstance(text, str):
         try:
-            return SupervisorDirective.model_validate_json(candidate.strip())
+            return _validate_supervisor_payload(text)
         except Exception:
+            text = response_to_text(text)
+
+    raw = str(text or "").strip()
+    if not raw:
+        raise ValueError("Supervisor returned an empty response.")
+
+    errors = []
+
+    def _try(candidate: Any):
+        try:
+            return _validate_supervisor_payload(candidate)
+        except Exception as exc:
+            errors.append(str(exc))
+            return None
+
+    # Fast path: the whole response is valid JSON.
+    parsed = _try(raw)
+    if parsed is not None:
+        return parsed
+
+    # Markdown fenced JSON (also accept a generic code fence).
+    for fence in re.finditer(r"```(?:json)?\s*([\s\S]*?)\s*```", raw, re.IGNORECASE):
+        parsed = _try(fence.group(1).strip())
+        if parsed is not None:
+            return parsed
+
+    # Decode a JSON object beginning at any opening brace. json.JSONDecoder
+    # stops exactly at the end of the object, so trailing prose is harmless and
+    # nested objects/escaped braces do not confuse a greedy regular expression.
+    decoder = json.JSONDecoder()
+    for idx, char in enumerate(raw):
+        if char != "{":
             continue
-    first = text.find("{")
-    if first != -1:
         try:
-            return SupervisorDirective.model_validate_json(text[first:])
+            candidate, _ = decoder.raw_decode(raw[idx:])
+        except json.JSONDecodeError:
+            continue
+        parsed = _try(candidate)
+        if parsed is not None:
+            return parsed
+
+    detail = errors[-1] if errors else "No JSON object could be decoded."
+    excerpt = raw[:800].replace("\x00", "")
+    raise ValueError(
+        "Failed to parse a valid JSON from the Supervisor's response. "
+        f"Validation: {detail} Response excerpt: {excerpt!r}"
+    )
+
+
+def parse_supervisor_response(value: Any) -> SupervisorDirective:
+    """Prefer LlamaIndex structured output, then fall back to assistant text."""
+    structured = getattr(value, "structured_response", None)
+    if structured:
+        try:
+            return _validate_supervisor_payload(structured)
         except Exception:
             pass
-    raise ValueError("Failed to parse a valid JSON from the Supervisor's response.")
+    return parse_supervisor_json(response_to_text(value))
 
 # ==== Workflow Events ====
 class InputEvent(StartEvent):
@@ -125,7 +250,10 @@ class SupervisorWorkflow(Workflow):
         self._supervisor = kwargs["supervisor"]
         self._worker = kwargs["worker"]
         self._worker_memory = kwargs.get("worker_memory")
+        self._supervisor_memory = kwargs.get("supervisor_memory")
         self._max_steps = kwargs.get("max_steps", 12)
+        self._input_builder = kwargs.get("input_builder")
+        self._on_stop = None
 
     def run(
         self,
@@ -145,10 +273,11 @@ class SupervisorWorkflow(Workflow):
         :param kwargs: Additional keyword arguments for the workflow, such as `external_context`, `stop_on_ask_user`, etc.
         :return: OutputEvent or ExecuteEvent based on the workflow's progress.
         """
+        self._on_stop = kwargs.get("on_stop")
         if verbose:
             self._verbose = True
 
-        if memory is not None:
+        if self._supervisor_memory is None and memory is not None:
             self._supervisor_memory = memory  # use external memory for Supervisor
 
         start_event = InputEvent(
@@ -205,26 +334,13 @@ class SupervisorWorkflow(Workflow):
         except Exception:
             pass
 
-    async def _run_muted(self, ctx: Context, awaitable) -> Any:
-        """
-        Execute an agent call while muting all events sent to ctx.
-        Matches schema-style emission: we control all UI events ourselves.
-        """
-        orig_write = ctx.write_event_to_stream
-
-        def _noop(ev: Any) -> None:
-            return None
-
-        ctx.write_event_to_stream = _noop
-        try:
-            return await awaitable
-        finally:
-            ctx.write_event_to_stream = orig_write
+    def _stopped(self):
+        return bool(self._on_stop and self._on_stop())
 
     @step
     async def supervisor_step(self, ctx: Context, ev: InputEvent) -> ExecuteEvent | OutputEvent:
         """
-        Supervisor step: run Supervisor silently, then emit exactly one UI block like schema.
+        Stream Supervisor prose while retaining control JSON for routing.
 
         :param ctx: Context for the workflow
         :param ev: InputEvent containing the user's message and context.
@@ -243,11 +359,7 @@ class SupervisorWorkflow(Workflow):
         )
         sup_input = "\n".join(parts)
 
-        # Announce the Supervisor step BEFORE waiting for the muted agent call.
-        # The runner treats StepEvent as a transition boundary: it finalizes the
-        # previous agent block (if any), creates the next partial context and
-        # switches the UI back to BUSY.  Emitting this only after ``await`` left
-        # the UI with no loader for the whole Supervisor inference.
+        # Announce the actor before the first streamed token.
         await self._emit_step(
             ctx,
             agent_name=self._supervisor.name,
@@ -255,28 +367,47 @@ class SupervisorWorkflow(Workflow):
             total=ev.max_rounds,
         )
 
-        # Run Supervisor with stream muted to avoid leaking its internal JSON.
-        sup_resp = await self._run_muted(ctx, self._supervisor.run(user_msg=sup_input, memory=self._supervisor_memory))
-        directive = parse_supervisor_json(str(sup_resp))
+        from pygpt_net.core.agents.runners.llama_events import forward_handler
+        from pygpt_net.core.agents.custom.llama_index.router_streamer import RealtimeRouterStreamerLI
+        prose = RealtimeRouterStreamerLI(fields=("instruction", "final_answer", "question"))
+        sup_resp, streamed = await forward_handler(
+            self._supervisor.run(
+                user_msg=self._input_builder(sup_input) if callable(self._input_builder) else sup_input,
+                memory=self._supervisor_memory,
+            ),
+            ctx, self._stopped, name=self._supervisor.name, text_filter=prose.handle_delta,
+        )
+
+        async def emit_remaining(text):
+            if not streamed:
+                await self._emit_text(ctx, text, agent_name=self._supervisor.name)
+            elif text.startswith(streamed) and len(text) > len(streamed):
+                await self._emit_text(ctx, text[len(streamed):], agent_name=self._supervisor.name)
+            elif text.strip() != streamed.strip() and not text.startswith(streamed):
+                await self._emit_text(ctx, "\n\n" + text, agent_name=self._supervisor.name)
+
+        directive = parse_supervisor_response(sup_resp)
 
         # Final/ask_user/max_rounds -> emit text into the already announced
         # Supervisor block and stop.
         if directive.action == "final":
-            await self._emit_text(ctx, f"\n\n{directive.final_answer or str(sup_resp)}", agent_name=self._supervisor.name)
-            return OutputEvent(status="final", final_answer=directive.final_answer or str(sup_resp), rounds_used=ev.round_idx)
+            if not directive.final_answer:
+                raise ValueError("Supervisor returned a final directive without an answer.")
+            await emit_remaining(directive.final_answer)
+            return OutputEvent(status="final", final_answer=directive.final_answer, rounds_used=ev.round_idx)
 
         if directive.action == "ask_user" and ev.stop_on_ask_user:
             q = directive.question or "I need more information, please clarify."
-            await self._emit_text(ctx, f"\n\n{q}", agent_name=self._supervisor.name)
+            await emit_remaining(q)
             return OutputEvent(status="ask_user", final_answer=q, rounds_used=ev.round_idx)
 
-        if ev.round_idx >= ev.max_rounds:
+        if ev.max_rounds > 0 and ev.round_idx >= ev.max_rounds:
             await self._emit_text(ctx, "\n\nMax rounds exceeded.", agent_name=self._supervisor.name)
             return OutputEvent(status="max_rounds", final_answer="Exceeded maximum number of iterations.", rounds_used=ev.round_idx)
 
         # Emit exactly one Supervisor block with the instruction (no JSON leakage, no duplicates).
         instruction = (directive.instruction or "").strip() or "Perform a step that gets closest to fulfilling the DoD."
-        await self._emit_text(ctx, f"\n\n{instruction}", agent_name=self._supervisor.name)
+        await emit_remaining(instruction)
 
         return ExecuteEvent(
             instruction=instruction,
@@ -289,7 +420,7 @@ class SupervisorWorkflow(Workflow):
     @step
     async def worker_step(self, ctx: Context, ev: ExecuteEvent) -> InputEvent:
         """
-        Worker step: run Worker silently and emit exactly one UI block like schema.
+        Worker step: forward native text and tool events into the parent workflow.
 
         :param ctx: Context for the workflow
         :param ev: ExecuteEvent containing the instruction and context.
@@ -306,16 +437,25 @@ class SupervisorWorkflow(Workflow):
             total=ev.max_rounds,
         )
 
-        # Run Worker with stream muted; we will emit a single block with the final text.
+        # Forward worker text/tools as they arrive.
         worker_input = f"Instruction from Supervisor:\n{ev.instruction}\n"
-        worker_resp = await self._run_muted(ctx, self._worker.run(user_msg=worker_input, memory=self._worker_memory))
+        from pygpt_net.core.agents.runners.llama_events import forward_handler
+        worker_resp, streamed_text = await forward_handler(
+            self._worker.run(
+                user_msg=self._input_builder(worker_input) if callable(self._input_builder) else worker_input,
+                memory=self._worker_memory,
+            ),
+            ctx, self._stopped, name=self._worker.name,
+        )
+        worker_text = response_to_text(worker_resp)
 
         # Emit the response into the Worker block announced above.
-        await self._emit_text(ctx, f"\n\n{str(worker_resp)}", agent_name=self._worker.name)
+        if not streamed_text:
+            await self._emit_text(ctx, worker_text, agent_name=self._worker.name)
 
         return InputEvent(
             user_msg="",
-            last_worker_output=str(worker_resp),
+            last_worker_output=worker_text,
             round_idx=ev.round_idx + 1,
             max_rounds=ev.max_rounds,
             external_context=ev.external_context,
@@ -327,11 +467,16 @@ def get_workflow(
     tools,
     llm_supervisor,
     llm_worker,
+    supervisor_tools=None,
+    worker_tools=None,
     verbose: bool = False,
     prompt_supervisor: str = SUPERVISOR_PROMPT,
     prompt_worker: str = WORKER_PROMPT,
     max_steps: int = 12,
-    worker_memory_session_id: str = "llama_worker_session"  # session ID for worker memory
+    worker_memory_session_id: str = "llama_worker_session",  # session ID for worker memory
+    worker_memory: Optional[Memory] = None,
+    supervisor_memory: Optional[Memory] = None,
+    input_builder=None,
 ):
     """
     Create a SupervisorWorkflow instance.
@@ -339,34 +484,49 @@ def get_workflow(
     :param tools: List of tools for the Worker agent.
     :param llm_supervisor: LLM instance for the Supervisor agent.
     :param llm_worker: LLM instance for the Worker agent.
+    :param supervisor_tools: Optional local tools exposed to the Supervisor.
+    :param worker_tools: Optional local tools exposed to the Worker.
     :param verbose: Verbose output flag.
     :param prompt_supervisor: Prompt for the Supervisor agent.
     :param prompt_worker: Prompt for the Worker agent.
     :param max_steps: Maximum number of steps for the workflow.
     :param worker_memory_session_id: Session ID for the Worker agent's memory.
+    :param worker_memory: Optional persistent Worker memory supplied by the app session.
     :return: SupervisorWorkflow instance
     """
+    # Keep backwards compatibility for direct callers: historically the Worker
+    # received ``tools`` and the Supervisor received none. New callers can pass
+    # per-role tool lists explicitly.
+    if supervisor_tools is None:
+        supervisor_tools = []
+    if worker_tools is None:
+        worker_tools = tools or []
+
     supervisor = FunctionAgent(
         name="Supervisor",
         llm=llm_supervisor,
         system_prompt=prompt_supervisor,
-        tools=[],
+        tools=supervisor_tools,
     )
     worker = FunctionAgent(
         name="Worker",
         llm=llm_worker,
         system_prompt=prompt_worker,
-        tools=tools,
+        tools=worker_tools,
     )
 
-    # separate memory for the worker
-    worker_memory = Memory.from_defaults(session_id=worker_memory_session_id, token_limit=40000)
+    # Separate Worker memory. The app may provide a persistent instance scoped
+    # to ctx.meta; direct callers keep the historical per-workflow fallback.
+    if worker_memory is None:
+        worker_memory = Memory.from_defaults(session_id=worker_memory_session_id, token_limit=40000)
 
     return SupervisorWorkflow(
         supervisor=supervisor,
         worker=worker,
         worker_memory=worker_memory,
+        supervisor_memory=supervisor_memory,
         verbose=verbose,
         timeout=120,
         max_steps=max_steps,
+        input_builder=input_builder,
     )

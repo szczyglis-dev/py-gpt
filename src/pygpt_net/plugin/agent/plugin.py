@@ -72,7 +72,15 @@ class Plugin(BasePlugin):
         if name not in always_events and not self.is_active_prompt():
             return
 
-        if name == Event.CTX_BEFORE:
+        if name == Event.BRIDGE_BEFORE:
+            # Inline Autonomous mode uses the same global RAG selector as the
+            # built-in mode. This also covers internally queued continuations
+            # whose BridgeContext may have been created without an index.
+            context = data.get("context")
+            if context is not None:
+                context.idx = self.window.controller.idx.get_current()
+
+        elif name == Event.CTX_BEFORE:
             self.on_ctx_before(ctx)
 
         elif name == Event.CTX_AFTER:

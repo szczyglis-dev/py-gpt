@@ -19,6 +19,11 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.item.model import ModelItem
 
 chat_mod = importlib.import_module("pygpt_net.core.idx.chat")
+context_mod = importlib.import_module("pygpt_net.core.idx.context")
+response_mod = importlib.import_module("pygpt_net.core.idx.response")
+llama_memory_mod = importlib.import_module("llama_index.core.memory")
+llama_llms_mod = importlib.import_module("llama_index.core.llms")
+llama_prompts_mod = importlib.import_module("llama_index.core.prompts")
 Chat = chat_mod.Chat
 
 class FakeModelItem:
@@ -113,22 +118,26 @@ def make_window(config_map=None):
         resolve_idx=lambda value: "proj_7" if value == "__project__" else value,
         project=project,
     )
-    models = SimpleNamespace(is_tool_call_allowed=lambda mode, model: True, from_defaults=lambda: FakeModelItem())
+    models = SimpleNamespace(
+        is_tool_call_allowed=lambda mode, model: True,
+        from_defaults=lambda: FakeModelItem(),
+        get_num_ctx=Mock(return_value=0),
+    )
     plugins = SimpleNamespace(get_option=lambda a,b: False)
     agents = SimpleNamespace(provider=SimpleNamespace(get=Mock()), tools=SimpleNamespace(prepare=Mock()), runner=SimpleNamespace(llama_workflow=SimpleNamespace(run=Mock())))
     api = SimpleNamespace(logger=SimpleNamespace(log_input=Mock(), log_output=Mock()))
     return SimpleNamespace(core=SimpleNamespace(config=Config(cfg), tokens=tokens, debug=debug, idx=idx, models=models, plugins=plugins, agents=agents, api=api), idx_logger_message=Mock())
 
 def make_chat(monkeypatch, config_map=None, storage=None):
-    monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
-    monkeypatch.setattr(chat_mod, "Response", FakeResponseClass)
+    monkeypatch.setattr(context_mod, "Context", FakeContextClass)
+    monkeypatch.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window(config_map=config_map)
     storage = storage or Mock()
     return Chat(window=win, storage=storage)
 
 def test_init_creates_components(monkeypatch):
-    monkeypatch.setattr(chat_mod, "Context", FakeContextClass)
-    monkeypatch.setattr(chat_mod, "Response", FakeResponseClass)
+    monkeypatch.setattr(context_mod, "Context", FakeContextClass)
+    monkeypatch.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window()
     storage = Mock()
     c = Chat(window=win, storage=storage)
@@ -247,8 +256,8 @@ def test_is_stream_allowed_behavior(monkeypatch):
     model = FakeModelItem()
     win.core.config._m.update({"cmd": True})
     win.core.models.is_tool_call_allowed = Mock(return_value=False)
-    assert chat.is_stream_allowed(model) is False
-    win.core.models.is_tool_call_allowed.assert_called_once_with(MODE_LLAMA_INDEX, model)
+    assert chat.is_stream_allowed(model) is True
+    win.core.models.is_tool_call_allowed.assert_not_called()
 
     win.core.models.is_tool_call_allowed.reset_mock()
     win.core.config._m.update({"cmd": False})
@@ -315,24 +324,38 @@ def test_query_web_indexes_and_cleans_tmp(monkeypatch):
 def test_query_retrieval_returns_text_when_found(monkeypatch):
     chat = make_chat(monkeypatch)
     monkeypatch.setattr(chat_mod, "ModelItem", FakeModelItem)
+    model = FakeModelItem()
     index = Mock()
-    retriever = SimpleNamespace(retrieve=Mock(return_value=[FakeNode("nid","TXT",0.9)]))
-    index.as_retriever = Mock(return_value=retriever)
-    chat.get_index = Mock(return_value=(index, Mock()))
-    out = chat.query_retrieval(query="q", idx="i", model=FakeModelItem())
-    assert out == "TXT"
+    llm = Mock()
+    prepared = SimpleNamespace(packed_chunks=["[Source 1]\nTXT"])
+    chat.get_index = Mock(return_value=(index, llm))
+    chat.prepare_rag_context = Mock(return_value=prepared)
+
+    out = chat.query_retrieval(query="q", idx="i", model=model)
+
+    assert out == "[Source 1]\nTXT"
+    chat.prepare_rag_context.assert_called_once_with(
+        index=index,
+        llm=llm,
+        query="q",
+        history=[],
+        chat_mode="context",
+        system_prompt="",
+        model=model,
+        tools=None,
+    )
 
 def test_get_memory_buffer_uses_chat_memory(monkeypatch):
     chat = make_chat(monkeypatch)
-    monkeypatch.setattr(chat_mod, "ChatMemoryBuffer", SimpleNamespace(from_defaults=Mock(return_value="MEMBUF")))
+    monkeypatch.setattr(llama_memory_mod, "ChatMemoryBuffer", SimpleNamespace(from_defaults=Mock(return_value="MEMBUF")))
     res = chat.get_memory_buffer(history=["a"], llm="LLM")
     assert res == "MEMBUF"
 
 def test_get_custom_prompt_none_and_nonempty(monkeypatch):
     chat = make_chat(monkeypatch)
-    monkeypatch.setattr(chat_mod, "ChatPromptTemplate", lambda msgs: {"msgs": msgs})
-    monkeypatch.setattr(chat_mod, "ChatMessage", lambda role, content: {"role": role, "content": content})
-    monkeypatch.setattr(chat_mod, "MessageRole", SimpleNamespace(SYSTEM="system", USER="user"))
+    monkeypatch.setattr(llama_prompts_mod, "ChatPromptTemplate", lambda msgs: {"msgs": msgs})
+    monkeypatch.setattr(llama_llms_mod, "ChatMessage", lambda role, content: {"role": role, "content": content})
+    monkeypatch.setattr(llama_llms_mod, "MessageRole", SimpleNamespace(SYSTEM="system", USER="user"))
     assert chat.get_custom_prompt(None) is None
     res = chat.get_custom_prompt("SYS_PROMPT")
     assert isinstance(res, dict)
@@ -375,8 +398,8 @@ def test_get_metadata_filters_and_limits():
     chat = make_chat(__import__("pytest").MonkeyPatch().context()) if False else make_chat
     # Use a Chat instance created by monkeypatch fixture for method access
     mp = pytest.MonkeyPatch()
-    mp.setattr(chat_mod, "Context", FakeContextClass)
-    mp.setattr(chat_mod, "Response", FakeResponseClass)
+    mp.setattr(context_mod, "Context", FakeContextClass)
+    mp.setattr(response_mod, "Response", FakeResponseClass)
     win = make_window()
     storage = Mock()
     c = Chat(window=win, storage=storage)
@@ -385,47 +408,3 @@ def test_get_metadata_filters_and_limits():
     assert len(meta) == 3
     assert all("score" in v for v in meta.values())
     mp.undo()
-
-
-def test_call_agent_runs_react_agent_and_returns_output(monkeypatch):
-    chat = make_chat(monkeypatch)
-    model = ModelItem("agent-model")
-    context = SimpleNamespace(model=model)
-    response_ctx = SimpleNamespace(output="agent answer")
-    call_once = Mock(return_value=response_ctx)
-    chat.window.core.agents.runner.call_once = call_once
-    tools = []
-    item = CtxItem()
-    item.input = "question"
-
-    output = chat.call_agent(
-        context=context,
-        tools=tools,
-        ctx=item,
-        query="question",
-        history=["history"],
-        llm=object(),
-        index=None,
-        system_prompt="system",
-    )
-
-    assert output == "agent answer"
-    call = call_once.call_args.kwargs
-    assert call["extra"]["agent_provider"] == "react"
-    assert call["extra"]["agent_tools"] is tools
-    assert call["context"].prompt == "question"
-    assert call["context"].history == ["history"]
-    chat.window.core.api.logger.log_input.assert_called_once()
-    chat.window.core.api.logger.log_output.assert_called_once()
-
-
-def test_call_agent_returns_fallback_when_runner_has_no_context(monkeypatch):
-    chat = make_chat(monkeypatch)
-    chat.window.core.agents.runner.call_once = Mock(return_value=None)
-    context = SimpleNamespace(model=ModelItem("agent-model"))
-    item = CtxItem()
-    item.input = "q"
-
-    assert chat.call_agent(
-        context=context, tools=[], ctx=item, query="q", history=[]
-    ) == "No response from agent."

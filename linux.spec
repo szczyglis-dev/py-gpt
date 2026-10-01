@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-import os, glob
+import os, glob, shutil
 from PyInstaller.utils.hooks import (
     collect_data_files,
     collect_submodules,
@@ -20,6 +20,29 @@ def add_data_tree(datas, src_root, dest_root):
         dest = dest_root if rel == "." else os.path.join(dest_root, rel)
         for filename in files:
             datas.append((os.path.join(root, filename), dest))
+
+
+def find_uv_binary():
+    """Locate uv installed in the build environment for bundling."""
+    candidates = []
+    try:
+        import uv
+        try:
+            candidates.append(os.fspath(uv.find_uv_bin()))
+        except (AttributeError, FileNotFoundError, OSError):
+            pass
+    except ImportError:
+        pass
+    found = shutil.which('uv')
+    if found:
+        candidates.append(found)
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return [(path, '.')]
+    raise RuntimeError("uv executable not found; install uv==0.12.15 in the PyInstaller build environment")
+
+
+uv_bins = find_uv_binary()
 
 
 RT_HOOK_PATH = os.path.abspath('rt_wayland.py')
@@ -49,6 +72,10 @@ for subdir in ('wayland-graphics-integration-client', 'wayland-shell-integration
             qt_binaries.append((p, os.path.join('PySide6', 'plugins', subdir)))
 
 dyn_bins = []
+try:
+    dyn_bins += collect_dynamic_libs('litellm')
+except Exception:
+    pass
 for pkg in ('onnxruntime', 'tokenizers', 'tiktoken'):
     try:
         dyn_bins += collect_dynamic_libs(pkg)
@@ -67,6 +94,20 @@ except Exception:
     pass
 
 datas = []
+
+# LiteLLM relies heavily on dynamic imports and importlib.resources.
+# Collect the complete package data tree (tokenizer JSON/cache files, model map,
+# templates, etc.) instead of chasing individual runtime resources.
+try:
+    datas += collect_data_files('litellm')
+except Exception:
+    pass
+
+# LiteLLM checks its installed distribution metadata at runtime.
+try:
+    datas += copy_metadata('litellm')
+except Exception:
+    pass
 datas += collect_data_files('opentelemetry.sdk')
 datas += collect_data_files('opentelemetry')
 datas += collect_data_files('pinecone')
@@ -95,46 +136,34 @@ try:
 except Exception:
     pass
 
-# CSS themes use a recursive directory layout (data/css/<theme-id>/...).
-# Preserve the complete tree in the frozen application.
+# OpenAI Agents SDK 0.18.x ships runtime resources (for example sandbox
+# memory prompts) that are loaded from the filesystem via pathlib. Keep these
+# files as physical data in the frozen distribution.
+try:
+    datas += collect_data_files(
+        'agents',
+        include_py_files=False,
+        excludes=['**/__pycache__/**', '**/*.pyc'],
+    )
+except Exception:
+    pass
+
+# Preserve distribution metadata used by importlib.metadata/version checks.
+try:
+    datas += copy_metadata('openai-agents')
+except Exception:
+    pass
+
+# Bundle the complete application data tree recursively.
+# Keep the same directory layout below data/ so new resources and
+# subdirectories are picked up automatically without updating this spec.
 add_data_tree(
     datas,
-    'src/pygpt_net/data/css',
-    'data/css',
+    'src/pygpt_net/data',
+    'data',
 )
 
 datas += [
-    ('src/pygpt_net/data/config/presets/*', 'data/config/presets'),
-    ('src/pygpt_net/data/config/config.json', 'data/config'),
-    ('src/pygpt_net/data/config/models.json', 'data/config'),
-    ('src/pygpt_net/data/config/modes.json', 'data/config'),
-    ('src/pygpt_net/data/config/settings.json', 'data/config'),
-    ('src/pygpt_net/data/config/settings_section.json', 'data/config'),
-    ('src/pygpt_net/data/banners/*', 'data/banners'),
-    ('src/pygpt_net/data/icons/*', 'data/icons'),
-    ('src/pygpt_net/data/icons/chat/*', 'data/icons/chat'),
-    ('src/pygpt_net/data/locale/*', 'data/locale'),
-    ('src/pygpt_net/data/audio/*', 'data/audio'),
-    ('src/pygpt_net/data/fixtures/*', 'data/fixtures'),
-    ('src/pygpt_net/data/skills/*', 'data/skills'),
-    ('src/pygpt_net/data/connectors/*', 'data/connectors'),
-    ('src/pygpt_net/data/fonts/Lato/*', 'data/fonts/Lato'),
-    ('src/pygpt_net/data/fonts/SpaceMono/*', 'data/fonts/SpaceMono'),
-    ('src/pygpt_net/data/fonts/MonaspaceArgon/*', 'data/fonts/MonaspaceArgon'),
-    ('src/pygpt_net/data/fonts/MonaspaceKrypton/*', 'data/fonts/MonaspaceKrypton'),
-    ('src/pygpt_net/data/fonts/MonaspaceNeon/*', 'data/fonts/MonaspaceNeon'),
-    ('src/pygpt_net/data/fonts/MonaspaceRadon/*', 'data/fonts/MonaspaceRadon'),
-    ('src/pygpt_net/data/fonts/MonaspaceXenon/*', 'data/fonts/MonaspaceXenon'),
-    ('src/pygpt_net/data/js/highlight/styles/*', 'data/js/highlight/styles'),
-    ('src/pygpt_net/data/prompts.csv', 'data'),
-    ('src/pygpt_net/data/languages.csv', 'data'),
-    ('src/pygpt_net/data/banners.json', 'data'),
-    ('src/pygpt_net/data/logo.png', 'data'),
-    ('src/pygpt_net/data/logo_splash.png', 'data'),
-    ('src/pygpt_net/data/icon.ico', 'data'),
-    ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),
-    ('src/pygpt_net/data/icon_tray_busy.ico', 'data'),
-    ('src/pygpt_net/data/icon_tray_error.ico', 'data'),
     ('src/pygpt_net/CHANGELOG.txt', '.'),
     ('src/pygpt_net/LICENSE', '.'),
     ('src/pygpt_net/data/icon.png', '.'),
@@ -195,18 +224,27 @@ for pkg in [
     'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
+    # OpenAI Agents SDK imports parts of the sandbox/runtime stack lazily.
+    'agents',
     # Kernel modules are partly imported lazily/dynamically at runtime.
     'ipykernel', 'jupyter_client', 'IPython.core.magics', 'IPython.extensions',
     'debugpy', 'zmq.backend.cython',
 ]:
     hiddenimports += collect_submodules(pkg)
 
+# LiteLLM selects providers/backends lazily via dynamic imports, so static
+# Analysis cannot discover the full import graph. Include every LiteLLM submodule.
+try:
+    hiddenimports += collect_submodules('litellm', on_error='ignore')
+except Exception:
+    pass
+
 block_cipher = None
 
 a = Analysis(
     ['src/pygpt_net/app.py'],
     pathex=['src', 'src/pygpt_net'],
-    binaries=qt_binaries + dyn_bins,
+    binaries=qt_binaries + dyn_bins + uv_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
@@ -218,6 +256,10 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+
+# Optional runtime packages must resolve against versions bundled in this build.
+import runpy
+runpy.run_path(os.path.join(SPECPATH, 'bin', 'pyinstaller_runtime_metadata.py'))['add_runtime_metadata'](a)
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.09 14:17:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 import json
@@ -39,6 +39,7 @@ class CodeInterpreter(BaseTool):
         super(CodeInterpreter, self).__init__(*args, **kwargs)
         self.id = "interpreter"
         self.has_tab = True
+        self.single_instance = True
         self.tab_title = "menu.tools.interpreter"
         self.tab_icon = ":/icons/code.svg"
         self.opened = False
@@ -74,8 +75,8 @@ class CodeInterpreter(BaseTool):
             safe_emit(self.signals, "set_checkbox_all", self.window.core.config.get("interpreter.execute_all"))
         if self.window.core.config.has("interpreter.auto_clear"):
             safe_emit(self.signals, "set_checkbox_auto_clear", self.window.core.config.get("interpreter.auto_clear"))
-        if self.window.core.config.has("interpreter.ipython"):
-            safe_emit(self.signals, "set_checkbox_ipython", self.window.core.config.get("interpreter.ipython"))
+        self.ipython = self.is_ipython()
+        safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
             safe_emit(self.signals, "toggle_all_visible", False)
 
@@ -438,7 +439,7 @@ class CodeInterpreter(BaseTool):
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
         safe_emit(self.signals, "focus_input")
         event = KernelEvent(KernelEvent.STATUS, {
             'status': f"[OK] Kernel restarted at {strftime('%H:%M:%S')}.",
@@ -451,6 +452,12 @@ class CodeInterpreter(BaseTool):
 
         :return: True if ipython is enabled, False otherwise
         """
+        try:
+            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            if plugin is not None:
+                return bool(plugin.is_ipython_enabled())
+        except Exception:
+            pass
         return self.ipython
 
     def is_opened(self) -> bool:
@@ -483,40 +490,38 @@ class CodeInterpreter(BaseTool):
             input_textarea.clear()
             input_textarea.setFocus()
             return
-        elif input.strip().startswith("/clear"):
+        if input.strip().startswith("/clear"):
             self.clear(force=True)
             input_textarea.clear()
             input_textarea.setFocus()
             return
+        if input == "":
+            return
 
-        if self.is_all():
-            cmd = "code_execute_all"
-        else:
-            if input == "":
-                return
-            cmd = "code_execute"
+        use_ipython = self.is_ipython()
+        self.ipython = use_ipython
+        safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
+        execute_all = self.is_all() and not use_ipython
+        cmd = "ipython_exec" if use_ipython else "python_exec"
+        command = {
+            "cmd": cmd,
+            "params": {
+                "code": input,
+                "path": self.file_current,
+                "auto_init": True,  # auto initialize kernel if not initialized after error
+            },
+            "silent": True,
+            "force": True,
+        }
+        if execute_all:
+            command["_execute_all"] = True
 
-        if self.ipython:
-            cmd = "ipython_execute"
-
-        commands = [
-            {
-                "cmd": cmd,
-                "params": {
-                    "code": input,
-                    "path": self.file_current,
-                    "auto_init": True,  # auto initialize kernel if not initialized after error
-                },
-                "silent": True,
-                "force": True,
-            }
-        ]
         event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
+            'commands': [command],
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
         input_textarea.clear()
         input_textarea.setFocus()
 
@@ -530,37 +535,45 @@ class CodeInterpreter(BaseTool):
         if input == "/restart":
             self.restart_kernel()
             return
-        elif input == "/clear":
+        if input == "/clear":
             self.clear(force=True)
             return
+        if input == "":
+            return
 
-        if self.is_all():
-            cmd = "code_execute_all"
-        else:
-            if input == "":
-                return
-            cmd = "code_execute"
+        use_ipython = self.is_ipython()
+        self.ipython = use_ipython
+        safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
+        execute_all = self.is_all() and not use_ipython
+        cmd = "ipython_exec" if use_ipython else "python_exec"
+        command = {
+            "cmd": cmd,
+            "params": {
+                "code": input,
+                "path": self.file_current,
+            },
+            "silent": True,
+            "force": True,
+        }
+        if execute_all:
+            command["_execute_all"] = True
 
-        if self.ipython:
-            cmd = "ipython_execute"
-
-        commands = [
-            {
-                "cmd": cmd,
-                "params": {
-                    "code": input,
-                    "path": self.file_current,
-                },
-                "silent": True,
-                "force": True,
-            }
-        ]
         event = Event(Event.CMD_EXECUTE, {
-            'commands': commands,
+            'commands': [command],
             'silent': True,
         })
         event.ctx = CtxItem()  # tmp
-        self.window.controller.command.dispatch_only(event)
+        self._dispatch_interpreter_event(event)
+
+    def _dispatch_interpreter_event(self, event: Event):
+        """Dispatch manual interpreter commands only to the interpreter plugin.
+
+        The interpreter UI is not a chat/tool round. Broadcasting its private
+        CMD_EXECUTE event through ``controller.command.dispatch_only`` touches
+        every plugin and the shared reply stack, which can leak unrelated plugin
+        activity into the chat UI.
+        """
+        self.window.core.dispatcher.apply("cmd_code_interpreter", event)
 
     def update_input(self):
         """Update input data"""
@@ -620,20 +633,20 @@ class CodeInterpreter(BaseTool):
 
     def auto_open(self):
         """Auto open dialog or tab"""
-        if self.window.controller.ui.tabs.is_current_tool(self.id):
-            tool_col = self.window.controller.ui.tabs.get_tool_column(self.id)
-            current_col = self.window.controller.ui.tabs.column_idx
+        if self.window.controller.tabs.is_current_tool(self.id):
+            tool_col = self.window.controller.tabs.get_tool_column(self.id)
+            current_col = self.window.controller.tabs.get_current_column_idx()
             if tool_col == 1 and tool_col != current_col:
-                self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                self.window.controller.tabs.enable_split_screen(True)  # enable split screen
             return # do not open if already opened in tab
-        elif self.window.controller.ui.tabs.is_tool(self.id):
-            tab = self.window.controller.ui.tabs.get_first_tab_by_tool(self.id)
+        elif self.window.controller.tabs.is_tool(self.id):
+            tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
             if tab:
                 tool_col = tab.column_idx
-                current_col = self.window.controller.ui.tabs.column_idx
-                self.window.controller.ui.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
+                current_col = self.window.controller.tabs.get_current_column_idx()
+                self.window.controller.tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
                 if tool_col == 1 and tool_col != current_col:
-                    self.window.controller.ui.tabs.enable_split_screen(True)  # enable split screen
+                    self.window.controller.tabs.enable_split_screen(True)  # enable split screen
                 return # do not open if already opened in tab
         if not self.auto_opened:
             self.auto_opened = True
@@ -695,7 +708,13 @@ class CodeInterpreter(BaseTool):
         :param widget: ToolWidget instance
         """
         self.ipython = widget.checkbox_ipython.isChecked()
-        self.window.core.config.set("interpreter.ipython", self.ipython)
+        plugin = self.window.core.plugins.get("cmd_code_interpreter")
+        if plugin is not None:
+            plugin.set_option_value("use_ipython", self.ipython)
+            plugins_cfg = self.window.core.config.data.setdefault("plugins", {})
+            plugin_cfg = plugins_cfg.setdefault("cmd_code_interpreter", {})
+            plugin_cfg["use_ipython"] = self.ipython
+            self.window.core.config.save()
         safe_emit(self.signals, "set_checkbox_ipython", self.ipython)
         if self.ipython:
             safe_emit(self.signals, "toggle_all_visible", False)

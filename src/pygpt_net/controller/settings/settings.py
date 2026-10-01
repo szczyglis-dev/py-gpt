@@ -34,7 +34,13 @@ class Settings:
         self.height = 500
 
     def setup(self):
-        """Set up settings editor"""
+        """Set up settings editor."""
+        # LLM providers are registered after the first bootstrap settings load.
+        # Materialize their defaults once and rebuild the dynamic API section
+        # immediately before the Settings widgets are created.
+        self.window.core.llm.sync_provider_configs(save=True)
+        self.window.core.settings.load()
+        self.editor.load_config_options()
         self.profile.setup()
         self.editor.setup()
 
@@ -110,9 +116,12 @@ class Settings:
             self.editor.init(id)
             self.window.core.settings.active[id] = True
 
-            # if no API key, focus on API key input
-            if self.window.core.config.get('api_key') is None or self.window.core.config.get('api_key') == '':
-                self.window.ui.config['config']['api_key'].setFocus()
+            # if no OpenAI API key, focus on its dynamically generated field
+            provider = self.window.core.llm.get('openai')
+            option_id = self.window.core.llm.get_settings_option_id('openai', 'api_key')
+            if (provider is not None and not provider.get_config('api_key')
+                    and option_id in self.window.ui.config.get('config', {})):
+                self.window.ui.config['config'][option_id].setFocus()
 
             self.window.controller.layout.restore_settings()  # restore previous selected settings tab
 
@@ -217,10 +226,20 @@ class Settings:
         else:
             self.window.update_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
+    def open_base_dir(self):
+        """Open the application-wide base directory that owns path.cfg."""
+        path = self.window.core.config.get_base_workdir()
+        if os.path.exists(path):
+            self.window.controller.files.open_dir(path)
+        else:
+            self.window.update_status('Global base directory not exists: {}'.format(path))
+
     def welcome_settings(self):
-        """Open settings at first launch (if no API key yet)"""
+        """Open settings at first launch (if no API key yet)."""
         self.open_section("api_keys")
-        self.window.ui.config['config']['api_key'].setFocus()
+        option_id = self.window.core.llm.get_settings_option_id('openai', 'api_key')
+        if option_id in self.window.ui.config.get('config', {}):
+            self.window.ui.config['config'][option_id].setFocus()
         self.window.ui.dialogs.close('info.start')
 
     def reload(self):

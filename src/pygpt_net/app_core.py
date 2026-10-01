@@ -9,6 +9,7 @@
 # Updated Date: 2026.08.12 14:30:00                  #
 # ================================================== #
 
+from .core.runtime_packages import RuntimePackages
 from .config import Config
 from .core.access import Access
 from .core.agents import Agents
@@ -30,6 +31,7 @@ from .core.db import Database
 from .core.debug import Debug
 from .core.dispatcher import Dispatcher
 from .core.experts import Experts
+from .core.extensions import Extensions
 from .core.idx import Idx
 from .core.installer import Installer
 from .core.filesystem import Filesystem
@@ -88,6 +90,8 @@ class Core:
         self.debug = Debug(window)
         self.dispatcher = Dispatcher(window)
         self.experts = Experts(window)
+        self.extensions = Extensions(window)
+        self.packages = RuntimePackages(window)
         self.filesystem = Filesystem(window)
         self.idx = Idx(window)
         self.image = Image(window)
@@ -116,6 +120,7 @@ class Core:
     def init(self):
         """Initialize all components"""
         self.config.init(all=True)
+        self.packages.activate()
         self.platforms.init()
 
     def patch(self):

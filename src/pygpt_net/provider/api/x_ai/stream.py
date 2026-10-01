@@ -123,6 +123,7 @@ def _try_save_data_url_image(core, ctx, data_url: str) -> Optional[str]:
         save_path = core.image.gen_unique_path(ctx, ext=ext)
         with open(save_path, "wb") as f:
             f.write(img_bytes)
+        core.filesystem.materialize_runtime_artifact(save_path, ctx=ctx)
         return save_path
     except Exception:
         return None

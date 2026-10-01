@@ -9,7 +9,9 @@
 # Updated Date: 2026.09.18 16:35:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt, QPoint
+import os
+
+from PySide6.QtCore import Qt, QPoint, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import QPushButton, QMenu
 
@@ -63,7 +65,7 @@ class CompactModelCombo(QPushButton):
         self.setFocusPolicy(Qt.NoFocus)
         self.setFlat(True)
         self.setIcon(QIcon())
-        self.setToolTip(trans("toolbox.model.label"))
+        self.setToolTip(trans("input.model.tooltip"))
         self.clicked.connect(self._show_menu)
 
     def set_keys(self, keys):
@@ -128,7 +130,7 @@ class CompactModelCombo(QPushButton):
         display = fm.elidedText(label, Qt.ElideMiddle, self.MAX_LABEL_WIDTH)
         text = f"{display}  ▴"
         self.setText(text)
-        self.setToolTip(label)
+        self.setToolTip(trans("input.model.tooltip"))
         self.ensurePolished()
         text_width = fm.horizontalAdvance(text)
         # Keep enough room for the complete label + arrow. Horizontal padding is
@@ -157,6 +159,15 @@ class CompactModelCombo(QPushButton):
 
         menu = QMenu(self)
         menu.setObjectName("chatInputModelMenu")
+        if os.name == "nt":
+            # A translucent top-level QMenu can get a thick native frame/shadow
+            # on Windows. Keep this compact popup opaque and frameless instead;
+            # its background and outline are provided entirely by QSS.
+            menu.setAttribute(Qt.WA_TranslucentBackground, False)
+            menu.setWindowFlag(Qt.FramelessWindowHint, True)
+            # menu.setWindowFlag(Qt.NoDropShadowWindowHint, True)
+        else:
+            menu.setAttribute(Qt.WA_TranslucentBackground, True)
         group = QActionGroup(menu)
         group.setExclusive(True)
 
@@ -192,8 +203,54 @@ class CompactModelCombo(QPushButton):
         menu.aboutToHide.connect(self._clear_menu)
         menu.adjustSize()
         size = menu.sizeHint()
-        global_pos = self.mapToGlobal(QPoint(self.width() - size.width(), -size.height()))
+        global_pos = self._centered_menu_pos(size.width(), size.height())
         menu.popup(global_pos)
+        # QMenu may switch to a multi-column layout only after it is shown when
+        # the model list is taller than the available screen. Recenter once more
+        # using the final native popup width so the menu stays exactly centered.
+        QTimer.singleShot(0, lambda current=menu: self._recenter_visible_menu(current))
+
+    def _centered_menu_pos(self, width: int, height: int) -> QPoint:
+        """Return an upward popup position centered over the chat input."""
+        anchor = None
+        try:
+            anchor = self.window.ui.nodes.get("input")
+        except Exception:
+            pass
+        if anchor is None:
+            anchor = self
+
+        center = anchor.mapToGlobal(QPoint(anchor.width() // 2, 0))
+        x = int(center.x() - max(0, int(width)) / 2)
+        y = self.mapToGlobal(QPoint(0, -max(0, int(height)))).y()
+
+        screen = anchor.screen() or self.screen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            max_x = available.right() - max(0, int(width)) + 1
+            x = max(available.left(), min(x, max_x))
+        return QPoint(x, y)
+
+    def _recenter_visible_menu(self, menu: QMenu):
+        """Center the popup again after Qt finalizes its real geometry."""
+        if self._menu is not menu or not menu.isVisible():
+            return
+        width = menu.width() or menu.sizeHint().width()
+        anchor = None
+        try:
+            anchor = self.window.ui.nodes.get("input")
+        except Exception:
+            pass
+        if anchor is None:
+            anchor = self
+        center = anchor.mapToGlobal(QPoint(anchor.width() // 2, 0))
+        x = int(center.x() - width / 2)
+        screen = menu.screen() or anchor.screen() or self.screen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            max_x = available.right() - width + 1
+            x = max(available.left(), min(x, max_x))
+        menu.move(x, menu.y())
 
     def _select_model(self, model_id, checked=True):
         if not checked:

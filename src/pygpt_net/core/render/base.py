@@ -13,6 +13,7 @@ from typing import Optional, List
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.utils import trans
 
 
 class BaseRenderer:
@@ -24,6 +25,38 @@ class BaseRenderer:
         """
         self.window = window
         self.tab = None
+
+    @staticmethod
+    def get_inline_messages(extra) -> list:
+        """Return normalized UI-only inline messages from part extra data."""
+        if not isinstance(extra, dict):
+            return []
+
+        messages = extra.get("inline_messages")
+        if not isinstance(messages, list):
+            return []
+
+        normalized = []
+        for message in messages:
+            if not isinstance(message, dict):
+                continue
+            msg_type = str(message.get("type") or "").strip()
+            text = str(message.get("text") or "").strip()
+            if not text:
+                continue
+            normalized.append({
+                "type": msg_type or "message",
+                "text": text,
+            })
+        return normalized
+
+    @staticmethod
+    def get_inline_message_label(msg_type: str) -> str:
+        """Return the UI label for a normalized inline message type."""
+        msg_type = str(msg_type or "message").strip() or "message"
+        if msg_type == "agent_judge":
+            return trans("agent.judge")
+        return msg_type.replace("_", " ").strip().title()
 
     def set_tab(self, tab: Tab):
         """
@@ -168,6 +201,48 @@ class BaseRenderer:
     def reload(self, meta: Optional[CtxMeta] = None):
         """Reload all outputs, called externally only on theme change to redraw content"""
         pass
+
+    def sync_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None
+    ):
+        """Synchronize one output message.
+
+        Renderers without addressable message nodes may fall back to a full
+        redraw. Web renderer overrides this with an in-place mutation.
+        """
+        self.reload(meta)
+
+    def finalize_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            replace_text: bool = False,
+            reason: Optional[str] = None
+    ):
+        """Finalize a live output row without changing its text by default."""
+        self.sync_output(meta, ctx, replace_text=replace_text, reason=reason)
+
+    def replace_output(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            reason: Optional[str] = None
+    ):
+        """Explicitly replace the authoritative output text."""
+        self.sync_output(meta, ctx, replace_text=True, reason=reason)
+
+    def replace_input(
+            self,
+            meta: CtxMeta,
+            ctx: CtxItem,
+            reason: Optional[str] = None
+    ):
+        """Explicitly replace one durable input row."""
+        self.reload(meta)
 
     def append_context(
             self,
@@ -452,12 +527,16 @@ class BaseRenderer:
             self,
             state: str,
             meta: CtxMeta,
+            loading_delay_ms: int = 0,
+            loading_wait_for_input: bool = False,
     ):
         """
         Render end
 
         :param state: state name
         :param meta: context meta
+        :param loading_delay_ms: optional loader visibility delay
+        :param loading_wait_for_input: wait until the user row is materialized
         """
         pass
 

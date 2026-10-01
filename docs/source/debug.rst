@@ -44,8 +44,8 @@ Additional logging switches are available in ``Config -> Settings -> Debug``:
 * ``Log image and video generation to console`` - logs image and video generation activity.
 * ``Log attachments usage to console`` - logs attachment processing and usage details.
 * ``Log Agents usage to console`` - logs agent and expert execution details.
-* ``Log Chat with Agents workflow`` - logs a concise, human-readable Chat with Agents workflow trace, including important orchestration events, agent operations, tool names, statuses, waits and response previews. It omits stream chunks, full tool definitions and large JSON payloads.
-* ``Log Chat with Agents (verbose mode, full output)`` - logs the complete Chat with Agents orchestration flow, including full system prompts, available tools and tool calls, worker operations and states, inputs, outputs, RAG context and workflow lifecycle. This output can contain sensitive prompt or tool data.
+* ``Log Agents workflow`` - logs a concise, human-readable Agents workflow trace, including important orchestration events, agent operations, tool names, statuses, waits and response previews. It omits stream chunks, full tool definitions and large JSON payloads.
+* ``Log Agents (verbose mode, full output)`` - logs the complete Agents orchestration flow, including full system prompts, available tools and tool calls, worker operations and states, inputs, outputs, RAG context and workflow lifecycle. This output can contain sensitive prompt or tool data.
 * ``Log LlamaIndex usage to console`` - logs LlamaIndex indexing, querying and related activity.
 * ``Log Realtime sessions to console`` - logs real-time audio session activity and provider details.
 * ``Log legacy API usage to console`` - logs activity from legacy API code paths.
@@ -96,6 +96,9 @@ The following console commands are available:
 * ``lang`` - reloads the language/translation data.
 * ``oclr`` - closes the currently initialized OpenAI client, if one exists.
 * ``dump(object|expr)`` - evaluates a Python expression in the running application process and prints its result. This is a developer command and should only be used with trusted expressions.
+* ``smods`` - lists all currently loaded Python modules sorted alphabetically by module name.
+* ``omods`` - lists all currently loaded Python modules in ``sys.modules`` insertion/load order.
+* ``emods`` - lists loaded external modules only, excluding modules whose names start with ``pygpt_net`` or ``PySide6``. This is useful for spotting third-party packages pulled into the startup path.
 * ``js(expr)`` - evaluates a JavaScript expression in the current Web renderer. It is available only when the web rendering engine is active.
 * ``help``, ``/help`` or ``/h`` - prints the built-in console help.
 * ``quit``, ``exit`` or ``/q`` - closes PyGPT.
@@ -186,3 +189,54 @@ or on Windows:
     C:\Users\<USER>\AppData\Roaming\PyGPT\PyGPT.exe --debug=2
 
 This is particularly useful for problems that occur before the graphical Logger or ``Debug`` menu can be opened.
+
+Import tracing
+--------------
+
+PyGPT includes an optional startup import tracer for diagnosing modules that are loaded too early. The tracer is disabled during normal startup and is enabled only when the application is launched with ``--trace-imports``. It starts before the normal PyGPT and Qt imports so it can show which code path first caused a module to be loaded.
+
+Run the source version with:
+
+.. code-block:: console
+
+    python3 run.py --trace-imports
+
+The same switch can be appended to a compiled executable, for example:
+
+.. code-block:: console
+
+    ./pygpt --trace-imports
+
+Each module is reported only when it is loaded for the first time. A trace entry contains the module name, its origin/path and a short ``requested by`` stack showing the Python frames that led to the import. This is useful for identifying indirect imports, for example when a lightweight PyGPT component causes a provider SDK or another heavy dependency to be initialized during application startup.
+
+The default traceback depth can be changed with ``--trace-imports-depth``:
+
+.. code-block:: console
+
+    python3 run.py --trace-imports --trace-imports-depth 4
+
+The value is the maximum number of caller frames printed for each newly loaded module.
+
+Use ``--only`` to log only module names beginning with one or more prefixes:
+
+.. code-block:: console
+
+    python3 run.py --trace-imports --only openai
+    python3 run.py --trace-imports --only openai --only anthropic
+    python3 run.py --trace-imports --only=openai,anthropic,google.genai
+
+Use ``--ignore`` to suppress module names beginning with selected prefixes:
+
+.. code-block:: console
+
+    python3 run.py --trace-imports --ignore pygpt_net --ignore PySide6
+    python3 run.py --trace-imports --ignore=pygpt_net,PySide6
+
+``--only`` and ``--ignore`` can be combined. The ``--only`` filter first limits the set of modules considered for logging, and ``--ignore`` can then exclude a more specific subset. For example:
+
+.. code-block:: console
+
+    python3 run.py --trace-imports --only openai --ignore openai.types
+
+The import-tracer-specific arguments are consumed before the normal application and Qt argument handling. They do not change normal application behavior apart from the diagnostic console output produced while tracing is enabled.
+

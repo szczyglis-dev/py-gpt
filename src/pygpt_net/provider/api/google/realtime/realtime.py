@@ -10,6 +10,7 @@
 # ================================================== #
 
 import json
+from functools import cached_property
 from typing import Optional, Dict, Any
 
 from pygpt_net.core.events import RealtimeEvent
@@ -23,11 +24,8 @@ from pygpt_net.core.realtime.shared.computer import (
 )
 from pygpt_net.item.model import ModelItem
 
-from .client import GoogleLiveClient
-
 
 class Realtime:
-
     PROVIDER = "google"
 
     def __init__(self, window=None):
@@ -37,10 +35,14 @@ class Realtime:
         :param window: Window instance
         """
         self.window = window
-        self.handler = GoogleLiveClient(window)
         self.prev_auto_turn = False
         self.prev_vad_silence = 2000
         self.prev_vad_prefix = 300
+
+    @cached_property
+    def handler(self):
+        from .client import GoogleLiveClient
+        return GoogleLiveClient(self.window)
 
     def begin(
             self,
@@ -235,6 +237,10 @@ class Realtime:
     def manual_commit(self):
         """Manually commit audio input to realtime session"""
         self.handler.force_response_now_sync()
+
+    def cancel_response(self):
+        """Mark the current response interrupted without closing the Live session."""
+        self.handler.cancel_response_sync()
 
     def shutdown(self):
         """Shutdown realtime loops"""

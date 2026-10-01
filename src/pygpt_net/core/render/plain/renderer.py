@@ -19,6 +19,7 @@ from pygpt_net.core.text.mentions import to_display_text as mentions_to_display_
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.output import ChatOutput
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.utils import trans
 
 from .body import Body
 from .helpers import Helpers
@@ -449,8 +450,36 @@ class Renderer(BaseRenderer):
         :param item: context item
         """
         self.append_input(meta, item)
-        self.append_output(meta, item)
+        if not self.append_inline_messages_timeline(meta, item):
+            self.append_output(meta, item)
         self.append_extra(meta, item)
+
+
+    def append_inline_messages_timeline(self, meta: CtxMeta, item: CtxItem) -> bool:
+        """Render partial outputs with UI-only inline messages interleaved."""
+        parts = list(getattr(item, "parts", None) or [])
+        has_inline_messages = any(
+            bool(self.get_inline_messages(
+                part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            ))
+            for part in parts
+        )
+        if not has_inline_messages:
+            return False
+
+        for part in parts:
+            extra = part.extra if isinstance(getattr(part, "extra", None), dict) else {}
+            for message in self.get_inline_messages(extra):
+                msg_type = str(message.get("type") or "message")
+                label = self.get_inline_message_label(msg_type)
+                self.append_raw(
+                    meta, item,
+                    f"> {label}: {str(message.get('text') or '').strip()}",
+                )
+            output = str(getattr(part, "output", None) or "").strip()
+            if output:
+                self.append_raw(meta, item, output)
+        return True
 
     def append(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 12:30:00                  #
+# Updated Date: 2026.09.30 16:40:00                  #
 # ================================================== #
 
 import os
@@ -176,15 +176,25 @@ class Common:
 
         chat_input = self.window.controller.chat.input
         busy = bool(chat_input.locked or chat_input.generating)
+        try:
+            realtime_response = self.window.controller.realtime.is_response_active()
+        except Exception:
+            realtime_response = False
+        stop_active = bool(busy or realtime_response)
         editing = self.window.controller.ctx.extra.is_editing()
-        is_chat_tab = self.window.controller.ui.tabs.get_current_type() == Tab.TAB_CHAT
+        tabs = self.window.controller.tabs
+        if hasattr(tabs, 'is_chat_input_visible'):
+            chat_input_visible = tabs.is_chat_input_visible()
+        else:
+            chat_input_visible = tabs.get_current_type() == Tab.TAB_CHAT
 
-        # Send and Stop share the same compact slot semantically: while a
-        # request is active only Stop is visible; when idle, Send is restored
-        # only for a normal (non-editing) chat tab.
+        # Send and Stop belong to the shared composer. A Tool/Notepad tab in
+        # the other split column may own global focus while the only visible
+        # Chat still owns that composer, so button visibility must follow the
+        # composer host rather than get_current_type().
         send_btn.setEnabled(not busy)
-        input_node.set_icon_visible('send', is_chat_tab and not editing and not busy)
-        input_node.set_icon_visible('stop', busy)
+        input_node.set_icon_visible('send', chat_input_visible and not editing and not stop_active)
+        input_node.set_icon_visible('stop', chat_input_visible and not editing and stop_active)
 
     def lock_input(self):
         """Lock input."""
@@ -217,8 +227,32 @@ class Common:
             unlock = False
         return unlock
 
+    def handle_send(self):
+        """Submit an ordinary microphone recording or send the text composer."""
+        if not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                self.handle_stop()
+                return
+        self.window.controller.chat.input.send_input()
+
     def handle_stop(self):
         """Handle stop"""
+        # Ordinary microphone capture is submitted, even when the saved VAD
+        # setting is enabled. Only realtime STOP discards the current buffer.
+        if not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                handler.stop_recording()
+                return
+
+        # Realtime STOP intentionally delegates to the exact ESC interrupt route.
+        # Keeping one path avoids subtle ordering differences between playback
+        # abort, provider cancellation, turn persistence and UI cleanup.
+        if self.window.controller.realtime.can_interrupt():
+            self.window.controller.access.on_escape(close_dialog=False)
+            return
+
         # stop voice recording if active
         if self.window.controller.access.voice.is_recording:
             self.window.controller.access.voice.stop_recording(timeout=True)
@@ -337,7 +371,7 @@ class Common:
         self.window.update_status(trans('status.stopped'))
         dispatch(KernelEvent(KernelEvent.STATE_IDLE, {"meta": current_meta}))  # state: idle
         core.ctx.output.finish_request(meta=current_meta)
-        controller.ui.tabs.sync_focused_chat_context()
+        controller.tabs.sync_focused_chat_context()
 
         # remotely stop assistant
         mode = core.config.get('mode')
@@ -366,50 +400,30 @@ class Common:
             model: ModelItem,
             monit: bool = True
     ) -> bool:
-        """
-        Check if API KEY is set
-
-        :param mode: current mode
-        :param model: ModelItem instance
-        :param monit: True if monitor should be shown
-        :return: True if API KEY is set, False otherwise
-        """
-        if model is None:
-            return True
-        # Ollama and other local providers do not require an API key
-        if model.is_ollama():
+        """Check whether the selected provider requires and has an API key."""
+        if model is None or model.is_ollama():
             return True
 
-        config = self.window.core.config
-        provider_keys = {
-            "openai": config.get('api_key', None),
-            "azure_openai": config.get('api_key', None),
-            "anthropic": config.get('api_key_anthropic', None),
-            "google": config.get('api_key_google', None),
-            "x_ai": config.get('api_key_xai', None),
-            "perplexity": config.get('api_key_perplexity', None),
-            "deepseek_api": config.get('api_key_deepseek', None),
-            "mistral_ai": config.get('api_key_mistral', None),
-        }
+        provider = self.window.core.llm.get(model.provider)
+        if provider is None or not hasattr(provider, 'has_config') or not provider.has_config('api_key'):
+            return True
 
-        if model.provider in provider_keys:
-            api_key = provider_keys[model.provider]
+        if not provider.requires_api_key():
+            return True
+
+        api_key = provider.get_config('api_key')
+        # OpenAI historically allows an empty key for non-GPT/local-compatible
+        # model entries. Keep that behavior while making all declared provider
+        # credentials otherwise data-driven.
+        if model.provider == 'openai' and not model.is_gpt():
+            return True
+        if api_key is None or api_key == '':
             name = self.window.core.llm.get_provider_name(model.provider)
-            if model.provider == 'openai':
-                # allow empty key for models other than GPT
-                if model.is_gpt() and (api_key is None or api_key == ''):
-                    if monit:
-                        self.window.ui.nodes['start.api_key.provider'].setText(name)
-                        self.window.controller.launcher.show_api_monit()
-                    self.window.update_status(f"Missing API KEY for provider: {name}")
-                    return False
-            else:
-                if api_key is None or api_key == '':
-                    if monit:
-                        self.window.ui.nodes['start.api_key.provider'].setText(name)
-                        self.window.controller.launcher.show_api_monit()
-                    self.window.update_status(f"Missing API KEY for provider: {name}")
-                    return False
+            if monit:
+                self.window.ui.nodes['start.api_key.provider'].setText(name)
+                self.window.controller.launcher.show_api_monit()
+            self.window.update_status(f"Missing API KEY for provider: {name}")
+            return False
         return True
 
     def apply_timestamp(self, value: bool, initialized: bool = True):
@@ -458,7 +472,7 @@ class Common:
             node.setToolTip(trans('icon.plain.switch_to_plain'))
 
     def toggle_plain_view(self):
-        """Switch between normal Web/Markdown output and plain-text output."""
+        """Switch between normal WebEngine output and plain-text output."""
         value = not bool(self.window.core.config.get('render.plain'))
         self.toggle_raw(value)
 

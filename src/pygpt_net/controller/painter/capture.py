@@ -6,18 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 19:15:00                  #
+# Updated Date: 2026.09.24 17:30:00                  #
 # ================================================== #
+
+from __future__ import annotations
 
 import datetime
 import math
 import os
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
-import mss
-import mss.tools
-from PIL import Image, ImageDraw
-from pynput.mouse import Controller
+if TYPE_CHECKING:
+    from PIL import Image
 
 from PySide6.QtCore import QRect
 from PySide6.QtGui import QImage
@@ -57,7 +57,8 @@ class Capture:
             self.window.ui.tray.show_capture_flash()
         return True
 
-    def _overlay_custom_cursor(self, img: Image.Image, cursor_x: float, cursor_y: float) -> Image.Image:
+    def _overlay_custom_cursor(self, img: "Image.Image", cursor_x: float, cursor_y: float) -> "Image.Image":
+        from PIL import Image
         """Overlay the bundled cursor with its click hotspot at (cursor_x, cursor_y)."""
         x = int(round(cursor_x))
         y = int(round(cursor_y))
@@ -94,6 +95,10 @@ class Capture:
         :param save_path: Save path
         :return: Save path
         """
+        import mss
+        from PIL import Image
+        from pynput.mouse import Controller
+
         mouse = Controller()
 
         with mss.mss(with_cursor=False) as sct:
@@ -152,6 +157,9 @@ class Capture:
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
             # capture screenshot
+            import mss
+            import mss.tools
+
             if attach_cursor:
                 if not self.capture_screen_with_custom_cursor(path):  # capture with custom cursor
                     return False
@@ -213,6 +221,9 @@ class Capture:
             dt = now.strftime("%Y-%m-%d_%H-%M-%S")
             name = 'cap-' + dt
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+
+            import mss
+            import mss.tools
 
             with mss.mss(with_cursor=False) as sct:
                 monitors = sct.monitors[1:]
@@ -300,6 +311,7 @@ class Capture:
                 return False
 
             if attach_cursor and cursor_position is not None:
+                from PIL import Image
                 with Image.open(path) as source:
                     img = source.convert('RGBA')
 
@@ -333,6 +345,48 @@ class Capture:
         except Exception as e:
             print("Screenshot capture exception", e)
             self.window.core.debug.log(e)
+
+    def save_current_runtime_image(self) -> Optional[str]:
+        """
+        Save the current full logical Painter canvas for a runtime-only model attachment.
+
+        This does not modify the normal chat attachment registry or Painter UI.
+
+        :return: Saved PNG path, or None on failure
+        """
+        try:
+            painter = getattr(self.window.ui, "painter", None)
+            if painter is None:
+                return None
+
+            # Painter keeps a composited export cache separate from the live
+            # drawing/base layers. Make sure the exported image includes the
+            # latest strokes regardless of the current zoom/display size.
+            ensure = getattr(painter, "_ensure_composited_image", None)
+            if callable(ensure):
+                ensure()
+
+            image = getattr(painter, "image", None)
+            if image is None or image.isNull():
+                return None
+
+            # Runtime-only Painter snapshots belong to the shared ephemeral
+            # runtime tree.  Local execution backends expose this tree through
+            # their normal runtime mapping (for example /mnt/tmp in Docker).
+            root = self.window.core.filesystem.get_runtime_artifacts_dir(create=True)
+            now = datetime.datetime.now()
+            directory = os.path.join(root, now.date().isoformat())
+            os.makedirs(directory, exist_ok=True)
+            stamp = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
+            path = os.path.join(directory, f"painter-user-{stamp}.png")
+
+            if not image.save(path, "PNG"):
+                return None
+            return path
+        except Exception as e:
+            print("Painter runtime image capture exception", e)
+            self.window.core.debug.log(e)
+            return None
 
     def use(self):
         """Use current image"""

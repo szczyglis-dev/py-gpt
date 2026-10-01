@@ -248,7 +248,7 @@ def test_on_ctx_end_over_iterations(legacy_instance, dummy_window):
     legacy_instance.on_stop = MagicMock()
     legacy_instance.on_ctx_end(dummy_ctx, iterations=1)
     legacy_instance.on_stop.assert_called_with(auto=True)
-    dummy_window.ui.tray.show_msg.assert_called()
+    dummy_window.ui.tray.show_msg_if_inactive.assert_called()
 
 
 def test_on_ctx_before(legacy_instance, dummy_window):
@@ -320,7 +320,7 @@ def test_cmd_finished(legacy_instance, dummy_window):
     dummy_window.update_status.assert_called()
     assert legacy_instance.finished is True
     assert legacy_instance.terminal_status == "finished"
-    dummy_window.ui.tray.show_msg.assert_called()
+    dummy_window.ui.tray.show_msg_if_inactive.assert_called()
 
 
 def test_cmd_pause(legacy_instance, dummy_window):

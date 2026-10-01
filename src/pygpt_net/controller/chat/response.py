@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 15:00:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Dict, Any
@@ -77,6 +77,13 @@ class Response:
             core.debug.info("[agent] Dropping stale provider response from an older autonomous run.")
             return
 
+        # A successful realtime bridge callback only acknowledges session setup.
+        # Its receiver owns deltas, tool continuations and finalization. Routing
+        # this acknowledgement through Chat starts a second, empty StreamWorker
+        # and prematurely finalizes the very same context (even while recording).
+        if status and getattr(context, "realtime", False) is True:
+            return
+
         if not status:
             error = extra.get("error", None)
             controller.chat.log("Bridge response: ERROR")
@@ -136,9 +143,11 @@ class Response:
             }))
             controller.chat.input.generating = False
             if ctx is not None and failed_meta is not None:
-                dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": failed_meta, "ctx": ctx}))
+                dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                    "meta": failed_meta, "ctx": ctx, "reason": "response_error",
+                }))
             core.ctx.output.finish_request(meta=failed_meta)
-            controller.ui.tabs.sync_focused_chat_context()
+            controller.tabs.sync_focused_chat_context()
             return
 
         try:
@@ -149,13 +158,17 @@ class Response:
                     ctx, mode, stream, is_response=True, reply=reply, internal=internal,
                     context=context, extra=extra, render=not is_continuation,
                 )
-                if is_continuation and not (stream and is_agent_continue):
-                    # Tool-result continuations need an immediate durable hand-off.
-                    # A streamed autonomous iteration does not: its empty partial
-                    # is already persisted and Stream.handleChunk() appends into it
-                    # directly. Reloading here clears/races the live stream before
-                    # the first token is painted.
-                    dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+                if (is_continuation
+                        and not stream
+                        and not is_agent_continue
+                        and core.ctx.continuation_closes_tool_series(source_ctx)):
+                    # Non-stream tool continuations materialize the accumulated
+                    # calls only at a real boundary: visible assistant prose or a
+                    # tool-free/final response. Tool-only continuations keep the
+                    # same transient Tool row alive for the next TOOL_BEGIN.
+                    dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                        "meta": ctx.meta, "ctx": ctx, "reason": "tool_series_boundary",
+                    }))
                     dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
                         "meta": ctx.meta,
                         "ctx": ctx,
@@ -264,7 +277,9 @@ class Response:
             if ctx.id is not None:
                 core.ctx.update_item(ctx)
             dispatch(AppEvent(AppEvent.CTX_END))  # finish render
-            dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))  # reload owning chat
+            dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                "meta": ctx.meta, "ctx": ctx, "reason": "response_stopped",
+            }))
             return
 
         prev_ctx = ctx.prev_ctx
@@ -300,7 +315,7 @@ class Response:
         }))
 
         # append step input to chat window
-        dispatch(RenderEvent(RenderEvent.INPUT_APPEND, {
+        dispatch(RenderEvent(RenderEvent.APPEND_INPUT, {
             "meta": ctx.meta,
             "ctx": ctx,
         }))
@@ -334,8 +349,7 @@ class Response:
 
         # post-handle, execute cmd, etc.
         chat_output.post_handle(ctx, mode, stream, reply, internal)
-        chat_output.handle_end(ctx, mode)  # handle end.
-        dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+        chat_output.handle_end(ctx, mode)  # handle end; owns final renderer sync.
 
         # ----------- EVALUATE AGENT RESPONSE -----------
 
@@ -356,7 +370,7 @@ class Response:
         # chat responses the context is complete at this point. In an agent
         # workflow this is different: the rendered partial context only means that
         # one agent/step has finished and the workflow is now waiting for the next
-        # agent. Re-assert BUSY *after* rendering/reload so the loading indicator
+        # agent. Re-assert BUSY *after* the render mutation so the loading indicator
         # stays visible until the next real stream chunk arrives. The first chunk
         # is rendered with begin=True and beginStream(true) hides the spinner.
         agent_finished = isinstance(ctx.extra, dict) and "agent_finish" in ctx.extra
@@ -391,7 +405,7 @@ class Response:
         """
         status = extra.get("msg", trans("status.finished"))
         self.window.update_status(status)
-        self.window.controller.agent.llama.on_end()
+        self.window.controller.agent.llama.on_end(getattr(context, "ctx", None))
         self.window.controller.chat.common.unlock_input()  # unlock input
         self.window.dispatch(KernelEvent(KernelEvent.STATE_IDLE, {
             "id": "chat",
@@ -435,9 +449,11 @@ class Response:
         if not extra.get("_stream_worker_error", False):
             self.window.controller.chat.input.generating = False
             if ctx is not None and getattr(ctx, "meta", None) is not None:
-                self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+                self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                    "meta": ctx.meta, "ctx": ctx, "reason": "worker_error",
+                }))
             self.window.core.ctx.output.finish_request(meta=getattr(ctx, "meta", None))
-            self.window.controller.ui.tabs.sync_focused_chat_context()
+            self.window.controller.tabs.sync_focused_chat_context()
 
     def agent_v2_begin(self, context: BridgeContext, extra: Dict[str, Any]):
         """Begin the single user-visible Agents v2 response stream."""
@@ -471,23 +487,25 @@ class Response:
         """Materialize prior workflow and begin the final timeline segment.
 
         FINAL_BEGIN is emitted before the first final-answer chunk. Persisted
-        partials/tools are reloaded first, then only the transient stream area is
-        reset. The already rendered workflow remains visible above the final text.
+        partials/tools are synchronized first, then only the transient stream area
+        is reset. The already rendered workflow remains visible above final text.
         """
         ctx = context.ctx
         key = getattr(ctx, "id", None) or id(ctx)
         self._agent_v2_finalizing.add(key)
         self.agent_v2_status(context, extra, "")
         # The previous inline partial is already complete in the durable model.
-        # Cancel its UI micro-batch before replacing the DOM, otherwise a late
-        # timer could append stale text after RELOAD.
+        # Cancel its UI micro-batch before the structural sync, otherwise a late
+        # timer could append stale text after the durable boundary sync.
         renderer = self.window.controller.chat.render.instance()
         if hasattr(renderer, "discard_part_streams"):
             renderer.discard_part_streams(ctx.meta)
-        # Clear transient statuses, then materialize every completed partial/tool
+        # Clear transient statuses, then synchronize every completed partial/tool
         # inside the same durable CtxItem before the final partial starts.
         self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
-        self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+        self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+            "meta": ctx.meta, "ctx": ctx, "reason": "agent_v2_final_begin",
+        }))
         try:
             renderer.agent_v2_final_begin(ctx.meta, ctx)
         except Exception as exc:
@@ -554,6 +572,18 @@ class Response:
         if part_changed:
             core_ctx.update_part(ctx, previous_part, sync_item=True)
 
+            # A workflow can keep one CtxItem open across many assistant passes.
+            # Generate the automatic context title as soon as the first partial
+            # has actually finished, instead of waiting for the whole agent flow
+            # to reach CTX_END. For ordinary/single-pass flows the existing
+            # end-of-turn prepare_summary() call remains the fallback.
+            parts = getattr(ctx, "parts", None) or []
+            if parts and previous_part is parts[0]:
+                try:
+                    self.window.controller.ctx.prepare_summary(ctx)
+                except Exception as exc:
+                    self.window.core.debug.log(exc)
+
         # A real runtime part boundary means that the preceding tool/text segment
         # is complete. Materialize it in the durable parent and then stream the
         # new prose as an *inline partial* of that same msg-box. Do not begin a
@@ -564,7 +594,9 @@ class Response:
                 renderer.discard_part_streams(ctx.meta)
             self.window.dispatch(RenderEvent(RenderEvent.AGENT_STATUS_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
             self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
-            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+                "meta": ctx.meta, "ctx": ctx, "reason": "agent_v2_part_boundary",
+            }))
 
         self._agent_v2_parts[key] = part
 
@@ -644,6 +676,7 @@ class Response:
                 "ctx": ctx,
                 "chunk": render_value,
                 "begin": bool(begin),
+                "part_key": current_part_key,
             }))
 
     def agent_v2_status(self, context: BridgeContext, extra: Dict[str, Any], status: str):
@@ -836,32 +869,41 @@ class Response:
         self.window.dispatch(RenderEvent(RenderEvent.STREAM_END, {"meta": ctx.meta, "ctx": ctx}))
 
         if self.window.controller.kernel.stopped():
-            self.window.controller.chat.output.handle_end(ctx=ctx, mode=MODE_AGENT_V2)
-            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+            self.window.controller.chat.output.handle_end(ctx=ctx, mode=context.mode or MODE_AGENT_V2)
             return
 
-        self.window.controller.chat.output.handle_after(ctx=ctx, mode=MODE_AGENT_V2, stream=True)
+        self.window.controller.chat.output.handle_after(ctx=ctx, mode=context.mode or MODE_AGENT_V2, stream=True)
         self.post_handle(
             ctx=ctx,
-            mode=MODE_AGENT_V2,
+            mode=context.mode or MODE_AGENT_V2,
             stream=True,
             reply=extra.get("reply", False),
             internal=extra.get("internal", False),
         )
 
-        # Rebuild the completed message once after streaming. get_display_output()
-        # returns only the final Agents v2 partial, while structured partial tasks
-        # are now rendered as the grouped Tool/Tools block when the setting is on.
-        self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+        # Synchronize final workflow metadata/artifacts after streaming. The final
+        # text remains the exact DOM that was already streamed token-by-token.
+        self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
+            "meta": ctx.meta, "ctx": ctx, "reason": "agent_v2_final",
+        }))
 
         # AGENT_V2_END is delivered only after the runtime has flushed every
         # final-answer chunk. Notify here, after STREAM_END/post-processing and
-        # the completed-message reload, so the tray message never races ahead
+        # the completed-message sync, so the tray message never races ahead
         # of the full final response visible to the user.
+        if has_final and ctx.extra.get("agent_timeline") is True:
+            self.window.controller.agent.llama.on_finish(ctx)
+            return
         if has_final and self.window.core.config.get("agent.goal.notify"):
-            self.window.ui.tray.show_msg(
-                trans("notify.agent.goal.title"),
-                trans("notify.agent.goal.content"),
+            self.window.ui.tray.show_msg_if_inactive(
+                self.window.ui.tray.agent_result_title(
+                    ctx,
+                    trans("notify.agent.goal.title"),
+                ),
+                self.window.ui.tray.agent_result_message(
+                    ctx,
+                    trans("notify.agent.goal.content"),
+                ),
             )
 
     def live_append(

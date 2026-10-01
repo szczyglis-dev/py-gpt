@@ -6,17 +6,18 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:55:00                  #
+# Updated Date: 2026.09.30 08:14:00                  #
 # ================================================== #
 
 import os
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, TYPE_CHECKING, Any
 
-import httpx
-from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+    from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
+from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.core.types import (
     MODE_LANGCHAIN,
     MODE_LLAMA_INDEX, 
@@ -26,12 +27,210 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import parse_args
 
 
-class BaseLLM:
+class BaseLLM(LocaleDomain):
+    _MISSING = object()
+
     def __init__(self, *args, **kwargs):
+        self.init_locale_domain()
         self.id = ""
         self.name = ""
         self.type = []  # langchain, llama_index, embeddings
         self.description = ""
+        self.window = None
+        self.config_id = ""
+
+    def get_name(self) -> str:
+        """Return localized provider name when the current domain defines it."""
+        domain = self.get_locale_domain()
+        if domain:
+            value = self.trans("provider.name")
+            if value != "provider.name":
+                return value
+        return self.name
+
+    def setup(self) -> dict:
+        """Return provider-owned setup metadata.
+
+        Providers expose their capabilities and API configuration here instead
+        of relying on central, hard-coded provider lists. ``openai_compatible``
+        declares whether the provider can use the OpenAI-compatible direct API
+        transport. The ``settings`` dict may contain ``api_key``, ``api_base``
+        and an ``extra`` mapping. The sibling ``remote_tools`` mapping declares
+        tool switches and all their parameters, stored in
+        ``providers[config_id][remote_tools]``.
+        """
+        return {
+            "openai_compatible": False,
+            "settings": {},
+            "remote_tools": {},
+        }
+
+    def is_openai_compatible(self) -> bool:
+        """Return whether this provider exposes an OpenAI-compatible API."""
+        try:
+            setup = self.setup() or {}
+        except Exception:
+            return False
+        return bool(setup.get("openai_compatible", False)) if isinstance(setup, dict) else False
+
+    def get_remote_tools_schema(self) -> dict:
+        """Provider-owned fields, including tool switches and tool parameters.
+
+        Keys are local to the provider (e.g. ``mcp`` and ``mcp.args``).
+        Fields use the Settings schema; ``tool`` marks selectable tools,
+        ``hidden`` suppresses a field in Settings, and ``legacy_key`` is used
+        only by config migration. Providers may override the accessors below.
+        """
+        schema = (self.setup() or {}).get("remote_tools", {})
+        return schema if isinstance(schema, dict) else {}
+
+    def get_remote_tools(self) -> dict:
+        """Return selectable tool IDs and their definitions."""
+        return {key: field for key, field in self.get_remote_tools_schema().items()
+                if isinstance(field, dict) and field.get("tool")}
+
+    def get_remote_tool_config(self, key: str, default: Any = _MISSING) -> Any:
+        """Read a tool switch/parameter, falling back to its declared default."""
+        value = self.get_config("remote_tools." + key, default)
+        field = self.get_remote_tools_schema().get(key, {})
+        if field.get("value_type") == "optional_bool":
+            if value in (None, ""):
+                return None
+            if isinstance(value, str):
+                return value.lower() == "true"
+        return value
+
+    def set_remote_tool_config(self, key: str, value: Any):
+        """Write a tool switch/parameter without saving the config file."""
+        self.set_config("remote_tools." + key, value)
+
+    def is_remote_tool_enabled(self, tool_id: str) -> bool:
+        return tool_id in self.get_remote_tools() and bool(self.get_remote_tool_config(tool_id))
+
+    def set_remote_tool_enabled(self, tool_id: str, enabled: bool):
+        if tool_id in self.get_remote_tools():
+            self.set_remote_tool_config(tool_id, bool(enabled))
+
+    def supports_remote_tool(self, model: ModelItem, tool_id: str) -> bool:
+        """Forward-compatible capability policy, overridable by each provider."""
+        field = self.get_remote_tools().get(tool_id)
+        model_id = str(getattr(model, "id", "") or "").strip().lower()
+        if field is None or not model_id:
+            return False
+        return (model_id not in field.get("unsupported_models", ())
+                and not any(model_id.startswith(prefix)
+                            for prefix in field.get("unsupported_prefixes", ())))
+
+    def bind(self, window):
+        """Bind provider to the application window/config at registration time."""
+        self.window = window
+        if not getattr(self, "config_id", ""):
+            self.config_id = self.id
+        return self
+
+    def get_config_id(self) -> str:
+        """Return the logical ID used under ``config.providers``."""
+        return getattr(self, "config_id", "") or self.id
+
+    def get_settings_schema(self) -> dict:
+        """Return normalized provider settings schema."""
+        try:
+            setup = self.setup() or {}
+        except Exception:
+            return {}
+        settings = setup.get("settings", {}) if isinstance(setup, dict) else {}
+        return settings if isinstance(settings, dict) else {}
+
+    def _get_schema_field(self, key: str) -> Optional[dict]:
+        if key.startswith("remote_tools."):
+            field = self.get_remote_tools_schema().get(key[len("remote_tools."):])
+            return field if isinstance(field, dict) else None
+        schema = self.get_settings_schema()
+        if key in ("api_key", "api_base"):
+            field = schema.get(key)
+            return field if isinstance(field, dict) else None
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = schema.get("extra", {})
+        if isinstance(extra, dict):
+            field = extra.get(extra_key)
+            return field if isinstance(field, dict) else None
+        return None
+
+    def has_config(self, key: str) -> bool:
+        """Return True when the provider declares a configuration key."""
+        return self._get_schema_field(key) is not None
+
+    def requires_api_key(self) -> bool:
+        """Whether the UI should require a configured provider API key."""
+        setup = self.setup() or {}
+        return bool(setup.get("require_api_key", self.has_config("api_key")))
+
+    def get_config(self, key: str, default: Any = _MISSING) -> Any:
+        """Read a provider value from ``config.providers``.
+
+        ``api_key`` and ``api_base`` live directly under the provider entry;
+        all other declared fields are read from ``extra``.  If the entry has
+        not been materialized yet, the provider schema default is returned.
+        """
+        fallback = default
+        field = self._get_schema_field(key)
+        if fallback is self._MISSING:
+            fallback = field.get("default") if field is not None else None
+        if self.window is None or not hasattr(self.window, "core"):
+            return fallback
+        config = getattr(self.window.core, "config", None)
+        if config is None:
+            return fallback
+        value = config.get_provider(self.get_config_id(), key, fallback)
+        # Optional ENV fallback is provider-owned metadata. This keeps special
+        # cases (e.g. Forge) out of the central client/config code while still
+        # allowing a provider to retain its historical environment fallback.
+        if (value is None or value == "") and field is not None:
+            env_names = field.get("env", [])
+            if isinstance(env_names, str):
+                env_names = [env_names]
+            for env_name in env_names if isinstance(env_names, (list, tuple)) else []:
+                env_value = os.environ.get(str(env_name), "")
+                if env_value:
+                    return env_value
+        return value
+
+    def set_config(self, key: str, value: Any):
+        """Write a provider value to ``config.providers``."""
+        if self.window is None or not hasattr(self.window, "core"):
+            return
+        config = getattr(self.window.core, "config", None)
+        if config is not None:
+            config.set_provider(self.get_config_id(), key, value)
+
+    def sync_config(self) -> bool:
+        """Materialize missing provider defaults in the active config."""
+        if self.window is None or not hasattr(self.window, "core"):
+            return False
+        schema = self.get_settings_schema()
+        remote_schema = self.get_remote_tools_schema()
+        if not schema and not remote_schema:
+            return False
+        config = getattr(self.window.core, "config", None)
+        if config is None:
+            return False
+        defaults = {}
+        for key in ("api_key", "api_base"):
+            field = schema.get(key)
+            if isinstance(field, dict):
+                defaults[key] = field.get("default")
+        extra_defaults = {}
+        for key, field in (schema.get("extra", {}) or {}).items():
+            if isinstance(field, dict):
+                extra_defaults[key] = field.get("default")
+        if extra_defaults:
+            defaults["extra"] = extra_defaults
+        if remote_schema:
+            defaults["remote_tools"] = {
+                key: field.get("default") for key, field in remote_schema.items()
+                if isinstance(field, dict)
+            }
+        return config.ensure_provider(self.get_config_id(), defaults)
 
     def init(
             self,
@@ -272,7 +471,7 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """
         Return LlamaIndex LLM instance for plain-text completion.
 
@@ -293,7 +492,7 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False
-    ) -> LlamaBaseLLM:
+    ) -> "LlamaBaseLLM":
         """
         Return LLM provider instance for llama index query and chat
 
@@ -310,7 +509,8 @@ class BaseLLM:
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
-    ) -> LlamaBaseLLM:
+            force_computer_use: bool = False,
+    ) -> "LlamaBaseLLM":
         """Return a LlamaIndex LLM with the Chat with Files Computer Use bridge.
 
         Kept as the provider override point for backward compatibility. New
@@ -324,7 +524,8 @@ class BaseLLM:
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
-    ) -> LlamaBaseLLM:
+            force_computer_use: bool = False,
+    ) -> "LlamaBaseLLM":
         """Return a LlamaIndex LLM bound to the shared Computer Use runtime.
 
         Existing provider implementations already expose their native Computer
@@ -337,6 +538,7 @@ class BaseLLM:
             model=model,
             stream=stream,
             computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
         )
 
     def llama_agent(
@@ -344,8 +546,9 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False,
-            allow_remote_tools: bool = True
-    ) -> LlamaBaseLLM:
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
+    ) -> "LlamaBaseLLM":
         """
         Return LlamaIndex LLM instance for Agents v2.
 
@@ -357,6 +560,7 @@ class BaseLLM:
         :param model: model instance
         :param stream: stream mode
         :param allow_remote_tools: allow provider-native remote tools
+        :param force_computer_use: force provider-native Computer Use remote tool
         :return: provider instance
         """
         return self.llama(window=window, model=model, stream=stream)
@@ -366,7 +570,7 @@ class BaseLLM:
             window,
             model: ModelItem,
             stream: bool = False
-    ) -> LlamaMultiModalLLM:
+    ) -> "LlamaMultiModalLLM":
         """
         Return multimodal LLM provider instance for llama
 
@@ -381,7 +585,7 @@ class BaseLLM:
             self,
             window,
             config: Optional[List[Dict]] = None
-    ) -> BaseEmbedding:
+    ) -> "BaseEmbedding":
         """
         Return provider instance for embeddings
 

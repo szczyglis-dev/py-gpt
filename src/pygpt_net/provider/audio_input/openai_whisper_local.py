@@ -12,10 +12,12 @@
 import gc
 import os
 import sys
+import shutil
 from urllib.parse import urlparse
 
 from pygpt_net.core.typing_compat import ensure_typing_self_compat
 from pygpt_net.core.types import WHISPER_LOCAL_MODELS
+from pygpt_net.utils import trans
 
 from .base import BaseProvider
 
@@ -52,8 +54,8 @@ class OpenAIWhisperLocal(BaseProvider):
             tab="openai_whisper_local",
             keys=WHISPER_LOCAL_MODELS,
             description="Select a local Whisper model. The size shown in the list is the approximate checkpoint "
-                        "download size on disk, not RAM/VRAM usage. Default: base. Local models are not available "
-                        "in compiled or Snap versions; use an API provider there.",
+                        "download size on disk, not RAM/VRAM usage. Default: base. Install optional dependencies "
+                        "using Config > Package Manager.",
             urls={
                 "Models": "https://github.com/openai/whisper"
             }
@@ -84,12 +86,10 @@ class OpenAIWhisperLocal(BaseProvider):
         :param path: path to audio file to transcribe
         :return: transcribed text
         """
-        is_compiled = self.plugin.window.core.config.is_compiled() or self.plugin.window.core.platforms.is_snap()
-        if is_compiled:
-            raise ValueError("Local models are not available in compiled version.")
-
         if not self.is_configured():
             raise ImportError(self.get_config_message())
+        if not self.is_ffmpeg_available():
+            raise RuntimeError(self.get_ffmpeg_message())
 
         model = self.load_model()
         memory_before = self._get_rss_bytes()
@@ -261,15 +261,23 @@ class OpenAIWhisperLocal(BaseProvider):
             freed = before - after
             self._resident_memory_bytes = max(0, self._resident_memory_bytes - freed)
 
+    def is_ffmpeg_available(self) -> bool:
+        """Return True when the Windows local Whisper FFmpeg dependency is available."""
+        if not sys.platform.startswith("win"):
+            return True
+        return bool(shutil.which("ffmpeg") or shutil.which("ffmpeg.exe"))
+
+    @staticmethod
+    def get_ffmpeg_message() -> str:
+        """Return a localized message for a missing Windows FFmpeg executable."""
+        return trans("audio.whisper.ffmpeg.missing")
+
     def is_configured(self) -> bool:
         """
         Check if provider is configured
 
         :return: True if configured, False otherwise
         """
-        is_compiled = self.plugin.window.core.config.is_compiled() or self.plugin.window.core.platforms.is_snap()
-        if is_compiled:
-            raise ValueError("Local models are not available in compiled version.")
         try:
             self._import_whisper()
         except ImportError:
@@ -283,13 +291,7 @@ class OpenAIWhisperLocal(BaseProvider):
         :return: message
         """
         return (
-            "Local Whisper model is not installed.\n\n"
-            "To use the local Whisper provider, install it manually in your Python environment with:\n\n"
-            "pip install git+https://github.com/openai/whisper.git\n"
-            "or\n"
-            "pip install openai-whisper\n\n"
-            "Installation may take a while and may require significant disk space, because large "
-            "dependencies such as PyTorch may also need to be installed.\n\n"
-            "INFO: Local Whisper is not available in compiled/binary, Snap or AppImage builds of PyGPT. "
-            "Use a source/pip installation of PyGPT to use the local model."
+            "Local Whisper dependencies are unavailable. Install openai-whisper using "
+            "Config > Package Manager. A restart may be required. "
+            "PyTorch requires significant disk space. FFmpeg must also be available on PATH."
         )

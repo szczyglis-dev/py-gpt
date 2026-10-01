@@ -21,7 +21,6 @@ from llama_index.core.workflow import (
     Context,
     StartEvent,
     StopEvent,
-    Event,
     step,
 )
 from llama_index.core.llms.llm import LLM
@@ -32,11 +31,7 @@ from ...base import BaseAgent
 # v12/v13 agent workflow events + agent
 from llama_index.core.agent.workflow import (
     FunctionAgent,
-    ToolCall,
-    ToolCallResult,
     AgentStream,
-    AgentOutput,
-    AgentInput,  # ensure AgentInput propagation includes agent name
 )
 
 # v12/v13 compatibility imports
@@ -126,7 +121,7 @@ class OpenAIWorkflowAgent(Workflow):
     - tools: accepts static list or dynamic tool_retriever (query-aware).
     - default_tool_choice: 'auto' | 'none' | '<tool_name>' -> filters visible tools for this run.
     - max_function_calls: mapped to FunctionAgent.max_steps.
-    - streaming: forwards AgentStream/ToolCall/ToolCallResult/AgentOutput; emits StepEvent when available.
+    - streaming: forwards child prose/tools and awaits the authoritative terminal result.
     """
     def __init__(
         self,
@@ -141,6 +136,7 @@ class OpenAIWorkflowAgent(Workflow):
         tool_retriever: Optional[Any] = None,
         memory_char_limit: int = 8000,
         on_stop: Optional[Callable[[], bool]] = None,
+        input_builder: Optional[Callable[[str], Any]] = None,
     ):
         """
         Initialize the OpenAIWorkflowAgent.
@@ -166,8 +162,9 @@ class OpenAIWorkflowAgent(Workflow):
         self._memory = memory
         self._memory_char_limit = memory_char_limit
         self._default_tool_choice = (default_tool_choice or "auto").strip().lower()
-        self._max_steps = int(max_function_calls or DEFAULT_MAX_FUNCTION_CALLS)
+        self._max_steps = int(max_function_calls) if max_function_calls is not None else DEFAULT_MAX_FUNCTION_CALLS
         self._on_stop = on_stop
+        self._input_builder = input_builder
         self.verbose = verbose
 
         # human-friendly display name propagated to UI via workflow events
@@ -204,6 +201,7 @@ class OpenAIWorkflowAgent(Workflow):
         :param verbose: override verbosity
         :return: Workflow run handler (stream_events() supported)
         """
+        self._on_stop = kwargs.get("on_stop", self._on_stop)
         if verbose is not None:
             self.verbose = bool(verbose)
         if memory is not None:
@@ -539,103 +537,21 @@ class OpenAIWorkflowAgent(Workflow):
         :param prompt: User message to process
         :return: Last answer from the agent (text response)
         """
-        sig = inspect.signature(self._agent.run)
-        kwargs: Dict[str, Any] = {}
-        if "user_msg" in sig.parameters:
-            kwargs["user_msg"] = prompt
-        elif "query" in sig.parameters:
-            kwargs["query"] = prompt
-        if "max_steps" in sig.parameters:
-            kwargs["max_steps"] = self._max_steps
-
-        handler = self._agent.run(**kwargs)
-        last_answer = ""
-        has_stream = False
-
-        async def _stream():
-            nonlocal last_answer, has_stream
-
-            async for e in handler.stream_events():
-                if isinstance(e, StopEvent):
-                    continue
-
-                # external stop callback
-                if self._stopped():
-                    try:
-                        ctx.write_event_to_stream(StopEvent())
-                    except Exception:
-                        pass
-                    try:
-                        await handler.cancel_run()
-                    except Exception:
-                        pass
-                    return last_answer
-
-                if isinstance(e, AgentInput):
-                    # Ensure the input event also carries the display name for UI
-                    try:
-                        e.current_agent_name = self._display_agent_name
-                    except Exception:
-                        pass
-                    ctx.write_event_to_stream(e)
-                    continue
-
-                if isinstance(e, AgentStream):
-                    if getattr(e, "delta", None):
-                        has_stream = True
-                    # Always enforce agent name for consistency in UI
-                    try:
-                        e.current_agent_name = self._display_agent_name
-                    except Exception:
-                        # If immutable, rebuild a compatible event object
-                        try:
-                            e = AgentStream(
-                                delta=getattr(e, "delta", ""),
-                                response=getattr(e, "response", ""),
-                                current_agent_name=self._display_agent_name,
-                                tool_calls=getattr(e, "tool_calls", []),
-                                raw=getattr(e, "raw", {}),
-                            )
-                        except Exception:
-                            pass
-                    ctx.write_event_to_stream(e)
-                    continue
-
-                if isinstance(e, AgentOutput):
-                    resp = getattr(e, "response", None)
-                    content = self._to_text(resp).strip()
-                    last_answer = content
-                    if not has_stream and content:
-                        ctx.write_event_to_stream(
-                            AgentStream(
-                                delta=content,
-                                response=content,
-                                current_agent_name=self._display_agent_name,
-                                tool_calls=getattr(e, "tool_calls", []),
-                                raw=getattr(e, "raw", {}),
-                            )
-                        )
-                    continue
-
-                if isinstance(e, (ToolCall, ToolCallResult)):
-                    ctx.write_event_to_stream(e)
-                    continue
-
-                if isinstance(e, Event):
-                    ctx.write_event_to_stream(e)
-
-            try:
-                await handler
-            except Exception:
-                pass
-
-            return last_answer
-
-        try:
-            return await _stream()
-        except Exception as ex:
-            await self._emit_text(ctx, f"\n`Agent run failed: {ex}`")
-            return last_answer
+        from pygpt_net.core.agents.runners.llama_events import forward_handler
+        from pygpt_net.core.agents.runners.llama_session import result_text
+        from pygpt_net.core.agents_v2.utils import effective_iteration_limit
+        user_msg = self._input_builder(prompt) if callable(self._input_builder) else prompt
+        handler = self._agent.run(
+            user_msg=user_msg, memory=self._memory,
+            max_iterations=effective_iteration_limit(self._max_steps),
+        )
+        result, streamed = await forward_handler(
+            handler, ctx, self._stopped, name=self._display_agent_name,
+        )
+        answer = result_text(result) or streamed.strip()
+        if answer and not streamed:
+            await self._emit_text(ctx, answer, self._display_agent_name)
+        return answer
 
     def _to_text(self, resp: Any) -> str:
         """

@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 from typing import Any, Optional
@@ -84,6 +85,76 @@ class RuntimeArtifacts:
         except Exception:
             pass
         return str(getattr(self.runtime.model, "provider", "") or "")
+
+    def _actor_context(self, actor_id: Optional[str] = None):
+        """Return (actor, worker, private tool context) for a provider artifact."""
+        resolved_id = str(actor_id or "orchestrator")
+        worker = None if resolved_id == "orchestrator" else self.runtime.workers.get(resolved_id)
+        actor = worker if worker is not None else self.runtime.orchestrator_actor
+        return actor, worker, getattr(actor, "tool_ctx", None)
+
+    def register_provider_image_base64(
+            self,
+            data: str,
+            actor_id: Optional[str] = None,
+    ) -> Optional[dict]:
+        """Persist a provider-native generated image and prepare its runtime tmp copy."""
+        if not data:
+            return None
+        actor, worker, source_ctx = self._actor_context(actor_id)
+        if source_ctx is None:
+            return None
+        try:
+            raw = base64.b64decode(data)
+            path = self.runtime.window.core.image.gen_unique_path(source_ctx)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "wb") as handle:
+                handle.write(raw)
+
+            local = self.runtime.window.core.filesystem.make_local(path, ctx=source_ctx)
+            if not isinstance(source_ctx.images, list):
+                source_ctx.images = []
+            if local not in source_ctx.images:
+                source_ctx.images.append(local)
+
+            runtime_artifact = self.runtime.window.core.filesystem.materialize_runtime_artifact(
+                path, ctx=source_ctx,
+            )
+            self.runtime.verbose.log(
+                "REMOTE IMAGE MATERIALIZED",
+                {"path": local, "runtime_artifact": runtime_artifact},
+                actor=getattr(actor, "id", actor_id or "orchestrator"),
+            )
+            self.collect_artifacts(source_ctx, worker)
+            return runtime_artifact
+        except Exception as exc:
+            self.runtime.window.core.debug.log(exc)
+            return None
+
+    def register_provider_container_files(
+            self,
+            files,
+            actor_id: Optional[str] = None,
+    ) -> list:
+        """Download provider container files into an actor context for local follow-up tools."""
+        if not files:
+            return []
+        actor, worker, source_ctx = self._actor_context(actor_id)
+        if source_ctx is None:
+            return []
+        try:
+            downloaded = self.runtime.window.core.api.openai.container.download_files(source_ctx, list(files))
+            if downloaded:
+                self.runtime.verbose.log(
+                    "REMOTE CONTAINER FILES",
+                    {"files": downloaded},
+                    actor=getattr(actor, "id", actor_id or "orchestrator"),
+                )
+                self.collect_artifacts(source_ctx, worker)
+            return downloaded or []
+        except Exception as exc:
+            self.runtime.window.core.debug.log(exc)
+            return []
 
     def collect_llm_artifacts(
             self,

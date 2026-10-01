@@ -13,7 +13,8 @@ def _window():
     option = {"value": 1.0}
     controller = SimpleNamespace(
         finder=SimpleNamespace(open=MagicMock(), focus_in=MagicMock()),
-        ui=SimpleNamespace(tabs=SimpleNamespace(on_column_focus=MagicMock())),
+        ui=SimpleNamespace(),
+        tabs=SimpleNamespace(on_column_focus=MagicMock()),
         chat=SimpleNamespace(render=SimpleNamespace(
             on_js_ready=MagicMock(),
             scroll=0,
@@ -40,7 +41,8 @@ def _window():
 
 
 def test_web_tab_meta_and_content_accessors():
-    widget = SimpleNamespace(tab=None, meta=None, plain="", html_content="")
+    widget = SimpleNamespace(tab=None, meta=None, plain="", html_content="",
+                             _annotations=MagicMock(return_value=None))
     tab = object()
     meta = object()
     ChatWebOutput.set_tab(widget, tab)
@@ -152,12 +154,12 @@ def test_web_focus_helpers_route_column_focus():
     widget = SimpleNamespace(window=window, tab=tab, setFocus=MagicMock())
     widget._activate_tab_column = lambda: ChatWebOutput._activate_tab_column(widget)
     ChatWebOutput.on_focus(widget, object())
-    window.controller.ui.tabs.on_column_focus.assert_called_once_with(2)
+    window.controller.tabs.on_column_focus.assert_called_once_with(2)
     widget.setFocus.assert_called_once_with()
 
-    window.controller.ui.tabs.on_column_focus.reset_mock()
+    window.controller.tabs.on_column_focus.reset_mock()
     ChatWebOutput.on_focus_js(widget)
-    window.controller.ui.tabs.on_column_focus.assert_called_once_with(2)
+    window.controller.tabs.on_column_focus.assert_called_once_with(2)
 
 
 def test_web_find_and_update_delegate_to_finder():
@@ -170,21 +172,15 @@ def test_web_find_and_update_delegate_to_finder():
     finder.clear.assert_called_once_with()
 
 
-def test_custom_web_page_view_change_persists_zoom_after_loaded():
+def test_custom_web_page_view_change_schedules_zoom_after_loaded(monkeypatch):
     window = _window()
-    page = SimpleNamespace(
-        loaded=True,
-        window=window,
-        zoomFactor=MagicMock(return_value=1.6),
-    )
+    page = SimpleNamespace(loaded=True, window=window, zoomFactor=MagicMock(return_value=1.6))
+    schedule = MagicMock()
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.web.schedule_zoom', schedule)
     CustomWebEnginePage.on_view_changed(page)
-    window.core.config.set.assert_called_once_with("zoom", 1.6)
-    option = window.controller.settings.editor.get_option.return_value
-    assert option["value"] == 1.6
-    window.controller.config.apply.assert_called_once_with(
-        parent_id="config", key="zoom", option=option
-    )
-    window.ui.nodes["input.container"].sync_width.assert_called_once_with()
+    schedule.assert_called_once_with(window, 'zoom', 1.6)
+    window.controller.config.apply.assert_not_called()
+    window.ui.nodes['input.container'].sync_width.assert_not_called()
 
 
 def test_custom_web_page_view_change_ignores_unloaded_page():

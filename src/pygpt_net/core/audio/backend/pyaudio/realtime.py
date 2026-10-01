@@ -1,7 +1,6 @@
 import threading
 from typing import Optional
 
-import numpy as np
 
 from PySide6.QtCore import QTimer, QObject, Qt
 
@@ -19,6 +18,7 @@ class RealtimeSessionPyAudio(QObject):
             width_bytes: int = 2,
             parent: Optional[QObject] = None,
             volume_emitter: Optional[callable] = None,
+            playback_start_emitter: Optional[callable] = None,
     ):
         super().__init__(parent)
         import pyaudio  # local import to keep backend import-safe
@@ -47,6 +47,9 @@ class RealtimeSessionPyAudio(QObject):
 
         # volume metering
         self._volume_emitter = volume_emitter
+        self._playback_start_emitter = playback_start_emitter
+        self._playback_started = False
+        self._playback_pending = False
         self._vol_buffer = bytearray()
         self._vol_lock = threading.Lock()
         self._vol_timer = QTimer(self)
@@ -109,6 +112,7 @@ class RealtimeSessionPyAudio(QObject):
             return
         with self._buf_lock:
             self._buffer.extend(data)
+        self._playback_pending = True
         # push to volume window from the same bytes
         self._vol_push(data)
 
@@ -123,13 +127,36 @@ class RealtimeSessionPyAudio(QObject):
         self._final = True
 
     def stop(self) -> None:
-        """Stop playback and free resources. Idempotent."""
-        # ensure this executes only once even if called from multiple paths
+        """Stop playback normally and emit the regular stopped callback."""
+        self._shutdown(immediate=False, notify=True)
+
+    def interrupt(self) -> None:
+        """
+        Abort playback immediately and discard all queued realtime audio.
+
+        This is used when a newer realtime response starts while the previous
+        response is still audible. It deliberately does not call on_stopped,
+        because that callback represents a natural playback end and would emit
+        RT_OUTPUT_AUDIO_END for the superseded response.
+        """
+        with self._buf_lock:
+            self._buffer.clear()
+        with self._vol_lock:
+            self._vol_buffer.clear()
+        self._final = True
+        self._shutdown(immediate=True, notify=False)
+
+    def _shutdown(self, immediate: bool, notify: bool) -> None:
+        """Stop PortAudio and release resources."""
         if self._stopping:
             return
         self._stopping = True
 
-        # stop timers first to prevent re-entry
+        # Prevent a callback from the old response from racing with the next
+        # realtime session.
+        cb = self.on_stopped if notify else None
+        self.on_stopped = None
+
         try:
             if self._finish_timer:
                 self._finish_timer.stop()
@@ -141,10 +168,14 @@ class RealtimeSessionPyAudio(QObject):
         except Exception:
             pass
 
-        # gracefully stop PortAudio stream and close/terminate
         try:
             if self._stream and self._stream.is_active():
-                self._stream.stop_stream()  # drains queued audio per PortAudio docs
+                if immediate and hasattr(self._stream, "abort_stream"):
+                    # Pa_AbortStream drops pending buffers instead of waiting
+                    # for them to drain. This is the barge-in path.
+                    self._stream.abort_stream()
+                else:
+                    self._stream.stop_stream()
         except Exception:
             pass
         try:
@@ -158,7 +189,6 @@ class RealtimeSessionPyAudio(QObject):
         except Exception:
             pass
 
-        # zero the meter
         try:
             if self._volume_emitter:
                 self._volume_emitter(0)
@@ -168,8 +198,6 @@ class RealtimeSessionPyAudio(QObject):
         self._stream = None
         self._pa = None
 
-        cb = self.on_stopped
-        self.on_stopped = None
         if cb:
             try:
                 cb()
@@ -200,6 +228,19 @@ class RealtimeSessionPyAudio(QObject):
             elif len(self._buffer) > 0:
                 out = bytes(self._buffer)
                 self._buffer.clear()
+
+        # Signal response activity only when real queued audio is being handed
+        # to PortAudio. Session creation / received chunks may precede audible
+        # playback, so they must not dismiss the request spinner.
+        has_audio = bool(out)
+        if has_audio and self._playback_pending and not self._playback_started:
+            self._playback_started = True
+            self._playback_pending = False
+            try:
+                if self._playback_start_emitter:
+                    self._playback_start_emitter()
+            except Exception:
+                pass
 
         if len(out) < need:
             out += self._silence(need - len(out))
@@ -288,6 +329,8 @@ class RealtimeSessionPyAudio(QObject):
                 pass
             return
         try:
+            import numpy as np
+
             # decode by sample width
             if self.width == 1:
                 arr = np.frombuffer(buf, dtype=np.uint8).astype(np.int16)

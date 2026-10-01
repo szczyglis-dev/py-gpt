@@ -98,7 +98,7 @@ class OptionCmd(QWidget):
         txt_desc = self.option.get('description', '')
         key = self.option['id']
         if self.plugin.use_locale:
-            domain = 'plugin.' + self.plugin.id
+            domain = self.option.get('_locale_domain') or (self.plugin.get_locale_domain() if hasattr(self.plugin, 'get_locale_domain') else 'plugin.' + self.plugin.id)
             translated = trans(key + '.description', False, domain)
             if translated != key + '.description':
                 txt_desc = translated

@@ -76,9 +76,14 @@ class CtxList:
         nodes['ctx.label'] = TitleLabel(trans("ctx.list.label"))
         search_input = self.search_input.setup()
 
+        new_btn_row = QWidget()
+        new_btn_row_layout = QVBoxLayout(new_btn_row)
+        new_btn_row_layout.setContentsMargins(5, 0, 5, 0)
+        new_btn_row_layout.addWidget(new_btn)
+
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(new_btn)
+        layout.addWidget(new_btn_row)
         layout.addWidget(search_input)
         layout.addWidget(ctx_list)
 

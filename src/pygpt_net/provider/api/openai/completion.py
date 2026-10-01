@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.02 20:00:00                  #
+# Updated Date: 2026.09.22 11:22:00                  #
 # ================================================== #
 
 from typing import Optional, Dict, Any, List
@@ -51,8 +51,9 @@ class Completion:
         ctx = context.ctx
         if ctx is None:
             ctx = CtxItem()  # create empty context
-        user_name = ctx.input_name  # from ctx
-        ai_name = ctx.output_name  # from ctx
+        as_chat = bool(self.window.core.config.get("completion.as_chat", True))
+        user_name = ctx.input_name if as_chat else None
+        ai_name = ctx.output_name if as_chat else None
 
         # build prompt message
         message = self.build(
@@ -64,16 +65,10 @@ class Completion:
             user_name=user_name,
         )
 
-        # check if max tokens not exceeded
-        if model.ctx > 0:
-            available_tokens = model.ctx - self.input_tokens
-            if max_tokens > 0:
-                if available_tokens < max_tokens:
-                    max_tokens = available_tokens
-
-        # prepare stop word if user_name is set
+        # Chat-style completion uses the user label as a stop sequence. Plain
+        # one-shot completion must not inherit conversational stop markers.
         stop = ""
-        if user_name is not None and user_name != '':
+        if as_chat and user_name is not None and user_name != '':
             stop = [user_name + ':']
 
         client = self.window.core.api.openai.get_client()
@@ -81,6 +76,19 @@ class Completion:
         # fix for deprecated OpenAI davinci models
         if model_id.startswith('text-davinci'):
             model_id = 'gpt-3.5-turbo-instruct'
+
+        # Respect an explicit app-side output limit for every model. If the
+        # limit is unset (0), normally omit max_tokens and let the API/model
+        # choose its own output limit. The legacy gpt-3.5-turbo-instruct
+        # Completions endpoint is the only exception: omitting max_tokens there
+        # falls back to 16 generated tokens, so use the remaining context
+        # budget for that model only.
+        if model.ctx > 0:
+            available_tokens = max(0, int(model.ctx) - self.input_tokens)
+            if max_tokens > 0:
+                max_tokens = min(max_tokens, available_tokens)
+            elif model_id == 'gpt-3.5-turbo-instruct':
+                max_tokens = available_tokens
 
         # extra API kwargs
         response_kwargs = {}
@@ -96,7 +104,8 @@ class Completion:
         }
         self.window.core.api.logger.log_input(
             type="completions.create", provider=str(model.provider or "openai"),
-            kwargs=request_kwargs, input=message, history=context.history,
+            kwargs=request_kwargs, input=message,
+            history=context.history if as_chat else [],
             extra=extra, model=model_id, path="client.completions.create",
         )
         response = client.completions.create(**request_kwargs)
@@ -128,6 +137,20 @@ class Completion:
         :return: message string (parsed with context)
         """
         message = ""
+        as_chat = bool(self.window.core.config.get("completion.as_chat", True))
+
+        # Plain completion keeps the system prompt but deliberately skips all
+        # transcript/history assembly, role names and chat suffixes.
+        if not as_chat:
+            if system_prompt:
+                message += str(system_prompt)
+            if prompt is not None and str(prompt) != "":
+                if message:
+                    message += "\n"
+                message += str(prompt)
+            self.reset_tokens()
+            self.input_tokens = self.window.core.tokens.from_text(message, model.id)
+            return message
 
         # tokens config
         used_tokens = self.window.core.tokens.from_user(

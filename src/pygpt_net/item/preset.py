@@ -23,6 +23,8 @@ class PresetItem:
     agent_v2: bool = False
     agent_v2_allow_local_tools: bool = True
     agent_v2_allow_remote_tools: bool = True
+    agent_skills: List[str] = field(default_factory=list)
+    agent_skills_use: bool = False
     agent_provider: Optional[str] = None
     agent_provider_openai: Optional[str] = None
     ai_avatar: str = ""
@@ -45,9 +47,15 @@ class PresetItem:
     langchain: bool = False
     llama_index: bool = False
     model: Optional[str] = None
+    model_use: bool = True
+    mcp: List[str] = field(default_factory=list)
+    mcp_use: bool = False
     name: str = "*"
+    plugin_preset: Optional[str] = None
+    plugin_preset_use: bool = False
     prompt: str = ""
     research: bool = False
+    idx_use: bool = True
     remote_tools: List[Any] = field(default_factory=list)
     tools: Dict[str, Any] = field(default_factory=lambda: {"function": []})
     uuid: Optional[str] = None
@@ -62,6 +70,8 @@ class PresetItem:
         self.agent_v2 = False
         self.agent_v2_allow_local_tools = True
         self.agent_v2_allow_remote_tools = True
+        self.agent_skills = []
+        self.agent_skills_use = False
         self.agent_provider = None
         self.agent_provider_openai = None
         self.ai_avatar = ""
@@ -84,9 +94,15 @@ class PresetItem:
         self.langchain = False
         self.llama_index = False
         self.model = None
+        self.model_use = True
+        self.mcp = []
+        self.mcp_use = False
         self.name = "*"
+        self.plugin_preset = None
+        self.plugin_preset_use = False
         self.prompt = ""
         self.research = False
+        self.idx_use = True
         self.remote_tools = []
         self.tools = {
             "function": [],
@@ -117,6 +133,8 @@ class PresetItem:
             "agent_v2": self.agent_v2,
             "agent_v2_allow_local_tools": self.agent_v2_allow_local_tools,
             "agent_v2_allow_remote_tools": self.agent_v2_allow_remote_tools,
+            "agent_skills": self.agent_skills,
+            "agent_skills_use": self.agent_skills_use,
             "agent_provider": self.agent_provider,
             "agent_provider_openai": self.agent_provider_openai,
             "ai_avatar": self.ai_avatar,
@@ -139,10 +157,16 @@ class PresetItem:
             "langchain": self.langchain,
             "llama_index": self.llama_index,
             "model": self.model,
+            "model_use": self.model_use,
+            "mcp": self.mcp,
+            "mcp_use": self.mcp_use,
             "name": self.name,
+            "plugin_preset": self.plugin_preset,
+            "plugin_preset_use": self.plugin_preset_use,
             "prompt": self.prompt,
             "remote_tools": self.remote_tools,
             "research": self.research,
+            "idx_use": self.idx_use,
             "tool.function": self.tools["function"],
             "user_name": self.user_name,
             "uuid": str(self.uuid),
@@ -169,6 +193,14 @@ class PresetItem:
         # cannot leak a previous False value when the keys are absent.
         self.agent_v2_allow_local_tools = bool(data.get("agent_v2_allow_local_tools", True))
         self.agent_v2_allow_remote_tools = bool(data.get("agent_v2_allow_remote_tools", True))
+        self.agent_skills_use = bool(data.get("agent_skills_use", False))
+        self.agent_skills = []
+        if "agent_skills" in data:
+            value = data["agent_skills"]
+            if isinstance(value, list):
+                self.agent_skills = [str(item) for item in value if str(item).strip()]
+            elif isinstance(value, str):
+                self.agent_skills = [item.strip() for item in value.split(",") if item.strip()]
         if "agent_provider" in data:
             self.agent_provider = data["agent_provider"]
         if "agent_provider_openai" in data:
@@ -213,14 +245,32 @@ class PresetItem:
             self.llama_index = data["llama_index"]
         if "model" in data:
             self.model = data["model"]
+        # Model/RAG restore was historically unconditional, therefore older
+        # presets must keep that behavior unless the new switches are changed.
+        self.model_use = bool(data.get("model_use", True))
+        self.mcp_use = bool(data.get("mcp_use", False))
+        self.mcp = []
+        if "mcp" in data:
+            value = data["mcp"]
+            if isinstance(value, list):
+                self.mcp = [str(item) for item in value if str(item).strip()]
+            elif isinstance(value, str):
+                self.mcp = [item.strip() for item in value.split(",") if item.strip()]
         if "name" in data:
             self.name = data["name"]
+        if "plugin_preset" in data:
+            value = data["plugin_preset"]
+            self.plugin_preset = str(value).strip() if value not in (None, "", "_") else None
+        else:
+            self.plugin_preset = None
+        self.plugin_preset_use = bool(data.get("plugin_preset_use", False))
         if "prompt" in data:
             self.prompt = data["prompt"]
         if "remote_tools" in data:
             self.remote_tools = data["remote_tools"]
         if "research" in data:
             self.research = data["research"]
+        self.idx_use = bool(data.get("idx_use", True))
         if "tool.function" in data:
             self.tools["function"] = data["tool.function"]
         if "user_name" in data:

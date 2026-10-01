@@ -504,8 +504,8 @@ class Chat:
         import requests
 
         cfg = self.window.core.config
-        api_key = cfg.get("api_key_xai") or ""
-        base_url = self._build_base_url(cfg.get("api_endpoint_xai"))
+        api_key = self.window.core.llm.get_config("x_ai", "api_key") or ""
+        base_url = self._build_base_url(self.window.core.llm.get_config("x_ai", "api_base"))
 
         messages = self._build_http_messages(
             model_id=model,
@@ -643,8 +643,8 @@ class Chat:
         import json as _json
 
         cfg = self.window.core.config
-        api_key = cfg.get("api_key_xai") or ""
-        base_url = self._build_base_url(cfg.get("api_endpoint_xai"))
+        api_key = self.window.core.llm.get_config("x_ai", "api_key") or ""
+        base_url = self._build_base_url(self.window.core.llm.get_config("x_ai", "api_base"))
 
         if not self._looks_like_http_messages(messages):
             messages = self._build_http_messages(
@@ -1248,6 +1248,7 @@ class Chat:
                         save_path = self.window.core.image.gen_unique_path(ctx, ext=ext)
                         with open(save_path, "wb") as f:
                             f.write(base64.b64decode(b64))
+                        self.window.core.filesystem.materialize_runtime_artifact(save_path, ctx=ctx)
                         if not isinstance(ctx.images, list):
                             ctx.images = []
                         ctx.images.append(save_path)

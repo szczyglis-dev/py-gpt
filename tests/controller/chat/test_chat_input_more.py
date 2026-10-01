@@ -65,8 +65,8 @@ def create_dummy_window():
     win.controller.ctx.handle_allowed = MagicMock()
     win.controller.ctx.update_mode_in_current = MagicMock()
     win.controller.ui = MagicMock()
-    win.controller.ui.tabs = MagicMock()
-    win.controller.ui.tabs.switch_to_first_chat = MagicMock()
+    win.controller.tabs = MagicMock()
+    win.controller.tabs.switch_to_first_chat = MagicMock()
     win.controller.ui.vision = MagicMock()
     win.controller.ui.vision.has_vision = MagicMock(return_value=False)
     win.controller.camera = MagicMock()
@@ -119,7 +119,7 @@ def create_dummy_window():
     win.core.ctx.get_meta_by_id = MagicMock(return_value=meta)
     win.core.ctx.get_current_meta = MagicMock(return_value=meta)
     win.core.ctx.get_current = MagicMock(return_value=1)
-    win.controller.ui.tabs.get_effective_current_pid = MagicMock(return_value=1)
+    win.controller.tabs.get_effective_current_pid = MagicMock(return_value=1)
     win.dispatch = MagicMock()
     return win
 
@@ -285,7 +285,7 @@ def test_send_input_attachments_error():
     assert "attachment error" in error_events[0].data.get("msg", "")
     win.controller.chat.common.sync_send_stop_buttons.assert_called_once_with()
     win.core.ctx.output.finish_request.assert_called_once_with(win.core.ctx.output.get_request_meta.return_value)
-    win.controller.ui.tabs.sync_focused_chat_context.assert_called_once_with()
+    win.controller.tabs.sync_focused_chat_context.assert_called_once_with()
 
 def test_send_calls_execute():
     win = create_dummy_window()
@@ -308,6 +308,7 @@ def test_send_calls_execute():
         "mode_override": None,
         "model_override": None,
         "agent_continue": False,
+        "inline_message": None,
         "runtime_attachments": {"runtime": "attachment"},
         "send_initialized": False,
     }
@@ -341,6 +342,7 @@ def test_send_internal_reply_preserves_origin_mode_and_model():
         "mode_override": MODE_LLAMA_INDEX,
         "model_override": "origin-model",
         "agent_continue": False,
+        "inline_message": None,
         "runtime_attachments": {},
         "send_initialized": False,
     }
@@ -405,6 +407,7 @@ def test_execute_handle_allowed():
         mode_override=None,
         model_override=None,
         agent_continue=False,
+        inline_message=None,
         runtime_attachments=None,
     )
 
@@ -467,3 +470,40 @@ def test_execute_internal_override_locked():
     inp.execute(text="internal", force=False, reply=False, internal=True, prev_ctx=None, multimodal_ctx=mm_ctx)
     win.controller.kernel.resume.assert_called_once()
     win.controller.chat.text.send.assert_called_once()
+
+@pytest.mark.parametrize("text", ["", "   \n\t"])
+def test_empty_send_does_not_start_request_or_change_status(text):
+    window = create_dummy_window()
+    window.controller.realtime.is_enabled.return_value = False
+    window.core.plugins.get.return_value.handler_simple.is_recording = False
+    window.controller.audio.is_recording.return_value = False
+    window.core.attachments.has.return_value = False
+    window.ui.nodes['input'].toPlainText.return_value = text
+    ctrl = Input(window)
+
+    ctrl.send_input()
+
+    window.dispatch.assert_not_called()
+    window.update_status.assert_not_called()
+    window.core.ctx.output.begin_request.assert_not_called()
+    window.controller.tabs.get_effective_current_pid.assert_not_called()
+
+
+@pytest.mark.parametrize("text,attachments", [("hello", False), ("", True)])
+def test_send_with_text_or_attachments_still_begins_input(text, attachments):
+    window = create_dummy_window()
+    window.controller.realtime.is_enabled.return_value = False
+    window.core.plugins.get.return_value.handler_simple.is_recording = False
+    window.controller.audio.is_recording.return_value = False
+    window.core.attachments.has.return_value = attachments
+    window.ui.nodes['input'].toPlainText.return_value = text
+
+    def stop_after_begin(event):
+        if event.name == Event.INPUT_BEGIN:
+            event.data['stop'] = True
+
+    window.dispatch.side_effect = stop_after_begin
+    ctrl = Input(window)
+    ctrl.send_input()
+
+    assert window.dispatch.call_args_list[0].args[0].name == Event.INPUT_BEGIN

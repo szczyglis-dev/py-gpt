@@ -9,7 +9,11 @@
 # Updated Date: 2026.08.16 18:25:00                  #
 # ================================================== #
 
-from llama_index.core.readers.base import BaseReader
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.readers.base import BaseReader
 
 from .base import BaseLoader
 

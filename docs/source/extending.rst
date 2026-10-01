@@ -4,7 +4,7 @@ Extending PyGPT
 Overview
 --------
 
-PyGPT exposes extension points through ``pygpt_net.app.run()``. A custom launcher can register additional:
+PyGPT exposes integration points through ``pygpt_net.app.run()``. A custom launcher can register additional:
 
 * plugins,
 * GUI tools,
@@ -16,28 +16,306 @@ PyGPT exposes extension points through ``pygpt_net.app.run()``. A custom launche
 * web search providers,
 * agent providers.
 
-The repository's ``examples`` directory contains tutorial implementations for every extension type:
+The repository's ``examples`` directory contains tutorial implementations for every add-on type:
 
 * ``examples/custom_launcher.py``
-* ``examples/example_plugin.py``
-* ``examples/example_tool.py``
-* ``examples/example_agent.py``
-* ``examples/example_llm.py``
-* ``examples/example_vector_store.py``
-* ``examples/example_data_loader.py``
-* ``examples/example_audio_input.py``
-* ``examples/example_audio_output.py``
-* ``examples/example_web_search.py``
+* ``examples/addons/plugins/example_plugin``
+* ``examples/addons/tools/example_tool``
+* ``examples/addons/agents/example_agent``
+* ``examples/addons/llms/example_llm``
+* ``examples/addons/vector_stores/example_vector_store``
+* ``examples/addons/loaders/example_loader``
+* ``examples/addons/audio_input/example_audio_input``
+* ``examples/addons/audio_output/example_audio_output``
+* ``examples/addons/web/example_web``
 
 The examples are intentionally small and are the recommended starting point for custom integrations.
 
-Registration in a custom launcher
----------------------------------
+For the complete external package format, lifecycle, Package Manager integration, publishing workflow and method/event reference for every Add-on type, see :doc:`addons_api`.
+
+External Add-ons
+-------------------
+
+PyGPT can load application-wide external add-ons directly from ``<application base workdir>/addons``. This is the recommended way to distribute Python add-ons that must work with both source installations and compiled PyInstaller builds, because the add-on code remains outside the application bundle and is imported by the embedded Python runtime at startup.
+
+Supported add-on types are:
+
+* ``plugin`` -> ``addons/plugins``
+* ``llm`` -> ``addons/llms``
+* ``vector_store`` -> ``addons/vector_stores``
+* ``loader`` -> ``addons/loaders``
+* ``audio_input`` -> ``addons/audio_input``
+* ``audio_output`` -> ``addons/audio_output``
+* ``web`` -> ``addons/web``
+* ``tool`` -> ``addons/tools``
+* ``agent`` -> ``addons/agents``
+* ``theme`` -> ``addons/themes``
+* ``locale`` -> ``addons/locale``
+
+The Python add-on types are registered into the same runtime registries as built-in components. Theme and locale packages are static application-wide resources: the theme/translation loaders read them directly from ``addons/themes`` and ``addons/locale`` without copying files into a profile.
+
+Installing ready-made Add-ons
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Open ``Config -> Install Add-on...``. The **Installed** tab shows add-on name, description, author, version, type, trusted status and official status. Right-click an installed item and choose **Uninstall** to remove it after confirmation.
+
+The installer supports:
+
+* **Import from ZIP** - the archive must contain exactly one add-on package; normal archive/repository wrapper directories are allowed as long as exactly one ``manifest.json`` is present.
+* **Import from directory** - select a local directory whose root contains ``manifest.json``.
+* **Import from GitHub** - paste a GitHub repository URL, a ``/tree/<ref>/<path>`` URL, or a direct repository-subdirectory URL such as ``https://github.com/owner/repo/plugins/example_plugin``.
+* **Explore** - browse the configured public add-ons registry and install selected entries.
+
+The default registry is:
+
+``https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json``
+
+You can change the registry URL in the **Explore** tab. A normal GitHub repository URL in the short ``github.com/<owner>/<repo>/<file>.json`` form is accepted by PyGPT and resolved to raw content internally.
+
+.. warning::
+
+   External Python add-ons execute with the same process permissions as PyGPT. They can import Python modules, access files available to the process, use the network, and call any APIs exposed by installed dependencies. The **trusted** and **official** flags are registry metadata, not a sandbox or a security guarantee. Review source code and repository ownership before installing an add-on.
+
+Python add-ons are loaded on application startup. After installing, updating or uninstalling one, restart PyGPT before relying on the runtime change. The installed Add-on set is shared by all profiles, so switching profiles does not select another Python Add-on tree. Theme and locale packages are global too and are read in place from the same application-wide Add-ons tree.
+
+An invalid add-on never aborts the whole application startup. Missing manifests, unsupported manifest versions, incompatible minimum PyGPT versions, broken imports, invalid entry points and registration errors are skipped individually and reported as ``[Add-ons] WARNING`` messages in the console/log output.
+
+Add-on directory layout
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A plugin installed manually can look like this:
+
+.. code-block:: text
+
+   <application base workdir>/addons/
+   └── plugins/
+       └── my_plugin/
+           ├── manifest.json
+           ├── plugin.py
+           └── helpers/
+               └── api.py
+
+The directory name must match the manifest ``id``. The parent directory must match the manifest ``type``. For example, an add-on with ``"type": "audio_input"`` belongs in ``addons/audio_input/<id>``.
+
+Every package requires a ``manifest.json``. Packages without a valid manifest are ignored.
+
+Manifest format
+~~~~~~~~~~~~~~~
+
+Manifest version ``1`` uses the following base structure:
+
+.. code-block:: json
+
+   {
+     "manifest_version": 1,
+     "id": "my_plugin",
+     "type": "plugin",
+     "name": "My Plugin",
+     "description": "Example external PyGPT plugin.",
+     "version": "1.2.0",
+     "min_app_version": "2.8.32",
+     "author": "Example Author",
+     "contact": {
+       "email": "author@example.com",
+       "repo": "https://github.com/example/my-pygpt-add-on",
+       "www": "https://example.com"
+     },
+     "entrypoint": "plugin.py:Plugin",
+     "external_dependencies": [
+       {"name": "example-package", "version": ">=1.0,<2.0"}
+     ]
+   }
+
+Required fields are ``manifest_version``, ``id``, ``type``, ``name``, ``description``, ``version``, ``min_app_version``, ``author`` and ``contact``. Python/runtime add-on types additionally require ``entrypoint``.
+
+``id`` must contain only lowercase letters, digits, ``.``, ``_`` and ``-`` and must start with a letter or digit. ``version`` and ``min_app_version`` use normal PEP 440-compatible version strings.
+
+Add-on IDs should be globally unique. For add-ons intended for distribution, use a GitHub-derived naming convention such as ``<github_user>_<repo_name>_<addon_name>`` and normalize it to the characters allowed above. For example: ``szczyglis_dev_py_gpt_example_plugin``. Keep the ID stable across releases so updates replace the existing installation instead of creating a second add-on.
+
+``contact`` may be a string, object or list. Using an object is recommended so an email address, repository and website can be declared separately.
+
+``external_dependencies`` declares application-runtime Python dependencies. Version 1 accepts either normal requirement strings or objects with at least ``name`` and optional ``version`` / ``optional`` fields. Required missing dependencies are resolved through the shared ``Config -> Package Manager`` flow and installed into the application-wide, Python-version-specific ``extra_packages/<major.minor>`` directory. Optional dependencies are not installed automatically. Direct package URLs are rejected; use package names and version constraints.
+
+Entrypoints
+~~~~~~~~~~~
+
+An entry point uses ``relative/module.py:Symbol`` syntax. The symbol may be:
+
+* a class - PyGPT instantiates it without arguments;
+* a zero-argument factory function - PyGPT calls it;
+* a factory returning a list/tuple of compatible objects.
+
+A manifest can also use an array of entry points when one add-on package intentionally registers multiple components of the same add-on type:
+
+.. code-block:: json
+
+   {
+     "entrypoint": [
+       "providers.py:PrimaryProvider",
+       "providers.py:SecondaryProvider"
+     ]
+   }
+
+The resulting object must inherit the same base class required by the built-in launcher registration method. The mapping is:
+
+.. code-block:: text
+
+   plugin       -> pygpt_net.plugin.base.plugin.BasePlugin
+   llm          -> pygpt_net.provider.llms.base.BaseLLM
+   vector_store -> pygpt_net.provider.vector_stores.base.BaseStore
+   loader       -> pygpt_net.provider.loaders.base.BaseLoader
+   audio_input  -> pygpt_net.provider.audio_input.base.BaseProvider
+   audio_output -> pygpt_net.provider.audio_output.base.BaseProvider
+   web          -> pygpt_net.provider.web.base.BaseProvider
+   tool         -> pygpt_net.tools.base.BaseTool
+   agent        -> pygpt_net.provider.agents.base.BaseAgent
+
+The add-on loader creates an isolated Python package namespace for each installed add-on. Relative imports inside an add-on package are therefore supported without adding the whole ``addons`` directory to global ``sys.path``.
+
+Creating an external plugin
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a minimal plugin:
+
+.. code-block:: python
+
+   from pygpt_net.plugin.base.plugin import BasePlugin
+
+
+   class Plugin(BasePlugin):
+       def __init__(self):
+           super().__init__()
+           self.id = "my_external_plugin"
+           self.name = "My External Plugin"
+           self.description = "Loaded from the application-wide addons directory."
+           self.type = ["cmd"]
+
+Save it as ``plugin.py`` next to the manifest and set ``"entrypoint": "plugin.py:Plugin"``. The normal plugin API, options, commands and event hooks are identical to those used by built-in plugins.
+
+Creating other provider types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For other add-on families, subclass the same base class used by the corresponding built-in provider and implement the methods required by that interface. External objects are passed to the existing ``Launcher.add_llm()``, ``add_vector_store()``, ``add_loader()``, ``add_audio_input()``, ``add_audio_output()``, ``add_web()``, ``add_tool()`` or ``add_agent()`` path, so registration behavior is the same as for custom instances supplied to ``pygpt_net.app.run()``.
+
+The repository contains ready-to-copy examples under ``examples`` for every supported type, including a theme and locale package. These examples are deliberately minimal and are intended to verify discovery/registration before implementing a real backend.
+
+Theme Add-ons
+~~~~~~~~~~~~~~~~
+
+A theme package uses ``"type": "theme"`` and does not require an entry point. Put theme files either directly in the add-on root or in a ``theme`` subdirectory:
+
+.. code-block:: text
+
+   addons/themes/my-theme-dark/
+   ├── manifest.json
+   └── theme/
+       ├── app.css
+       ├── app.xml
+       └── chat.css
+
+The add-on ID becomes the theme directory ID under ``%workdir%/css``. The normal ``-dark`` / ``-light`` theme naming and compatibility rules described later in this document still apply.
+
+Locale Add-ons
+~~~~~~~~~~~~~~~~~
+
+A locale package uses ``"type": "locale"`` and does not require an entry point. Put one or more normal PyGPT locale ``.ini`` files in a ``locale`` subdirectory:
+
+.. code-block:: text
+
+   addons/locale/my-locale-pack/
+   ├── manifest.json
+   └── locale/
+       ├── locale.en.ini
+       └── locale.pl.ini
+
+They are read directly from ``<application base workdir>/addons/locale/<id>`` and extend the normal application locale domain. No locale files are copied into ``%workdir%/locale``.
+
+GitHub repositories and monorepos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A standalone add-on repository should keep ``manifest.json`` in its repository root. A repository containing multiple add-ons may keep them in subdirectories such as:
+
+.. code-block:: text
+
+   plugins/example_plugin/manifest.json
+   tools/example_tool/manifest.json
+   themes/example-theme-dark/manifest.json
+
+Users can paste a normal GitHub tree URL that includes the subdirectory, for example ``https://github.com/owner/repo/tree/main/plugins/example_plugin``. PyGPT also accepts a direct repository-subdirectory URL such as ``https://github.com/owner/repo/plugins/example_plugin`` and resolves that path against the repository default branch. Registry entries can specify the repository and path separately with ``github_url`` and ``github_path``. For add-ons stored directly in the official ``py-gpt-addons`` repository, ``github_url`` may be omitted and only ``github_path``/``path`` (for example ``./plugins/example_plugin``) is required.
+
+Publishing in the official registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The official registry repository is ``https://github.com/szczyglis-dev/py-gpt-addons``. To publish an add-on, host the add-on source on GitHub, verify that its root contains a valid ``manifest.json``, and submit a pull request adding an item to ``addons.json``.
+
+A registry entry can look like this:
+
+.. code-block:: json
+
+   {
+     "id": "example_plugin",
+     "name": "Example Plugin",
+     "description": "Short catalog description.",
+     "author": "Example Author",
+     "version": "1.0.0",
+     "type": "plugin",
+     "github_url": "https://github.com/example/pygpt-add-ons",
+     "github_path": "plugins/example_plugin",
+     "ref": "main",
+     "trusted": false,
+     "official": false
+   }
+
+``github_path`` is optional when ``github_url`` points directly at a standalone add-on repository. Conversely, when an entry points to a directory inside the official ``py-gpt-addons`` repository, ``github_url`` can be omitted and ``github_path`` or ``path`` can contain a relative path such as ``./plugins/example_plugin``. ``ref`` is also optional; when omitted, PyGPT resolves the repository's default branch. ``trusted`` and ``official`` are registry-maintainer metadata and should not be self-declared as a security guarantee by third-party authors.
+
+The top-level registry document has this shape:
+
+.. code-block:: json
+
+   {
+     "addons": [
+       { ... },
+       { ... }
+     ]
+   }
+
+A compact entry for an add-on committed directly to the official registry repository can use only a relative path:
+
+.. code-block:: json
+
+   {
+     "id": "example_plugin",
+     "name": "Example Plugin",
+     "description": "Example stored in the official registry repository.",
+     "author": "Example Author",
+     "version": "1.0.0",
+     "type": "plugin",
+     "path": "./plugins/example_plugin",
+     "trusted": true,
+     "official": true
+   }
+
+When preparing the pull request, include a short description, add-on type, repository link, manifest/version information, dependency notes, and any security-sensitive capabilities such as filesystem, network, shell, desktop-control or credential access.
+
+Registry files for Agent Skills and MCP Connectors are hosted in the same repository as ``skills.json`` and ``mcp_connectors.json``. PyGPT still retains its bundled Skills/MCP catalogs as an offline fallback when the default online catalogs cannot be loaded.
+
+Profile portability
+~~~~~~~~~~~~~~~~~~~
+
+The ``addons`` directory is **not** part of profile export/import starting with 2.8.36. Installed packages and their registry belong to the application base workdir and remain available when profiles are exported, imported, duplicated or switched. Older profile archives that still contain ``addons`` entries do not restore them into the imported profile.
+
+Legacy custom launcher registration
+-----------------------------------
+
+The external Add-ons manager is the normal choice for redistributable application-wide packages. A custom launcher remains supported when you control application startup directly or need to construct add-on objects programmatically.
+
+Registering components programmatically
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``pygpt_net.app.run()`` first registers PyGPT's built-in components and then appends custom instances
 provided through keyword arguments.
 
-A minimal launcher can register only one extension type:
+A minimal launcher can register only one add-on type:
 
 .. code-block:: python
 
@@ -50,7 +328,7 @@ A minimal launcher can register only one extension type:
        ],
    )
 
-A larger launcher can register all currently supported extension families:
+A larger launcher can register all currently supported add-on families:
 
 .. code-block:: python
 
@@ -86,11 +364,13 @@ A larger launcher can register all currently supported extension families:
 
 ``run()`` owns the application lifecycle and should normally be called only once.
 
-Every extension ID should be unique. Reusing a built-in ID may replace or shadow a built-in entry in the
-corresponding registry.
+Every add-on ID should be unique. Reusing a built-in ID may replace or shadow a built-in entry in the
+corresponding registry. For distributable add-ons, prefer the GitHub-derived convention
+``<github_user>_<repo_name>_<addon_name>`` (for example
+``szczyglis_dev_py_gpt_example_plugin``) to reduce collisions between independent authors and repositories.
 
 During application initialization PyGPT attaches the main ``window`` or owning plugin to registered
-objects. Do not assume those references are already available inside your extension's ``__init__()``
+objects. Do not assume those references are already available inside your add-on's ``__init__()``
 unless the relevant base class explicitly provides them.
 
 Plugins and GUI Tools are different
@@ -359,7 +639,7 @@ and handles command execution:
 ``add_cmd()`` is preferred over manually constructing the command schema. PyGPT can translate registered
 commands into the appropriate native function/tool format when native API function calls are enabled.
 
-The complete tutorial implementation is available in ``examples/example_plugin.py``.
+The complete tutorial implementation is available in ``examples/addons/plugins/example_plugin``.
 
 Handling events
 ~~~~~~~~~~~~~~~
@@ -686,7 +966,7 @@ Minimal example:
            pass
 
 A real GUI Tool can register dialogs, tabs, menus, theme hooks and update hooks. See
-``examples/example_tool.py`` for a complete dialog-based tutorial.
+``examples/addons/tools/example_tool`` for a complete dialog-based tutorial.
 
 Adding a custom LLM wrapper
 ---------------------------
@@ -741,15 +1021,14 @@ For embeddings, implement ``get_embeddings_model()`` and return a LlamaIndex ``B
 
 Depending on its purpose, a wrapper can implement:
 
-* ``llama()`` - return a LlamaIndex LLM for Chat with Files / LlamaIndex agents.
+* ``llama()`` - return a LlamaIndex LLM for RAG and LlamaIndex agents.
 * ``get_embeddings_model()`` - return a LlamaIndex embedding model.
-* ``get_openai_agent_provider()`` - optionally provide a model adapter for OpenAI Agents.
 * ``get_models()`` - optionally expose provider-side model discovery.
 
 Legacy ``chat()`` and ``completion()`` methods remain in the base interface for compatibility, but current
 custom LlamaIndex integrations should normally follow the ``llama()`` path.
 
-See ``examples/example_llm.py`` for a complete LLM + embeddings example.
+See ``examples/addons/llms/example_llm`` for a complete LLM + embeddings example.
 
 Adding a custom vector store
 ----------------------------
@@ -807,7 +1086,7 @@ Example:
 ``BaseStore`` already provides common helpers such as ``exists()``, ``remove()``, ``truncate()``,
 ``remove_document()``, ``attach()`` and ``get_path()``.
 
-See ``examples/example_vector_store.py`` for the complete tutorial.
+See ``examples/addons/vector_stores/example_vector_store`` for the complete tutorial.
 
 Adding a custom data loader
 ---------------------------
@@ -862,7 +1141,7 @@ The loader registers metadata/configuration and returns a LlamaIndex reader:
 
 Current LlamaIndex ``Document`` objects use the ``metadata`` field for metadata.
 
-See ``examples/example_data_loader.py`` for a configurable CSV-like example.
+See ``examples/addons/loaders/example_loader`` for a runnable ``.example`` file reader that returns real LlamaIndex ``Document`` objects.
 
 Adding audio providers
 ----------------------
@@ -902,7 +1181,7 @@ A speech-to-text provider receives the path that PyGPT wants transcribed. Do not
                self.plugin.window.core.config.get("api_key")
            )
 
-See ``examples/example_audio_input.py`` for provider-specific settings and configuration messages.
+See ``examples/addons/audio_input/example_audio_input`` for a runnable WAV-inspector provider with provider-specific settings.
 
 Audio output
 ~~~~~~~~~~~~
@@ -933,7 +1212,7 @@ Use ``prepare_output_path()`` rather than a fixed filename. PyGPT stores generat
            response.stream_to_file(path)
            return str(path)
 
-See ``examples/example_audio_output.py`` for settings, voices and configuration checks.
+See ``examples/addons/audio_output/example_audio_output`` for a runnable provider that generates a WAV tone through the normal audio-output path.
 
 Adding a web search provider
 ----------------------------
@@ -969,55 +1248,18 @@ A provider normally defines its own settings and implements ``search()``:
 A production provider should define credentials/settings with ``plugin.add_option()`` and use
 ``self.plugin.get_url()`` or another PyGPT/network helper appropriate for the integration.
 
-See ``examples/example_web_search.py`` for a complete Google Custom Search tutorial.
+See ``examples/addons/web/example_web`` for a runnable Wikipedia/MediaWiki OpenSearch provider that performs a real HTTP search.
 
 Adding a custom agent
 ---------------------
 
-Agent providers are registered with ``agents=[...]``. Built-in providers live under
-``pygpt_net.provider.agents`` and include LlamaIndex and OpenAI Agents workflows.
+Agent providers are registered with ``agents=[...]``. The selectable **Custom agents** mode is LlamaIndex-backed; built-in implementations live under ``pygpt_net.provider.agents.llama_index``.
 
-The simplest safe extension is often to subclass an existing workflow and customize one stage:
+For a completely new provider, derive from ``pygpt_net.provider.agents.base.BaseAgent`` and implement the current provider contract. A provider typically defines its ID, agent type/workflow mode, configuration options, and ``get_agent()`` implementation that returns the runtime workflow/agent object used by PyGPT.
 
-.. code-block:: python
+For workflow experimentation that does not require a new Python provider, prefer the built-in **Custom agent builder**, which can construct and save node-based Custom agents workflows directly from the UI.
 
-   from pygpt_net.provider.agents.openai.agent import Agent as OpenAIAgentBase
-
-
-   class ExampleAgent(OpenAIAgentBase):
-       def __init__(self, *args, **kwargs):
-           super().__init__(*args, **kwargs)
-           self.id = "example_agent"
-           self.name = "Example custom agent"
-
-       def get_agent(self, window, kwargs):
-           kwargs = dict(kwargs or {})
-
-           current = str(
-               kwargs.get("system_prompt") or ""
-           ).strip()
-
-           prefix = (
-               "You are running through the custom "
-               "ExampleAgent provider."
-           )
-
-           kwargs["system_prompt"] = (
-               f"{prefix}\n\n{current}"
-               if current
-               else prefix
-           )
-
-           return super().get_agent(window, kwargs)
-
-The inherited ``run()`` keeps the existing OpenAI Agents execution lifecycle, streaming, tools, response
-IDs and PyGPT bridge integration. Override ``run()`` only when a different execution engine/lifecycle is
-actually required.
-
-For a completely new runtime, derive from ``pygpt_net.provider.agents.base.BaseAgent`` and implement the
-current provider contract.
-
-See ``examples/example_agent.py``.
+See ``examples/addons/agents/example_agent`` for the current extension pattern and use the base interfaces as the source of truth for method signatures.
 
 Source code as API reference
 ----------------------------

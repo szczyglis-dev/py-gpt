@@ -16,7 +16,6 @@ from PySide6.QtCore import QObject, QTimer, QUrl
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from pygpt_net.core.qt import safe_emit
 
-from ..shared import compute_envelope_from_file
 
 class NativePlayer(QObject):
     """
@@ -119,6 +118,7 @@ class NativePlayer(QObject):
                     if self.player.playbackState() == QMediaPlayer.StoppedState:
                         self.stop(signals=signals)
 
+        from ..shared.envelope import compute_envelope_from_file
         self.envelope = compute_envelope_from_file(audio_file, chunk_ms=self.chunk_ms)
         self.player = QMediaPlayer()
         self.player.setAudioOutput(self.audio_output)

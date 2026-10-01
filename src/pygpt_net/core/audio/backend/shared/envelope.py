@@ -9,8 +9,7 @@
 # Updated Date: 2025.08.31 04:00:00                  #
 # ================================================== #
 
-import numpy as np
-from pydub import AudioSegment
+import math
 
 def compute_envelope_from_file(audio_file: str, chunk_ms: int = 100) -> list:
     """
@@ -20,6 +19,8 @@ def compute_envelope_from_file(audio_file: str, chunk_ms: int = 100) -> list:
     :param chunk_ms: Chunk size in milliseconds
     :return: List of volume levels (0-100) per chunk
     """
+    from pydub import AudioSegment
+
     audio = AudioSegment.from_file(audio_file)
     max_amplitude = 32767.0
     envelope = []
@@ -28,7 +29,7 @@ def compute_envelope_from_file(audio_file: str, chunk_ms: int = 100) -> list:
         chunk = audio[ms:ms + chunk_ms]
         rms = float(chunk.rms) if chunk.rms else 0.0
         if rms > 0.0:
-            db = 20.0 * np.log10(max(1e-12, rms / max_amplitude))
+            db = 20.0 * math.log10(max(1e-12, rms / max_amplitude))
         else:
             db = -60.0
         db = max(-60.0, min(0.0, db))

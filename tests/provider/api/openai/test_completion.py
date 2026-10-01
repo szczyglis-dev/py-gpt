@@ -18,7 +18,9 @@ from pygpt_net.provider.api.openai.completion import Completion
 from pygpt_net.item.ctx import CtxItem
 
 
-def mock_get(key):
+def mock_get(key, default=None):
+    if key == "completion.as_chat":
+        return True
     if key == "use_context":
         return True
     elif key == "model":
@@ -29,6 +31,7 @@ def mock_get(key):
         return 2048
     elif key == "context_threshold":
         return 200
+    return default
 
 
 def test_send(mock_window_conf):

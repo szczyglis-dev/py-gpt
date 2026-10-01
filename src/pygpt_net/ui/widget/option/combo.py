@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 08:40:00                  #
+# Updated Date: 2026.09.21 20:35:00
 # ================================================== #
 import sys
 
@@ -298,6 +298,17 @@ class ComboPopupListView(QListView):
         except Exception:
             return False
 
+    def _fallback_text_color_for_bg(self, bg: QColor, default_fg: QColor) -> QColor:
+        """Return a readable text color for the given current-item background."""
+        if not self._is_valid_color(bg):
+            return default_fg
+        try:
+            # Perceived luminance (WCAG-style coefficients) to choose a safe contrast.
+            luminance = (0.2126 * bg.redF()) + (0.7152 * bg.greenF()) + (0.0722 * bg.blueF())
+            return QColor('#000000') if luminance >= 0.5 else QColor('#ffffff')
+        except Exception:
+            return default_fg
+
     def current_selected_style(self):
         """
         Resolve effective style values for the 'current-selected' mark from:
@@ -316,7 +327,8 @@ class ComboPopupListView(QListView):
         default_bg = QColor(0, 0, 0, 0)
         default_stripe = self.palette().color(QPalette.Highlight)
 
-        fg = self._cs_fg if self._is_valid_color(self._cs_fg) else (
+        fg_is_explicit = self._is_valid_color(self._cs_fg)
+        fg = self._cs_fg if fg_is_explicit else (
             probe.palette().color(QPalette.Text) if probe is not None else default_fg
         )
         bg = self._cs_bg if self._is_valid_color(self._cs_bg) else (
@@ -327,6 +339,9 @@ class ComboPopupListView(QListView):
             alt = probe.palette().color(QPalette.Window)
             if self._is_valid_color(alt):
                 bg = alt
+
+        if not fg_is_explicit and self._is_valid_color(bg):
+            fg = self._fallback_text_color_for_bg(bg, fg)
 
         stripe_w = self._cs_left_w
         stripe_color = self._cs_left_color if self._is_valid_color(self._cs_left_color) else (
@@ -366,29 +381,27 @@ class CurrentSelectedDelegate(QStyledItemDelegate):
         if isinstance(view, ComboPopupListView):
             fg, bg, bold, stripe_w, stripe_color = view.current_selected_style()
 
-        # Prepare option clone to adjust font/colors when item is the current combo value
+        # Prepare option clone to adjust font/colors when item is the current combo value.
+        # The combo's current value is not necessarily selected by the popup view once
+        # the mouse moves over another row. Mark it as selected explicitly so the
+        # popup's :selected QSS remains authoritative for both background and text.
         opt = QStyleOptionViewItem(option)
         selected = bool(opt.state & QStyle.State_Selected)
         hovered = bool(opt.state & QStyle.State_MouseOver)
 
         if is_current_combo and not selected:
-            # Apply text color and bold font only when not in selected state to not clash with :selected visuals
+            opt.state |= QStyle.State_Selected
+            selected = True
+
+        if is_current_combo:
             if isinstance(fg, QColor) and fg.isValid():
                 opt.palette.setColor(QPalette.Text, fg)
                 opt.palette.setColor(QPalette.HighlightedText, fg)
             if bold:
                 opt.font.setBold(True)
 
-        # Fill background before default painting when applicable and not selected/hovered
-        if is_current_combo and not selected and not hovered:
-            if isinstance(bg, QColor) and bg.isValid() and bg.alpha() > 0:
-                painter.save()
-                painter.setBrush(QBrush(bg))
-                painter.setPen(Qt.NoPen)
-                painter.drawRect(opt.rect)
-                painter.restore()
-
-        # Default painting (respects QSS for :selected and :hover)
+        # Default painting now uses the selected-state QSS for the current combo item,
+        # even while another popup row is under the mouse cursor.
         super().paint(painter, opt, index)
 
         # Draw left stripe/marker overlay to persistently mark current selection even when hovered/selected
@@ -443,7 +456,10 @@ class SearchableCombo(SeparatorComboBox):
         # Popup fitting helpers
         self._fit_in_progress: bool = False
         self._popup_parent_window = None
-        self._popup_right_margin_px: int = 4  # small safety margin from window right edge
+        self._popup_right_margin_px: int = 4  # small safety margin from screen edge
+        self._popup_preferred_width: int = 0
+        self._popup_view_min_width_before: int | None = None
+        self._popup_view_elide_before = None
 
         self._install_persistent_editor()
         self._init_popup_view_style_targets()
@@ -500,6 +516,7 @@ class SearchableCombo(SeparatorComboBox):
         """Create a persistent editor used for normal display; real search input lives in the popup header."""
         self.setEditable(True)
         line = QLineEdit(self)
+        line.setObjectName("comboDisplayEditor")
         line.setPlaceholderText("")
         line.setClearButtonEnabled(False)
         line.setReadOnly(True)
@@ -531,7 +548,12 @@ class SearchableCombo(SeparatorComboBox):
     # ----- Popup lifecycle -----
 
     def showPopup(self):
-        """Open popup, set max visible height, inject header, and place it over the combo area."""
+        """Open popup at its content width and keep the popup on the current screen."""
+        # Only measure here. Do not widen the QListView before QComboBox opens:
+        # a minimum width on the popup view can leak into the closed combo's
+        # size hint and make the control itself wider. The actual widening is
+        # applied below, after the popup window already exists.
+        self._prepare_popup_width()
         self._apply_popup_max_rows()
         super().showPopup()
         self._popup_open = True
@@ -543,16 +565,20 @@ class SearchableCombo(SeparatorComboBox):
         if self.search:
             self._prepare_popup_header()
 
-        # Ensure geometry fits horizontally within window bounds
+        # QComboBox may initially create the private popup at the width of the
+        # closed control. Resize the popup window itself after it exists.
         self._fit_popup_to_window()
         QTimer.singleShot(0, self._apply_popup_max_rows)
         QTimer.singleShot(0, self._fit_popup_to_window)
         self._refresh_popup_view()
 
-        # Minimal robustness: re-ensure header after popup is fully shown (helps on Windows when switching combos)
+        # Some styles do another layout pass shortly after showPopup(). Keep the
+        # header and popup width stable across those deferred passes.
         QTimer.singleShot(0, self._ensure_header_after_show)
         QTimer.singleShot(15, self._ensure_header_after_show)
         QTimer.singleShot(60, self._ensure_header_after_show)
+        QTimer.singleShot(15, self._fit_popup_to_window)
+        QTimer.singleShot(60, self._fit_popup_to_window)
 
     def hidePopup(self):
         """Close popup and restore normal display text; remove header/margins."""
@@ -581,6 +607,7 @@ class SearchableCombo(SeparatorComboBox):
             self._sync_editor_to_current()
 
         self._teardown_popup_header()
+        self._restore_closed_combo_popup_view()
 
     # ----- Popup header management (search input inside popup) -----
 
@@ -1105,6 +1132,7 @@ class SearchableCombo(SeparatorComboBox):
         self._ensure_magnifier_on(self._popup_header)
         self._ensure_clear_button_visible(self._popup_header)
         self._focus_header_async()
+        self._fit_popup_to_window()
 
     # ----- Search behaviour -----
 
@@ -1352,27 +1380,69 @@ class SearchableCombo(SeparatorComboBox):
         except Exception:
             pass
 
-    # ----- Horizontal fitting helpers (keep popup inside window bounds) -----
+    # ----- Horizontal fitting helpers -----
+
+    def _popup_content_width_hint(self) -> int:
+        """Return the width required to show popup items without eliding their text."""
+        view = self.view()
+        width = max(1, self.width())
+
+        # The delegate-aware column hint is the best first estimate because it
+        # includes the active item delegate and most stylesheet padding.
+        if view is not None:
+            try:
+                view.ensurePolished()
+            except Exception:
+                pass
+            try:
+                hinted = int(view.sizeHintForColumn(self.modelColumn()))
+                if hinted > 0:
+                    width = max(width, hinted)
+            except Exception:
+                pass
+
+        # Fallback/guard for styles where sizeHintForColumn() still reports the
+        # current viewport width. The popup themes use wide left/right padding,
+        # so reserve it explicitly together with frame/scrollbar space.
+        try:
+            metrics = QFontMetrics(view.font() if view is not None else self.font())
+            text_width = max(
+                (metrics.horizontalAdvance(self.itemText(i) or "") for i in range(self.count())),
+                default=0,
+            )
+            width = max(width, text_width + 84)
+        except Exception:
+            pass
+
+        if view is not None:
+            try:
+                width += max(0, 2 * int(view.frameWidth()))
+            except Exception:
+                pass
+            try:
+                width += max(0, int(view.style().pixelMetric(QStyle.PM_ScrollBarExtent, None, view)))
+            except Exception:
+                pass
+
+        return max(50, int(width))
 
     def _popup_allowed_rect(self) -> QRect:
-        """Return the allowed global rectangle for the popup (intersection of window frame and screen)."""
+        """Return the current screen's available global rectangle for a popup."""
+        # A QComboBox popup is a top-level Qt.Popup window. It must not be
+        # constrained to the application window: when the combo sits in a narrow
+        # right-side toolbox, doing that is exactly what squeezes long items to
+        # ``...``. The screen is the real boundary for a popup.
         try:
-            win = self.window()
-            if win is not None:
-                allowed = win.frameGeometry()
-            else:
-                scr = self.screen()
-                allowed = scr.availableGeometry() if scr is not None else None
-            # Intersect with the window's screen available area to avoid going off-screen
-            scr = (win.screen() if win is not None else self.screen())
-            if allowed is not None and scr is not None:
-                allowed = allowed.intersected(scr.availableGeometry())
-            if allowed is None:
-                scr = self.screen()
-                allowed = scr.availableGeometry() if scr is not None else QRect(0, 0, 1920, 1080)
+            center = self.mapToGlobal(self.rect().center())
+            screen = QApplication.screenAt(center)
+            if screen is None:
+                screen = self.screen()
+            if screen is None and self.window() is not None:
+                screen = self.window().screen()
+            allowed = screen.availableGeometry() if screen is not None else QRect(0, 0, 1920, 1080)
         except Exception:
             allowed = QRect(0, 0, 1920, 1080)
-        # Small inward adjustment to avoid touching the edge
+
         try:
             margin = max(0, int(self._popup_right_margin_px))
         except Exception:
@@ -1380,65 +1450,122 @@ class SearchableCombo(SeparatorComboBox):
         return allowed.adjusted(margin, 0, -margin, 0)
 
     def _cap_width_to_window(self, desired_width: int) -> int:
-        """
-        Cap desired popup width to the allowed width inside the parent window.
-
-        :param desired_width: desired popup width
-        :return: capped width
-        """
+        """Cap popup width to the available width of the current screen."""
         try:
             allowed = self._popup_allowed_rect()
-            max_w = max(50, allowed.width())
-            return max(50, min(desired_width, max_w))
+            return max(50, min(int(desired_width), max(50, allowed.width())))
         except Exception:
-            return desired_width
+            return int(desired_width)
+
+    def _prepare_popup_width(self):
+        """Measure popup contents without changing the closed combo geometry."""
+        self._popup_preferred_width = self._popup_content_width_hint()
+
+        # Save the popup view state only once per open cycle. It is restored in
+        # hidePopup(), so a wide dropdown never changes the size hint/layout of
+        # the closed QComboBox.
+        try:
+            view = self.view()
+            if view is not None:
+                self._popup_view_min_width_before = int(view.minimumWidth())
+                self._popup_view_elide_before = view.textElideMode()
+        except Exception:
+            self._popup_view_min_width_before = None
+            self._popup_view_elide_before = None
+
+    def _restore_closed_combo_popup_view(self):
+        """Restore popup-view constraints after closing the dropdown."""
+        try:
+            view = self.view()
+            if view is not None:
+                min_width = self._popup_view_min_width_before
+                view.setMinimumWidth(0 if min_width is None else max(0, int(min_width)))
+                if self._popup_view_elide_before is not None:
+                    view.setTextElideMode(self._popup_view_elide_before)
+        except Exception:
+            pass
+        finally:
+            self._popup_view_min_width_before = None
+            self._popup_view_elide_before = None
 
     def _fit_popup_to_window(self):
-        """
-        Ensure popup container stays horizontally within the parent window:
-        - clamp width to allowed rect,
-        - shift left if right edge would overflow.
-        """
+        """Resize the actual popup window to content width and keep it on-screen."""
         if self._fit_in_progress:
             return
+
         view = self.view()
-        container = self._popup_container or (view.window() if view is not None else None)
+        if view is None:
+            return
+
+        container = self._popup_container
+        if container is None and self._popup_open:
+            try:
+                candidate = view.window()
+                # Before the native popup exists, view.window() can still resolve
+                # to the application's main window. Never resize that.
+                if candidate is not None and candidate is not self.window():
+                    container = candidate
+            except Exception:
+                container = None
         if container is None:
             return
+
         try:
             self._fit_in_progress = True
-
             allowed = self._popup_allowed_rect()
+            preferred = int(self._popup_preferred_width or 0)
+            if preferred <= 0:
+                preferred = self._popup_content_width_hint()
+                self._popup_preferred_width = preferred
+            target_w = self._cap_width_to_window(max(self.width(), preferred))
 
-            cg = container.geometry()
-            y, h = cg.y(), cg.height()
-
-            # Determine target width: prefer the larger of container or combo width, but not over allowed.
-            desired_w = max(cg.width(), self.width())
-            target_w = self._cap_width_to_window(desired_w)
-
-            # Position: keep current left if possible, otherwise shift to keep right edge inside.
-            left_allowed = allowed.x()
-            right_allowed = allowed.x() + allowed.width()
-            new_x = cg.x()
-            if new_x + target_w > right_allowed:
-                new_x = right_allowed - target_w
-            if new_x < left_allowed:
-                new_x = left_allowed
-
-            # Apply constraints to the internal view as well to avoid relayout expanding the container back
+            # Keep the list itself wide enough even if a Qt style tries to
+            # re-layout the private popup to the closed combo width.
             try:
-                if view is not None:
-                    if view.minimumWidth() > target_w:
-                        view.setMinimumWidth(target_w)
-                    view.setMaximumWidth(target_w)
+                view.setMinimumWidth(target_w)
+                view.setTextElideMode(Qt.ElideNone)
             except Exception:
                 pass
 
-            if cg.x() != new_x or cg.width() != target_w:
-                container.setGeometry(new_x, y, target_w, h)
+            # The popup is a top-level window, so position with global coords.
+            try:
+                anchor_x = self.mapToGlobal(self.rect().topLeft()).x()
+            except Exception:
+                anchor_x = container.x()
 
-            # Keep header sized to new width
+            left = allowed.left()
+            right_exclusive = allowed.right() + 1
+            new_x = anchor_x
+            if new_x + target_w > right_exclusive:
+                new_x = right_exclusive - target_w
+            if new_x < left:
+                new_x = left
+
+            # Minimum width on the private container prevents later style/layout
+            # passes from collapsing it back to the combo width. Lowering this
+            # value on each open also allows a later, shorter list to shrink.
+            try:
+                container.setMinimumWidth(target_w)
+            except Exception:
+                pass
+
+            h = container.height()
+            container.resize(target_w, h)
+            container.move(new_x, container.y())
+
+            # A pending layout can resize/move the popup once more. Activate it
+            # now and then restore the requested geometry.
+            try:
+                layout = container.layout()
+                if layout is not None:
+                    layout.activate()
+            except Exception:
+                pass
+            if container.width() < target_w:
+                container.resize(target_w, container.height())
+            if container.x() != new_x:
+                container.move(new_x, container.y())
+
             self._place_popup_header()
         except Exception:
             pass
@@ -1493,31 +1620,6 @@ class NoScrollCombo(SearchableCombo):
         """
         event.ignore()
 
-    def showPopup(self):
-        """Adjust popup width to fit the longest item before showing, capped to the window width."""
-        max_width = 0
-        font_metrics = QFontMetrics(self.font())
-        for i in range(self.count()):
-            text = self.itemText(i)
-            width = font_metrics.horizontalAdvance(text)
-            max_width = max(max_width, width)
-        extra_margin = 80
-        desired = max_width + extra_margin
-
-        # Cap desired width to parent window to avoid right overflow when window is not maximized
-        capped = self._cap_width_to_window(desired)
-
-        try:
-            v = self.view()
-            if v is not None:
-                v.setMinimumWidth(capped)
-                v.setMaximumWidth(capped)
-        except Exception:
-            pass
-
-        super().showPopup()
-
-
 class OptionCombo(QWidget):
     """A combobox for selecting options in the settings."""
 
@@ -1554,11 +1656,31 @@ class OptionCombo(QWidget):
         self.setLayout(self.layout)
         self.fit_to_content()
 
+    def _trans(self, value):
+        """Translate an option-owned label using its locale domain.
+
+        A combo item may also provide ``{key, domain, fallback}``, allowing one
+        list to mix captions owned by different add-ons/providers.
+        """
+        if isinstance(value, dict) and "key" in value:
+            key = str(value.get("key") or "")
+            domain = value.get("domain")
+            translated = trans(key, domain=domain)
+            if translated == key and value.get("fallback") is not None:
+                return str(value.get("fallback"))
+            return translated
+        if not isinstance(value, str):
+            return str(value)
+        if self.option is not None and not self.option.get('_use_locale', True):
+            return value
+        domain = self.option.get('_locale_domain') if self.option is not None else None
+        return trans(value, domain=domain)
+
     def update(self):
         """Prepare items"""
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None and self.option["label"] != "":
-                self.title = trans(self.option["label"])
+                self.title = self._trans(self.option["label"])
             if "keys" in self.option:
                 self.keys = self.option["keys"]
             if "value" in self.option:
@@ -1582,22 +1704,22 @@ class OptionCombo(QWidget):
                         if not isinstance(key, str):
                             key = str(key)
                         if key.startswith("separator::"):
-                            self.combo.addSeparator(trans(value))
+                            self.combo.addSeparator(self._trans(value))
                         else:
-                            self.combo.addItem(trans(value), key)
+                            self.combo.addItem(self._trans(value), key)
                 else:
                     if isinstance(item, str) and item.startswith("separator::"):
                         self.combo.addSeparator(item.split("separator::", 1)[1])
                     else:
-                        self.combo.addItem(item, item)
+                        self.combo.addItem(self._trans(item), item)
         elif type(self.keys) is dict:
             for key, value in self.keys.items():
                 if not isinstance(key, str):
                     key = str(key)
                 if key.startswith("separator::"):
-                    self.combo.addSeparator(trans(value))
+                    self.combo.addSeparator(self._trans(value))
                 else:
-                    self.combo.addItem(trans(value), key)
+                    self.combo.addItem(self._trans(value), key)
 
         self._apply_initial_selection()
 
@@ -1682,6 +1804,49 @@ class OptionCombo(QWidget):
 
         self.current_id = self.combo.itemData(index)
         self.window.controller.config.combo.on_update(self.parent_id, self.id, self.option, self.current_id)
+
+    def update_locale(self):
+        """Refresh translated combo item labels while preserving the selected value."""
+        current_id = self.combo.currentData()
+        previous_locked = self.locked
+        self.locked = True
+        try:
+            self.combo.clear()
+            if isinstance(self.keys, list):
+                for item in self.keys:
+                    if isinstance(item, dict):
+                        for key, value in item.items():
+                            key = str(key)
+                            if key.startswith("separator::"):
+                                self.combo.addSeparator(self._trans(value))
+                            else:
+                                self.combo.addItem(self._trans(value), key)
+                    else:
+                        if isinstance(item, str) and item.startswith("separator::"):
+                            self.combo.addSeparator(item.split("separator::", 1)[1])
+                        else:
+                            self.combo.addItem(self._trans(item), item)
+            elif isinstance(self.keys, dict):
+                for key, value in self.keys.items():
+                    key = str(key)
+                    if key.startswith("separator::"):
+                        self.combo.addSeparator(self._trans(value))
+                    else:
+                        self.combo.addItem(self._trans(value), key)
+
+            index = self.combo.findData(current_id)
+            if index == -1 and self.current_id is not None:
+                index = self.combo.findData(self.current_id)
+            if index == -1:
+                index = self.combo.first_valid_index()
+            if index != -1:
+                self.combo.setCurrentIndex(index)
+                self.current_id = self.combo.itemData(index)
+            else:
+                self.combo.setCurrentIndex(-1)
+        finally:
+            self.locked = previous_locked
+        self.fit_to_content()
 
     def fit_to_content(self):
         """Fit to content"""

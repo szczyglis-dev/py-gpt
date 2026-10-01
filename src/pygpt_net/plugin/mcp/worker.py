@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 22:00:00                  #
+# Updated Date: 2026.09.21 16:30:00                  #
 # ================================================== #
 
 import asyncio
@@ -142,11 +142,9 @@ class Worker(BaseWorker):
             cmd, args = self._parse_stdio_command(address)
             kwargs = {"command": cmd, "args": args}
             env = build_env(server)
-            cwd = (server.get("cwd") or "").strip()
             if env is not None:
                 kwargs["env"] = env
-            if cwd:
-                kwargs["cwd"] = cwd
+            kwargs["cwd"] = self.plugin.get_stdio_cwd(server)
             params = StdioServerParameters(**kwargs)
             async with stdio_client(params) as (read, write):
                 async with ClientSession(read, write) as session:

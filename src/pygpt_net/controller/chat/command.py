@@ -11,7 +11,8 @@
 
 from typing import Any
 
-from PySide6.QtCore import QObject, Signal, Slot
+from PySide6.QtCore import QObject, Signal, Slot, QEventLoop, QTimer
+from PySide6.QtWidgets import QApplication
 
 from pygpt_net.core.events import KernelEvent, RenderEvent, Event
 from pygpt_net.core.bridge import BridgeContext
@@ -202,6 +203,33 @@ class Command(QObject):
         except Exception:
             return False
 
+    def _flush_tool_begin_ui(self) -> None:
+        """Give QWebEngine one paint turn before synchronous tool execution.
+
+        runJavaScript crosses the Chromium process boundary. A normal
+        processEvents() can return before the newly inserted Tool status is
+        actually composited, making fast/synchronous tools show only a blink at
+        completion instead of a visible running state.
+        """
+        try:
+            if not self.window.controller.kernel.is_main_thread():
+                return
+            app = QApplication.instance()
+            if app is None:
+                return
+
+            QApplication.sendPostedEvents()
+            QApplication.processEvents(QEventLoop.AllEvents)
+            if not self.window.core.config.get("render.plain"):
+                loop = QEventLoop()
+                QTimer.singleShot(20, loop.quit)
+                loop.exec()
+            QApplication.sendPostedEvents()
+            QApplication.processEvents(QEventLoop.AllEvents)
+        except RuntimeError:
+            # Widgets/WebEngine can already be tearing down during shutdown.
+            pass
+
     def handle(self, ctx: CtxItem, internal: bool = False) -> Any:
         """
         Handle commands and expert mentions
@@ -284,11 +312,10 @@ class Command(QObject):
             if internal and ctx.force_call:
                 reply.type = ReplyContext.CMD_EXECUTE
 
-            # Rebuild the current durable item before showing the waiting row.
-            # This removes streamed legacy <tool> markup and, because the freshly
-            # persisted tasks are not ui_ready yet, cannot expose a Tool button
-            # prematurely. The pending status is attached after the reload.
-            self.window.dispatch(RenderEvent(RenderEvent.RELOAD, {"meta": ctx.meta, "ctx": ctx}))
+            # Text normalization is handled at the response/stream boundary.
+            # Native tool execution must not rebuild the message here: keeping
+            # the DOM untouched lets consecutive TOOL_BEGIN events reuse one
+            # transient status row without a blink.
             data = {
                 "meta": ctx.meta,
                 "ctx": ctx,
@@ -296,6 +323,16 @@ class Command(QObject):
             }
             event = RenderEvent(RenderEvent.TOOL_BEGIN, data)
             self.window.dispatch(event)  # show waiting
+            # TOOL_BEGIN is a real visual boundary: let Chromium paint it before
+            # a synchronous tool/plugin gets a chance to block the GUI thread.
+            self._flush_tool_begin_ui()
+            # The paint boundary runs a short nested event loop, so STOP/ESC can
+            # be processed while it is open. Never start a tool after such a stop.
+            if self.window.controller.kernel.stopped():
+                self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {
+                    "meta": ctx.meta, "ctx": ctx, "immediate": True,
+                }))
+                return True
 
             context = BridgeContext()
             context.ctx = ctx

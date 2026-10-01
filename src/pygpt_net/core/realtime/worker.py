@@ -72,42 +72,59 @@ class RealtimeWorker(QRunnable):
     @Slot()
     def run(self):
         loop = None  # ensure defined for cleanup
-
-        # STREAM_BEGIN -> UI
-        try:
-            event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_READY, {
-                "ctx": self.ctx,
-            })
-            safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
-        except Exception:
-            pass
+        session_was_active = False
 
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
             async def _amain():
-                # Text deltas -> UI
-                async def on_text(delta: str):
-                    if not delta:
+                nonlocal session_was_active
+                ready_ctx = None
+
+                def output_ready(event_ctx: Optional[CtxItem] = None):
+                    nonlocal ready_ctx
+                    target_ctx = event_ctx or self.ctx
+                    if target_ctx is None or getattr(target_ctx, "_realtime_interrupted", False):
                         return
+                    if ready_ctx is target_ctx:
+                        return
+                    ready_ctx = target_ctx
+                    event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_READY, {"ctx": target_ctx})
+                    safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
+
+                # Text deltas -> UI. Providers may pass the CtxItem that owned the
+                # response when it started; this prevents late deltas from an
+                # interrupted turn being rebound to a newer microphone CtxItem.
+                async def on_text(delta: str, event_ctx: Optional[CtxItem] = None):
+                    target_ctx = event_ctx or self.ctx
+                    if not delta or target_ctx is None or getattr(target_ctx, "_realtime_interrupted", False):
+                        return
+                    output_ready(target_ctx)
                     event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_TEXT_DELTA, {
-                        "ctx": self.ctx,
+                        "ctx": target_ctx,
                         "chunk": delta,
                     })
                     safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
 
-                # Audio -> enqueue to main-thread
+                # Audio -> enqueue to main-thread. Keep the same response owner
+                # isolation as text so stale playback cannot revive after barge-in.
                 async def on_audio(
                         data: bytes,
                         mime: str,
                         rate: Optional[int],
                         channels: Optional[int],
-                        final: bool = False
+                        final: bool = False,
+                        event_ctx: Optional[CtxItem] = None,
                 ):
+                    target_ctx = event_ctx or self.ctx
+                    if target_ctx is None or getattr(target_ctx, "_realtime_interrupted", False):
+                        return
+                    if data:
+                        output_ready(target_ctx)
                     event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_DELTA, {
                         "payload":  {
-                            "ctx": self.ctx,
+                            "ctx": target_ctx,
                             "data": data or b"",
                             "mime": mime or "audio/pcm",
                             "rate": int(rate) if rate is not None else None,
@@ -127,6 +144,14 @@ class RealtimeWorker(QRunnable):
 
                 # run the client
                 client = self.get_client(self.opts.provider)
+                try:
+                    session_was_active = bool(client.is_session_active())
+                except Exception:
+                    session_was_active = False
+                # Buffered microphone input is already submitted by the user;
+                # unlike VAD session setup it can open the response stream now.
+                if getattr(self.opts, "audio_data", None):
+                    output_ready()
                 await client.run(self.ctx, self.opts, on_text, on_audio, _should_stop)
 
             loop.run_until_complete(_amain())
@@ -134,7 +159,16 @@ class RealtimeWorker(QRunnable):
 
         except Exception as e:
             try:
-                event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {"error": e})
+                # Distinguish session/bootstrap failures from errors in an already
+                # established live conversation. The main-thread controller uses
+                # this metadata for a useful error dialog and cleanup policy.
+                phase = "turn" if session_was_active else "session_start"
+                event = RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_ERROR, {
+                    "ctx": self.ctx,
+                    "error": e,
+                    "provider": getattr(self.opts, "provider", None),
+                    "phase": phase,
+                })
                 safe_emit(self.opts.rt_signals, "response", event) if self.opts.rt_signals else None
             finally:
                 pass

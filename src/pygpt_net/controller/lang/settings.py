@@ -37,7 +37,18 @@ class Settings:
         ui_config = ui.config['config']
 
         for opt_id, option in options.items():
-            t_label = tr(option['label'])
+            domain = option.get('_locale_domain')
+            widget = ui_config.get(opt_id)
+            if widget is not None and hasattr(widget, 'update_locale'):
+                try:
+                    widget.update_locale()
+                except Exception:
+                    pass
+            t_label = tr(option['label'], domain=domain) if option.get('_use_locale', True) else str(option['label'])
+            try:
+                t_label = t_label.format(**(option.get('_label_params') or {}))
+            except (KeyError, ValueError):
+                pass
             if option.get('type') == 'bool':
                 if opt_id in ui_config:
                     widget = ui_config[opt_id]
@@ -52,7 +63,11 @@ class Settings:
 
             if 'description' in option and option['description'] is not None and option['description'].strip() != "":
                 desc = option['description']
-                t_desc = tr(desc)
+                t_desc = tr(desc, domain=domain) if option.get('_use_locale', True) else str(desc)
+                try:
+                    t_desc = t_desc.format(**(option.get('_description_params') or {}))
+                except (KeyError, ValueError):
+                    pass
                 node_key1 = f'settings.{opt_id}.desc'
                 node1 = ui_nodes.get(node_key1)
                 if node1 is not None:
@@ -76,16 +91,24 @@ class Settings:
         section_tabs = ui_tabs.get('settings.section.tabs', {})
         section_tab_keys = ui_tabs.get('settings.section.tab_keys', {})
         for section_id, section_tabs_widget in section_tabs.items():
-            locale_keys = section_tab_keys.get(section_id, [])
-            for i, locale_key in enumerate(locale_keys):
+            tab_meta = section_tab_keys.get(section_id, [])
+            for i, meta in enumerate(tab_meta):
                 if i >= section_tabs_widget.count():
                     break
-                name_key = tr(locale_key)
-                tab_name = name_key
-                trans_key = name_key.replace(" ", "_").lower()
-                translated = tr(trans_key)
-                if translated != trans_key:
-                    tab_name = translated
+                if isinstance(meta, dict) and meta.get('key') and meta.get('domain'):
+                    tab_name = tr(meta['key'], domain=meta['domain'])
+                    if tab_name == meta['key'] and meta.get('fallback') is not None:
+                        tab_name = str(meta['fallback'])
+                elif isinstance(meta, dict) and meta.get('label'):
+                    tab_name = meta['label']
+                else:
+                    locale_key = meta.get('locale') if isinstance(meta, dict) else meta
+                    name_key = tr(locale_key)
+                    tab_name = name_key
+                    trans_key = name_key.replace(" ", "_").lower()
+                    translated = tr(trans_key)
+                    if translated != trans_key:
+                        tab_name = translated
                 section_tabs_widget.setTabText(i, tab_name)
 
         idx = tabs.currentIndex()

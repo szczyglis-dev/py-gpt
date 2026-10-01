@@ -81,12 +81,12 @@ class Image:
         cols.addWidget(conf_global['img_resolution'], 3)
         cols.addWidget(conf_global['img.aspect_ratio'], 3)
         cols.addWidget(conf_global['img_variants'], 1)
-        cols.setContentsMargins(2, 5, 5, 5)
+        cols.setContentsMargins(2, 5, 0, 5)
 
         rows = QVBoxLayout()
         rows.addLayout(cols)
         rows.addWidget(conf_global['img.remix'])
-        rows.setContentsMargins(2, 5, 5, 5)
+        rows.setContentsMargins(2, 5, 0, 5)
 
         container.setLayout(rows)
         container.setContentsMargins(2, 0, 0, 10)

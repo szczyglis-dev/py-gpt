@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 12:10:00                  #
+# Updated Date: 2026.09.25 12:35:00                  #
 # ================================================== #
 
 import json
@@ -67,7 +67,10 @@ class ProfileExporter:
     }
 
     CONFIG_DIRS = {"presets", "css", "locale", "fonts"}
-    RUNTIME_DIRS = {"tmp", "cache", "__pycache__"}
+    # Application-wide/runtime directories are not portable profile data.
+    # ``addons`` is shared by all profiles from 2.8.36; sandbox and optional
+    # Package Manager environments are shared runtime state as well.
+    RUNTIME_DIRS = {"tmp", "cache", "__pycache__", "sandbox", "extra_packages", "addons"}
     EXCLUDED_ROOT_FILES = {
         "app.log",
         "path.cfg",
@@ -305,6 +308,8 @@ class ProfileExporter:
                     normalized = info.filename.replace("\\", "/")
                     for section, prefix in self.ARCHIVE_PREFIX.items():
                         if normalized.startswith(prefix + "/"):
+                            if self._archive_member_is_runtime(section, normalized):
+                                break
                             result[section] += int(info.file_size)
                             break
         except (zipfile.BadZipFile, OSError, InvalidProfileArchive):
@@ -327,6 +332,12 @@ class ProfileExporter:
         selected = [section for section in self.SECTIONS if section in set(selected)]
         if not selected:
             raise ProfileExportError("No export sections selected")
+
+        # Keep the profile-local skills registry coherent before exporting Files.
+        # This is cheap for unchanged skills and only reparses modified SKILL.md files.
+        skills = getattr(self.window.core, "skills", None)
+        if skills is not None and self.SECTION_FILES in selected:
+            skills.sync_registry(force=False, save=True)
 
         workdir = self.get_workdir()
         destination = os.path.abspath(destination)
@@ -566,6 +577,12 @@ class ProfileExporter:
                     normalized = info.filename.replace("\\", "/")
                     for section, prefix in self.ARCHIVE_PREFIX.items():
                         if normalized == prefix or normalized.startswith(prefix + "/"):
+                            # Older PyGPT exports may contain profile-local
+                            # runtime directories.  Do not restore them into a
+                            # newly imported profile; they are provisioned on
+                            # demand by the current application version.
+                            if self._archive_member_is_runtime(section, normalized):
+                                break
                             members_by_section[section].append(info)
                             break
 
@@ -584,6 +601,11 @@ class ProfileExporter:
             self._check_cancel(cancelled)
             self._emit_status(status, "profile.import.status.defaults")
             self._prepare_defaults(staging)
+            # Rebuild/migrate skill metadata in the imported profile registry.
+            # Cached paths are relative, so the profile remains portable.
+            skills = getattr(self.window.core, "skills", None)
+            if skills is not None and self.SECTION_FILES in selected:
+                skills.migrate_registry_cache(profile_dir=staging, save=True)
             self._check_cancel(cancelled)
 
             self._emit_status(status, "profile.import.status.finalizing")
@@ -787,6 +809,25 @@ class ProfileExporter:
         mode = (info.external_attr >> 16) & 0xFFFF
         if mode and stat.S_ISLNK(mode):
             raise InvalidProfileArchive("Symbolic links are not supported")
+
+    def _archive_member_is_runtime(self, section: str, normalized: str) -> bool:
+        """Return True for root-level non-portable dirs stored in old archives.
+
+        Application-wide/runtime dirs are part of the profile root in legacy
+        ``files``/``config`` archive namespaces, not of the user-managed
+        ``data`` directory. A user folder named ``data/addons`` or
+        ``data/sandbox`` therefore remains portable.
+        """
+        if section not in (self.SECTION_CONFIG, self.SECTION_FILES):
+            return False
+        prefix = self.ARCHIVE_PREFIX.get(section, "")
+        if not prefix:
+            return False
+        relative = normalized[len(prefix):].lstrip("/")
+        if not relative:
+            return False
+        top_level = relative.split("/", 1)[0]
+        return top_level in self.RUNTIME_DIRS
 
     @staticmethod
     def _normalized_paths(paths: Optional[Iterable[str]] = None) -> set:

@@ -13,9 +13,9 @@ import copy
 from typing import Dict, List, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel, QIcon, QAction
+from PySide6.QtGui import QStandardItemModel, QIcon
 from PySide6.QtWidgets import QPushButton, QHBoxLayout, QLabel, QVBoxLayout, QScrollArea, QWidget, QTabWidget, QFrame, \
-    QSplitter, QSizePolicy, QMenuBar
+    QSplitter, QSizePolicy
 
 from pygpt_net.ui.widget.dialog.model import ModelDialog
 from pygpt_net.ui.widget.element.group import CollapsedGroup
@@ -41,12 +41,6 @@ class Models:
         """
         self.window = window
         self.dialog_id = "models.editor"
-        self.menu_bar = None
-
-        # Keep menu objects alive and correctly parented
-        self._file_menu = None
-        self._menu_actions: Dict[str, QAction] = {}
-
         # Internal state for filtering/mapping
         self._filter_text: str = ""
         self._filtered_ids: List[str] = []     # current list of model keys displayed in the view (order matters)
@@ -64,8 +58,6 @@ class Models:
             QPushButton(QIcon(":/icons/add.svg"), trans("dialog.models.editor.btn.new"))
         self.window.ui.nodes['models.editor.btn.import'] = \
             QPushButton(QIcon(":/icons/download.svg"), trans("dialog.models.editor.btn.import"))
-        self.window.ui.nodes['models.editor.btn.defaults.user'] = \
-            QPushButton(trans("dialog.models.editor.btn.defaults.user"))
         self.window.ui.nodes['models.editor.btn.defaults.app'] = \
             QPushButton(trans("dialog.models.editor.btn.defaults.app"))
         self.window.ui.nodes['models.editor.btn.save'] = \
@@ -77,9 +69,6 @@ class Models:
         self.window.ui.nodes['models.editor.btn.import'].clicked.connect(
             lambda: self.window.controller.model.importer.open()
         )
-        self.window.ui.nodes['models.editor.btn.defaults.user'].clicked.connect(
-            lambda: self.window.controller.model.editor.load_defaults_user()
-        )
         self.window.ui.nodes['models.editor.btn.defaults.app'].clicked.connect(
             lambda: self.window.controller.model.editor.load_defaults_app()
         )
@@ -90,7 +79,6 @@ class Models:
         # set enter key to save button
         self.window.ui.nodes['models.editor.btn.new'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.import'].setAutoDefault(False)
-        self.window.ui.nodes['models.editor.btn.defaults.user'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.defaults.app'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.save'].setAutoDefault(True)
 
@@ -98,7 +86,6 @@ class Models:
         footer = QHBoxLayout()
         footer.addWidget(self.window.ui.nodes['models.editor.btn.new'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.import'])
-        footer.addWidget(self.window.ui.nodes['models.editor.btn.defaults.user'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.defaults.app'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.save'])
 
@@ -217,33 +204,6 @@ class Models:
         self.window.ui.dialog[self.dialog_id] = ModelDialog(self.window, self.dialog_id)
         self.window.ui.dialog[self.dialog_id].setLayout(layout)
 
-        self.menu_bar = QMenuBar(self.window.ui.dialog[self.dialog_id])
-        self.menu_bar.setNativeMenuBar(False)
-        self._file_menu = self.menu_bar.addMenu(trans("menu.file"))
-
-        # open importer
-        self._menu_actions["import"] = QAction(
-            QIcon(":/icons/download.svg"),
-            trans("action.import"),
-            self.window.ui.dialog[self.dialog_id],
-        )
-        self._menu_actions["import"].triggered.connect(
-            lambda checked=False: self.window.controller.model.importer.open()
-        )
-        self._menu_actions["close"] = QAction(
-            QIcon(":/icons/logout.svg"),
-            trans("menu.file.exit"),
-            self.window.ui.dialog[self.dialog_id],
-        )
-        self._menu_actions["close"].triggered.connect(
-            lambda checked=False: self.window.ui.dialog[self.dialog_id].close()
-        )
-
-        # add actions
-        self._file_menu.addAction(self._menu_actions["import"])
-        self._file_menu.addAction(self._menu_actions["close"])
-        layout.setMenuBar(self.menu_bar)
-
         self.window.ui.dialog[self.dialog_id].setWindowTitle(trans('dialog.models.editor'))
 
         # restore current opened tab if idx is set
@@ -264,7 +224,6 @@ class Models:
         static_nodes = {
             'models.editor.btn.new': 'dialog.models.editor.btn.new',
             'models.editor.btn.import': 'dialog.models.editor.btn.import',
-            'models.editor.btn.defaults.user': 'dialog.models.editor.btn.defaults.user',
             'models.editor.btn.defaults.app': 'dialog.models.editor.btn.defaults.app',
             'models.editor.btn.save': 'dialog.models.editor.btn.save',
         }
@@ -332,15 +291,6 @@ class Models:
             provider_keys.insert(0, {'-': trans('list.all')})
             provider_combo.current_id = current
             provider_combo.set_keys(provider_keys, lock=True)
-
-        if self._file_menu is not None:
-            self._file_menu.setTitle(trans('menu.file'))
-        action = self._menu_actions.get('import')
-        if action is not None:
-            action.setText(trans('action.import'))
-        action = self._menu_actions.get('close')
-        if action is not None:
-            action.setText(trans('menu.file.exit'))
 
     def _on_search_models(self, text: str):
         """

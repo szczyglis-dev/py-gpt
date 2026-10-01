@@ -12,10 +12,11 @@
 import os
 import uuid
 
+from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.plugin.base.plugin import BasePlugin
 
 
-class BaseProvider:
+class BaseProvider(LocaleDomain):
     AUDIO_OUTPUT_DIR = "audio_output"
     AUDIO_OUTPUT_MAX_FILES = 30
 
@@ -25,6 +26,7 @@ class BaseProvider:
 
         :param plugin: plugin instance
         """
+        self.init_locale_domain()
         self.plugin = plugin
         self.id = ""  # unique provider id
         self.name = ""  # name to display
@@ -36,7 +38,14 @@ class BaseProvider:
         :param plugin: plugin instance
         """
         self.attach(plugin)
-        self.init_options()
+        domain = self.get_locale_domain()
+        if domain and hasattr(plugin, "option_locale_domain"):
+            if self.id:
+                plugin.tab_locale_domains[self.id] = domain
+            with plugin.option_locale_domain(domain):
+                self.init_options()
+        else:
+            self.init_options()
 
     def attach(self, plugin: BasePlugin):
         """
@@ -136,6 +145,15 @@ class BaseProvider:
                 # A file can still be held by the audio backend on Windows.
                 # Try the next oldest file instead of failing TTS generation.
                 continue
+
+    def get_name(self) -> str:
+        """Return localized provider name when the add-on domain defines it."""
+        domain = self.get_locale_domain()
+        if domain:
+            value = self.trans("provider.name")
+            if value != "provider.name":
+                return value
+        return self.name
 
     def is_configured(self) -> bool:
         """

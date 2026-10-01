@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 13:55:00                  #
+# Updated Date: 2026.09.27 09:55:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QWidget, QSizePolicy, QHBoxLayout
+from PySide6.QtWidgets import QVBoxLayout, QPushButton, QWidget, QSizePolicy, QHBoxLayout
 
+from pygpt_net.ui.widget.element.labels import ElideLabel
 from pygpt_net.ui.widget.textarea.name import NameInput
 from pygpt_net.ui.widget.audio.input_button import VoiceControlButton
 from pygpt_net.ui.widget.option.toggle_label import ToggleLabel
@@ -24,6 +25,7 @@ from .agent import Agent
 from .agent_llama import AgentLlama
 from .audio import Audio
 from .computer_env import ComputerEnv
+from .completion import Completion
 from .image import Image
 from .indexes import Indexes
 from .vision import Vision
@@ -44,6 +46,7 @@ class Footer:
         self.agent_llama = AgentLlama(window)
         self.audio = Audio(window)
         self.env = ComputerEnv(window)
+        self.completion = Completion(window)
         self.image = Image(window)
         self.indexes = Indexes(window)
         self.vision = Vision(window)
@@ -72,10 +75,11 @@ class Footer:
             self.raw.setup(),
             self.image.setup(),
             self.video.setup(),
-            self.indexes.setup_options(),
             self.env.setup(),
             self.window.ui.nodes['voice.control.btn'],
             self.audio.setup(),
+            self.completion.setup(),
+            self.indexes.setup_options(),
             self.split.setup(),
         ]
 
@@ -85,7 +89,14 @@ class Footer:
             rows.addWidget(section)
 
         rows.setContentsMargins(2, 0, 0, 0)
+
+        # Footer is the fixed bottom block of the toolbox. Its height follows
+        # the currently visible mode-specific sections, but it never receives
+        # or gives up space when the toolbox splitter is moved.
+        widget.setMinimumWidth(0)
+        widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
         self.hover_sections = sections
+        self.window.ui.nodes['toolbox.footer'] = widget
 
         return widget
 
@@ -98,7 +109,7 @@ class Footer:
         :return: QVBoxLayout
         """
         label_key = 'toolbox.' + id + '.label'
-        self.window.ui.nodes[label_key] = QLabel(title, self.window)
+        self.window.ui.nodes[label_key] = ElideLabel(title, window=self.window)
         self.window.ui.nodes[id] = NameInput(self.window, id)
 
         layout = QVBoxLayout()

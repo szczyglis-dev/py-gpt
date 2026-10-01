@@ -43,7 +43,7 @@ def test_prepare_content_uses_metadata_platform_and_build_format():
     assert "dialog.about.build: 2026-09-07" in content
     assert "LIBS" in content
     assert "web" in content and "git" in content and "docs" in content
-    assert "(c) 2026 Author" in content
+    assert "(c) 2022-2026 Author" in content
     assert "mail@example.com" in content
 
 
@@ -51,6 +51,7 @@ def test_prepare_hides_empty_thanks_and_shows_nonempty():
     window = _window()
     title = MagicMock()
     content = MagicMock()
+    window.ui.nodes["dialog.about.content"] = MagicMock()
     window.ui.nodes["dialog.about.thanks"] = title
     window.ui.nodes["dialog.about.thanks.content"] = content
     about = About(window)

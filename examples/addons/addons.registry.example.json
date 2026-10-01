@@ -1,0 +1,28 @@
+{
+  "addons": [
+    {
+      "id": "example_plugin",
+      "name": "Example developer plugin",
+      "description": "Add-on stored inside the official registry repository.",
+      "author": "PyGPT example",
+      "version": "1.1.0",
+      "type": "plugin",
+      "path": "./plugins/example_plugin",
+      "trusted": true,
+      "official": true
+    },
+    {
+      "id": "githubuser_project_my_plugin",
+      "name": "Third-party Plugin",
+      "description": "Add-on hosted in another GitHub repository/subdirectory.",
+      "author": "Third-party author",
+      "version": "1.0.0",
+      "type": "plugin",
+      "github_url": "https://github.com/example/pygpt-addons",
+      "github_path": "plugins/githubuser_project_my_plugin",
+      "ref": "main",
+      "trusted": false,
+      "official": false
+    }
+  ]
+}

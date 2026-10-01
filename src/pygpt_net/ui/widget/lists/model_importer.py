@@ -8,7 +8,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.09.29 12:05:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -16,6 +16,7 @@ from PySide6.QtGui import QStandardItemModel, QAction, QIcon
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QVBoxLayout, QLabel, QCheckBox, QAbstractItemView, QMenu
 
 from pygpt_net.ui.widget.lists.base import BaseList
+from pygpt_net.ui.widget.textarea.search_input import SearchInput
 from pygpt_net.utils import trans
 
 
@@ -168,10 +169,12 @@ class ModelImporter(QWidget):
         layout = QHBoxLayout()
         arrows_layout = QVBoxLayout()
         self.window.ui.nodes["models.importer.add"] = QPushButton(">")
+        self.window.ui.nodes["models.importer.add"].setToolTip(trans("models.importer.add.tooltip"))
         self.window.ui.nodes["models.importer.add"].clicked.connect(
             lambda: self.window.controller.model.importer.add()
         )
         self.window.ui.nodes["models.importer.remove"] = QPushButton("<")
+        self.window.ui.nodes["models.importer.remove"].setToolTip(trans("models.importer.remove.tooltip"))
         self.window.ui.nodes["models.importer.remove"].clicked.connect(
             lambda: self.window.controller.model.importer.remove()
         )
@@ -190,6 +193,14 @@ class ModelImporter(QWidget):
         self.window.ui.nodes["models.importer.current"] = ImporterList(self.window, id="models.importer.current")
         self.window.ui.nodes["models.importer.current"].clicked.disconnect()
 
+        self.window.ui.nodes["models.importer.available.search"] = SearchInput(self.window)
+        self.window.ui.nodes["models.importer.available.search"].on_search = self._on_available_search
+        self.window.ui.nodes["models.importer.available.search"].on_clear = self._on_available_search
+
+        self.window.ui.nodes["models.importer.current.search"] = SearchInput(self.window)
+        self.window.ui.nodes["models.importer.current.search"].on_search = self._on_current_search
+        self.window.ui.nodes["models.importer.current.search"].on_clear = self._on_current_search
+
         self.window.ui.nodes["models.importer.available.all"] = QCheckBox(trans("models.importer.all"), self.window)
         self.window.ui.nodes["models.importer.available.all"].clicked.connect(
             lambda: self.window.controller.model.importer.toggle_all(
@@ -199,16 +210,46 @@ class ModelImporter(QWidget):
         available_layout = QVBoxLayout()
         available_layout.addWidget(self.window.ui.nodes["models.importer.available.label"])
         available_layout.addWidget(self.window.ui.nodes["models.importer.available"])
-        available_layout.addWidget(self.window.ui.nodes["models.importer.available.all"])
+        available_layout.addWidget(self.window.ui.nodes["models.importer.available.search"])
 
         selected_layout = QVBoxLayout()
         selected_layout.addWidget(self.window.ui.nodes["models.importer.current.label"])
         selected_layout.addWidget(self.window.ui.nodes["models.importer.current"])
+        selected_layout.addWidget(self.window.ui.nodes["models.importer.current.search"])
 
         layout.addLayout(available_layout)
         layout.addLayout(arrows_layout)
         layout.addLayout(selected_layout)
         return layout
+
+    @staticmethod
+    def _filter_data(data: dict, query: str) -> dict:
+        """Filter importer data by model key, ID or name."""
+        query = (query or "").strip().casefold()
+        if not query:
+            return data
+
+        filtered = {}
+        for key, item in data.items():
+            values = (
+                key,
+                getattr(item, "id", ""),
+                getattr(item, "name", ""),
+            )
+            if any(query in str(value).casefold() for value in values if value is not None):
+                filtered[key] = item
+        return filtered
+
+    def _on_available_search(self, _query: str = ""):
+        """Refresh the available list using the current search text."""
+        importer = self.window.controller.model.importer
+        self.update_available(importer.items_available)
+
+    def _on_current_search(self, _query: str = ""):
+        """Refresh the current list using the current search text."""
+        importer = self.window.controller.model.importer
+        current = importer.items_current.get(importer.provider, {})
+        self.update_current(current)
 
     def update_available(self, data):
         """
@@ -217,6 +258,8 @@ class ModelImporter(QWidget):
         :param data: Data to update
         """
         id = "models.importer.available"
+        query = self.window.ui.nodes["models.importer.available.search"].text()
+        data = self._filter_data(data, query)
         self.window.ui.nodes[id].backup_selection()
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
         i = 0
@@ -243,6 +286,8 @@ class ModelImporter(QWidget):
         :param data: Data to update
         """
         id = "models.importer.current"
+        query = self.window.ui.nodes["models.importer.current.search"].text()
+        data = self._filter_data(data, query)
         self.window.ui.nodes[id].backup_selection()
         self.window.ui.models[id].removeRows(0, self.window.ui.models[id].rowCount())
         i = 0

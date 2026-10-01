@@ -14,7 +14,7 @@ from types import SimpleNamespace
 import pytest
 from unittest.mock import MagicMock
 
-from pygpt_net.core.agents.tools import Tools, PluginToolMetadata
+from pygpt_net.core.agents.tools import Tools
 
 @pytest.fixture
 def fake_window():
@@ -177,17 +177,3 @@ def test_log(tools_instance, fake_window):
     tools_instance.verbose = True
     tools_instance.log("test log")
     fake_window.core.debug.add.assert_called_with("test log")
-
-def test_plugin_tool_metadata_get_parameters_dict():
-    schema = {
-        "type": "object",
-        "properties": {"x": {"type": "number"}},
-        "required": ["x"],
-        "extra": "ignore"
-    }
-    meta = PluginToolMetadata("name", "desc", schema)
-    params = meta.get_parameters_dict()
-    assert "type" in params
-    assert "properties" in params
-    assert "required" in params
-    assert "extra" not in params

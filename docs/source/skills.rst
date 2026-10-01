@@ -39,7 +39,7 @@ PyGPT keeps the complete imported skill directory intact. Vendor-specific files 
 Managing Skills
 ---------------
 
-Use the top-level ``Skills`` menu to manage Agent Skills. The menu provides:
+Use ``Config -> Skills`` to manage Agent Skills. The submenu is located directly after ``Config -> MCP`` and provides:
 
 * ``Manage skills...`` - opens the installed-skills list and lets you enable or disable individual skills.
 * ``Explore...`` - opens the skill catalog browser.
@@ -84,7 +84,7 @@ The catalog URL is configurable in ``config.json`` using:
 
 .. code-block:: json
 
-   "skills.catalog.url": "https://raw.githubusercontent.com/szczyglis-dev/py-gpt/master/src/pygpt_net/data/skills/catalog.json"
+   "skills.catalog.url": "https://github.com/szczyglis-dev/py-gpt-addons/skills.json"
 
 The current catalog URL is also editable directly in the ``Explore`` tab. PyGPT has a built-in default URL and a bundled local catalog fallback. The bundled fallback is used when the default remote catalog cannot be loaded; an explicitly configured custom URL reports its error instead of silently switching to the default catalog.
 
@@ -107,7 +107,7 @@ A simple catalog can use the following structure:
 Runtime behavior
 ----------------
 
-Agent Skills are integrated with ``Chat with Agents`` and its Agents v2 runtime. PyGPT uses **progressive disclosure** so installing many skills does not automatically inject the full contents of every ``SKILL.md`` into each request.
+Agent Skills are integrated with ``Agents`` and its Agents v2 runtime. PyGPT uses **progressive disclosure** so installing many skills does not automatically inject the full contents of every ``SKILL.md`` into each request.
 
 At runtime:
 
@@ -136,11 +136,11 @@ The installed source package lives in the profile-level ``agents/skills`` direct
 
 relative to the current data workdir. This also makes Skills compatible with project-specific data workdirs.
 
-For local host execution, PyGPT gives the agent the absolute host path to the materialized skill. When a Python or system tool is running in the Docker sandbox, the same active data directory is mounted under ``/data``, so the skill is available at:
+For local host execution, PyGPT gives the agent the absolute host path to the materialized skill. When a Python or system tool is running in the Docker sandbox, the same active data directory is mounted under ``/mnt/data``, so the skill is available at:
 
 .. code-block:: text
 
-   /data/.pygpt/skills/<skill-name>/
+   /mnt/data/.pygpt/skills/<skill-name>/
 
 Skill packages often contain Python modules under ``scripts/`` and use commands such as:
 
@@ -162,7 +162,7 @@ Binary resources are not injected into the prompt as text. They remain available
 Security and permissions
 ------------------------
 
-A downloaded skill should be treated as third-party extension content. Installing or enabling a skill does **not** grant it additional permissions.
+A downloaded skill should be treated as third-party add-on content. Installing or enabling a skill does **not** grant it additional permissions.
 
 In particular:
 
@@ -201,4 +201,4 @@ Then add:
    2. Briefly describe the skill.
    3. Keep the response concise.
 
-Import the directory with ``Skills -> Import folder...``. After it is enabled, ``Chat with Agents`` can discover it from its description and load the full instructions only when needed.
+Import the directory with ``Skills -> Import folder...``. After it is enabled, ``Agents`` can discover it from its description and load the full instructions only when needed.

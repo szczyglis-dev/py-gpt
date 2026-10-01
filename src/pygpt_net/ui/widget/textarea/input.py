@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 16:35:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import Optional, Union, Tuple
@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from pygpt_net.core.events import Event
+from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
 from pygpt_net.core.text.mentions import (
@@ -53,8 +54,7 @@ class ChatInput(QTextEdit):
     ICON_PASTE = QIcon(":/icons/paste.svg")
     ICON_VOLUME = QIcon(":/icons/volume.svg")
     ICON_SAVE = QIcon(":/icons/save.svg")
-    # ICON_ATTACHMENT = QIcon(":/icons/add.svg")
-    ICON_ATTACHMENT = QIcon(":/icons/attachment.svg")
+    ICON_ATTACHMENT = QIcon(":/icons/add.svg")
     ICON_MIC_ON = QIcon(":/icons/mic.svg")
     ICON_MIC_OFF = QIcon(":/icons/mic_off.svg")
     ICON_WEB_ON = QIcon(":/icons/web_on.svg")
@@ -159,7 +159,7 @@ class ChatInput(QTextEdit):
             key="mic",
             icon=self.ICON_MIC_ON,
             alt_icon=self.ICON_MIC_OFF,
-            tooltip=trans('audio.speak.btn'),
+            tooltip=trans('audio.speak.btn.icon.tooltip'),
             alt_tooltip=trans('audio.speak.btn.stop.tooltip'),
             callback=self.action_toggle_mic,
             visible=False,
@@ -186,7 +186,7 @@ class ChatInput(QTextEdit):
         self._auto_debounce_ms = 0  # coalesce updates in next event loop turn
         self._auto_updating = False  # reentrancy guard
         self._splitter_resize_in_progress = False
-        self._splitter_connected = False
+        self._splitter_connections = set()
         self._user_adjusting_splitter = False
         self._auto_pause_ms_after_user_drag = 350
         self._last_target_container_h = None
@@ -220,6 +220,30 @@ class ChatInput(QTextEdit):
         self._history_index = -1     # -1 when not navigating; otherwise index of current history item
         self._history_active = False
         self._history_saved_current = ""  # snapshot of the current typed text before entering history nav
+
+    def _activate_owner_column(self):
+        """Mark the column hosting the shared composer as logically active.
+
+        tabs.on_column_focus() is deferred/coalesced, so this is safe to call
+        from input focus and button press handlers.  send_input() also observes
+        the pending column, which keeps an immediate Send click routed to the
+        chat that visibly owns this composer.
+        """
+        try:
+            tabs = self.window.controller.tabs
+            if hasattr(tabs, 'get_chat_input_column_idx'):
+                column_idx = tabs.get_chat_input_column_idx()
+            else:
+                column_idx = tabs.get_current_column_idx()
+            if column_idx is not None:
+                tabs.on_column_focus(int(column_idx))
+        except (AttributeError, RuntimeError, TypeError, ValueError):
+            pass
+
+    def focusInEvent(self, event):
+        """Activate the owning chat column when the text editor gains focus."""
+        super().focusInEvent(event)
+        self._activate_owner_column()
 
     def _get_mention_color(self):
         return self._mention_color
@@ -1150,16 +1174,7 @@ class ChatInput(QTextEdit):
         super().wheelEvent(event)
 
     def on_zoom_changed(self, value: int):
-        """
-        Called when zoom level changes.
-
-        :param value: new zoom level
-        """
-        self.value = value
-        self.window.core.config.data['font_size.input'] = value
-        self.window.core.config.save()
-        self.window.controller.ui.update_font_size()
-        # Reflow may change number of lines; adjust auto-height next tick
+        zoom_text(self, self.window, value, 'font_size.input')
         QTimer.singleShot(0, self._schedule_auto_resize)
 
     def changeEvent(self, event):
@@ -1173,6 +1188,11 @@ class ChatInput(QTextEdit):
 
     def action_toggle_mic(self):
         """Toggle microphone (button click)."""
+        try:
+            if not self.window.controller.audio.is_recording():
+                self.window.controller.audio.ui.on_input_toggle_requested("input")
+        except Exception:
+            pass
         self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
 
     def action_toggle_web(self):
@@ -1227,6 +1247,7 @@ class ChatInput(QTextEdit):
         btn.setFixedHeight(self._btn_size_right.height())
         btn.setMinimumWidth(self._btn_size_right.width())
         btn.setToolTip(trans("reasoning_effort.tooltip"))
+        btn.pressed.connect(self._activate_owner_column)
         btn.clicked.connect(self.action_reasoning_effort)
         btn.setHidden(True)
 
@@ -1307,6 +1328,15 @@ class ChatInput(QTextEdit):
 
         menu = QMenu(self)
         menu.setObjectName("chatInputReasoningEffortMenu")
+        if os.name == "nt":
+            # A translucent top-level QMenu can get a thick native frame/shadow
+            # on Windows. Keep this compact popup opaque and frameless instead;
+            # its background and outline are provided entirely by QSS.
+            menu.setAttribute(Qt.WA_TranslucentBackground, False)
+            menu.setWindowFlag(Qt.FramelessWindowHint, True)
+            # menu.setWindowFlag(Qt.NoDropShadowWindowHint, True)
+        else:
+            menu.setAttribute(Qt.WA_TranslucentBackground, True)
 
         # Match the context-list section-header convention: disabled + bold.
         # Keeping the header as a menu action lets the native theme provide the
@@ -1472,6 +1502,7 @@ class ChatInput(QTextEdit):
         # optional: no text
         btn.setText("")
 
+        btn.pressed.connect(self._activate_owner_column)
         if callback is not None:
             btn.clicked.connect(callback)
 
@@ -1604,6 +1635,7 @@ class ChatInput(QTextEdit):
         btn.setFlat(True)
         btn.setText("")
 
+        btn.pressed.connect(self._activate_owner_column)
         if callback is not None:
             btn.clicked.connect(callback)
 
@@ -1663,6 +1695,7 @@ class ChatInput(QTextEdit):
         btn.setToolTip(tooltip)
         btn.setFixedHeight(self._btn_size_right.height())
 
+        btn.pressed.connect(self._activate_owner_column)
         if callback is not None:
             btn.clicked.connect(callback)
 
@@ -2342,13 +2375,14 @@ class ChatInput(QTextEdit):
 
     def _ensure_splitter_hook(self):
         """Lazy-connect to main splitter to detect manual drags."""
-        if self._splitter_connected:
-            return
         splitter = self._get_main_splitter()
         if splitter is not None:
+            key = id(splitter)
+            if key in self._splitter_connections:
+                return
             try:
                 splitter.splitterMoved.connect(self._on_splitter_moved_by_user)
-                self._splitter_connected = True
+                self._splitter_connections.add(key)
             except Exception:
                 pass
 

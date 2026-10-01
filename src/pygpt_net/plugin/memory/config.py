@@ -23,7 +23,7 @@ class Config(BaseConfig):
         plugin.add_option(
             "model_update",
             type="combo",
-            value=MODEL_DEFAULT_MINI,
+            value="gpt-5.6-luna",
             label="Memory update model",
             description="Model used for automatic memory updates and, when enabled, for refining memory_add operations.",
             tooltip="Model used to update and refine memory.",

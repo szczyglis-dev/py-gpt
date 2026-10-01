@@ -27,6 +27,7 @@
         <file alias="chat4.svg">data/icons/chat4.svg</file>
         <file alias="check.svg">data/icons/check.svg</file>
         <file alias="check_circle.svg">data/icons/check_circle.svg</file>
+        <file alias="checkbox.svg">data/icons/checkbox.svg</file>
         <file alias="checklist.svg">data/icons/checklist.svg</file>
         <file alias="circle.svg">data/icons/circle.svg</file>
         <file alias="clear.svg">data/icons/clear.svg</file>

@@ -21,6 +21,7 @@ def make_fs(tmp_path):
         get=MagicMock(return_value=False),
         get_user_dir=MagicMock(side_effect=lambda key: str({"data": data, "upload": upload}.get(key, user / key))),
         get_app_path=MagicMock(return_value=str(tmp_path / "app")),
+        get_base_workdir=MagicMock(return_value=str(tmp_path / "base")),
     )
     platforms = SimpleNamespace(is_windows=MagicMock(return_value=False))
     window = SimpleNamespace(core=SimpleNamespace(config=config, platforms=platforms))

@@ -121,7 +121,7 @@ class ProfileExporter:
             )
             return
 
-        stamp = datetime.now().strftime("%Y_%m__%d_%H_%M_%S")
+        stamp = datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
         default_name = f"PyGPT_export_{stamp}.zip"
         default_path = os.path.join(str(Path.home()), default_name)
         filename, _filter = QFileDialog.getSaveFileName(

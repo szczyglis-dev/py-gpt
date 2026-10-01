@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 08:00:00                  #
+# Updated Date: 2026.09.29 10:00:00                  #
 # ================================================== #
 
 import copy
@@ -42,6 +42,8 @@ class Editor:
         :param dialog_id: dialog id
         """
         self.window.ui.editor[dialog_id].clear()
+        if hasattr(self.window.ui.editor[dialog_id], 'set_path'):
+            self.window.ui.editor[dialog_id].set_path(None)
         self.window.ui.dialog[dialog_id].file = None
         self.window.ui.dialog[dialog_id].base_content = ""
         self.window.ui.dialog[dialog_id].reset_file_title()
@@ -85,6 +87,8 @@ class Editor:
         try:
             with open(file, 'r', encoding="utf-8") as f:
                 txt = f.read()
+                if hasattr(self.window.ui.editor[dialog_id], 'set_path'):
+                    self.window.ui.editor[dialog_id].set_path(file)
                 self.window.ui.editor[dialog_id].setPlainText(txt)
                 self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(txt)
                 self.window.ui.dialog[dialog_id].update_file_title()
@@ -111,6 +115,8 @@ class Editor:
             self.window.ui.dialog[dialog_id].file = path  # update file path
 
         data = self.window.ui.editor[dialog_id].toPlainText()
+        if hasattr(self.window.ui.editor[dialog_id], 'set_path'):
+            self.window.ui.editor[dialog_id].set_path(path)
 
         # check if this is a valid JSON
         if path.endswith('.json'):

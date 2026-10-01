@@ -1,5 +1,3 @@
-# core/agents/runners/llama_workflow.py
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
@@ -16,7 +14,6 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 from time import perf_counter
-from pydantic import ValidationError
 
 from agents import TResponseInputItem
 from pygpt_net.item.model import ModelItem
@@ -42,6 +39,9 @@ from .utils import (
     strip_role_prefixes,
 )
 from .factory import AgentFactoryLI
+from .router_streamer import RealtimeRouterStreamerLI
+from ...runners.llama_events import forward_handler
+from pygpt_net.core.agents_v2.utils import effective_iteration_limit
 
 # LlamaIndex Workflow primitives + events
 from llama_index.core.workflow import Workflow, Context, StartEvent, StopEvent, Event, step
@@ -87,7 +87,7 @@ class FlowStopEvent(StopEvent):
 class DynamicFlowWorkflowLI(Workflow):
     """
     LlamaIndex Workflow mirroring OpenAI dynamic flow:
-    - Emits AgentStream header + AgentStream content per step (no token-by-token from single LI agents).
+    - Forwards native child text and tool events while keeping routing JSON private.
     - Emits StepEvent between agents (your runner uses it to separate UI blocks).
     - Routing via JSON {route, content} (UI sees only content; JSON never leaks).
     - Memory/no-memory with baton policy:
@@ -107,6 +107,7 @@ class DynamicFlowWorkflowLI(Workflow):
         initial_messages: Optional[List[TResponseInputItem]],
         preset: Optional[PresetItem],
         default_model: ModelItem,
+        memory_manager: Optional[MemoryManager] = None,
         option_get: OptionGetter,
         router_stream_mode: str,
         allow_local_tools_default: bool,
@@ -118,6 +119,7 @@ class DynamicFlowWorkflowLI(Workflow):
         stream: bool,
         base_prompt: Optional[str],
         system_prompt_extra: Optional[str] = None,
+        input_builder=None,
         timeout: int = 120,
         verbose: bool = True,
     ):
@@ -128,25 +130,28 @@ class DynamicFlowWorkflowLI(Workflow):
         # Graph/schema
         self.fs: FlowSchema = parse_schema(schema or [])
         self.g: FlowGraph = build_graph(self.fs)
-        self.mem = MemoryManager()
+        self.mem = memory_manager if memory_manager is not None else MemoryManager()
         self.factory = AgentFactoryLI(window, self.logger)
 
         # Options
         self.preset = preset
         self.default_model = default_model
         self.option_get = option_get
-        self.router_stream_mode = (router_stream_mode or "off").lower()  # LI: agents don't token-stream
+        # Keep the constructor option compatible with saved workflows; prose
+        # now always streams while routing JSON stays private.
+        self.router_stream_mode = "realtime"
         self.allow_local_tools_default = allow_local_tools_default
         self.allow_remote_tools_default = allow_remote_tools_default
-        self.max_iterations = int(max_iterations or 20)
+        self.max_iterations = int(max_iterations) if max_iterations is not None else 20
 
         # Base LLM/tools from app (per-node model override via resolve_llm)
         self.llm_base = llm
         self.computer_runtime = computer_runtime
         self.tools_base = tools or []
-        self.stream = bool(stream)  # kept for symmetry with OpenAI; LI agents don't stream tokens
+        self.stream = bool(stream)
         self.base_prompt = base_prompt or ""
         self.system_prompt_extra = system_prompt_extra or ""
+        self.input_builder = input_builder
 
         # Runtime
         self._on_stop = None
@@ -223,22 +228,10 @@ class DynamicFlowWorkflowLI(Workflow):
         Emit AgentStream(delta=text) robustly. If env requires extra fields,
         fall back to extended AgentStream.
         """
-        try:
-            if self.dbg.event_echo:
-                self.logger.debug(f"[event] AgentStream delta len={len(text or '')}")
-            ctx.write_event_to_stream(AgentStream(delta=text or ""))
-        except ValidationError:
-            if self.dbg.event_echo:
-                self.logger.debug("[event] AgentStream ValidationError -> using extended fields")
-            ctx.write_event_to_stream(
-                AgentStream(
-                    delta=text or "",
-                    response=text or "",
-                    current_agent_name=agent_name or "Agent",
-                    tool_calls=[],
-                    raw={},
-                )
-            )
+        ctx.write_event_to_stream(AgentStream(
+            delta=text or "", response=text or "",
+            current_agent_name=agent_name or "Agent", tool_calls=[], raw={},
+        ))
 
     async def _emit_header(self, ctx: Context, name: str):
         # Lightweight header to ensure agent name is known before tokens.
@@ -286,18 +279,22 @@ class DynamicFlowWorkflowLI(Workflow):
 
         # memory with history
         if mem_state and mem_state.items:
-            base_items = list(mem_state.items[:-1]) if len(mem_state.items) >= 1 else []
+            base_items = list(mem_state.items)
+            chat_history_msgs = to_li_chat_messages(base_items)
+
+            # A persisted memory belongs to the same ctx.meta across user turns.
+            # On the first dispatch of a NEW turn, the baton must therefore be
+            # the current user query, not the last assistant message stored in
+            # memory. Subsequent nodes inside this same workflow run still use
+            # the previous node output as their baton.
+            if not self._first_dispatch_done:
+                user_msg_text = self._initial_chat[-1].content if self._initial_chat else ""
+                return user_msg_text, chat_history_msgs, "memory:existing_new_turn"
+
             if self._last_plain_output.strip():
                 user_msg_text = self._last_plain_output
             else:
-                last_ass = mem_state.items[-1] if isinstance(mem_state.items[-1], dict) else {}
-                if isinstance(last_ass.get("content"), str):
-                    user_msg_text = last_ass.get("content", "")
-                elif isinstance(last_ass.get("content"), list) and last_ass["content"]:
-                    user_msg_text = last_ass["content"][0].get("text", "")
-                else:
-                    user_msg_text = ""
-            chat_history_msgs = to_li_chat_messages(base_items)
+                user_msg_text = chat_history_msgs[-1].content or "" if chat_history_msgs else ""
             return user_msg_text, chat_history_msgs, "memory:existing_to_user_baton"
 
         # memory empty
@@ -320,7 +317,7 @@ class DynamicFlowWorkflowLI(Workflow):
             )
             return user_msg, [], "no-mem:last_output"
 
-    async def _update_memory_after_step(self, node_id: str, user_msg_text: str, display_text: str):
+    async def _update_memory_after_step(self, node_id: str, user_msg_text: str, display_text: str, native_history=None):
         """
         Update per-node memory after a step, storing baton user message and assistant output.
         """
@@ -331,12 +328,14 @@ class DynamicFlowWorkflowLI(Workflow):
                 self.logger.debug(f"[memory] no memory for {node_id}; skip update.")
             return
         before_len = len(mem_state.items)
-        base_items = list(mem_state.items[:-1]) if mem_state.items else []
+        base_items = list(mem_state.items) if mem_state.items else list(self._initial_items)
         new_mem = (base_items or []) + [
             {"role": "user", "content": user_msg_text},
             {"role": "assistant", "content": [{"type": "output_text", "text": display_text}]},
         ]
-        mem_state.set_from(new_mem, None)
+        # Native messages include tool calls, tool results and multimodal blocks.
+        # Rebuilding only user/assistant text loses what this node actually did.
+        mem_state.set_from(native_history if native_history is not None else new_mem, None)
         after_len = len(mem_state.items)
         if self.dbg.log_memory_dump:
             self.logger.debug(
@@ -351,17 +350,13 @@ class DynamicFlowWorkflowLI(Workflow):
         """Entry point used by LlamaWorkflow runner."""
         self._on_stop = on_stop
 
-        # Build initial chat once
-        if self._initial_items:
-            self._initial_chat = to_li_chat_messages(self._initial_items)
-            if self.dbg.log_inputs:
-                prev = ellipsize(str(self._initial_items), self.dbg.preview_chars)
-                self.logger.debug(f"[debug] initial_items count={len(self._initial_items)} preview={prev}")
-        else:
-            from llama_index.core.llms import ChatMessage, MessageRole
-            self._initial_chat = [ChatMessage(role=MessageRole.USER, content=query or "")]
-            if self.dbg.log_inputs:
-                self.logger.debug(f"[debug] initial from query='{ellipsize(query, self.dbg.preview_chars)}'")
+        self._cancelled = False
+
+        # chat_history contains prior messages only. Always append this turn's
+        # actual query; otherwise a configured history can swallow the new task.
+        from llama_index.core.llms import ChatMessage, MessageRole
+        self._initial_chat = to_li_chat_messages(self._initial_items)
+        self._initial_chat.append(ChatMessage(role=MessageRole.USER, content=query or ""))
 
         # Pick START
         if self.g.start_targets:
@@ -397,6 +392,9 @@ class DynamicFlowWorkflowLI(Workflow):
             raise WorkflowCancelledByUser()
 
         # Termination conditions
+        if self._current_ids and self.max_iterations > 0 and self._steps >= self.max_iterations:
+            if self._current_ids[0] not in self.fs.ends:
+                raise RuntimeError("Custom workflow iteration limit reached before END")
         if not self._current_ids or (self._steps >= self.max_iterations > 0):
             self.logger.info(f"[step] loop_step: done (ids={self._current_ids}, steps={self._steps})")
             return FlowStopEvent(final_answer=self._last_plain_output or "")
@@ -444,7 +442,7 @@ class DynamicFlowWorkflowLI(Workflow):
         if self.dbg.log_llm:
             self.logger.debug(f"[llm] using={llm_node.__class__.__name__} id={getattr(llm_node,'model',None) or getattr(llm_node,'_model',None)}")
 
-        tools_node = self.tools_base if (node_rt.allow_local_tools or node_rt.allow_remote_tools) else []
+        tools_node = self.tools_base if node_rt.allow_local_tools else []
         if self.dbg.log_tools:
             self.logger.debug(f"[tools] count={len(tools_node)} names={self._tool_names(tools_node)}")
 
@@ -479,22 +477,30 @@ class DynamicFlowWorkflowLI(Workflow):
         display_text = ""
         next_id: Optional[str] = None
 
-        # Execute (single LI agent doesn't token-stream; Workflow emits blocks)
-        try:
-            t0 = perf_counter()
-            if self.dbg.step_timeout_sec > 0:
-                ret = await asyncio.wait_for(agent.run(user_msg=user_msg_text), timeout=self.dbg.step_timeout_sec)
-            else:
-                ret = await agent.run(user_msg=user_msg_text)
-            dt_ms = (perf_counter() - t0) * 1000.0
-            if self.dbg.timeit_agent_run:
-                self.logger.debug(f"[time] agent.run took {dt_ms:.1f} ms")
-        except asyncio.TimeoutError:
-            self.logger.error(f"[error] agent.run timeout after {self.dbg.step_timeout_sec}s on node={current_id}")
-            ret = None
-        except Exception as e:
-            self.logger.error(f"[error] agent.run failed on node={current_id}: {e}")
-            ret = None
+        # Drain child events while running; routers expose only their content
+        # field, never protocol JSON. History and limits belong to run(), not
+        # constructor kwargs (which newer LlamaIndex releases ignore).
+        router = RealtimeRouterStreamerLI() if multi_output else None
+        from pygpt_net.core.agents.session_memory import WorkflowMemory
+        node_memory = WorkflowMemory.from_defaults(chat_history=chat_history_msgs, llm=llm_node)
+        user_msg = self.input_builder(user_msg_text) if callable(self.input_builder) else user_msg_text
+        handler = agent.run(
+            user_msg=user_msg,
+            memory=node_memory,
+            max_iterations=effective_iteration_limit(self.max_iterations),
+        )
+        t0 = perf_counter()
+        operation = forward_handler(
+            handler, ctx, self._is_stopped, name=node.name or current_id,
+            text_filter=router.handle_delta if router is not None else None,
+            emit_text=True,
+        )
+        if self.dbg.step_timeout_sec > 0:
+            ret, streamed_text = await asyncio.wait_for(operation, timeout=self.dbg.step_timeout_sec)
+        else:
+            ret, streamed_text = await operation
+        if self.dbg.timeit_agent_run:
+            self.logger.debug(f"[time] agent.run took {(perf_counter() - t0) * 1000:.1f} ms")
 
         # Extract and sanitize text
         raw_text = extract_agent_text(ret) if ret is not None else ""
@@ -507,19 +513,27 @@ class DynamicFlowWorkflowLI(Workflow):
         if multi_output:
             decision = parse_route_output(raw_text_clean or "", allowed_routes)
             display_text = decision.content or ""
-            if display_text:
+            if display_text and not streamed_text:
                 await self._emit_agent_text(ctx, display_text, agent_name=(node.name or current_id))
-            await self._update_memory_after_step(current_id, user_msg_text, display_text)
-            next_id = decision.route if decision.valid else (allowed_routes[0] if allowed_routes else None)
+            elif display_text.startswith(streamed_text) and len(display_text) > len(streamed_text):
+                await self._emit_agent_text(ctx, display_text[len(streamed_text):], agent_name=(node.name or current_id))
+            await self._update_memory_after_step(
+                current_id, user_msg_text, display_text, native_history=await node_memory.aget_all())
+            if not decision.valid:
+                raise ValueError(f"Invalid route from workflow node {current_id}")
+            next_id = decision.route
             if self.dbg.log_routes:
                 self.logger.debug(
                     f"[route] node={current_id} valid={decision.valid} next={next_id} content_len={len(display_text)}"
                 )
         else:
             display_text = raw_text_clean or ""
-            if display_text:
+            if display_text and not streamed_text:
                 await self._emit_agent_text(ctx, display_text, agent_name=(node.name or current_id))
-            await self._update_memory_after_step(current_id, user_msg_text, display_text)
+            elif display_text.startswith(streamed_text) and len(display_text) > len(streamed_text):
+                await self._emit_agent_text(ctx, display_text[len(streamed_text):], agent_name=(node.name or current_id))
+            await self._update_memory_after_step(
+                current_id, user_msg_text, display_text, native_history=await node_memory.aget_all())
             outs = self.g.get_next(current_id)
             next_id = outs[0] if outs else self.g.first_connected_end(current_id)
             if self.dbg.log_routes:

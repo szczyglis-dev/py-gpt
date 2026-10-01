@@ -38,6 +38,7 @@ def make_window(root_items=None):
     window.core.tokens.from_user.return_value = 25
     window.core.tokens.from_ctx.return_value = 10
     window.core.context_manager.enabled.return_value = False
+    window.core.ctx.get_history_items_limit.return_value = 0
     window.core.context_manager.filter_agents_v2_items.side_effect = lambda values, master: values
     return window
 

@@ -6,7 +6,7 @@
 PyGPT - pygpt.net
 ====================
 
-| **Release:** 2.8.26 (2026-09-20)
+| **Release:** 2.8.36 (2026-09-30)
 | **Project Website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Snap Store:** https://snapcraft.io/pygpt
@@ -26,6 +26,8 @@ Contents
    requirements
    quick_start
    modes
+   canvas
+   skills
    context
    attachments
    indexing
@@ -33,7 +35,6 @@ Contents
    profiles
    models
    plugins
-   skills
    connectors
    tools
    functions
@@ -43,5 +44,6 @@ Contents
    updates
    debug
    extending
+   addons_api
    security
    credits

@@ -6,34 +6,31 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 22:25:00                  #
+# Updated Date: 2026.09.22 20:05:00                  #
 # ================================================== #
 
+from __future__ import annotations
 import json
-from typing import Optional, Dict, Any, List
+from typing import TYPE_CHECKING, Optional, Dict, Any, List
 
-from llama_index.core.llms import ChatMessage, MessageRole
-from llama_index.core.prompts import ChatPromptTemplate
-from llama_index.core.memory import ChatMemoryBuffer
-from llama_index.core.tools import QueryEngineTool
 
 from pygpt_net.core.types import (
-    MODE_CHAT,
-    MODE_LLAMA_INDEX,
     MODE_AGENT_LLAMA,
     MODE_AGENT_OPENAI,
     MODE_AGENT_V2,
-    TOOL_QUERY_ENGINE_NAME,
-    TOOL_QUERY_ENGINE_DESCRIPTION,
+    MODE_COMPUTER,
 )
 from pygpt_net.core.bridge.worker import BridgeSignals
 from pygpt_net.core.bridge.context import BridgeContext
-from pygpt_net.provider.llms.agent_computer import ComputerRuntime
 from pygpt_net.item.model import ModelItem
 from pygpt_net.item.ctx import CtxItem
 
-from .context import Context
-from .response import Response
+
+if TYPE_CHECKING:
+    from llama_index.core.llms import ChatMessage
+    from llama_index.core.prompts import ChatPromptTemplate
+    from llama_index.core.memory import ChatMemoryBuffer
+    from llama_index.core.tools import BaseTool
 
 class Chat:
     # Retrieval scores are backend/model dependent and are not a portable
@@ -51,9 +48,34 @@ class Chat:
         """
         self.window = window
         self.storage = storage
-        self.context = Context(window)
-        self.response = Response(window)
+        self._context = None
+        self._response = None
+        self._rag_context = None
         self.prev_message = None  # previous message, used in chat mode
+
+    @property
+    def context(self):
+        if self._context is None:
+            from .context import Context
+            self._context = Context(self.window)
+        return self._context
+
+    @property
+    def response(self):
+        if self._response is None:
+            from .response import Response
+            self._response = Response(self.window)
+        return self._response
+
+    @property
+    def rag_context(self):
+        if self._rag_context is None:
+            from .rag_context import RAGContextPreparer
+            self._rag_context = RAGContextPreparer(
+                top_k=self.RETRIEVAL_TOP_K,
+                logger=self.log,
+            )
+        return self._rag_context
 
     def call(
             self,
@@ -249,6 +271,8 @@ class Chat:
         :param disable_cmd: Disable tools
         :param signals: Bridge signals
         """
+        from llama_index.core.llms import MessageRole
+
         idx = context.idx
         model = context.model
         system_prompt = context.system_prompt  # get final system prompt
@@ -264,15 +288,20 @@ class Chat:
         cmd_enabled = self.window.core.config.get("cmd", False)  # use tools
         if not self.window.core.models.is_tool_call_allowed(context.mode, model):
             allow_native_tool_calls = False
-        if disable_cmd:
+        if disable_cmd or (extra and extra.get("disable_tools", False)):
             cmd_enabled = False
 
-        # ReAct is an automatic fallback for models/providers that cannot use
-        # native tool calls in the current Chat with Files path. There is no
-        # user-facing switch: native tool calls are preferred whenever they are
-        # available, and ReAct is used only when tools are enabled and the
-        # native path is unavailable.
-        use_react = bool(cmd_enabled and not allow_native_tool_calls)
+        # Chat with Files uses tools only through the provider's native tool-calling
+        # interface.  If the selected model/provider cannot use native tools,
+        # disable tools for this request and fall back to the normal RAG -> LLM
+        # path instead of wrapping the request in a ReAct agent.
+        native_tools_unavailable = bool(cmd_enabled and not allow_native_tool_calls)
+        if native_tools_unavailable:
+            cmd_enabled = False
+            self.log(
+                "Native tool calls are unavailable for this model/provider; "
+                "tools disabled for this Chat with Files request. Using direct RAG + LLM."
+            )
 
         if not self.window.core.idx.is_valid(idx):
             chat_mode = "simple"  # do not use query engine if no index
@@ -284,21 +313,20 @@ class Chat:
         # Provider-native Computer Use is a client-side continuation protocol.
         # Chat with Files is synchronous LlamaIndex code, so bind a tiny runtime
         # adapter that reuses the same provider adapters/executor as Agents v2.
-        computer_runtime = ComputerRuntime(self.window, context)
+        from pygpt_net.provider.llms.computer import ComputerRuntime
 
-        # retrieve additional context from index if tools enabled
-        additional_ctx = None
-        if self.window.core.config.get("llama.idx.chat.auto_retrieve", False):
-            if use_index and cmd_enabled and not ctx.internal:
-                response = self.query_retrieval(
-                    query=query,
-                    idx=idx,
-                    model=model,
-                )
-                if response:
-                    additional_ctx = response
-            if additional_ctx is not None:
-                system_prompt += "\n\n# Additional context:\n\n" + additional_ctx  # append additional context
+        computer_runtime = ComputerRuntime(self.window, context)
+        force_computer_use = context.parent_mode == MODE_COMPUTER
+
+        # When Computer Use is routed through RAG/LlamaIndex, the visible mode
+        # is still Computer Use even though the bridge runtime is llama_index.
+        # Force the provider-native Computer Use remote tool in that case so the
+        # RAG backend keeps the same computer-control capability as native mode.
+
+        # Direct RAG prefetch for native tool calls is handled later, after the
+        # index, LLM, chat history and tool schemas are available. This lets the
+        # same RAGContextPreparer account for the real final-request token budget.
+        auto_retrieve = self.window.core.config.get("llama.idx.chat.auto_retrieve", False)
 
         # -- log ---
         self.log("Chat with index...")
@@ -308,11 +336,10 @@ class Chat:
             f"model: {model.id}, "
             f"stream: {stream}, "
             f"native tool calls: {allow_native_tool_calls}, "
-            f"use react: {use_react}, "
             f"use index: {use_index}, "
             f"cmd enabled: {cmd_enabled}, "
             f"num_attachments: {len(context.attachments) if context.attachments else 0}, "
-            f"additional ctx: {additional_ctx}, "
+            f"auto retrieve: {auto_retrieve}, "
             f"query: {query}"
         )
 
@@ -324,12 +351,14 @@ class Chat:
                 model,
                 stream=stream,
                 computer_runtime=computer_runtime,
+                force_computer_use=force_computer_use,
             )
         else:
             llm = self.window.core.idx.llm.get(
                 model,
                 stream=stream,
                 computer_runtime=computer_runtime,
+                force_computer_use=force_computer_use,
             )
 
         # TODO: if multimodal support, try to get multimodal provider
@@ -382,6 +411,60 @@ class Chat:
                         "a multimodal user message."
                     )
 
+        # Prepare native tools only when this model/provider can actually use
+        # them. If tools were requested but native tool calling is unavailable,
+        # the request intentionally continues as a tool-free RAG conversation.
+        tools = (
+            self.window.core.agents.tools.prepare(context, extra, force=True)
+            if cmd_enabled
+            else []
+        )
+
+        # LlamaIndex 0.14.22+ can buffer Context/CompactAndRefine streaming before
+        # PyGPT's StreamWorker consumes it. Use one shared pre-answer RAG pipeline
+        # for direct provider calls:
+        #   * no-native-tools fallback: always retrieve first, then call the
+        #     regular LLM directly (streaming or non-streaming);
+        #   * tools OFF + stream: prepare context before llm.stream_chat();
+        #   * native tools + auto-retrieve: prepare the same context before
+        #     llm.[stream_]chat_with_tools().
+        direct_rag = bool(
+            use_index
+            and (
+                native_tools_unavailable
+                or (stream and not cmd_enabled)
+                or (
+                    cmd_enabled
+                    and auto_retrieve
+                    and not ctx.internal
+                )
+            )
+        )
+        if direct_rag:
+            prepared_rag = self.prepare_rag_context(
+                index=index,
+                llm=llm,
+                query=query,
+                history=history,
+                chat_mode=chat_mode,
+                system_prompt=system_prompt,
+                model=model,
+                tools=tools if cmd_enabled else None,
+            )
+            if prepared_rag.has_context:
+                system_prompt += "\n\n" + prepared_rag.context
+            if prepared_rag.nodes:
+                ctx.add_doc_meta(self.get_metadata(prepared_rag.nodes))
+
+            self.log(
+                f"Direct RAG context prepared: nodes={len(prepared_rag.nodes)}, "
+                f"chat_mode={chat_mode}, condensed={prepared_rag.condensed}, "
+                f"retrieval_query={prepared_rag.retrieval_query}, "
+                f"tools={cmd_enabled}"
+            )
+            # Final generation now belongs to the normal provider path.
+            use_index = False
+
         self.prev_message = None  # reset previous message
         memory = self.get_memory_buffer(history, llm)
         input_tokens = self.window.core.tokens.from_llama_messages(
@@ -390,31 +473,17 @@ class Chat:
             model.id,
         )
         ctx.input_tokens = input_tokens
-        tools = self.window.core.agents.tools.prepare(context, extra, force=True)  # prepare tools for agent
 
         if use_index:
-            # 1) if tools enabled use agent engine
+            # 1) Native tools use the normal provider tool-calling path. RAG is
+            # pre-injected only when auto-retrieve is enabled; otherwise keep the
+            # existing direct-tool behavior. There is no ReAct fallback.
             if cmd_enabled:
-                if use_react: # TOOLS + REACT + INDEX
-                    ctx.agent_call = True  # directly return tool call response
-                    ctx.use_agent_final_response = True  # use agent final response as output
-                    response = self.call_agent(
-                        context=context,
-                        signals=signals,
-                        tools=tools,
-                        ctx=ctx,
-                        query=query,
-                        history=context.history,
-                        llm=llm,
-                        index=index,
-                        system_prompt=system_prompt,
-                        chat_mode=chat_mode,
-                        verbose=verbose,
-                    )
-                else:
-                    use_index = False # fallback to LLM if tools enabled but not using ReAct
+                use_index = False
             else:
-                # 2) if tools disabled, use index as chat engine
+                # 2) tools disabled + non-stream: keep the LlamaIndex chat engine.
+                # Streaming requests have already been routed to direct LLM
+                # streaming above after explicit RAG retrieval.
                 chat_engine_kwargs = {
                     "llm": llm,
                     "chat_mode": chat_mode,
@@ -430,13 +499,10 @@ class Chat:
                     history=history,
                     extra=extra,
                     model=model.id,
-                    path="index.as_chat_engine(...).stream_chat" if stream else "index.as_chat_engine(...).chat",
+                    path="index.as_chat_engine(...).chat",
                 )
                 chat_engine = index.as_chat_engine(**chat_engine_kwargs)
-                if stream:
-                    response = chat_engine.stream_chat(query)
-                else:
-                    response = chat_engine.chat(query)
+                response = chat_engine.chat(query)
 
                 # check for not empty
                 if hasattr(response, "source_nodes") and len(response.source_nodes) == 0:
@@ -445,70 +511,56 @@ class Chat:
 
         if not use_index:
             if cmd_enabled:
-                if use_react:  # TOOLS + REACT + NO INDEX
-                    ctx.agent_call = True  # directly return tool call response
-                    ctx.use_agent_final_response = True  # use agent final response as output
-                    response = self.call_agent(
-                        context=context,
-                        signals=signals,
-                        tools=tools,
-                        ctx=ctx,
-                        query=query,
-                        history=context.history,
-                        llm=llm,
-                        index=index,
-                        system_prompt=system_prompt,
-                        chat_mode=chat_mode,
-                        verbose=verbose,
-                    )
-                else:
-                    history.insert(0, self.context.add_system(system_prompt))
-                    if not native_tool_continuation:
-                        history.append(self.context.add_user(
-                            query,
-                            attachments=context.attachments,
-                            allow_images=model.is_image_input(),
-                        ))
-                    if stream: # TOOLS + STREAM + NO INDEX
-                        # IMPORTANT: stream chat with tools not supported by all providers
-                        if allow_native_tool_calls and hasattr(llm, "stream_chat_with_tools"):
-                            self.log("Using with tools...")
-                            request_kwargs = {"tools": tools, "messages": history}
-                            self.window.core.api.logger.log_input(
-                                type="llama_index.stream_chat_with_tools", provider=model.provider,
-                                kwargs=request_kwargs, input=query, history=history, extra=extra,
-                                model=model.id, path="llm.stream_chat_with_tools",
-                            )
-                            response = llm.stream_chat_with_tools(**request_kwargs)
-                        else:
-                            request_kwargs = {"messages": history}
-                            self.window.core.api.logger.log_input(
-                                type="llama_index.stream_chat", provider=model.provider,
-                                kwargs=request_kwargs, input=query, history=history, extra=extra,
-                                model=model.id, path="llm.stream_chat",
-                            )
-                            response = llm.stream_chat(**request_kwargs)
-                    else: # TOOLS + NO INDEX
-                        # IMPORTANT: stream chat with tools not supported by all providers
-                        if allow_native_tool_calls and hasattr(llm, "chat_with_tools"):
-                            self.log("Using with tools...")
-                            request_kwargs = {"tools": tools, "messages": history}
-                            self.window.core.api.logger.log_input(
-                                type="llama_index.chat_with_tools", provider=model.provider,
-                                kwargs=request_kwargs, input=query, history=history, extra=extra,
-                                model=model.id, path="llm.chat_with_tools",
-                            )
-                            response = llm.chat_with_tools(**request_kwargs)
-                        else:
-                            request_kwargs = {"messages": history}
-                            self.window.core.api.logger.log_input(
-                                type="llama_index.chat", provider=model.provider,
-                                kwargs=request_kwargs, input=query, history=history, extra=extra,
-                                model=model.id, path="llm.chat",
-                            )
-                            response = llm.chat(**request_kwargs)
+                history.insert(0, self.context.add_system(system_prompt))
+                if not native_tool_continuation:
+                    history.append(self.context.add_user(
+                        query,
+                        attachments=context.attachments,
+                        allow_images=model.is_image_input(),
+                    ))
+                if stream: # NATIVE TOOLS + STREAM + NO INDEX
+                    # IMPORTANT: stream chat with tools not supported by all providers
+                    if hasattr(llm, "stream_chat_with_tools"):
+                        self.log("Using with tools...")
+                        request_kwargs = {"tools": tools, "messages": history}
+                        self.window.core.api.logger.log_input(
+                            type="llama_index.stream_chat_with_tools", provider=model.provider,
+                            kwargs=request_kwargs, input=query, history=history, extra=extra,
+                            model=model.id, path="llm.stream_chat_with_tools",
+                        )
+                        response = llm.stream_chat_with_tools(**request_kwargs)
+                    else:
+                        # The model passed is_tool_call_allowed(), but the concrete
+                        # adapter has no streaming tool method. Degrade safely to
+                        # a normal streamed answer rather than invoking ReAct.
+                        request_kwargs = {"messages": history}
+                        self.window.core.api.logger.log_input(
+                            type="llama_index.stream_chat", provider=model.provider,
+                            kwargs=request_kwargs, input=query, history=history, extra=extra,
+                            model=model.id, path="llm.stream_chat",
+                        )
+                        response = llm.stream_chat(**request_kwargs)
+                else: # NATIVE TOOLS + NO INDEX
+                    if hasattr(llm, "chat_with_tools"):
+                        self.log("Using with tools...")
+                        request_kwargs = {"tools": tools, "messages": history}
+                        self.window.core.api.logger.log_input(
+                            type="llama_index.chat_with_tools", provider=model.provider,
+                            kwargs=request_kwargs, input=query, history=history, extra=extra,
+                            model=model.id, path="llm.chat_with_tools",
+                        )
+                        response = llm.chat_with_tools(**request_kwargs)
+                    else:
+                        request_kwargs = {"messages": history}
+                        self.window.core.api.logger.log_input(
+                            type="llama_index.chat", provider=model.provider,
+                            kwargs=request_kwargs, input=query, history=history, extra=extra,
+                            model=model.id, path="llm.chat",
+                        )
+                        response = llm.chat(**request_kwargs)
             else:
-                # NO TOOLS + NO INDEX
+                # NO TOOLS + DIRECT LLM. If direct RAG is active, the prepared
+                # retrieval context was already appended to the system prompt.
                 history.insert(0, self.context.add_system(system_prompt))
                 history.append(self.context.add_user(
                     query,
@@ -547,7 +599,7 @@ class Chat:
                 llm=llm,
                 response=response,
                 cmd_enabled=cmd_enabled,
-                use_react=use_react,
+                use_react=False,
                 use_index=use_index,
                 stream=stream,
             )
@@ -564,7 +616,7 @@ class Chat:
                 )
 
                 # store prev message
-                if (cmd_enabled and not use_react and not use_index) or (not cmd_enabled and not use_index):
+                if not use_index and hasattr(response, "message"):
                     self.prev_message = response.message
 
             # store metadata from response
@@ -574,102 +626,59 @@ class Chat:
 
         return False
 
-    def call_agent(
+    def prepare_rag_context(
             self,
-            context: BridgeContext,
-            signals: Optional[BridgeSignals] = None,
-            tools: Optional[List[QueryEngineTool]] = None,
-            ctx: Optional[CtxItem] = None,
-            query: str = "",
-            history: Optional[List[ChatMessage]] = None,
-            llm=None,
-            index=None,
-            system_prompt: str = "",
-            chat_mode: str = MODE_CHAT,
-            verbose: bool = False,
+            index,
+            llm,
+            query: str,
+            history: Optional[List[ChatMessage]],
+            chat_mode: str,
+            system_prompt: str,
+            model: ModelItem,
+            tools: Optional[List[BaseTool]] = None,
+    ):
+        """Prepare selected-index evidence for a direct model/tool request.
 
-    ) -> str:
+        This is the shared integration point used by direct RAG generation:
+        streaming RAG, native tool-call auto-retrieval, and the tool-free fallback
+        used when a model/provider does not support native tool calls.
         """
-        Call agent with tools and index
+        context_window_limit = self.window.core.config.get("max_total_tokens")
+        if not isinstance(context_window_limit, int):
+            context_window_limit = 0
 
-        :param context: Bridge context
-        :param signals: Bridge signals
-        :param tools: Tools
-        :param ctx: CtxItem
-        :param query: Input prompt
-        :param history: Chat history
-        :param llm: LLM provider
-        :param index: Index to use for additional context
-        :param system_prompt: System prompt to use for agent
-        :param chat_mode: Chat mode to use for agent, default is MODE_CHAT
-        :param verbose: Verbose mode, default is False
-        :return: True if success, False otherwise
-        """
-        if index:
-            query_engine = index.as_query_engine(
-                llm=llm,
-                chat_mode=chat_mode,
-                verbose=verbose,
-            )
-            index_tool = QueryEngineTool.from_defaults(
-                query_engine=query_engine,
-                name=TOOL_QUERY_ENGINE_NAME,
-                description=TOOL_QUERY_ENGINE_DESCRIPTION,
-                return_direct=True,  # return direct response from index
-            )
-            tools.append(index_tool)
+        model_context_window = self.window.core.models.get_num_ctx(model.id)
+        if model_context_window > 0 and (
+                context_window_limit <= 0
+                or model_context_window < context_window_limit
+        ):
+            context_window_limit = model_context_window
 
-        bridge_context = BridgeContext(
-            ctx=ctx,
-            model=context.model,
-            history=history,
-            prompt=query,
-            stream=False,
+        return self.rag_context.prepare(
+            index=index,
+            llm=llm,
+            query=query,
+            history=history or [],
+            chat_mode=chat_mode,
+            system_prompt=system_prompt,
+            tools=tools,
+            context_window_limit=context_window_limit,
         )
-        extra = {
-            "agent_provider": "react",  # use React workflow provider
-            "agent_tools": tools,
-        }
-        self.window.core.api.logger.log_input(
-            type="llama_index.react_agent",
-            provider=context.model.provider if context.model else "",
-            kwargs={"context": bridge_context, "extra": extra, "signals": None},
-            input=query,
-            history=history,
-            extra={"system_prompt": system_prompt, "tools": tools, "chat_mode": chat_mode},
-            model=context.model.id if context.model else None,
-            path="core.agents.runner.call_once",
-        )
-        response_ctx = self.window.core.agents.runner.call_once(
-            context=bridge_context,
-            extra=extra,
-            signals=None,
-        )
-        output = str(response_ctx.output) if response_ctx else "No response from agent."
-        self.window.core.api.logger.log_output(
-            type="llama_index.react_agent",
-            provider=context.model.provider if context.model else "",
-            output=output,
-            model=context.model.id if context.model else None,
-        )
-        return output
 
     def is_stream_allowed(self, model: Optional[ModelItem] = None) -> bool:
         """
         Return whether Chat with Files can use the normal streaming path.
 
-        ReAct itself is non-streaming in this integration. It is selected
-        automatically only when tools are enabled and native tool calls are not
-        available for the current model/provider path.
+        Tools no longer disable streaming at the RAG/bridge level. Providers
+        with native tool calls use ``stream_chat_with_tools``. If native tool
+        calling is unavailable, Chat with Files ignores tools for that request
+        and uses the regular RAG + LLM streaming path instead. Keep this hook for
+        compatibility with callers and plugins that may query it.
 
-        :param model: Current model, if already resolved
-        :return: True if stream is allowed
+        :param model: Current model, kept for API compatibility
+        :return: True
         """
-        if not self.window.core.config.get("cmd", False):
-            return True
-        if model is None:
-            return True
-        return self.window.core.models.is_tool_call_allowed(MODE_LLAMA_INDEX, model)
+        return True
 
     def query_file(
             self,
@@ -870,18 +879,37 @@ class Chat:
             model: Optional[ModelItem] = None
     ) -> str:
         """
-        Query attachment
+        Retrieve and prepare RAG context without generating the final answer.
+
+        This helper is shared by Agents v2 prefetch, legacy agents and RAG
+        plugins. Keep the return value as plain prepared context text (without
+        the system-prompt RAG wrapper) so existing callers remain compatible.
 
         :param query: query
         :param idx: index id
         :param model: model
-        :return: response
+        :return: prepared context text
         """
         if model is None:
             model = self.window.core.models.from_defaults()
+
         index, llm = self.get_index(idx, model, stream=False)
-        nodes = self._retrieve_nodes(index, query)
-        return self._format_retrieved_nodes(nodes)
+        prepared = self.prepare_rag_context(
+            index=index,
+            llm=llm,
+            query=query,
+            history=[],
+            chat_mode="context",
+            system_prompt="",
+            model=model,
+            tools=None,
+        )
+
+        # query_retrieval() historically returns only the retrieved material.
+        # Callers such as Agents v2/legacy agents add their own prompt wrappers.
+        if prepared.packed_chunks:
+            return str(prepared.packed_chunks[0]).strip()
+        return ""
 
     @staticmethod
     def _get_node_text(node: Any) -> str:
@@ -972,6 +1000,8 @@ class Chat:
         :param llm: LLM model
         :return: memory buffer with chat history
         """
+        from llama_index.core.memory import ChatMemoryBuffer
+
         return ChatMemoryBuffer.from_defaults(
             chat_history=history,
             llm=llm,
@@ -987,6 +1017,9 @@ class Chat:
         :param prompt: system prompt (optional)
         :return: ChatPromptTemplate or None if prompt is empty
         """
+        from llama_index.core.llms import ChatMessage, MessageRole
+        from llama_index.core.prompts import ChatPromptTemplate
+
         if prompt is None or prompt.strip() == "":
             return None
 
@@ -1015,6 +1048,7 @@ class Chat:
             model: ModelItem,
             stream: bool = False,
             computer_runtime=None,
+            force_computer_use: bool = False,
     ):
         """
         Get index instance
@@ -1022,7 +1056,8 @@ class Chat:
         :param idx: idx name (id)
         :param model: model instance
         :param stream: stream mode
-        :param computer_runtime: optional Chat with Files Computer Use runtime
+        :param computer_runtime: optional shared Computer Use runtime
+        :param force_computer_use: force provider-native Computer Use remote tool
         """
         requested_idx = idx
         idx = self.window.core.idx.resolve_idx(idx)
@@ -1032,6 +1067,7 @@ class Chat:
                 model=model,
                 stream=stream,
                 computer_runtime=computer_runtime,
+                force_computer_use=force_computer_use,
             )
             return self.storage.index_from_empty(embed_model), llm
         if not self.storage.exists(idx):
@@ -1041,6 +1077,7 @@ class Chat:
                     model=model,
                     stream=stream,
                     computer_runtime=computer_runtime,
+                    force_computer_use=force_computer_use,
                 )
                 index = self.storage.index_from_empty(embed_model)
                 return index, llm
@@ -1050,6 +1087,7 @@ class Chat:
             model=model,
             stream=stream,
             computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
         )
         index = self.storage.get(idx, llm, embed_model)  # get index
         if self.window.core.idx.project.is_virtual(requested_idx):

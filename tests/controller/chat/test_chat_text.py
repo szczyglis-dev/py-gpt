@@ -10,13 +10,15 @@
 # ================================================== #
 
 from unittest.mock import MagicMock, patch
+import pytest
 
 from pygpt_net.item.model import ModelItem
 from tests.mocks import mock_window
 from pygpt_net.controller.chat.text import Text
 
 
-def test_send(mock_window):
+@pytest.mark.parametrize('with_annotations', [False, True])
+def test_send(mock_window, with_annotations):
     """Test handle text"""
     text = Text(mock_window)
 
@@ -40,7 +42,11 @@ def test_send(mock_window):
 
     model = ModelItem()
     mock_window.core.models.get = MagicMock(return_value=model)
-    mock_window.core.prompt.prepare_sys_prompt = MagicMock()
+    mock_window.core.prompt.prepare_sys_prompt = MagicMock(return_value='System prompt')
+    if with_annotations:
+        session = text.get_annotations(mock_window.core.ctx.get_current_meta())
+        session.add_annotation(selection='quoted answer', note='correct this')
+        text.get_annotations(type('Meta', (), {'id': 'other-chat'})()).add_annotation(note='other feedback')
 
     with patch('PySide6.QtWidgets.QApplication.processEvents') as mock_process_events:
 
@@ -52,6 +58,15 @@ def test_send(mock_window):
         mock_window.controller.ctx.update.assert_called_once_with(reload=True, all=False)  # should update ctx list
         mock_window.controller.chat.common.lock_input.assert_called_once()  # should lock input
         mock_window.dispatch.assert_called()
+        if with_annotations:
+            contexts = [call.args[0].data.get('context') for call in mock_window.dispatch.call_args_list
+                        if isinstance(getattr(call.args[0], 'data', None), dict)]
+            context = next(context for context in contexts if context is not None)
+            assert 'quoted answer' in context.system_prompt
+            assert 'source=chat' in context.system_prompt
+            assert 'other feedback' not in context.system_prompt
+            assert context.prompt == 'message'
+            assert ctx.input == 'message'
 
 
 def test_send_stream(mock_window):

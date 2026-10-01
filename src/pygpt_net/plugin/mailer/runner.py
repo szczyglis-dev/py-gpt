@@ -15,7 +15,6 @@ import poplib
 
 from email.parser import BytesParser
 from typing import Any
-from bs4 import BeautifulSoup
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
@@ -61,6 +60,7 @@ class Runner:
         else:
             body = msg.get_payload(decode=True).decode(msg.get_content_charset('utf-8'))
         if is_html and as_text:
+            from bs4 import BeautifulSoup
             body = BeautifulSoup(body, 'html.parser').get_text()
         return body
 

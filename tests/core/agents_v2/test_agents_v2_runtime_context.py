@@ -279,7 +279,7 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert runtime.return_tool_calls_to_main_ctx is True
     assert runtime.allow_local_tools is False
     assert runtime.allow_remote_tools is True
-    assert runtime.index_id is None
+    assert runtime.index_id == "fallback-index"
     assert runtime.shared_context_text == "shared"
     assert runtime.runtime_system_context == "runtime"
     assert runtime.workflow_final_requested is False
@@ -402,41 +402,6 @@ def test_agents_v2_runtime_collect_llm_artifacts_deduplicates_provider_urls():
         "urls": ["https://old", "https://new"],
     }
 
-
-def test_agents_v2_project_rules_loads_agents_md_from_active_context_workdir(tmp_path):
-    rules_file = tmp_path / "AGENTS.md"
-    rules_file.write_text("  project rule  ", encoding="utf-8")
-    runtime = bare_runtime()
-    runtime.context.ctx = SimpleNamespace(id=77)
-    runtime.window.core.filesystem.get_data_dir.return_value = str(tmp_path)
-    runtime.window.core.security.is_in_workdir.return_value = True
-
-    rules = runtime.context_api.load_project_rules()
-
-    assert rules == "project rule"
-    runtime.window.core.filesystem.get_data_dir.assert_called_once_with(ctx=runtime.context.ctx, create=False)
-    runtime.window.core.security.is_in_workdir.assert_called_once_with(str(rules_file), ctx=runtime.context.ctx)
-    runtime.verbose_text.assert_called_once_with("PROJECT RULES", "project rule")
-
-
-def test_agents_v2_project_rules_rejects_agents_md_outside_active_workdir(tmp_path):
-    rules_file = tmp_path / "AGENTS.md"
-    rules_file.write_text("do not load", encoding="utf-8")
-    runtime = bare_runtime()
-    runtime.context.ctx = SimpleNamespace(id=11)
-    runtime.window.core.filesystem.get_data_dir.return_value = str(tmp_path)
-    runtime.window.core.security.is_in_workdir.return_value = False
-
-    assert runtime.context_api.load_project_rules() == ""
-    runtime.verbose_text.assert_not_called()
-    runtime.verbose_log.assert_called()
-
-
-def test_agents_v2_project_rules_missing_file_returns_empty(tmp_path):
-    runtime = bare_runtime()
-    runtime.window.core.filesystem.get_data_dir.return_value = str(tmp_path)
-    assert runtime.context_api.load_project_rules() == ""
-    runtime.window.core.security.is_in_workdir.assert_not_called()
 
 
 def test_main_function_agent_promotes_runtime_image_blocks_after_tool_result(tmp_path):

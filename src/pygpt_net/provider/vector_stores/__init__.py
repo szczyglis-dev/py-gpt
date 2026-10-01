@@ -9,11 +9,14 @@
 # Updated Date: 2025.01.16 01:00:00                  #
 # ================================================== #
 
-import hashlib
-from typing import Optional, Tuple, List
+from __future__ import annotations
 
-from llama_index.core.indices.base import BaseIndex
-from llama_index.core.indices.vector_store.base import VectorStoreIndex
+
+import hashlib
+from typing import Optional, Tuple, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.indices.base import BaseIndex
 
 from .base import BaseStore
 from .ctx_attachment import CtxAttachmentProvider
@@ -316,6 +319,8 @@ class Storage:
 
         :return: index instance
         """
+        from llama_index.core.indices.vector_store.base import VectorStoreIndex
+
         return VectorStoreIndex(
             [],
             embed_model=embed_model,

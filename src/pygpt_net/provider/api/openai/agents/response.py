@@ -102,6 +102,13 @@ class StreamHandler:
         :param buffer: bool - whether to buffer the output
         :return: Final output string, response ID
         """
+        workflow = getattr(self.bridge, "workflow", None) if self.bridge is not None else None
+        if workflow is not None:
+            try:
+                workflow.openai_event(event, ctx)
+            except Exception:
+                pass
+
         if isinstance(event, ReasoningItem):
             print(
                 f"\033[33m{event.summary[0].text}\033[0m", end="", flush=True
@@ -132,6 +139,7 @@ class StreamHandler:
                     image_bytes = base64.b64decode(image_base64)
                     with open(img_path, "wb") as f:
                         f.write(image_bytes)
+                    self.window.core.filesystem.materialize_runtime_artifact(img_path, ctx=ctx)
                     self.window.core.debug.info("[chat] Image generation call found")
                     ctx.images = [img_path]
 

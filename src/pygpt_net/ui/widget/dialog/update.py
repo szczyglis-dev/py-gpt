@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QPixmap, QDesktopServices
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QPushButton, QPlainTextEdit, QHBoxLayout, QCheckBox
 
+from pygpt_net.core.auto_updater import AUTO_UPDATER_ENABLED
 from pygpt_net.ui.widget.element.labels import TitleLabel, CmdLabel
 from pygpt_net.utils import trans
 
@@ -34,9 +35,15 @@ class UpdateDialog(BaseDialog):
         self.setWindowTitle(trans('update.title'))
 
         version = self.window.meta['version']
+        arch = self.window.core.platforms.get_architecture().lower()
+        if arch in ("amd64", "x86_64"):
+            arch = "x86_64"
+        elif arch in ("arm64", "aarch64"):
+            arch = "aarch64"
         self.cmd_pip = "pip install --upgrade pygpt-net"
+        self.cmd_source = "git pull --ff-only && python -m pip install -r requirements.txt"
         self.cmd_snap = "sudo snap refresh pygpt"
-        self.cmd_appimage = f"appimageupdatetool ./PyGPT-{version}-x86_64.AppImage"
+        self.cmd_appimage = f"appimageupdatetool ./PyGPT-{version}-{arch}.AppImage"
 
         # www
         self.www = QPushButton(trans('update.download'))
@@ -81,11 +88,29 @@ class UpdateDialog(BaseDialog):
 
         # update cmd/buttons
         self.cmd = CmdLabel(self.window, "")
+        # Keep short manual update commands visually centered.  For commands
+        # wider than the field, setCursorPosition(0) in set_data() still keeps
+        # the beginning accessible instead of jumping to the command tail.
+        self.cmd.setAlignment(Qt.AlignCenter)
+        # Add extra horizontal breathing room for long manual update commands.
+        # Keep this local to the updater instead of changing CmdLabel globally.
+        self.cmd.setStyleSheet(
+            self.cmd.styleSheet()
+            + "padding-left: 12px;"
+            + "padding-right: 12px;"
+        )
         self.download_file = QPushButton("Download")
         self.download_file.setCursor(Qt.PointingHandCursor)
         self.download_file.clicked.connect(
             lambda: self.start_download())
         self.download_link = ""
+        self.update_payload = {}
+
+        # automatic updater
+        self.update_now = QPushButton(trans("update.auto.btn"))
+        self.update_now.setCursor(Qt.PointingHandCursor)
+        self.update_now.clicked.connect(self.start_auto_update)
+        self.update_now.setVisible(False)
 
         # info upgrade now
         self.info_upgrade = QLabel(trans("update.info.upgrade"))
@@ -95,7 +120,7 @@ class UpdateDialog(BaseDialog):
             "font-size: 12px;"
             "margin: 0px 0px 5px 0px;"
         )
-        self.info_upgrade.setMaximumHeight(40)
+        self.info_upgrade.setMaximumHeight(70)
 
         # layout
         self.layout = QVBoxLayout()
@@ -114,15 +139,22 @@ class UpdateDialog(BaseDialog):
         self.info.setMaximumHeight(60)
         self.layout.addWidget(logo_label)
         self.layout.addWidget(self.info)
-        self.layout.addWidget(self.info_upgrade)
-        self.layout.addWidget(self.cmd)
-        self.layout.addWidget(self.download_file)
         self.layout.addWidget(self.message)
         self.layout.addWidget(self.changelog, 1)
-        self.layout.addWidget(self.checkbox_startup)
+        self.layout.addWidget(self.info_upgrade)
+        self.layout.addWidget(self.cmd)
+        self.layout.addWidget(self.update_now)
+        self.layout.addWidget(self.download_file)
         self.layout.addLayout(buttons)
+        self.layout.addWidget(self.checkbox_startup)
         self.layout.addStretch()
         self.setLayout(self.layout)
+
+    def start_auto_update(self):
+        """Start automatic updater for the detected distribution type."""
+        if not AUTO_UPDATER_ENABLED or not self.update_payload:
+            return
+        self.window.core.updater.start_auto_update(**self.update_payload)
 
     def start_download(self):
         """
@@ -151,6 +183,15 @@ class UpdateDialog(BaseDialog):
         :param download_linux: download link for linux
         :param download_appimage: download link for appimage
         """
+        self.update_payload = {
+            "version": version,
+            "build": build,
+            "changelog": changelog,
+            "download_windows": download_windows,
+            "download_linux": download_linux,
+            "download_appimage": download_appimage,
+        }
+
         # prepare data
         info = trans("update.info")
         if not is_new:
@@ -163,9 +204,28 @@ class UpdateDialog(BaseDialog):
         self.changelog.setPlainText(changelog)
         self.message.setText(txt)
 
-        # show / hide upgrade info
-        if is_new:
+        # show / hide upgrade info and automatic updater
+        auto_type = self.window.core.updater.get_auto_update_type()
+        auto_available = bool(
+            AUTO_UPDATER_ENABLED
+            and is_new
+            and self.window.core.updater.can_auto_update()
+        )
+        self.update_now.setVisible(auto_available)
+        self.update_now.setEnabled(auto_available)
+
+        # When UPDATE NOW is available, keep the dialog focused on the
+        # automatic update flow. The generic website/GitHub actions are only
+        # useful as fallback links when automatic update is unavailable.
+        self.www.setVisible(not auto_available)
+        self.github.setVisible(not auto_available)
+
+        if is_new and not auto_available:
+            # Keep the legacy/manual hint when automatic update is unavailable.
+            # When UPDATE NOW is shown it is self-explanatory and the extra
+            # "Automatic update is available..." row only wastes space.
             self.info_upgrade.setVisible(True)
+            self.info_upgrade.setText(trans("update.info.upgrade"))
         else:
             self.info_upgrade.setVisible(False)
 
@@ -180,32 +240,53 @@ class UpdateDialog(BaseDialog):
         self.download_file.setVisible(False)
 
         if is_new:
-            if self.window.core.platforms.is_snap():  # snap
+            if AUTO_UPDATER_ENABLED and auto_type == "flatpak":
+                self.info_upgrade.setVisible(True)
+                self.info_upgrade.setText(trans("update.auto.flatpak"))
+            elif self.window.core.platforms.is_snap():  # snap
                 self.cmd.setText(self.cmd_snap)
+                self.cmd.setCursorPosition(0)
                 self.cmd.setVisible(True)
-            elif self.window.core.config.is_compiled():  # compiled versions
-                if self.window.core.platforms.is_windows(): # Windows
-                    self.download_link = download_windows
-                    self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
-                    if is_store:
-                        self.download_file.setVisible(False)  # Windows Store: disabled
-                        self.info_upgrade.setVisible(False)  # Windows Store: disabled
-                        self.www.setVisible(False)
-                    else:
-                        self.download_file.setVisible(True)
-                        self.info_upgrade.setVisible(True)
-                        self.www.setVisible(False)
-                elif self.window.core.platforms.is_linux(): # Linux
-                    self.download_link = download_linux
-                    self.download_file.setText("{} .tar.gz ({})".format(trans("action.download"), version))
-                    self.download_file.setVisible(True)
             elif self.window.core.platforms.is_appimage():  # AppImage
                 self.cmd.setText(self.cmd_appimage)
+                self.cmd.setCursorPosition(0)
                 self.cmd.setVisible(True)
                 self.download_link = download_appimage
                 self.download_file.setText("{} .AppImage ({})".format(trans("action.download"), version))
-                self.download_file.setVisible(True)
-            else:  # PyPi package
-                self.cmd.setText(self.cmd_pip)
+                self.download_file.setVisible(bool(download_appimage))
+            elif self.window.core.config.is_compiled():  # compiled versions
+                if self.window.core.platforms.is_windows():  # Windows
+                    self.download_link = download_windows
+                    self.download_file.setText("{} .msi ({})".format(trans("action.download"), version))
+                    if is_store:
+                        self.download_file.setVisible(False)
+                        self.info_upgrade.setVisible(False)
+                        self.update_now.setVisible(False)
+                        self.www.setVisible(False)
+                    else:
+                        self.download_file.setVisible(bool(download_windows))
+                        self.info_upgrade.setVisible(not auto_available)
+                        self.www.setVisible(False)
+                elif self.window.core.platforms.is_linux():  # Linux
+                    self.download_link = download_linux
+                    self.download_file.setText("{} .zip ({})".format(trans("action.download"), version))
+                    self.download_file.setVisible(bool(download_linux))
+            elif auto_type == "source":
+                self.cmd.setText(self.cmd_source)
+                self.cmd.setCursorPosition(0)
                 self.cmd.setVisible(True)
-                
+            elif auto_type == "pip":
+                self.cmd.setText(self.cmd_pip)
+                self.cmd.setCursorPosition(0)
+                self.cmd.setVisible(True)
+            elif auto_type == "source_manual":
+                # Manual/source-ZIP installs can be updated from the source ZIP
+                # for the matching GitHub release tag. Keep a direct ZIP link
+                # as the manual fallback next to the automatic update flow.
+                self.download_link = (
+                    "https://github.com/szczyglis-dev/py-gpt/"
+                    f"archive/refs/tags/v{str(version).lstrip('v')}.zip"
+                )
+                self.download_file.setText("{} .zip ({})".format(trans("action.download"), version))
+                self.download_file.setVisible(True)
+

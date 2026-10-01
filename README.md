@@ -2,24 +2,23 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.26** | build: **2026-09-20** | Python: **>=3.10, <3.14**
+Release: **2.8.36** | build: **2026-09-30** | Python: **>=3.10, <3.14**
 
-> Official website: https://pygpt.net | [Documentation](https://pygpt.readthedocs.io) | [Discord](https://pygpt.net/discord)
+> Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
 > Get it from: [PyPi](https://pypi.org/project/pygpt-net) | [Snap Store](https://snapcraft.io/pygpt) | [Microsoft Store](https://apps.microsoft.com/detail/XP99R4MX3X65VQ) | [AppImage](https://github.com/szczyglis-dev/py-gpt/releases)
 > 
-> Compiled version for Linux and Windows: [Download](https://pygpt.net/#download) (64bit)
+> Prebuilt binaries for Linux and Windows: [Download](https://pygpt.net/#download) (64-bit)
 > 
 > Donate: [Buy Me A Coffee](https://www.buymeacoffee.com/szczyglis) | [GitHub Sponsors](https://github.com/sponsors/szczyglis-dev) | [PayPal](https://pygpt.net/donate/paypal)
 
 ## Overview
 
-**PyGPT** is an **all-in-one desktop AI assistant** supporting models from `OpenAI` (`GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, and models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, and `gpt-oss`.
+**PyGPT** is an open-source desktop AI assistant for `Linux`, `Windows` and `macOS`. It supports models from `OpenAI` (`GPT-6 Astra`, `GPT-5.6`, `GPT-4`, etc.), `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `Perplexity / Sonar`, `DeepSeek`, plus models available through `HuggingFace`, `LlamaIndex`, OpenAI-compatible APIs, and local `Ollama` installations such as `DeepSeek`, `Qwen`, `gpt-oss`, `Gemma`, `Mistral`, `Llama`, and others.
 
-It supports chat, **Chat with Agents** and other agent workflows, completions, Chat with Files (via `LlamaIndex`), image and video generation, and image analysis. Models can work with files, run Python and system or custom commands, transfer files, call external APIs, and search the web with `DuckDuckGo`, `Google`, `Microsoft Bing` and `You.com`.
-**PyGPT** also provides speech synthesis through `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI`, plus speech recognition with `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Bing` and `xAI Grok Voice`. It stores conversation history and memory, supports reusable presets, and can be extended with built-in or custom plugins for tools, automation and external integrations.
+Beyond chat, PyGPT includes Agents with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
-**Screenshots** (version `2.8.23`, build `2026-09-17`):
+**Screenshots** (version `2.8.29`, build `2026-09-22`):
 
 Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
@@ -31,100 +30,95 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 
 ## Features
 
-- Desktop AI Assistant for `Linux`, `Windows` and `Mac`, written in Python.
-- Works similarly to `ChatGPT`, but locally (on a desktop computer).
-- 11 modes of operation: Chat, Chat with Files, Chat with Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, plus legacy Agent and Autonomous modes.
-- Supports multiple models like `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `o4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and any model accessible through `LlamaIndex` and `Ollama` such as `Gemma 4`, `Qwen 3.6`, `Llama 4`, `Mistral Small 3.2`, `DeepSeek`, `Bielik`, `Nemotron`, `gpt-oss`, etc.
-- Chat with your own Files: integrated `LlamaIndex` support: chat with data such as: `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, `xml`, webpages, `Google`, `GitHub`, video/audio, images and other data types, or use conversation history as additional context provided to the model.
-- Built-in vector databases support and automated files and data embedding.
-- Image generation via models like `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
-- Video generation via models like `Veo3` and `Sora2`.
-- Internet access via `DuckDuckGo`, `Google`, `Microsoft Bing` and `You.com`.
-- Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs` and `xAI` Text-To-Speech services.
-- Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing` and `xAI Grok Voice`.
-- Plugins support with built-in plugins like `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and many more.- MCP support.
-- Built-in **MCP Connectors** manager with catalog browsing and import from common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
-- Camera capture for real-time image analysis in Chat and other supported modes, controlled from the `Audio / Video` menu.
-- Image analysis via vision models.
-- Included support features for individuals with disabilities: customizable keyboard shortcuts, voice control, and translation of on-screen actions into audio via speech synthesis.
-- Handles and stores the full context of conversations (short and long-term memory).
-- Integrated calendar, day notes and search in contexts by selected date.
-- Tools and commands execution (via plugins: access to the local filesystem, Python/OS, system commands execution, and more).
-- Custom commands creation and execution.
-- Crontab / Task scheduler included.
-- Built-in **Python/OS** tool with real-time Python / IPython execution.
-- Manages files and attachments with options to upload, download, and organize.
-- Context history with the capability to revert to previous contexts (long-term memory), plus optional **experimental** advanced context handling for very long conversations.
-- Supports project-specific `AGENTS.md` rules for the main agent in Chat with Agents.
-- Supports portable `SKILL.md`-based **Agent Skills**, with GitHub/local import, an Explore catalog, per-profile enable/disable management, and on-demand use in Chat with Agents.
-- Allows you to easily manage prompts with handy editable presets.
-- Provides an intuitive operation and interface.
-- Includes a notepad.
-- Includes simple painter / drawing tool.
-- Includes the node-based Agent Builder (Legacy) for older agent modes.
-- Includes **Chat with Agents**, an advanced orchestrated multi-agent mode with a user-facing Orchestrator and dynamically managed worker agents.
-- Supports multiple languages.
-- Requires no previous knowledge of using AI models.
-- Fully configurable.
-- Themes support.
+- Desktop AI assistant for `Linux`, `Windows` and `macOS`, written in Python.
+- Runs as a local desktop application with a ChatGPT-like conversational interface.
+- Work modes include Chat, Agents, Realtime + audio, Research, Completion, Image and Video generation, Computer use, Experts, Autonomous mode, and Custom agents.
+- Supports `OpenAI GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `Google Gemini`, `Anthropic Claude`, `xAI Grok`, `DeepSeek V3/R1`, `Perplexity / Sonar`, and models available through `LlamaIndex` and `Ollama`, including `DeepSeek`, `Qwen`, `gpt-oss`, `Gemma`, `Mistral`, `Llama`, and others.
+- Integrated `LlamaIndex` RAG for files, webpages, Google/GitHub data, media, images, conversation history, and formats such as `txt`, `pdf`, `csv`, `html`, `md`, `docx`, `json`, `epub`, `xlsx`, and `xml`.
+- Built-in vector-store support with automatic file, database-context, and data embedding.
+- Image generation with models such as `gpt-image`, `Imagen`, `Gemini`, and `Nano Banana`.
+- Video generation with models such as `Veo3` and `Sora2`.
+- Web search via `DuckDuckGo`, `Google`, `Microsoft Bing`, `You.com` and remote web search.
+- Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs`, and `xAI`.
+- Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing`, and `xAI Grok Voice`.
+- Extensible plugin system with `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and more.
+- Model Context Protocol (MCP) support.
+- Built-in `MCP Connectors` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
+- Agents multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
+- Optional project-specific `.agents/` directory support for Agents and Custom agents.
+- Portable `SKILL.md`-based `Agent Skills` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
+- Built-in `Python/OS` tool for real-time Python, IPython, and system command execution.
+- Built-in real-time `Canvas` with annotation support and web browser integration for interactive workflows.
+- Camera capture for real-time image input in Chat and other supported modes.
+- Image analysis with vision-capable models.
+- Accessibility features including keyboard shortcuts, voice control, and spoken descriptions of on-screen actions.
+- Conversation history with short- and long-term memory support.
+- Integrated calendar, day notes, and conversation search by date.
+- Tool and command execution through plugins, including filesystem, Python/OS, and system commands.
+- User-defined custom commands and scripts exposed as tools.
+- Built-in Crontab / Task scheduler.
+- File and attachment upload, download, organization, and processing.
+- Reopen and continue previous conversations, with optional advanced context handling for very long chats.
+- Editable prompt and model presets for reusable configurations.
+- Desktop UI designed for direct, practical use.
+- Built-in notepad.
+- Built-in painter / drawing tool.
+- Node-based Custom agent builder for designing Custom agents workflows.
+- Multi-language interface support.
+- No prior AI-model experience required.
+- Extensive configuration options.
+- Theme support.
 - Real-time code syntax highlighting.
-- Built-in token usage calculation.
+- Built-in token usage estimation and reporting.
 - **Open source**; source code is available on `GitHub`.
-- Utilizes the user's own API key.
+- Uses the user's own provider API keys.
 - and many more.
 
-The application is free, open-source, and runs on PCs with `Linux`, `Windows 10`, `Windows 11` and `Mac`. 
-Full Python source code is available on `GitHub`.
-
-PyGPT uses your own API credentials to connect to supported AI providers such as OpenAI, Google, Anthropic, xAI, Perplexity, Mistral, OpenRouter, and others. Depending on the selected model and provider, you may need an account and a valid API key for that service. Local models do not require external API credentials.
-You can also use built-it LlamaIndex support to connect to other Large Language Models (LLMs), 
-such as those on HuggingFace. Additional API keys may be required.
+PyGPT is free and open source. Cloud providers use your own API credentials; local models such as those served through `Ollama` do not require external API keys. Additional credentials may be required for specific providers and integrations.
 
 # Installation
 
-## Binaries (Linux, Windows 10 and 11)
+## Prebuilt binaries (Windows / Linux)
 
-You can download compiled binary versions for `Linux` and `Windows` (10/11). 
+**[Download PyGPT](https://pygpt.net/#download)**
 
-**PyGPT** binaries require a PC with Windows 10, 11, or Linux. Simply download the installer or the archive with the appropriate version from the download page at https://pygpt.net, extract it, or install it, and then run the application. A binary version for Mac is not available, so you must run PyGPT from PyPi or from the source code on Mac. Currently, only 64-bit binaries are available.
+Prebuilt 64-bit packages are the simplest way to run PyGPT:
 
-Linux version requires `GLIBC` >= `2.35`.
+- **Windows 10/11:** MSI installer.
+- **Linux:** prebuilt archive; requires `GLIBC >= 2.35`.
+- **macOS:** use the PyPI or source installation below.
 
 ## Microsoft Store (Windows)
 
-For Windows 10/11, you can install **PyGPT** directly from Microsoft Store:
+PyGPT is also available from Microsoft Store:
 
 [![Get it from Microsoft Store](https://get.microsoft.com/images/en-us%20dark.svg)](https://apps.microsoft.com/detail/XP99R4MX3X65VQ)
 
-Link to MS Store: https://apps.microsoft.com/detail/XP99R4MX3X65VQ
-
 ## AppImage (Linux)
 
-You can download the latest **PyGPT** `AppImage` for Linux from the release page:
+**[Download the latest AppImage from GitHub Releases](https://github.com/szczyglis-dev/py-gpt/releases)**
 
-**Releases:** https://github.com/szczyglis-dev/py-gpt/releases
+Make it executable before the first run:
 
-**Tip:** Remember to give execution permissions to the downloaded file:
+```bash
+chmod +x ./PyGPT-X.X.X-x86_64.AppImage
+```
 
-```chmod +x ./PyGPT-X.X.X-x86_64.AppImage```
+Optional incremental updates are available through [AppImageUpdate](https://github.com/AppImage/AppImageUpdate):
 
-To manage future updates you can use `AppImageUpdate` tool:
-
-You can download it from: https://github.com/AppImage/AppImageUpdate/releases
-
-After downloading, run the following command in terminal:
-
-```appimageupdatetool ./PyGPT-X.X.X-x86_64.AppImage```
+```bash
+appimageupdatetool ./PyGPT-X.X.X-x86_64.AppImage
+```
 
 ## Snap Store (Linux)
 
-You can install **PyGPT** directly from Snap Store:
+Install from Snap Store:
 
 ```commandline
 sudo snap install pygpt
 ```
 
-To manage future updates use:
+Update an existing installation with:
 
 ```commandline
 sudo snap refresh pygpt
@@ -132,136 +126,86 @@ sudo snap refresh pygpt
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/pygpt)
 
-**Using camera:** to use camera in Snap version you must connect the camera with:
+Optional Snap interfaces are required only for the corresponding features.
+
+Camera:
 
 ```commandline
 sudo snap connect pygpt:camera
 ```
 
-**Using microphone:** to use microphone in Snap version you must connect the microphone with:
+Microphone:
 
 ```commandline
 sudo snap connect pygpt:audio-record :audio-record
 sudo snap connect pygpt:alsa
 ```
 
-**Using audio output:** to use audio output in Snap version you must connect the audio with:
+Audio output:
 
 ```commandline
 sudo snap connect pygpt:audio-playback
 sudo snap connect pygpt:alsa
 ```
 
-**Connecting IPython in Docker in Snap version**:
-
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
+Docker sandbox:
 
 ```commandline
 sudo snap connect pygpt:docker-executables docker:docker-executables
+sudo snap connect pygpt:docker docker:docker-daemon
 ```
 
-````commandline
-sudo snap connect pygpt:docker docker:docker-daemon
-````
+## PyPI (pip)
 
-## PyPi (pip)
-
-The application can also be installed from `PyPi` using `pip install`:
-
-1. Create virtual environment:
+Requires Python `>=3.10, <3.14`. A virtual environment is recommended:
 
 ```commandline
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-2. Install from PyPi:
+Install and run PyGPT:
 
-``` commandline
+```commandline
 pip install pygpt-net
-```
-
-3. Once installed run the command to start the application:
-
-``` commandline
 pygpt
 ```
 
 ## Running from GitHub source code
 
-An alternative method is to download the source code from `GitHub` and execute the application using the Python interpreter (`>=3.10`, `<3.14`). 
-
-### Install with pip
-
-1. Clone git repository or download .zip file:
+Clone the repository and install the requirements in a virtual environment:
 
 ```commandline
 git clone https://github.com/szczyglis-dev/py-gpt.git
 cd py-gpt
-```
-
-2. Create a new virtual environment:
-
-```commandline
 python3 -m venv venv
 source venv/bin/activate
-```
-
-3. Install requirements:
-
-```commandline
 pip install -r requirements.txt
-```
-
-4. Run the application:
-
-```commandline
 python3 run.py
 ```
 
-### Install with Poetry
+### Poetry
 
-1. Clone git repository or download .zip file:
+Poetry can be used instead of `pip`:
 
 ```commandline
 git clone https://github.com/szczyglis-dev/py-gpt.git
 cd py-gpt
-```
-
-2. Install Poetry (if not installed):
-
-```commandline
 pip install poetry
-```
-
-3. Create a new virtual environment that uses Python 3.10:
-
-```commandline
 poetry env use python3.10
 poetry shell
+poetry install
+poetry run python3 run.py
 ```
 
-or (Poetry >= 2.0):
+For Poetry `>=2.0`, activate the environment with:
 
 ```commandline
 poetry env use python3.10
 poetry env activate
 ```
 
-4. Install requirements:
-
-```commandline
-poetry install
-```
-
-5. Run the application:
-
-```commandline
-poetry run python3 run.py
-```
-
-**Tip**: you can use `PyInstaller` to create a compiled version of
-the application for your system (required version `6.4.0`).
+**Tip:** You can use `PyInstaller` to create a compiled version of the application (required version `6.4.0`).
 
 ### Troubleshooting
 
@@ -299,21 +243,6 @@ If you encounter error:
 Error loading Python lib libpython3.10.so.1.0: dlopen: /lib/x86_64-linux-gnu/libm.so.6: version GLIBC_2.35 not found (required by libpython3.10.so.1.0)
 ```
 when trying to run the compiled version for Linux, try updating GLIBC to version `2.35`, or use a newer operating system that has at least version `2.35` of GLIBC.
-
-**Access to camera in Snap version:**
-
-
-```commandline
-sudo snap connect pygpt:camera
-```
-
-**Access to microphone in Snap version:**
-
-To use microphone in Snap version you must connect the microphone with:
-
-```commandline
-sudo snap connect pygpt:audio-record :audio-record
-```
 
 **Snap and AppArmor permission denied**
 
@@ -361,22 +290,15 @@ It may also be necessary to add the path `C:\path\to\venv\Lib\python3.x\site-pac
 
 **WebEngine/Chromium renderer and OpenGL problems**
 
-If you have a problems with `WebEngine / Chromium` renderer you can force the legacy mode by launching the app with command line arguments:
-
-``` ini
-python3 run.py --legacy=1
-```
-
-and to force disable OpenGL hardware acceleration:
+If you have a problems with `WebEngine / Chromium` renderer you can try to disable OpenGL hardware acceleration with command line arguments:
 
 ``` ini
 python3 run.py --disable-gpu=1
 ```
 
-You can also manualy enable legacy mode by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
+You can also manually disable hardware acceleration by editing config file - open the `%WORKDIR%/config.json` config file in editor and set the following options:
 
 ``` json
-"render.engine": "legacy",
 "render.open_gl": false,
 ```
 
@@ -393,7 +315,7 @@ See [Debugging and Logging](#debugging-and-logging) for logging and diagnostic o
 
 ## Setting-up API Key(s)
 
-You can configure API keys for various providers, such as OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter, and more. This flexibility allows you to use different providers based on your needs.
+You can configure API keys for various providers and integrations, such as OpenAI, Anthropic, Google, xAI, Perplexity, OpenRouter, and more. This flexibility allows you to use different providers and API-backed integrations based on your needs.
 
 During the initial setup, configure your API keys within the application.
 
@@ -413,19 +335,27 @@ Here, you can add or manage API keys for any supported provider.
 **Example**
 
 - **OpenAI:** Obtain your API key by registering on the OpenAI website: https://platform.openai.com and navigating to https://platform.openai.com/account/api-keys.
-- **Anthropic, Google, etc.:** Follow similar steps on their respective platforms.
+- **Anthropic, Google, xAI, Perplexity, OpenRouter, etc.:** Follow similar steps on their respective platforms.
 
-**Note:** The ability to use models or services depends on your access level with the respective provider. If you wish to use custom API endpoints or local APIs that do not require API keys, simply enter any value into the API key field to bypass prompts about an empty key.
+For a local or other OpenAI-compatible model, you can configure credentials per model in
+   ``Config -> Models -> Editor`` using ``API base`` and ``API key``. This avoids having to
+   reuse the global OpenAI endpoint/API key for that model.
 
-# Work modes
+**Note:** The ability to use models or services depends on your access level with the respective provider.
+
+**Adding a custom OpenAI-compatible provider**
+
+PyGPT includes built-in support for many popular model providers. If the provider you want to use is not available in the default provider list, you can add it manually under `Settings -> Custom providers`. The only requirement is that it exposes an OpenAI-compatible API.
+
+# Modes
 
 ## Chat
 
-**+ Inline vision and image generation**
+In **PyGPT**, this mode lets you chat with models such as `GPT-6 Astra`, `GPT-5.6`, `Claude`, `Gemini`, `Grok`, `Sonar (Perplexity)`, `DeepSeek`, and many others, including local models running through `Ollama`.
 
-In **PyGPT**, this mode lets you chat with models such as `GPT-6 Astra`, `GPT-5.6`, `GPT-4`, `o1`, `o3`, `Claude`, `Gemini`, `Grok`, `Perplexity (Sonar)`, `DeepSeek`, and many others. PyGPT can use native SDKs from supported providers, including OpenAI, Google, Anthropic, and xAI, when enabled. It can also connect to providers and local services through OpenAI-compatible APIs, including `Responses API` and `ChatCompletions API` compatible endpoints where supported.
+The Chat mode supports regular conversations as well as more advanced tasks, including calling tools, executing Python code, using external integrations through MCP, searching the web, uploading and analyzing attachments, working with images, and generating new images. Depending on the selected model and enabled tools, it can also perform multi-step tasks that combine several of these capabilities in a single conversation.
 
-**Tip:** This mode uses the provider SDK directly. If there's no native client built into the app, models like Sonar or local Ollama models such as Qwen 3.6 and Gemma 4 are supported in Chat mode via LlamaIndex or OpenAI-compatible API endpoints. The app automatically switches to these endpoints when using non-OpenAI models. You can enable or disable the use of the native API SDK (per provider) in `Settings -> API Keys`. If the native SDK is disabled, the OpenAI SDK will be used via the compatible ChatCompletions API endpoint.
+PyGPT, in this and other modes, can use native SDKs provided by popular AI providers such as OpenAI, Google, Anthropic, and xAI. It also supports OpenAI-compatible `Chat Completions API` endpoints, custom providers, and providers available through LlamaIndex integrations. Both cloud-based and locally hosted models are supported, allowing PyGPT to work with a wide range of commercial, self-hosted, and local AI backends.
 
 Currently built-in native clients:
 
@@ -434,19 +364,24 @@ Currently built-in native clients:
 - Google GenAI SDK
 - xAI SDK
 
-Local `Ollama` models and models from other configured providers are also supported.
-
-The main part of the interface is a chat window where you see your conversations. Below it is a message box for typing. On the right side, you can set up or change the model and system prompt. You can also save these settings as presets to easily switch between models or tasks.
-
-Above where you type your messages, the interface shows you the number of tokens your message will use up as you type it – this helps to keep track of usage. There is also a feature to attach and upload files in this area. Go to the `Files and Attachments` section for more information on how to use attachments.
+The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options on the right. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat.png)
 
-**Vision:** If you want to analyze photos from disk, screenshots, or camera captures and the currently selected model cannot accept image input, enable the `Vision (inline)` plugin in the Plugins menu. The plugin uses a separately configured image-capable Chat model only for the image-analysis turn. The fallback model can come from any supported provider (for example OpenAI, Google, Anthropic, xAI, OpenRouter, or another OpenAI-compatible provider), as long as the model is configured for Chat and image input.
+At the bottom of the chat window, PyGPT also shows an estimated number of tokens that will be sent to the model, as well as the number of tokens used for each generated response.
 
-![v3_vision_plugins](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_plugins.png)
+**Attachments:** You can attach and upload files from the input area. See [Files and Attachments](#files-and-attachments) for supported formats and attachment modes.
 
-With this plugin, you can capture an image with your camera or attach an image and send it for analysis. Camera controls are available from the main `Audio / Video` menu under the **Video** section. Use `Enable camera` to start the live preview. Enable `Auto capture` to automatically capture the current frame for compatible vision turns; with auto capture disabled, click the live camera preview to take a manual snapshot. Camera device, resolution, and JPEG quality are configured in `Settings -> Vision and camera -> Camera`:
+![attachment](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/attachment.png)
+
+
+**RAG:** At the bottom of the toolbox, use the **RAG** selector to choose an index for additional context. When a valid index is selected, Chat is routed from the normal native/OpenAI-compatible SDK path to the LlamaIndex RAG runtime automatically. Select `---` to use the normal Chat provider path. See [Indexing and RAG](#indexing-and-rag) for RAG modes, indexing, project indexes, vector stores, and retrieval configuration.
+
+![rag](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/rag.png)
+
+**Vision:** If the selected model is multimodal and supports image input, vision is available natively by default. For models without native vision support, enable the `Vision (inline)` plugin to automatically route image analysis through a configured vision-capable model.
+
+Images can be analyzed in real time from attachments, the camera enabled from the `Audio / Video` menu, or screenshots captured directly from the application. You can also use the built-in drawing tool to quickly sketch, annotate images, add arrows and markings, and send the result directly for analysis.
 
 ![v3_vision_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_vision_chat.png)
 
@@ -454,222 +389,94 @@ With this plugin, you can capture an image with your camera or attach an image a
 
 For supported models/providers, you can alternatively enable the provider-side image-generation remote tool in `Config -> Settings -> Remote Tools`. When available, this lets the model generate images natively without the inline plugin.
 
-![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
+## Agents
 
-##  Chat with Files (LlamaIndex)
-
-This mode enables chat interaction with your documents and entire context history through conversation. 
-It seamlessly incorporates `LlamaIndex` into the chat interface, allowing for immediate querying of your indexed documents.
-
-**Tip:** If you do not want to call tools/commands, disable the `Tools` switch. It will speed up the response time when using local models. When tools are enabled, PyGPT prefers native tool calls whenever the current model/provider supports them. If native tool calls are unavailable, Chat with Files automatically falls back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming, so stream mode is disabled automatically only on that path; there is no separate ReAct setting.
-
-**Querying single files**
-
-You can also query individual files "on the fly" using the `query_file` command from the `Files I/O` plugin. This allows you to query any file by simply asking a question about that file. A temporary index will be created in memory for the file being queried, and an answer will be returned from it. A similar command is available for querying web and external content: `Directly query web content with LlamaIndex`.
-
-**For example:**
-
-If you have a file: `data/my_cars.txt` with content `My car is red.`
-
-You can ask for: `Query the file my_cars.txt about what color my car is.`
-
-And you will receive the response: `Red`.
-
-Note: this command indexes the file only for the current query and does not persist it in the database. To store queried files also in the standard index you must enable the option `Auto-index readed files` in plugin settings. Remember to enable the `Tools` switch to allow the use of tools and commands from plugins. 
-
-**Using Chat with Files mode**
-
-In this mode, you are querying the whole index, stored in a vector store database.
-To start, you need to index (embed) the files you want to use as additional context.
-Embedding transforms your text data into vectors. If you're unfamiliar with embeddings and how they work, check out this article:
-
-https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
-
-For a visualization from OpenAI's page, see this picture:
-
-![vectors](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4bbb3860-58a0-410d-b5cb-3fbfadf1a367)
-
-Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
-
-To index your files, copy or upload them into the active `data` directory and initiate indexing (embedding) by clicking the `Index all` button, or right-click on a file and select `Embed into index`. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with a custom data workdir, the project directory is used instead. Additionally, you have the option to utilize data from indexed files in any Chat mode by activating the `RAG (inline)` plugin.
-
-![v2_idx1](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_idx1.png)
-
-After the file(s) are indexed (embedded in vector store), you can use context from them in chat mode.
-
-Built-in file loaders: 
-
-**Files:**
-
-- CSV files (csv)
-- Epub files (epub)
-- Excel .xlsx spreadsheets (xlsx)
-- HTML files (html, htm)
-- IPYNB Notebook files (ipynb)
-- Image (vision) (jpg, jpeg, png, gif, bmp, tiff, webp)
-- JSON files (json)
-- Markdown files (md)
-- PDF documents (pdf)
-- Plain-text files (txt)
-- Video/audio (mp4, avi, mov, mkv, webm, mp3, mpeg, mpga, m4a, wav)
-- Word .docx documents (docx)
-- XML files (xml)
-
-**Web/external content:**
-
-- Bitbucket
-- ChatGPT Retrieval Plugin
-- GitHub Issues
-- GitHub Repository
-- Google Calendar
-- Google Docs
-- Google Drive 
-- Google Gmail
-- Google Keep
-- Google Sheets
-- Microsoft OneDrive
-- RSS
-- SQL Database
-- Sitemap (XML)
-- Twitter/X posts
-- Webpages (crawling any webpage content)
-- YouTube (transcriptions)
-
-You can configure data loaders in `Settings / Indexes / RAG / Data Loaders` by providing list of keyword arguments for specified loaders.
-You can also develop and provide your own custom loader and register it within the application.
-
-LlamaIndex is also integrated with the context database, so conversation history can be indexed and used as additional RAG context. Context indexing is configured separately from file indexing in `Settings -> Indexes / RAG -> Context indexing`.
-
-### File, context, and project indexing
-
-PyGPT separates file indexing from conversation-context indexing:
-
-- **File indexing** indexes files and directories into a selected persistent vector index. Use `Settings -> Indexes / RAG -> File indexing`, the **Index all** action, or `Files -> RMB -> Embed into index`.
-- **Context indexing** indexes stored conversation items from the context database. It is configured in `Settings -> Indexes / RAG -> Context indexing`.
-- **Project indexes** are isolated runtime indexes associated with projects. They are created and resolved automatically and do not need to be added to the normal configured indexes list.
-
-A project's **data workdir** and its **project index** are separate. The data workdir controls which filesystem directory the Files view and file tools use; the project index controls vector-store data. Changing the project data workdir does not move or rebuild the project index.
-
-The **Conversation auto-indexing** setting has three modes:
-
-- **Off** - disables automatic conversation-context indexing.
-- **Auto-index all conversations** - enables automatic context indexing for conversations both inside and outside projects.
-- **Auto-index only in projects** - enables automatic context indexing only for conversations assigned to projects.
-
-The **Use isolated index per project** option controls where conversations inside projects are stored. When enabled, each project uses its own isolated index. PyGPT exposes it in the UI as **Current project** and internally resolves it to a project-specific ID such as `proj_<project_id>`. These project indexes are created and updated on demand and are not added to the normal `Indexes` list. When this option is disabled, project conversations use the global auto-indexing index or indexes selected in **Indexes for global auto-indexing**.
-
-The **Enable auto-indexing in modes** setting further limits which work modes may trigger automatic context indexing. Project context indexing is incremental: PyGPT tracks the last indexed conversation item and continues from that point on subsequent updates.
-
-Project-aware indexing is also available outside automatic context indexing:
-
-- In **Chat with Files**, select **Current project** to query the active project's isolated index.
-- In the **Files** tab, `RMB -> Embed into index -> Current project` indexes the selected file or directory into the active project.
-- The **RAG (inline)** and **Files I/O** plugins can automatically use the active project index when their **Use project index if in use** option is enabled (default: enabled).
-- The project context menu provides **Update project index** and **Truncate project index** actions. Updating continues incrementally; truncating removes the project's index data and resets its indexing state.
-- Deleting a project also removes its project index. Duplicating a project rebuilds a corresponding isolated index only when the source project had one.
-
-Removing an entry from `Settings -> Indexes / RAG -> General -> Indexes` removes only the configuration entry; it does **not** delete data already stored in the vector store. Use the **Clear and truncate** tab to permanently remove a selected index or all tracked project indexes.
-
-**WARNING:** remember that when indexing content, API calls to the embedding model are used. Each indexing consumes additional tokens. Always control the number of tokens used on the provider's page.
-
-**Tip:** Using the Chat with Files mode, you have default access to files manually indexed from the active `data` directory. For a project with a custom data workdir this means that project's directory; otherwise it is the shared profile `data` directory. You can also use additional context by attaching a file - such additional context from the attachment does not land in the main index, but only in a temporary one, available only for the given conversation.
-
-**Token limit:** When you use `Chat with Files` in non-query mode, LlamaIndex adds extra context to the system prompt. If you use a plugins (which also adds more instructions to system prompt), you might go over the maximum number of tokens allowed. If you get a warning that says you've used too many tokens, turn off plugins you're not using or turn off the `Tools` switch to reduce the number of tokens used by the system prompt.
-
-**Available vector stores** (provided by `LlamaIndex`):
-
-```
-- ChromaVectorStore
-- ElasticsearchStore
-- PinecodeVectorStore
-- QdrantVectorStore
-- RedisVectorStore
-- SimpleVectorStore
-```
-
-You can configure selected vector store by providing config options like `api_key`, etc. in `Settings -> Indexes / RAG -> Vector Store`. See the section: `Configuration / Vector stores` for configuration reference.
-
-
-**Configuring data loaders**
-
-In the `Settings -> Indexes / RAG -> Data loaders` section you can define the additional keyword arguments to pass into data loader instance. See the section: `Configuration / Data Loaders` for configuration reference.
-
-
-## Chat with Agents
-
-**Chat with Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the older `Agent (LlamaIndex)`, `Agent (OpenAI)`, and `Agent (Autonomous)` modes.
+**Agents** is PyGPT's multi-agent work mode for tasks that benefit from delegation, parallel execution, tool use, verification, and specialist workers. It uses a dedicated runtime built on LlamaIndex agent workflows and is separate from the more experimental `Custom agents` mode and the separate `Autonomous mode`.
 
 The **Workflow** selector below the system prompt lets you choose how the agent workflow operates. The default is **Chat**.
 
 ### Agent workflows
 
-- **Chat** - the default mode. A primary agent talks directly with the user, uses available tools, and can delegate selected tasks to background workers when useful. This is the best general-purpose option when you want a normal agent conversation with multi-agent assistance available on demand.
-- **Orchestrator** - a dedicated orchestrator manages specialist workers in the background. It can create workers, assign or update their roles, run or reuse them, inspect their state, wait for results, stop them, and combine their work into the final response. Independent workers can run concurrently. This mode is useful for structured, multi-stage tasks where explicit coordination and verification are important. The Orchestrator runtime supports up to `16` workers by default. You can change this limit in `Settings -> Agents and experts -> Chat with Agents -> Max workers (Chat / Orchestrator)`; set it to `0` for no worker limit.
-- **Swarm** - the orchestrator launches a swarm containing the number of workers requested by the user. If the number of agents is not specified in the request, the orchestrator asks how many should be launched before starting the swarm. Workers are numbered and prefixed in status output, the orchestrator reports the swarm size when it starts, and it periodically provides an aggregated status showing how many agents are running and what they are doing. **Swarm does not impose a worker-count limit.**
+- **Chat** - the default mode. The primary agent responds directly and can delegate tasks to workers when useful.
+- **Orchestrator** - coordinates specialist workers for structured, multi-step tasks. The default limit is `16` workers; set **Max workers (Chat / Orchestrator)** to `0` for no limit.
+- **Swarm** - launches the number of workers requested by the user and reports aggregate progress. Swarm has no built-in worker-count limit.
 
-> **Warning:** Use **Swarm** with care. This mode has no built-in limit on the number of agents that can be created. Requesting a large swarm can cause unexpectedly high API usage, token consumption, resource usage, many concurrent tool operations, and other unexpected effects. Start with a reasonable number of agents and supervise workflows that can modify files, execute code or system commands, or perform external actions.
+> **Warning:** Large swarms can generate high API/token usage and many concurrent tool operations. Use a reasonable worker count, especially when tools can modify files or execute commands.
 
-### Step-by-step execution
-
-The **Step by step** switch below the Chat with Agents workflow selector enables a stricter execution discipline for the main agent. When enabled, the agent prepares a concise high-level plan before substantive work, reports short factual progress updates during longer tasks, verifies completed work before continuing, and revises the plan when new findings, failures, or worker results require it.
-
-Progress updates are user-facing summaries, not hidden chain-of-thought. The agent is explicitly instructed not to expose private reasoning and not to label progress with numbered headings such as `Step 1` / `Step 2`. Important worker output should still be verified when the conclusion matters. The setting is snapshotted at the start of a run, so changing it does not rewrite a workflow that is already running.
 
 ### Agent Workflows
 
-Open `Config -> Agent Workflows...` to manage Chat with Agents workflows. You can also open the same editor with the settings icon to the right of the `Step by step` switch in the toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles are always listed first and cannot be deleted. Their runtime strategies remain fixed, but their complete main system-prompt override can be edited. When a built-in override is empty, the text area shows the current built-in default prompt as its placeholder. Existing built-in prompt overrides keep using the same configuration keys as earlier releases, so existing profiles remain compatible.
+Open `Config -> Agent Workflows...` or use the settings icon in the Agents toolbox. The built-in **Chat**, **Orchestrator**, and **Swarm** profiles cannot be deleted; their prompts can be customized while their runtime type remains fixed.
 
-Use **New** to add your own agent profile. Custom agents are stored in `config.json` under `agent.v2.custom_agents`; each entry has a UUID, name, complete system prompt, and a `runtime` value. In the editor, **Runtime** can be set to **Primary agent**, **Orchestrator**, or **Swarm**. The selected runtime determines the actual execution strategy and tool surface: Primary agent uses normal tools plus `delegate_task`, Orchestrator exposes explicit worker-management tools such as `agent_create`, `agent_run`, `agent_wait`, and `workflow_finish`, and Swarm extends that surface with `swarm_start`, `swarm_status`, `swarm_send`, `swarm_receive`, and `swarm_peers`. Runtime radios are disabled for the three built-in profiles because their runtime is fixed.
-
-Custom agents do not receive an implicit built-in main role prompt when their system-prompt field is empty. **From defaults** loads the complete built-in default prompt that matches the custom profile's currently selected runtime. Older custom profiles without a `runtime` field continue to use **Orchestrator**, preserving the behavior of previous releases. Runtime changes are kept in the editor draft and saved together with the other profile fields when **Save** is used. The editor includes a Help reference for agent workflow tools and runtime context/placeholder blocks such as `%workdir%`, `<runtime_capabilities>`, `<runtime_environment>`, `<additional_system_prompt>`, `<additional_project_rules>`, `<additional_context>`, `<rag_access>`, `<workflow_language>`, and `<worker_identity>`. Saving the editor refreshes the toolbox selector immediately; custom profiles are listed after the three built-ins.
+Use **New** to create a custom profile and choose **Primary agent**, **Orchestrator**, or **Swarm** as its runtime. Custom profiles use only the prompt you provide. **From defaults** loads the built-in prompt for the selected runtime as a starting point. Older custom profiles without a runtime setting continue to use **Orchestrator**.
 
 ### Agent Workflow monitor
 
-The built-in **Agent Workflow** tool provides a real-time tree/timeline of the active Chat with Agents run. It shows the primary agent/orchestrator, workers, status changes and tool calls, with expandable tool input/output and per-agent **Details**. Open it from `Tools -> Agent Workflow` or keep it pinned in the second output column. When the first actual Chat with Agents run starts after sending input in a profile, PyGPT reveals the tab and split-screen once. Merely switching to Chat with Agents does not change the layout; after the first-run introduction, subsequent runs and mode changes leave it untouched. A new top-level run clears the monitor automatically.
+The built-in **Agent Workflow** tool shows the active Agents run as a tree/timeline with agents, status changes and tool calls. Open it from `Tools -> Agent Workflow` or pin it in an output tab. A new top-level run clears the previous view automatically.
 
-### Project rules with AGENTS.md
+### Project instructions with `.agents/`
 
-Before processing the user input, the top-level Chat with Agents main agent checks for `%workdir%/AGENTS.md` in the active conversation's data workdir. If the file exists and is not empty, its UTF-8 content is appended to the main system prompt as additional project rules. The path follows the conversation/project that started the run, including a custom project data workdir.
+Agents can use an optional `%workdir%/.agents/` directory for project-specific instructions and agent resources. PyGPT does **not** preload or append these files to the system prompt. When **Add support for .agents directory** is enabled in `Settings -> Agents and experts -> Agents` (default: on), PyGPT checks the active conversation/project workdir when the agent run starts. If `.agents/` exists, the top-level Agents prompt receives the directory layout and tells the agent to inspect only the files relevant to the current task. If it does not exist, the prompt only mentions that the agent may create `.agents/` and use `.agents/memories/` for persistent work notes.
 
-`AGENTS.md` is read once per run and is not persisted to conversation history. A symlink that resolves outside the active workdir is ignored. The rules apply only to the top-level **Chat with Agents** main agent; they are not automatically injected into workers or Experts.
+Example layout:
+
+```text
+.agents/
+├── agents.md            # additional instructions
+├── system-prompt.md     # system prompt
+├── mcp.json             # MCP server configuration
+├── skills/
+│   └── code-review/
+│       └── skill.md     # skill definition
+├── agents/
+│   └── code-reviewer/
+│       └── agent.md     # sub-agent profile
+├── tasks/
+│   └── daily-code-review/
+│       └── task.md      # repeat task
+└── memories/
+    └── project-arch.md  # persistent memory for agents
+```
+
+The agent may create or update its own persistent project notes in `.agents/memories/`. Access still depends on the filesystem/tools available to the agent and the normal PyGPT security rules. The `.agents/` existence check is performed once per run against the active host workdir (including a project-specific workdir); the same behavior can be enabled independently for **Custom agents** in `Settings -> Agents and experts -> Custom agents`.
 
 ### Tools and provider capabilities
 
-Chat with Agents can use both local and provider-side capabilities:
+Agents can use both local and provider-side capabilities:
 
 - **Local tools** from enabled PyGPT plugins can be made available to the primary agent/orchestrator and workers.
 - **Remote tools** exposed by the selected provider can be made available when supported by the provider/model and enabled in PyGPT.
-- Local and remote tools can be enabled or disabled independently in the Chat with Agents preset with **Allow local tools** and **Allow remote tools**.
+- Local and remote tools can be enabled or disabled independently in the Agents preset with **Allow local tools** and **Allow remote tools**.
 - Models with native function calling use it when available; the runtime can fall back to a ReAct agent for compatible models without native function calling.
 
 Local plugin execution is integrated with the normal PyGPT command/tool system, so enabled plugins can provide filesystem access, Python interpreter, system commands, web search, custom commands, integrations, and other capabilities according to their own configuration and security restrictions.
 
 ### Settings
 
-Agent-related application settings are organized under `Settings -> Agents and experts`. The **Chat with Agents** section contains settings for this workflow. **Show full tool-chain in Chat with Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
+Agent-related application settings are organized under `Settings -> Agents and experts`. The **Agents** section contains settings for this workflow. **Add support for .agents directory** is enabled by default and adds the directory-usage guidance described above. **Show full tool-chain in Agents** is disabled by default; when enabled, the final response stores and displays the complete chain of normal tool calls executed during the workflow, with a separate expandable Request/Response pair for each call. Internal orchestration and worker-management calls are not included.
 
-**Display full agent workflow** is disabled by default. When enabled, completed Chat with Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This option affects UI rendering only and does not change database storage or the separate model-facing history policy below.
+**Display full agent workflow** is disabled by default. When enabled, completed Agents turns keep the full visible sequence of persisted agent partial responses in the chat, followed by the final response, both immediately after completion and after reloading the conversation. When disabled, completed turns are collapsed to the authoritative final response only. This option affects UI rendering only and does not change database storage or the separate model-facing history policy below.
 
-**Restore full workflow history on next request** controls what is sent back to the main agent from completed Chat with Agents turns on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT restores the full persisted workflow, including intermediate main-agent output and worker results, which can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored. The complete workflow remains stored in the database and available to the UI, but omitting it from model-facing history saves tokens at the cost of less detailed workflow context. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots use the same policy.
+**Restore full workflow history on next request** controls what is sent back to the main agent from completed Agents turns on later requests. It is enabled by default for backward compatibility. When enabled, PyGPT restores the full persisted workflow, including intermediate main-agent output and worker results, which can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored. The complete workflow remains stored in the database and available to the UI, but omitting it from model-facing history saves tokens at the cost of less detailed workflow context. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots use the same policy.
 
-The same section also exposes worker-count and iteration limits used by the Chat with Agents runtime:
+The same section also exposes worker-count and iteration limits used by the Agents runtime:
 
 - **Max iterations (Chat / Orchestrator)** - maximum number of main-agent iterations in Chat and Orchestrator modes. Default: `48`.
 - **Max workers (Chat / Orchestrator)** - maximum number of worker agents that can be created in Chat and Orchestrator workflows. Default: `16`; set `0` for unlimited. This setting does not limit Swarm size.
 - **Max iterations (Swarm)** - maximum number of main-agent/orchestrator iterations in Swarm mode. Default: `4096`.
-- **Worker max iterations** - maximum number of iterations for each worker agent, regardless of the selected Chat with Agents mode. Default: `24`.
+- **Worker max iterations** - maximum number of iterations for each worker agent, regardless of the selected Agents mode. Default: `24`.
 
 For all four limits, `0` means **unlimited**. The three iteration settings control internal agent reasoning/tool-call cycles, not user conversation turns; the worker limit controls how many worker agents may be created in a Chat or Orchestrator workflow. Raising or removing these limits can substantially increase API usage, token consumption, execution time, and the number of tool operations. **Swarm** keeps its separately declared worker count and is not constrained by the Chat/Orchestrator worker limit.
 
-Settings kept only for older agent implementations are separated into the **Legacy** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These Legacy options do not control the Chat with Agents tool-chain display.
+Settings kept only for older agent implementations are separated into the **Options** tab. **Display full agent output in chat view** controls rendering of full output from legacy agent modes, while **Display a tray notification when the goal is achieved** controls legacy agent completion notifications. These options do not control the Agents tool-chain display.
 
 ### RAG, attachments and artifacts
 
-If a valid index is selected in the preset, Chat with Agents exposes it as a RAG query tool. User attachments and extracted attachment context are shared with the workflow, and image attachments are also passed as native image input when the selected model supports images. Files, images, URLs and attachments produced by workers or provider-side tools are collected by the runtime and propagated to the main response.
+If a valid index is selected in the preset, Agents exposes it as a RAG query tool. User attachments and extracted attachment context are shared with the workflow, and image attachments are also passed as native image input when the selected model supports images. Files, images, URLs and attachments produced by workers or provider-side tools are collected by the runtime and propagated to the main response.
 
 ### Memory and worker lifecycle
 
-The user-facing primary agent or orchestrator keeps hidden conversation memory across turns in the current conversation/preset, subject to the normal PyGPT token-window limits. For completed Chat with Agents turns, **Restore full workflow history on next request** determines whether later requests receive the full stored workflow or only the final response. Worker memory inside the active workflow is runtime-local and can be retained when the same worker is reused during that workflow.
+The user-facing primary agent or orchestrator keeps hidden conversation memory across turns in the current conversation/preset, subject to the normal PyGPT token-window limits. For completed Agents turns, **Restore full workflow history on next request** determines whether later requests receive the full stored workflow or only the final response. Worker memory inside the active workflow is runtime-local and can be retained when the same worker is reused during that workflow.
 
 The worker-management model depends on the selected mode:
 
@@ -681,24 +488,39 @@ The worker-management model depends on the selected mode:
 
 Use **Chat** for general agent conversations and tasks where delegation is occasional. Use **Orchestrator** for controlled multi-step work such as coding, file operations, research with independent verification, RAG-assisted analysis, implementation plus testing, or workflows combining several tools. Use **Swarm** when a task genuinely benefits from many parallel, independent workers and you intentionally want to control the swarm size yourself.
 
+### Agent Skills
+
+PyGPT supports portable **Agent Skills** built around `SKILL.md`, with optional scripts, references and assets. Skills can be imported from GitHub, local files/folders, `.skill`, ZIP or TAR packages.
+
+Use **Config -> Skills** to browse, install, enable, disable and remove skills. In **Agents**, enabled skills are loaded on demand so their full instructions do not have to be included in every prompt.
+
+Skills do not bypass normal tool permissions or sandbox/security rules. Review third-party instructions and executable files before using them.
+
+See the **Agent Skills** documentation for supported formats, resources and runtime behavior.
+
 ## Realtime + audio
 
-This mode works like the Chat mode but with native support for audio input and output using Realtime and Live APIs. In this mode, audio input and output are directed to and from the model directly, without the use of external plugins. This enables faster and more natural voice communication.
+This mode provides native, low-latency voice conversations with **OpenAI Realtime**, **Google Gemini Live**, and **xAI Grok** real-time models. Audio is streamed directly between PyGPT and the selected provider without the regular audio input/output plugins.
 
-The audio toolbox provides two options for controlling voice turns:
+The audio toolbox exposes a single turn-control option: **Auto (VAD)**. The separate **Loop** switch has been removed. Auto VAD now owns the complete continuous `listen -> respond -> listen` cycle. Fresh profiles start with Auto VAD disabled.
 
-- **Auto (VAD)** - enables automatic voice activity detection. While you speak, microphone audio is streamed to the active real-time model/provider, which detects when speech starts and when you stop speaking. The turn is then committed automatically and the model can respond without requiring you to manually stop the recording.
-- **Loop** - automatically starts microphone recording again after the model finishes playing its audio response. This enables continuous back-and-forth voice conversation without having to click the microphone button before every next turn. When used together with **Auto (VAD)**, each new turn can start automatically and end automatically when you stop speaking.
+- **Auto (VAD)** - enables automatic voice activity detection for the live microphone stream. While you speak, microphone audio is streamed to the active real-time provider. The provider detects speech boundaries using the configured VAD prefix padding and end-silence values, commits the utterance automatically, and PyGPT stops the current capture as the model response begins.
+- After the model's audio response finishes playing, PyGPT automatically starts the microphone again for the next VAD turn. There is no separate Loop setting to enable for this behavior.
+- You can click the microphone while a response is still pending or playing to start a new turn immediately. PyGPT interrupts the current response/playback, preserves the partial assistant output already received, keeps the live provider session open, and starts the new microphone capture.
+- Pressing **Esc** or using **Stop** cancels the current capture/response, stops playback, and cancels any queued automatic VAD restart. Auto VAD remains enabled, but the automatic cycle stays paused until you explicitly start the microphone again.
+- Sending a normal typed message while Auto VAD is active also pauses the automatic listen/respond/listen cycle. Click the microphone to resume voice turns; the live provider session/conversation is kept.
+- With **Auto (VAD)** disabled, microphone turns are manual and PyGPT does not automatically restart listening after a response.
 
-At this moment, OpenAI real-time models (via the Realtime API), Google Gemini real-time models (via the Live API), and xAI Grok real-time models are supported.
+The VAD timing can be adjusted in `Config -> Settings -> Audio -> Options` with **VAD prefix padding (in ms)** (default: `300`) and **VAD end silence (in ms)** (default: `2000`). Prefix padding preserves audio immediately before detected speech starts; end silence controls how long silence must last before the utterance is considered complete.
+
 
 ## Research
 
-**Research** is a provider-aware mode for models designed for web research and deep-research workflows. Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**.
+**Research** is a provider-aware mode designed for models and APIs specialized in web research, information gathering, and deep-research workflows. It is intended for tasks that require searching multiple sources, collecting and comparing information, and producing more comprehensive, source-grounded answers.
 
-Configure the API key for the provider you want to use in `Config -> Settings -> API Keys`. For Perplexity models, see https://perplexity.ai.
+Depending on the selected model and provider, PyGPT can use Perplexity Sonar research models as well as other provider-specific research paths, including Google Deep Research through the **Interactions API**. The exact workflow, available tools, and research capabilities depend on the selected provider and model.
 
-**Google Remote MCP:** Google Remote MCP can be enabled in `Config -> Settings -> Remote Tools -> Google`. In the current PyGPT implementation it is available in **Research** mode through Google's Interactions API / Deep Research path. Configure MCP servers in **Remote MCP configuration** as a JSON object or list. Google currently supports Streamable HTTP MCP servers on this path; SSE servers are not supported.
+> **Current limitation:** Regular tool calls are temporarily disabled in **Research** mode. RAG can still be selected, but support is provider/model-dependent and may not work correctly with some research models or provider-specific research APIs. Verify the response when indexed RAG context is required.
 
 ## Completion
 
@@ -711,21 +533,17 @@ Additionally, this mode offers options for labeling the AI and the user, making 
 
 ## Image and video generation
 
-**PyGPT** enables quick and easy image creation with image-generation models such as `gpt-image`, `Imagen`, `Gemini`, `Nano Banana`, and `Grok`, as well as video generation using models such as `Veo` and `Sora`.
-Generating images and videos is akin to a chat conversation  -  a user's prompt triggers the generation, followed by downloading, saving to the computer, and displaying the image onscreen. You can send raw prompt to the model in `Image generation` mode or ask the model for the best prompt.
+**PyGPT** enables quick and easy image and video generation using models such as `gpt-image`, `Imagen`, `Gemini`, `Nano Banana`, and `Grok` for images, as well as `Veo` and `Sora` for video.
+
+Generating images and videos works similarly to a chat conversation: you provide a prompt, the selected model generates the requested media, and PyGPT downloads, saves, and displays the result in the application. In `Image and video` mode, you can either send a raw prompt directly to the model or ask PyGPT to prepare and optimize the prompt for you.
 
 ![v3_img](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img.png)
 
-Image generation using image models is also available in every mode via plugin `Image generation (inline)`. Just ask any model, in any mode, like e.g. GPT or Gemini to generate an image and it will do it inline, without need to mode change.
-
-If you want to generate images directly in chat you must enable plugin **Image generation (inline)** in the Plugins menu.
-Plugin allows you to generate images in Chat mode:
-
-![v3_img_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_img_chat.png)
+To generate images directly inside a chat, enable **Image generation (inline)** in the Plugins menu.
 
 For supported models/providers, you can also enable remote image generation in `Config -> Settings -> Remote Tools`. If enabled, image generation is available natively in supported work modes without the inline plugin.
 
-To use `Imagen` models you must enable `Use Vertex AI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
+**Tip:** To use `Imagen` models you must enable `Use Vertex AI` in `Config -> Settings -> API Keys -> Google -> Advanced options`.
 
 ### Remix, Edit, or Extend
 
@@ -740,23 +558,15 @@ If **Raw Mode** is disabled, a model will generate the best prompt for you based
 
 ### Image storage
 
-Once you've generated an image, you can easily save it anywhere on your disk by right-clicking on it. 
-You also have the options to delete it or view it in full size in your web browser.
+Generated images and videos are automatically saved to the working directory, under the `img` or `video` folder depending on the media type. You can also quickly save generated media to another location, open a preview, view it in full size, or remove it when it is no longer needed.
 
-**Tip:** Use presets to save your prepared prompts. 
-This lets you quickly use them again for generating new images later on.
+By default, images are stored in the base-profile `img` directory. If **Store images, captures, and uploads in the workdir data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
 
-The app keeps a history of all your prompts, allowing you to revisit any session and reuse previous 
-prompts for creating new images.
+## Computer use
 
-Images are stored in the base-profile `img` directory by default. If **Store images, captures, and uploads in the workdir data directory** is enabled, generated images are stored under the active `data` workdir instead, including a custom project data workdir when one is active.
+> **WARNING: Computer use can give the model full control of your computer.** The model can move the mouse, type, click, open applications, read visible content, and perform actions with your user permissions. Use this mode only for tasks you trust and supervise sensitive operations.
 
-
-##  Computer use
-
-This mode allows for autonomous computer control.
-
-In this mode, the model takes control of the mouse and keyboard and can navigate within the user's environment. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and keyboard` integration.
+Computer use lets supported models operate the desktop or browser through mouse and keyboard actions. PyGPT uses the selected provider's native `Computer use` capability when supported by the current model (OpenAI, Google, or Anthropic), combined with the built-in `Mouse and keyboard` integration.
 
 **Example of use:**
 
@@ -794,13 +604,13 @@ Finally, enable the `Sandbox` switch in the Computer use toolbox when you want C
 
 ## Experts
 
-**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Chat with Agents**. There is no separate legacy execution engine for an Expert.
+**Experts** lets you define reusable, specialized agents as presets and delegate tasks to them from a normal conversation. Experts are powered by regular agents from the same **Agents v2 runtime** that powers **Agents**. There is no separate legacy execution engine for an Expert.
 
 Each enabled Expert is exposed to the current conversation as a regular `expert_call` tool. The main model can call it in exactly the same way as other tools: it selects an Expert, passes an instruction, waits for the agent to complete the task, and receives the Expert's final response directly as the tool result.
 
 In **Experts** mode, the main conversation follows the normal **Chat** tool flow. Enabled local tools from plugins and supported remote provider tools remain available according to the usual Chat configuration, while `expert_call` adds the ability to delegate work to specialized agents.
 
-Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Chat with Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
+Each Expert uses its own preset configuration, including its model/provider, system prompt, local and remote tool permissions, and optional RAG index. Because Experts run on the same runtime as **Agents**, they use the same agent and tool infrastructure. Each Expert also keeps an isolated hidden child context inside the parent conversation, so repeated calls to the same Expert can retain that Expert's own conversation memory without mixing it with the memory of other Experts.
 
 ### How to use Experts
 
@@ -816,175 +626,23 @@ The main model can then invoke `expert_call` automatically, use the returned res
 
 Experts can be activated or deactivated from the preset list using the RMB context menu and the `Enable/Disable` actions. Only enabled Experts are exposed through `expert_call`.
 
-The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same `expert_call` tool in supported chat modes and executes the selected Expert through the same **Chat with Agents / Agents v2** runtime.
+The **Experts (inline)** plugin does not implement a separate Expert engine. It exposes the same `expert_call` tool in supported chat modes and executes the selected Expert through the same **Agents / Agents v2** runtime.
 
-## Agent (LlamaIndex)
+## Autonomous mode
 
-**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
-
-This mode provides the older LlamaIndex-based agent workflows.
-
-Includes built-in agents (Workflow):
-
-- FunctionAgent
-- ReAct
-- Structured Planner (sub-tasks)
-- Supervisor + worker
-
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agent Builder (Legacy)`.
-
-You can also create your own agent by creating a new provider that inherits from `pygpt_net.provider.agents.base`.
-
-**Tools and Plugins**  
-
-In this mode, all commands from active plugins are available (commands from plugins are automatically converted into tools for the agent on-the-fly).
-
-**RAG - using indexes**  
-
-If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG automatically.
-
-This legacy mode supports text input only; multimodal input is not available.
-
-**Loop / Evaluate Mode**
-
-You can run the agent in autonomous mode, in a loop, and with evaluation of the current output. When you enable the `Loop / Evaluate` checkbox, after the final response is given, the quality of the answer will be rated on a percentage scale of `0% to 100%` by another agent. If the response receives a score lower than the one expected (set using a slider at the bottom right corner of the screen, with a default value `75%`), a prompt will be sent to the agent requesting improvements and enhancements to the response.
-
-Setting the expected (required) score to `0%` means that the response will be evaluated every time the agent produces a result, and it will always be prompted to self-improve its answer. This way, you can put the agent in an autonomous loop, where it will continue to operate until it succeeds.
-
-You can choose between two methods of evaluation:
-
-- By the percentage of tasks completed
-- By the accuracy (score) of the final response
-
-You can set the limit of steps in such a loop by going to `Settings -> Agents and experts -> Agents -> Max evaluation steps in loop`. The default value is `3`, meaning the agent will only make three attempts to improve or correct its answer. If you set the limit to zero, there will be no limit, and the agent can operate in this mode indefinitely (watch out for tokens!).
-
-You can change the prompts used for evaluating the response in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`. Here, you can adjust it to suit your needs, for example, by defining more or less critical feedback for the responses received.
-
-## Agent (OpenAI)
-
-**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
-
-This mode provides the older agent workflows built on the `openai-agents` library integrated into the application:
-
-https://github.com/openai/openai-agents-python
-
-It allows running agents for OpenAI models and models compatible with the OpenAI API.
-
-In this mode, you can use pre-configured Experts in Expert mode presets - they will be launched as agents (in the `openai_agents_experts` type, which allows launching one main agent and subordinate agents to which queries will be appropriately directed).
-
-**Agent types (workflows/patterns):**
-
-- `Agent with experts` - uses attached experts as sub-agents
-- `Agent with experts + feedback` - uses attached experts as sub-agents + feedback agent in a loop
-- `Agent with feedback` - single agent + feedback agent in a loop
-- `Planner` - planner agent, 3 sub-agents inside: planner, base agent + feedback
-- `Research bot` - researcher, 3 sub-agents inside: planner, searcher and writer as base agent
-- `Simple agent` - a single agent.
-- `Evolve` - in each generation (cycle), the best response from a given parent agent is selected; in the next generation, the cycle repeats.
-- `B2B` - bot-to-bot communication, involving two bots interacting with each other while keeping a human in the loop.
-- `Supervisor + Worker` - one agent (supervisor) acts as a bridge between the user and the second agent (worker). The user provides a query to the supervisor, who then sends instructions to the worker until the task is completed by the worker.
-
-You can create your own types (workflows/patterns) using the built-in visual node-based editor found in the `Tools -> Agent Builder (Legacy)`.
-
-There are also predefined presets added as examples:
-
-- `Coder`
-- `Experts agent`
-- `Planner`
-- `Researcher`
-- `Simple agent`
-- `Writer with Feedback`
-- `2 bots`
-- `Supervisor + worker`
-
-In the Agents (OpenAI) mode, all remote tools are available for the base agent according to the configuration in the Config -> Settings -> Remote tools menu.
-
-Remote tools for experts can be selected separately for each expert in the preset configuration.
-
-Local tools (from plugins) are available for agents and experts according to the enabled plugins, as in other modes.
-
-In agents with feedback and plans, tools can be allowed in a preset configuration for each agent. They also have separate prompts that can be configured in presets.
-
-**Description of how different types of agents work:**
-
-Below is a pattern for how different types of agents work. You can use these patterns to create agents for different tasks by modifying the appropriate prompts in the preset for the specific task.
-
-**Simple Agent**
-- The agent completes its task and then stops working.
-
-**Agent with Feedback**
-- The first agent answers a question.
-- The second agent (feedback) evaluates the answer and, if necessary, goes back to the first agent to enforce corrections.
-- The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Agent with Experts**
-- The agent completes the assigned task on its own or delegates it to the most suitable expert (another agent).
-
-**Agent with Experts + Feedback**
-- The first agent answers a question or delegates it to the most suitable expert.
-- The second agent (feedback) evaluates and, if necessary, goes back to the first agent to enforce corrections.
-- The cycle repeats until the feedback agent is satisfied with the evaluation.
-
-**Research Bot**
-- The first agent (planner) prepares a list of phrases to search.
-- The second agent (search) finds information based on the phrases and creates a summary.
-- The third agent (writer) prepares a report based on the summary.
-
-**Planner**
-- The first agent (planner) breaks down a task into sub-tasks and sends the list to the second agent.
-- The second agent performs the task based on the prepared task list.
-- The third agent, responsible for feedback, evaluates, requests corrections if needed, and sends the request back to the first agent. The cycle repeats.
-
-**Evolve**
-- You select the number of agents (parents) to operate in each generation (iteration).
-- Each agent prepares a separate answer to a question.
-- The best agent (producing the best answer) in a generation is selected by the next agent (chooser).
-- Another agent (feedback) verifies the best answer and suggests improvements.
-- A request for improving the best answer is sent to a new pair of agents (new parents).
-- From this new pair, the best answer is selected again in the next generation, and the cycle repeats.
-
-**B2B**
-- A human provides a topic for discussion.
-- Bot 1 generates a response and sends it to Bot 2.
-- Bot 2 receives the response from Bot 1 as input, provides an answer, and sends the response back to Bot 1 as its input. This cycle repeats.
-- The human can interrupt the loop at any time and update the entire discussion.
-
-**Supervisor + Worker**
-
-- A human provides a query to the Supervisor.
-- The Supervisor prepares instructions for the Worker and sends them to the Worker.
-- The Worker completes the task and returns the result to the Supervisor.
-- If the task is completed, the Supervisor returns the result to the user. If not, the Supervisor sends another instruction to the Worker to complete the task or asks the user if there are any questions.
-- The cycle repeats until the task is completed.
-
-**Tip:** Experts can be assigned and used in these legacy agent workflows where supported.
-
-**Limitations:**
-
-- When the `Computer use` tool is selected for an expert or when the `computer-use` model is chosen, all other tools will not be available for that model.
-
-## Agent (Autonomous)
-
-**Legacy mode — not recommended. Use the newer and more advanced `Chat with Agents` mode instead.**
-
-`Agent (Autonomous)` is a legacy single-agent loop for tasks that should continue across multiple model passes without requiring a new user message after every step. The same model keeps working on the original request, reviews the accumulated result, performs additional useful work or verification, and continues until the run is stopped by its configured rules. It does not create or orchestrate worker agents.
+**Autonomous mode** is a single-agent loop for tasks that should continue across multiple model passes without requiring a new user message after every step. The same model keeps working on the original request, reviews the accumulated result, performs additional useful work or verification, and continues until the run is stopped by its configured rules. It does not create or orchestrate worker agents.
 
 The current implementation is **Chat-backed**. Autonomous requests use the same bridge, provider routing, API selection, native tool/function-call settings, and normal tool execution flow as standard `Chat`. 
 
-If no RAG index is selected, Autonomous follows normal Chat routing. To use an index, select it in:
-
-```ini
-Settings -> Agents and experts -> Autonomous -> Index to use
-```
-
-Selecting an index forces the run through `Chat with Files (LlamaIndex)` with that index. Select `---` to keep normal Chat routing.
+Autonomous uses the same global **RAG** selector shown at the bottom of the toolbox. If no index is selected, it follows normal Chat routing. Selecting a valid index routes the run through the LlamaIndex RAG runtime with that index. Select `---` to keep normal Chat routing.
 
 **Run controls**
 
 - **Max run steps (iterations)** limits the number of autonomous model passes. Set it to `0` for an unlimited loop. Tool calls and their results are handled inside the normal tool flow and do not represent a separate user turn.
 - **Auto-stop** allows the agent to terminate the run early when it determines that the original goal is complete, or when a run-control condition requires stopping. When Auto-stop is disabled, the agent is not given the internal completion-control tool; the loop is then governed by the configured run limit or a manual/application stop.
 - **Always continue** keeps the run open-ended and instructs the agent to continue exploring useful in-scope refinements instead of voluntarily finishing. Enabling it automatically disables Auto-stop and ignores the configured iteration limit, so the run continues until it is stopped externally.
+- **Dynamic continuous prompt** is enabled by default. After each completed pass, PyGPT makes a hidden, tool-free call to the same selected model and uses it as a judge. The judge receives the original user input plus a configurable tail of recent Autonomous Assistant responses, then returns a focused instruction for the next pass. The generated instruction is shown in the live conversation as a localized `Judge:` pseudo-input, but it is not stored or handled as a new user turn. If the judge call fails or returns an empty result, PyGPT falls back to the normal static continuation prompt.
+- **Responses to judge** controls how many recent Autonomous Assistant responses are sent with the original user input to that judge. The default is `3`; set it to `0` to include all Assistant responses produced since the current user input. Tool rounds inside one Autonomous provider pass are grouped as one response for this limit.
 - **Auto-stop** and **Always continue** are mutually exclusive. Enabling either one immediately disables the other; both may also be disabled.
 
 When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation because an unattended run can generate substantial API usage, token consumption, and repeated tool actions.
@@ -992,52 +650,208 @@ When the run limit is set to `0`, PyGPT shows an infinite-loop confirmation beca
 **WARNING:** Autonomous execution can perform repeated tool calls and external actions. Review enabled plugins and remote tools before starting a long or unlimited run, especially when file access, code/system execution, web actions, or other side effects are available.
 
 
-# Agent Skills
+## Custom agents
 
-PyGPT supports portable **Agent Skills**: reusable instruction packages built around a `SKILL.md` file, with optional scripts, references, assets, and vendor-specific metadata. The common format is compatible with Agent Skills used by systems such as Claude Code, Codex, and compatible community tools. PyGPT preserves the complete imported skill directory instead of converting it into a PyGPT-only format.
+**Custom agents** is a flexible, slightly older LlamaIndex-based agent mode. For most multi-agent tasks, the newer **Agents** mode is recommended because it provides the current primary agent runtime, workflow monitor, worker management, and newer orchestration features.
 
-Use the top-level **Skills** menu to manage installed skills, browse the **Explore** catalog, import from GitHub, import a local `SKILL.md`/`.skill`/ZIP/TAR package or folder, and open the profile skill directory. Installed skills are stored per profile under `<profile workdir>/agents/skills/` and can be enabled or disabled without removing them.
+Custom agents remains available as an experimentation-oriented mode for building and testing non-standard agent workflows. It includes several ready-made patterns and is especially useful when you want direct control over a workflow shape rather than the newer Agents runtime. Examples include simple/function agents, agents with experts or feedback, a structured planner, a researcher workflow, bot-to-bot (B2B) conversations, Evolve, and Supervisor + worker.
 
-The GitHub importer accepts a repository URL, a `tree`/`blob` URL pointing to a skill, a raw `SKILL.md` URL, or shorthand such as `owner/repository:path/to/skill`. Repositories and archives may contain multiple skills; PyGPT searches them for `SKILL.md` roots and imports the discovered packages.
+You can create your own workflow constructions with the built-in visual node editor at `Tools -> Custom agent builder`. This makes it possible to experiment with custom multi-agent graphs and routing without writing the full workflow by hand. You can also add your own agent provider by inheriting from `pygpt_net.provider.agents.base`.
 
-The **Explore** tab reads a JSON catalog whose URL is configurable through `skills.catalog.url` in `config.json`. PyGPT ships with a default catalog URL and a bundled local fallback. Skills to install are selected explicitly with checkboxes.
+**Tools and Plugins**  
 
-In **Chat with Agents**, Skills use progressive disclosure. The agent initially receives only compact metadata for enabled skills. When a skill matches the current task, the runtime can use `load_skill` to retrieve its full instructions and resource manifest, `read_skill_resource` to read a specific packaged text resource, and `list_skills` to search the enabled set when needed. This avoids putting every installed `SKILL.md` into every prompt.
+Commands from active plugins can be exposed to Custom agents as tools according to the selected workflow and preset configuration.
 
-When loaded, a skill is materialized below the active conversation data workdir as `.pygpt/skills/<skill-name>/`. In Docker sandboxes the same directory is available as `/data/.pygpt/skills/<skill-name>/`. Bundled modules such as `python -m scripts.run_loop` are executed with the skill root as the working directory so relative resources and Python module resolution work correctly. `{baseDir}` is resolved to the appropriate runtime skill path.
+**Add support for .agents directory** is enabled by default in `Settings -> Agents and experts -> Custom agents`. At the start of a Custom agent run, PyGPT checks the active workdir: when `.agents/` exists, the agent receives the same project-directory guidance as Agents; otherwise it receives only the short note about optionally creating `.agents/` and using `.agents/memories/`. Files are read by the agent as needed rather than preloaded by PyGPT.
 
-Skills do not bypass PyGPT security. Loading a skill does not automatically execute its scripts, `allowed-tools` metadata does not grant permissions, and normal plugin/tool permissions, sandbox rules, and approval requirements remain authoritative. Review third-party `SKILL.md` instructions and executable files before using them.
+**RAG - using indexes**  
 
-A minimal Skill looks like this:
+If an index is selected in the agent preset, a tool for reading data from the index is automatically added to the agent, creating a RAG workflow automatically.
 
-```markdown
----
-name: hello-skill
-description: Provides a reusable greeting workflow.
----
+Custom agents currently supports text input only; multimodal input is not available.
 
-# Hello Skill
+**Loop / Evaluate Mode**
 
-Use this skill when the user asks for the Hello Skill.
+You can run a Custom agent in an autonomous evaluate/improve loop. When `Loop / Evaluate` is enabled, another agent evaluates the current result and requests improvements until the configured score or completion threshold is reached, the step limit is reached, or the run is stopped.
+
+You can choose between two evaluation methods:
+
+- By the percentage of tasks completed
+- By the accuracy (score) of the final response
+
+The loop limit is configured in `Settings -> Agents and experts -> Custom agents -> Max evaluation steps in loop`. Set it to `0` for no application-level limit. `Model for evaluation` can optionally override the evaluator model; when left empty, the model selected for the current Custom agent run is used. Evaluation prompts can be adjusted in `Settings -> Prompts -> Agent: response evaluation in loop [LlamaIndex]`.
+
+# Canvas
+
+> **Note:** Canvas is currently in beta and will be expanded in future PyGPT releases.
+
+**Canvas** gives PyGPT an interactive browser and rendering workspace that the model can use directly while you chat. It is designed for much more than displaying static HTML: the model can build and update complete HTML/CSS/JavaScript interfaces, render interactive elements live, inspect the result, click and type inside it, execute page JavaScript, take screenshots, read console errors, and iteratively improve the page without leaving the conversation.
+
+Canvas is useful for prototypes, widgets, dashboards, animations, small browser applications, visualizations, interactive demos, games, forms, UI experiments, and other tasks where seeing and manipulating a live result is more useful than receiving source code alone. You can also leave **annotations** directly on selected content or page elements. The model can read these annotations as precise feedback and apply requested changes to the current page.
+
+For example, enable the **Canvas (inline)** plugin and ask:
+
+```text
+Create an animated cat in the canvas.
 ```
 
-For the full import, catalog, runtime, script working-directory, resource, and security behavior, see the **Agent Skills** section in the documentation.
+The model can generate the HTML/CSS/JavaScript, open the Canvas, render the animation, inspect the live result, and continue editing it from your next instructions.
+
+![v3_canvas](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/canvas.png)
+
+You can also combine Canvas with live drawing in Painter to create a seamless end-to-end workflow. For example, you can sketch a reference image in Painter, ask the model to retrieve it directly from Painter and use it as input for the task, and then have the final interactive result displayed in Canvas — as shown in the video below:
+
+https://github.com/user-attachments/assets/d954c4e6-9ad9-4bbb-8065-dc0a0a2f9f36
+
+Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
+
+To use this functionality, enable the **Canvas (inline)** plugin in the Plugins menu. As an inline plugin, Canvas works independently of the global **Tools** switch, so **Tools** does not need to be enabled. Behavior and available tools may continue to expand in future versions.
+
+# Indexing and RAG
+
+PyGPT uses **LlamaIndex** and a vector store to provide persistent Retrieval-Augmented Generation (RAG) over indexed files, external data, and conversation history. Indexing and retrieval are configured in `Settings -> Indexes / RAG`.
+
+## Using RAG in Chat
+
+At the bottom of the Chat toolbox, use the **RAG** selector to choose the index that should provide additional context. Selecting `---` keeps the normal Chat provider path. When a valid index is selected, PyGPT routes the request through the LlamaIndex RAG runtime automatically, using the selected model through its LlamaIndex provider wrapper.
+
+The **RAG mode** option in `Settings -> Indexes / RAG -> Chat` controls how the selected index is used:
+
+- **Chat** retrieves relevant indexed context and generates a normal conversational answer with the selected model.
+- **Query the Index Only** sends the prompt through the index query path without the normal conversational chat flow.
+- **Retrieve Only** returns retrieved index context without generating the normal chat response.
+
+The separate **Chat mode** setting controls the LlamaIndex chat-engine mode used when **RAG mode** is set to **Chat**.
+
+When the **Tools** switch is enabled in RAG-backed Chat, PyGPT uses native tool calls whenever the current model/provider path supports them. If native tool calls are unavailable, it can fall back to a LlamaIndex ReAct agent. The ReAct fallback is non-streaming; normal native tool-call paths can stream.
+
+RAG is also available in other supported workflows. The exact execution path depends on the mode: for example, Completion uses its LlamaIndex completion path, while Agents exposes the selected index as a RAG tool.
+
+## Indexing files for RAG
+
+To use persistent RAG, first index (embed) the files or external data you want to query. Embedding transforms document content into vectors stored in the selected vector store.
+
+To index files, copy or upload them into the active `data` directory and use **Index all** or `RMB -> Embed into index` in the Files view. You can also use the Indexer tool or supported plugins. The active data directory is normally `<profile workdir>/data`; when the current conversation belongs to a project with a custom data workdir, that project directory is used instead.
+
+If you're unfamiliar with embeddings and how they work, see:
+
+https://stackoverflow.blog/2023/11/09/an-intuitive-introduction-to-text-embeddings/
+
+For a visualization from OpenAI's page:
+
+![vectors](https://github.com/szczyglis-dev/py-gpt/assets/61396542/4bbb3860-58a0-410d-b5cb-3fbfadf1a367)
+
+Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/vectors-3.svg
+
+## Querying single files
+
+You can query an individual file on the fly with the `query_file` command from the **Files I/O** plugin. A temporary in-memory index is created for that query; it is not persisted as a normal index unless the plugin is configured to index read files automatically. A similar command is available for querying web and external content through LlamaIndex.
+
+For example, if `data/my_cars.txt` contains `My car is red.`, you can ask the model to query that file for the car color and receive `Red` as the result. Enable the **Tools** switch when using tool commands from plugins.
+
+## Index types
+
+PyGPT uses three related index concepts:
+
+- **Configured indexes** are the normal persistent indexes listed in `Settings -> Indexes / RAG -> General -> Indexes`. They can contain files, external data, and indexed conversation context.
+- **Project indexes** are isolated persistent indexes created automatically for projects. They are shown to the user as **Current project** and are not added to the normal configured index list.
+- **Temporary indexes** are created in memory for operations such as querying a single attachment or using the Files I/O `query_file` tool. They are not persisted as normal indexes.
+
+**Important:** Removing an item from the normal **Indexes** list removes only its configuration entry. It does not delete the already stored vector data. Use **Clear and truncate** when you want to permanently remove index data.
+
+## Supported data
+
+Built-in file loaders include CSV, Epub, XLSX, HTML, IPYNB, images, JSON, Markdown, PDF, plain text, video/audio, DOCX, and XML. Built-in web/external loaders include Bitbucket, ChatGPT Retrieval Plugin, GitHub Issues and repositories, Google Calendar/Docs/Drive/Gmail/Keep/Sheets, Microsoft OneDrive, RSS, SQL databases, sitemaps, Twitter/X posts, webpages, and YouTube transcriptions.
+
+Additional loader arguments can be configured in `Settings -> Indexes / RAG -> Data loaders`. Custom loaders can also be registered by Add-ons.
+
+## File indexing
+
+The **File indexing** tab controls how files and directories are embedded into persistent indexes. The main options include recursive directory indexing, replacement of old versions during re-indexing, excluded extensions, stop-on-error behavior, and custom metadata for file and web/external documents.
+
+The Files view is project-aware. If the active conversation belongs to a project with a custom data workdir, the view uses that directory as its filesystem root; outside projects, or when **Use shared workdir** is enabled, it uses the shared `<profile workdir>/data` directory.
+
+When the current conversation belongs to a project, **Current project** is available as a runtime index target. Selecting it indexes the file or directory into the isolated index for that project. The project's filesystem data workdir and its isolated vector index are separate concepts: changing the data workdir does not move, rename, or rebuild the project's vector index.
+
+## Context indexing
+
+LlamaIndex is integrated with the context database, so stored conversation history can also be indexed and used as RAG context. **Context indexing** is configured separately from file indexing.
+
+The **Conversation auto-indexing** setting has three modes:
+
+- **Off** - disables automatic conversation-context indexing.
+- **Auto-index all conversations** - enables automatic context indexing for conversations both inside and outside projects.
+- **Auto-index only in projects** - enables automatic context indexing only for conversations assigned to projects.
+
+The **Enable auto-indexing in modes** setting further limits which work modes may trigger automatic context indexing.
+
+### Global context indexes
+
+**Indexes for global auto-indexing** is a multi-select list. One or more normal configured indexes can be selected. The global selection is used outside projects and for project conversations when **Use isolated index per project** is disabled.
+
+### Isolated project indexes
+
+**Use isolated index per project** is enabled by default. When enabled, each project uses its own isolated index. PyGPT exposes it in the UI as **Current project** and internally resolves it to a project-specific ID such as `proj_<project_id>`. These project indexes are created and updated on demand and are not added to the normal **Indexes** list.
+
+Project context indexing is incremental. PyGPT tracks the last indexed conversation item and continues from that point on subsequent updates.
+
+Project indexes follow the project lifecycle:
+
+- **Update project index** continues indexing from the last indexed item.
+- **Truncate project index** permanently removes that project's index data and resets its indexing state.
+- Deleting a project also removes its isolated project index when it exists.
+- Duplicating a project creates/rebuilds an isolated index for the duplicate only when the source project already had one.
+
+## Using the current project index
+
+The active project index can be used from multiple places:
+
+- In a supported mode such as **Chat**, select **Current project** in the **RAG** selector at the bottom of the toolbox.
+- In the **Files** tab, use `RMB -> Embed into index -> Current project` for a file or directory.
+- In the **RAG (inline)** plugin, enable **Use project index if in use** to query the active project's isolated index automatically.
+- In the **Files I/O** plugin, enable **Use project index if in use** so persistent file indexing performed by the plugin targets the active project instead of the configured global file index.
+
+Outside a project, the virtual **Current project** target is unavailable and normal configured indexes are used.
+
+## Attachments and temporary RAG
+
+Attachments can provide additional context independently of the persistent RAG index selected in the toolbox. In attachment **RAG** mode, PyGPT creates or uses a temporary vector index for the attachment. This temporary context is scoped to the conversation/attachment flow and does not automatically become part of the selected persistent index.
+
+## Vector stores
+
+Available vector stores provided by LlamaIndex include:
+
+- ChromaVectorStore
+- ElasticsearchStore
+- PineconeVectorStore
+- QdrantVectorStore
+- RedisVectorStore
+- SimpleVectorStore
+
+Configure the selected backend in `Settings -> Indexes / RAG -> Vector Store`. Provider-specific connection arguments can be supplied through the Vector Store `**kwargs` setting when required.
+
+## Embeddings
+
+Embedding configuration is shared by persistent file indexing, conversation context indexing, and attachment RAG. Configure it in `Settings -> Indexes / RAG -> Embeddings`. Provider credentials and endpoints are normally inherited from the provider's global configuration.
+
+## Token and usage notes
+
+Indexing uses the configured embedding provider and can generate API usage and token costs. Re-indexing large file collections or conversation histories may generate many embedding requests.
+
+When **RAG mode** is **Chat**, retrieved context is added to the model-facing request. Large retrieved context plus plugin/tool instructions can approach the model's context limit. Disable unused plugins/tools or reduce retrieval scope if you encounter token-limit errors.
+
+**Warning:** Monitor embedding and model usage with the selected provider, especially when indexing or re-indexing large data sets.
+
 
 # MCP Connectors
 
-PyGPT includes a built-in **MCP Connectors** manager for importing, browsing, and managing Model Context Protocol server definitions. Connectors are a convenience layer over the existing **MCP** plugin: imported definitions are normalized directly into the MCP plugin server registry, so there is no separate connector runtime or duplicate tool registry.
+PyGPT includes an **MCP Connectors** manager for importing and managing Model Context Protocol server configurations. Open **Config -> MCP... -> Connectors...**.
 
-Open **Config -> MCP... -> Connectors...** to manage them. The **Installed** tab lets you enable/disable connectors, add or edit entries manually, remove them, import configurations, and jump to the normal MCP plugin settings. Imported connectors are disabled by default until you explicitly enable them.
+You can import from GitHub, local files or folders, including common Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, JSON, TOML and YAML formats. Imported connectors are disabled until you enable them.
 
-The importer accepts GitHub/config URLs, local files, and folders. It recognizes common MCP configuration layouts used by Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible generic JSON, JSONC/JSON5, TOML, YAML, and YML files. Vendor-specific fields are normalized into PyGPT's MCP server format where supported, while additional metadata is preserved for reference.
+Enabled connectors use the regular **MCP** plugin for discovery and execution. Review commands, URLs, credentials, environment variables and working directories before enabling third-party configurations.
 
-The **Explore** tab reads a JSON catalog. Its URL can be set with `connectors.catalog.url` in `config.json`; when no custom URL is configured, PyGPT uses the built-in catalog URL and can fall back to the bundled local catalog if that default remote catalog cannot be loaded. Catalog entries are selected explicitly with checkboxes and are installed disabled until enabled by the user.
-
-After a connector is enabled, the regular **MCP** plugin handles its transport, server connection/startup, tool discovery, cached tool metadata, allow/deny filtering, and execution. Local `stdio` servers and remote HTTP/Streamable HTTP or SSE servers are supported according to the MCP plugin configuration.
-
-Review imported connector commands, URLs, environment variables, HTTP headers, authorization data, working directories, and tool filters before enabling them. Local connectors may start external processes and remote connectors may send requests or credentials to external services.
-
-For the full import formats, catalog behavior, runtime mapping, and security notes, see the **MCP Connectors** section in the documentation.
+See the **MCP Connectors** documentation for supported formats and advanced configuration.
 
 # Context and memory
 
@@ -1051,7 +865,7 @@ For the full import formats, catalog behavior, runtime mapping, and security not
 
 Enable it in `Config -> Settings -> Context -> Advanced handling -> Enable advanced context handling`. When the unsummarized model-facing conversation approaches the configured threshold, PyGPT compacts older completed turns into conversation-scoped continuation notes and keeps a newer verbatim tail. The complete chat history remains stored in SQLite; only the history sent to the model is trimmed.
 
-Continuation notes are stored in `memory_ctx`, one row per conversation, and are separate from the Memory plugin's global/project long-term memory. They preserve compact state such as goals, constraints, decisions, completed work, important findings and pending work. `memory_ctx_get`, `memory_ctx_add` and `memory_ctx_replace` can read or maintain these notes. In Chat with Agents, the main agent also uses persistent bounded rolling memory backed by the same conversation notes, while worker rolling summaries stay runtime-local.
+Continuation notes are stored in `memory_ctx`, one row per conversation, and are separate from the Memory plugin's global/project long-term memory. They preserve compact state such as goals, constraints, decisions, completed work, important findings and pending work. `memory_ctx_get`, `memory_ctx_add` and `memory_ctx_replace` can read or maintain these notes. In Agents, the main agent also uses persistent bounded rolling memory backed by the same conversation notes, while worker rolling summaries stay runtime-local.
 
 The main settings are **Checkpoint threshold (%)** (default `75`), **Context tail after checkpoint (%)** (default `45`), and **Maximum continuation note characters** (default `24000`). Model-aware token limits and safety reserves are also applied at runtime.
 
@@ -1065,7 +879,7 @@ Conversations can be organized into projects. By default, projects use the share
 
 A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
 
-The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Python interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
+The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Python interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/mnt/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
 
 ## Clearing history
 
@@ -1091,10 +905,10 @@ Config -> Settings -> Context -> Tools -> Store tool calls in database
 The available modes are:
 
 - `Do not store` - tool calls and results are used normally during the live request, but are not written to durable history.
-- `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved.
-- `Store full input/output` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
+- `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved. **This is the default for fresh profiles.**
+- `Store full input/output` - stores complete tool requests and results, matching the previous full-storage behavior. Enable it when you explicitly need complete persisted tool payloads or want to restore persisted tool protocol after reloading a conversation.
 
-The storage policy applies to all modes that use tools, including Chat, Chat with Files, legacy Agents, and Chat with Agents. It affects only durable database persistence.
+The storage policy applies to all modes that use tools, including Chat (with or without RAG), Custom agents, and Agents. It affects only durable database persistence.
 
 **Restore tool calls in runtime** controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
@@ -1108,7 +922,7 @@ Once a conversation begins, a title for the chat is generated and displayed on t
 
 **Using Your Own Files as Additional Context in Conversations**
 
-You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database, which makes them available all the time during a "Chat with Files" session, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
+You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database and selecting that index through the **RAG** selector in a supported conversation, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
 
 **Attachments**
 
@@ -1206,9 +1020,7 @@ When using RAG to query attachments, the documents are indexed into a temporary 
 
 The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` and `Python interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
-
-![v2_file_output](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
+The `Files I/O` and `Python interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/mnt/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 To allow the model to manage files or execute Python code, enable the `Tools` switch together with the required plugins:
 
@@ -1246,19 +1058,15 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ### Importing and exporting profiles
 
-Use `File -> Export profile...` to export the active profile to a ZIP archive. The export is divided into four sections: **Database**, **Config files**, **Files**, and **Workdir data/**. The first three are selected by default, while **Workdir data/** (the profile's `data/` directory only) is disabled by default. The dialog shows an approximate size beside every section, such as `Database (30 MB)` or `Files (1.4 GB)`.
+Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files**, **Files**, and optionally the shared **Workdir data/** directory. Application-wide Add-ons are not part of a profile export. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
 
-Exports run in a background worker with a cancellable loader and a disk-space check. The default filename uses the form `PyGPT_export_YYYY_MM__DD_hh_ii_ss.zip`. The archive contains `export_meta.json` with the PyGPT version, export time, and exported sections. The database is saved as a consistent SQLite snapshot. Runtime-only data such as temporary files, caches, logs, the global `profile.json` registry, and `path.cfg` is excluded. Project-specific custom data workdirs outside the profile workdir are not included.
-
-Use `File -> Import profile...` to restore an exported archive into a new profile. PyGPT validates the archive and source application version, enables only sections that are present in the export, requires a unique non-empty profile name, checks disk space, and asks for a destination workdir. If that directory is not empty, the application warns that its contents will be replaced. Existing profile workdirs and unsafe overlapping locations cannot be selected.
-
-Import is staged next to the destination before the final replacement, so cancellation is available until commit begins and the previous directory can be restored if finalization fails. Missing or unselected sections are initialized with fresh-profile defaults. After import, PyGPT refreshes the profile list and asks whether to switch to the newly created profile immediately.
+Use `File -> Import profile...` to restore an exported archive as a new profile. Choose which available sections to import, provide a unique profile name, and select its workdir.
 
 # Models
 
 ## Built-in models
 
-PyGPT has a preconfigured list of models (as of 2026-09-11):
+PyGPT has a preconfigured list of models (as of 2026-09-24):
 
 ```markdown
 - `claude-fable-5` (Anthropic)
@@ -1266,13 +1074,11 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `claude-haiku-4-5` (Anthropic)
 - `claude-opus-4-5` (Anthropic)
 - `claude-opus-5` (Anthropic)
+- `claude-opus-5-5` (Anthropic)
 - `claude-sonnet-4-5` (Anthropic)
 - `claude-sonnet-5` (Anthropic)
 - `deepseek-v4-flash` (DeepSeek)
 - `deepseek-v4-pro` (DeepSeek)
-- `deep-research-max-preview-04-2026` (Google)
-- `deep-research-preview-04-2026` (Google)
-- `deep-research-pro-preview-12-2025` (Google)
 - `gemini-2.5-computer-use-preview-10-2025` (Google)
 - `gemini-2.5-flash` (Google)
 - `gemini-2.5-flash-image` (Google)
@@ -1320,6 +1126,8 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - `gpt-5.6-sol` (OpenAI)
 - `gpt-5.6-terra` (OpenAI)
 - `gpt-6-astra` (OpenAI)
+- `gpt-6-luna` (OpenAI)
+- `gpt-6-sol` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
 - `gpt-image-2` (OpenAI)
 - `gpt-image-2.5-flare` (OpenAI)
@@ -1360,7 +1168,7 @@ You can import new models by manually editing `models.json` or by using the mode
 
 **Tip:** The models on the list are sorted by provider, not by manufacturer. A model from a particular manufacturer may be available through different providers (e.g., OpenAI models can be provided by the `OpenAI API` or by `OpenRouter`). If you want to use a specific model through a particular provider, you need to configure the provider in `Config -> Models -> Edit`, or import it directly via `Config -> Models -> Import`.
 
-**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
+**Tip**: Anthropic and Deepseek API providers use VoyageAI for embeddings (persistent and attachment RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 ## Adding a custom model
 
@@ -1387,29 +1195,21 @@ There is built-in support for those LLM providers:
 
 ## Custom providers (OpenAI-compatible)
 
-You can add OpenAI Chat Completions-compatible providers at runtime without editing PyGPT source code or creating a custom launcher. Open:
+Add OpenAI Chat Completions-compatible providers in:
 
 `Config -> Settings -> Custom providers`
 
-and add a row with:
+Configure the provider name, API base URL and optional API key. After saving, the provider is available in the Models Editor and `Config -> Models -> Import`.
 
-- **Provider name** - the name shown in provider selectors.
-- **API base URL** - the OpenAI-compatible API base, for example `https://example.com/v1`.
-- **API key** - the provider API key. It may be left empty when the endpoint does not require authentication.
-
-Custom providers are stored in `config.json` under the `api_custom_providers` key. After saving Settings, they are registered immediately and become available anywhere PyGPT uses the LLM provider registry, including the Models Editor and `Config -> Models -> Import`. The importer obtains the model list from the provider's OpenAI-compatible `/models` endpoint.
-
-Models assigned to a custom provider use the native OpenAI Python SDK with the **Chat Completions API** in normal Chat mode. In **Chat with Files (LlamaIndex)** and LlamaIndex-based flows, PyGPT uses the LlamaIndex `OpenAILike` wrapper and automatically reuses the same provider-level API base URL and API key. You do not need to duplicate them in LlamaIndex `**kwargs` or `ENV`. Custom runtime providers intentionally use Chat Completions compatibility; they do not enable the OpenAI Responses API.
-
-Once the provider is saved, import its models from `Config -> Models -> Import`, or create/edit a model manually and select the custom provider from the provider list. Model-specific `API base` / `API key` values in the Models Editor, when provided, override the custom provider values for that model.
+Normal Chat uses the OpenAI-compatible Chat Completions API. LlamaIndex-backed flows reuse the same provider endpoint and credentials automatically. Per-model API base/key values can still override the provider defaults.
 
 ## How to use local or other models
 
-### Gemma 4, Qwen 3.6, Llama 4, Mistral, DeepSeek, Bielik, gpt-oss, and other local models
+### DeepSeek, Qwen, gpt-oss, Gemma, Mistral, Llama, and other local models
 
-How to use locally installed Gemma 4, Qwen 3.6, Llama 4, DeepSeek, Mistral, Bielik, and other models:
+How to use locally installed DeepSeek, Qwen, gpt-oss, Gemma, Mistral, Llama, and other models:
 
-1) Choose a working mode: `Chat` or `Chat with Files`.
+1) Choose the `Chat` working mode.
 
 2) On the models list, select, edit, import, or add a model with the `ollama` provider. The model ID should match the name served by Ollama. No LlamaIndex `model_name` entry in Advanced `**kwargs` is required; PyGPT uses the model ID automatically.
 
@@ -1468,7 +1268,7 @@ The Ollama endpoint is inherited from the global `OLLAMA_API_BASE` configuration
 
 ### Other providers and LlamaIndex-based modes
 
-PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal `Chat`, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. `Chat with Files` and other non-Chat workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
+PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal `Chat`, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. RAG-backed Chat and other workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
 
 Configure provider credentials/endpoints once in `Config -> Settings -> API Keys` or, for runtime OpenAI-compatible providers, in `Config -> Settings -> Custom providers`. LlamaIndex-backed modes reuse those global settings automatically and use the selected model ID as the model name. Model-level LlamaIndex `**kwargs` and `ENV` can remain empty.
 
@@ -1492,6 +1292,8 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
+- `Canvas (inline)` - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, configurable search/history, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
+
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
 - `Chat history (inline)` - gives models access to saved conversation history and calendar day notes, including reading, searching, creating, and updating stored entries.
@@ -1500,7 +1302,7 @@ The following plugins are currently available:
 
 - `Custom commands` - exposes user-defined system commands and scripts as callable tools with configurable arguments and execution rules.
 
-- `Experts (inline)` - exposes enabled Expert presets through the regular `expert_call` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Chat with Agents.
+- `Experts (inline)` - exposes enabled Expert presets through the regular `expert_call` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Agents.
 
 - `Extra system prompt` - automatically appends reusable custom instructions or additional context to the active system prompt.
 
@@ -1514,6 +1316,8 @@ The following plugins are currently available:
 
 - `Image generation (inline)` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
 
+- `Jev / System One (inline)` - integrates TypeSafe AI Jev for fast, typed semantic decisions over structured state, including classification, routing, selection, verification, and scoring.
+
 - `Mailer` - provides email access through configured mail services, including sending and reading messages where supported.
 
 - `MCP` - connects models to external Model Context Protocol servers and exposes discovered remote tools through stdio, SSE, or Streamable HTTP transports.
@@ -1524,7 +1328,7 @@ The following plugins are currently available:
 
 - `OpenStreetMap` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
 
-- `Python interpreter` - lets models execute Python code locally or in a Docker sandbox, maintain IPython state, and work with files created during the conversation.
+- `Python interpreter` - lets models execute Python or IPython code on the host, in the built-in uv-managed CPython sandbox, or in Docker, with mutually exclusive standard-Python/IPython tool sets and project-aware file access.
 
 - `RAG (inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 
@@ -1536,7 +1340,7 @@ The following plugins are currently available:
 
 - `Slack` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
 
-- `System (OS)` - provides access to the operating system and executes system commands through PyGPT's host or sandbox execution mechanisms.
+- `System (OS)` - executes system commands on the host, in the built-in uv-managed sandbox, or in Docker, with project-aware runtime paths.
 
 - `Telegram` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 
@@ -1544,7 +1348,7 @@ The following plugins are currently available:
 
 - `TwelveLabs` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
 
-- `Vision (inline)` - adds image analysis to supported chat modes by routing image input through a separately configured vision-capable model.
+- `Vision (inline)` - provides a fallback vision model for chats where the selected model does not support image input; models with native vision handle images directly.
 
 - `Voice control (inline)` - lets spoken commands trigger configured PyGPT actions directly while a conversation is active.
 
@@ -1560,26 +1364,19 @@ The following plugins are currently available:
 
 ## API calls
 
-**PyGPT** lets you connect the model to the external services using custom defined API calls.
-
-To activate this feature, turn on the `API calls` plugin found in the `Plugins` menu.
-
-In this plugin you can provide list of allowed API calls, their parameters and request types. The model will replace provided placeholders with required params and make API call to external service.
+The API calls plugin turns user-defined HTTP endpoints into model-callable tools. Configure GET/POST parameters, JSON templates, headers and placeholders to connect a conversation to your own REST APIs.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#api-calls
 
 ## Audio input
 
-The plugin facilitates speech recognition. `OpenAI Whisper` is the default provider; `local Whisper`, `Google`, `Google Cloud`, `Google GenAI`, `Bing`, and `xAI Grok Voice` providers are also available. It allows voice input and voice commands to be captured through your microphone and transcribed into text. Once the plugin is enabled, use the `Microphone` icon on the right side of the input field to start voice input.
-
-The plugin can be extended with other speech recognition providers.
+The Audio input plugin captures microphone audio and converts speech to text for chat input and voice commands. It supports OpenAI Whisper, local Whisper, Google, Google Cloud, Google GenAI, Bing and xAI Grok Voice, with configurable device, language and recognition behavior. Local Whisper is an optional dependency; if `openai-whisper` is missing, PyGPT can install it through `Config -> Package Manager` and then download the selected checkpoint on first use.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-input
 
 ## Audio output
 
-When enabled, the plugin synthesizes every received response as speech using OpenAI TTS or providers such as `Microsoft Azure`, `Google Cloud TTS`, `Google GenAI TTS`, `Eleven Labs`, and `xAI TTS`. You can add more text-to-speech providers to it too. `OpenAI TTS` does not require any additional API keys or extra configuration; it utilizes the main OpenAI key. 
-Provider-specific credentials are required where applicable: Azure and Eleven Labs use plugin credentials, Google GenAI uses the Google API key from Settings, and xAI TTS uses the xAI API key from Settings. Configure voices, regions, and provider-specific options in the plugin settings.
+The Audio output plugin reads model responses aloud. Choose OpenAI, Azure, Google Cloud, Google GenAI, ElevenLabs or xAI TTS and configure the provider-specific voice, model, language and credentials.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
@@ -1587,15 +1384,17 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
 **WARNING: Use autonomous mode with caution.** Long or unlimited runs can make repeated API requests and tool calls, including actions with side effects.
 
-The plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Python interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
+The Autonomous mode plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Python interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
 
 The **Iterations** option limits the number of autonomous passes; `0` means unlimited. **Auto-stop** lets the model finish the run early when the goal is complete. **Always continue** is mutually exclusive with Auto-stop: enabling it disables Auto-stop and makes the loop open-ended, ignoring the normal iteration limit until the run is stopped externally.
+
+**Dynamic continuous prompt** is enabled by default. After every completed pass, a hidden, tool-free call to the same selected model acts as a judge and produces the next continuation instruction from the original user input plus a recent tail of Autonomous Assistant responses. The judge instruction is shown in the live conversation as a localized `Judge:` pseudo-input, without creating another user turn. **Responses to judge** defaults to `3`; set it to `0` to send all Assistant responses produced since that user input. If the judge call fails, the plugin falls back to the static continuation prompt.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#autonomous-mode
 
 ## Bitbucket
 
-The Bitbucket plugin allows for seamless integration with the Bitbucket Cloud API, offering functionalities to manage repositories, issues, and pull requests. This plugin provides highly configurable options for authentication, cached convenience, and manages HTTP requests efficiently.
+The Bitbucket plugin exposes Bitbucket Cloud repositories, files, issues, pull requests, workspaces and account information as tools. Authentication can use an App Password or bearer token.
 
 - Retrieve details about the authenticated user.
 - Get information about a specific user.
@@ -1620,8 +1419,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#bitbucket
 
 ## Chat history (inline)
 
-Provides access to context history database.
-Plugin also provides access to reading and creating day notes.
+The Chat history (inline) plugin lets the model search and read saved conversations and work with calendar day notes, including creating and updating notes.
 
 Example prompts:
 
@@ -1639,7 +1437,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#chat-history-
 
 ## Crontab / Task scheduler
 
-Plugin provides cron-based job scheduling - you can schedule tasks/prompts to be sent at any time using cron-based syntax for task setup.
+The Crontab / Task scheduler plugin lets the model create, inspect and manage scheduled prompts and tasks using cron expressions.
 
 ![v2_crontab](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_crontab.png)
 
@@ -1647,13 +1445,13 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#crontab-task-
 
 ## Custom commands
 
-With the `Custom commands` plugin, you can integrate **PyGPT** with your operating system and scripts or applications. You can define an unlimited number of custom commands and instruct model on when and how to execute them. Configuration is straightforward, and **PyGPT** includes a simple tutorial command for testing and learning how it works:
+The Custom commands plugin turns your own shell commands, scripts and applications into model-callable tools. Each command can define its arguments, usage instruction and execution rules; a tutorial command is included as an example:
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#custom-commands
 
 ## Experts (inline)
 
-The plugin makes enabled Expert presets available in supported chat modes through the regular `expert_call` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Chat with Agents**, and its final response is returned directly as the tool result.
+The Experts (inline) plugin makes enabled Expert presets available in supported chat modes through the regular `expert_call` tool. When the current model delegates a task, the selected Expert is executed as a regular agent by the same **Agents v2 runtime** used by **Agents**, and its final response is returned directly as the tool result.
 
 Use **Experts** mode to define, configure, enable, or disable Expert presets. Once an Expert is enabled, you can simply ask for it by name in the conversation, for example: `Ask the Python programmer expert to review this code.` The model can then call `expert_call` automatically.
 
@@ -1661,14 +1459,13 @@ See the `Work modes -> Experts` section for more details.
 
 ## Extra system prompt
 
-The plugin appends additional system prompts (extra data) from a list to every current system prompt. 
-You can enhance every system prompt with extra instructions that will be automatically appended to the system prompt.
+The Extra system prompt plugin appends selected reusable instructions or context to the active system prompt, making the same guidance available on every request.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#extra-system-prompt
 
 ## Facebook
 
-The plugin integrates with Facebook's Graph API to enable various actions such as managing pages, posts, and media uploads. It uses OAuth2 for authentication and supports automatic token exchange processes. 
+The Facebook plugin exposes Facebook Graph API operations for pages, posts and media, including publishing, deleting and uploading content. Authentication uses OAuth2.
 
 - Retrieving basic information about the authenticated user.
 - Listing all Facebook pages the user has access to.
@@ -1682,7 +1479,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#facebook
 
 ## Files I/O
 
-The plugin allows for file management within the local filesystem. It enables the model to create, read, write and query files located in the active `data` workdir. Normally this is `<profile workdir>/data`; if the current conversation belongs to a project with **Use shared workdir** disabled, the project's configured directory is used instead. The plugin and its current-working-directory tool resolve this path dynamically for the conversation that invoked the operation.
+The Files I/O plugin gives the model file and directory tools for reading, writing, copying, moving, downloading, searching and indexing content on the local filesystem. The effective read/write scope is controlled in `Config -> Settings -> Security -> General`. Disabling the filesystem restrictions allows access outside the active data directory, including the host filesystem, so enable broader access only when required and only for trusted workflows.
 
 Plugin capabilities include:
 
@@ -1707,7 +1504,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#files-i-o
 
 ## GitHub
 
-The plugin provides seamless integration with GitHub, allowing various operations such as repository management, issue tracking, pull requests, and more through GitHub's API. This plugin requires authentication, which can be configured using a Personal Access Token (PAT) or OAuth Device Flow.
+The GitHub plugin exposes repositories, files, issues, pull requests, searches and account operations through the GitHub API. Authenticate with a Personal Access Token or OAuth Device Flow.
 
 - Retrieve details about your GitHub profile.
 - Get information about a specific GitHub user.
@@ -1733,7 +1530,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#github
 
 ## Google (Gmail, Drive, Calendar, Contacts, YT, Keep, Docs, Maps, Colab)
 
-The plugin integrates with various Google services, enabling features such as email management, calendar events, contact handling, and document manipulation through Google APIs.
+The Google plugin exposes Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab and YouTube tools so the model can work with Google data and services from a conversation.
 
 - **Gmail**
   - Listing recent emails from Gmail.
@@ -1801,37 +1598,106 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#google-gmail-
 
 ## Image generation (inline)
 
-The plugin integrates image generation with any chat mode. Select the image-generation model in the plugin settings, enable the plugin, and ask the current model to create an image. The model can then call the plugin's `image` tool with a dedicated image prompt. The plugin does not require the `Tools` switch to be enabled.
+The Image generation (inline) plugin adds an `image` tool to chats so the current model can delegate image creation or editing to the image-generation model configured in the plugin. It works independently of the global `Tools` switch.
 
 By default, the plugin appends a short image-generation instruction to the system prompt so the current model knows when and how to use the `image` tool. You can disable this behavior with `Append image prompt to system prompt` while keeping the image tool available.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#image-generation-inline
 
+## Jev / System One (inline)
+
+The **Jev / System One (inline)** plugin integrates [TypeSafe AI Jev](https://typesafe.ai/), the first public **System One Model**. Jev is not a chat or text-generation model. Instead, it evaluates structured state and returns typed, machine-readable decisions that the current model or a larger tool workflow can use directly.
+
+Jev is designed for bounded semantic decisions where the possible output is known in advance but the decision still requires AI judgment. Typical uses include classification and routing, selecting from known candidates, verifying conditions or model output, assigning ordered scores or severity levels, and evaluating several independent decisions over the same state.
+
+Jev exposes three decision primitives:
+
+- **Choice** - selects one value from a predefined set and returns a typed choice with probability/confidence information.
+- **Score** - evaluates an item against an ordered scale and returns a structured score with distribution/confidence information.
+- **Noul** - evaluates a yes/no condition and returns its probability instead of generating prose.
+
+Because the output space is declared before the request, Jev is intended for structured automation rather than open-ended writing, chat responses, or free-form reasoning. As an inline plugin, it works independently of the global **Tools** switch.
+
+### Configuration
+
+Configure the TypeSafe credentials in:
+
+`Config -> Settings -> API Keys -> Jev`
+
+- **Jev API key** - TypeSafe API key used to authenticate requests. You can also set `TYPESAFE_API_KEY`.
+- **API base** - TypeSafe API base URL. Default: `https://api.typesafe.ai`. You can override it with `TYPESAFE_BASE_URL`.
+
+Configure the Jev model separately in:
+
+`Plugins -> Settings -> Jev / System One`
+
+- **Model** - Jev model ID used for System One requests. Default: `jev-latest`.
+
+### Tool
+
+The plugin exposes one tool: `jev_evaluate(state, questions)`. The current model supplies a shared structured `state` plus one or more named `questions`; PyGPT sends them to TypeSafe's `/v1/systemone` endpoint and returns the typed JSON result to the model.
+
+- `state` - structured JSON object containing the data to evaluate. Source text can be placed in fields such as `text`, `message`, or `document`.
+- `questions` - object keyed by stable question IDs. Each question defines `type` (`choice`, `score`, or `noul`), `instructions`, and the criteria required by that primitive.
+
+For `choice`, `criteria` is an option-to-description object. For `score`, it is an ordered list of 2-10 levels. For `noul`, optional criteria can describe the `true` and `false` outcomes. Multiple independent questions over the same state should normally be grouped into one request.
+
+Example request shape:
+
+```json
+{
+  "state": {
+    "message": "Refund never arrived.",
+    "customer_tier": "pro"
+  },
+  "questions": {
+    "intent": {
+      "type": "choice",
+      "instructions": "Classify the support intent.",
+      "criteria": {
+        "refund": "Refund issue",
+        "other": "Other"
+      }
+    },
+    "needs_attention": {
+      "type": "noul",
+      "instructions": "Does this request require support attention?"
+    }
+  }
+}
+```
+
+You normally do not need to construct the tool payload manually. Once the plugin is enabled, you can ask the current model to use Jev for a bounded decision, for example:
+
+`Use Jev to classify this support message as billing, refund, technical, or other, and estimate whether it needs urgent attention.`
+
+API reference: https://docs.typesafe.ai/api
+
 ## Mailer
 
-Enables the sending, receiving, and reading of emails from the inbox. Currently, only SMTP is supported. More options coming soon.
+The Mailer plugin provides email tools for sending messages and accessing configured mailbox operations. Configure the mail server, account credentials and individual mail tools in the plugin settings.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## MCP (Model Context Protocol)
 
-With the `MCP` plugin, you can connect **PyGPT** to remote tools exposed by `Model Context Protocol` servers (stdio, Streamable HTTP, or SSE). The plugin discovers available tools on your configured servers and publishes them to the model as callable commands with proper parameter schemas. You can whitelist/blacklist tools per server. Tool discovery caching is enabled by default with a 300-second TTL.
+The MCP (Model Context Protocol) plugin connects PyGPT to Model Context Protocol servers over stdio, Streamable HTTP or SSE, discovers their tools and exposes allowed tools to the model. 
 
-To configure MCP connections, open `Config -> MCP...` for a direct shortcut, or use `Plugins -> Settings -> MCP`. Both open the same MCP plugin settings. Use either path when connecting PyGPT to an external service or tool server through MCP.
+To configure persistent MCP connections, open `Config -> MCP...` or use `Plugins -> Settings -> MCP`. For easier setup and management, use [MCP Connectors](#mcp-connectors) from `Config -> MCP... -> Connectors...` to browse, import and manage connector definitions. See the [MCP Connectors](#mcp-connectors) section for more details.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
 ## Memory (inline)
 
-The **Memory (inline)** plugin provides three separate memory scopes/mechanisms:
+The Memory (inline) plugin gives the model persistent memory beyond normal chat history. It supports three separate mechanisms:
 
 - **Compact long-term memory** — one global memory outside projects and one isolated memory per project. It can be updated automatically with the configured memory model and is intended for durable reusable state rather than routine chat details.
 - **Keyed memory** — raw key/value records stored exactly as supplied. Keys are isolated between global and per-project scope and are retrieved explicitly with `memory_key_*` tools.
 - **Conversation continuation notes** — compact `memory_ctx` notes tied to exactly one conversation. They are separate from global/project memory and are intended to preserve goals, constraints, decisions, completed work, important findings and pending work across context-window trimming.
 
-The plugin works independently of the global `Tools` switch. Its compact-memory options include the update model, maximum memory size, refinement of manual `memory_add`, automatic attachment of global/project memory, and optional searching of keyed-memory content. Auto-attach applies only to compact global/project memory; keyed records and conversation notes are not automatically appended by those plugin options.
+The Memory (inline) plugin works independently of the global `Tools` switch. Its compact-memory options include the update model, maximum memory size, refinement of manual `memory_add`, automatic attachment of global/project memory, and optional searching of keyed-memory content. Auto-attach applies only to compact global/project memory; keyed records and conversation notes are not automatically appended by those plugin options.
 
-Conversation-note tools are `memory_ctx_get()`, `memory_ctx_add(text)` and `memory_ctx_replace(text)`. With **experimental Advanced context handling**, PyGPT core can maintain the same conversation notes automatically during checkpoints. In Chat with Agents those core context tools remain available when advanced handling is enabled even if the optional Memory plugin is disabled.
+Conversation-note tools are `memory_ctx_get()`, `memory_ctx_add(text)` and `memory_ctx_replace(text)`. With **experimental Advanced context handling**, PyGPT core can maintain the same conversation notes automatically during checkpoints. In Agents those core context tools remain available when advanced handling is enabled even if the optional Memory plugin is disabled.
 
 For full configuration details and the complete `memory_*`, `memory_key_*`, and `memory_ctx_*` tool reference, see:
 
@@ -1841,7 +1707,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#memory-inline
 
 **WARNING: Use this plugin with caution - allowing all options gives the model full control over the mouse and keyboard**
 
-The plugin allows for controlling the mouse and keyboard by the model. With this plugin, you can send a task to the model, e.g., "open notepad, type something in it" or "open web browser, do search, find something."
+The Mouse and keyboard plugin gives the model desktop interaction tools for pointer movement, clicks, scrolling, keyboard input and screenshots. It can also provide the browser interaction backend used by Computer use.
 
 Plugin capabilities include:
 
@@ -1856,7 +1722,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mouse-and-key
 
 ## OpenStreetMap
 
-Provides everyday mapping utilities using OpenStreetMap services:
+The OpenStreetMap plugin provides geocoding, place search, routing and map/tile utilities through OpenStreetMap-related services:
 
 - Forward and reverse geocoding via Nominatim
 - Search with optional near/bbox filters
@@ -1870,24 +1736,36 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#openstreetmap
 
 ## Python interpreter
 
-### Executing Code
+The Python interpreter plugin gives the model and the Python/OS tool a Python/IPython runtime for code execution, package use and shell commands, with host, built-in and Docker backends.
 
-The plugin operates similarly to the `Code Interpreter` feature in `ChatGPT`, with the key difference that it works locally on the user's system. It allows for the execution of any Python code on the computer that the model may generate. When combined with the `Files I/O` plugin, it facilitates running code from files saved in the active `data` directory. For conversations in a project with a custom workdir, the project directory becomes the runtime data root; otherwise the shared `<profile workdir>/data` directory is used. Docker execution exposes the same active host directory as `/data`.
+### Executing code
 
-**IPython:** IPython is the recommended execution mode and offers significant improvements over the legacy Python workflow. IPython provides a robust environment for executing code within a kernel, allowing you to maintain the state of your session by preserving the results of previous commands. This feature is particularly useful for iterative development and data analysis, as it enables you to build upon prior computations without starting from scratch. Moreover, IPython supports the use of magic commands, such as `!pip install <package_name>`, which facilitate the installation of new packages directly within the session. This capability streamlines the process of managing dependencies and enhances the flexibility of your development environment. Overall, IPython offers a more efficient and user-friendly experience for executing and managing code.
+The Python interpreter plugin provides local Python execution for model-generated code and for code started manually from the **Python/OS** window. It uses the active conversation's runtime `data` workdir, so project-specific data workdirs are handled automatically. Execution can run directly on the host or through the selected sandbox backend.
 
-To use IPython in sandbox mode, Docker must be installed on your system. The active conversation's runtime `data` workdir is mounted as `/data`; a custom project data workdir is therefore remapped automatically when that project is active.
+The **Use IPython** option selects which Python tool set is exposed to the model. It is enabled by default:
 
-**IPython system commands:** The `ipython_sys_exec` tool is available for executing operating-system commands inside the active IPython environment. It is similar to `sys_exec` from the `System (OS)` plugin, but the command is executed in the environment where IPython is running. For example, when IPython is running in a Docker sandbox, `ipython_sys_exec` executes the command inside that Docker container.
+- with **Use IPython** enabled, the model receives only `ipython_exec`, `ipython_sys_exec`, and `ipython_kernel_restart`;
+- with **Use IPython** disabled, the model receives only `python_exec`, `python_exec_file`, and `python_sys_exec`.
 
-**Docker permissions:** The default IPython Docker image starts as an unprivileged (non-root) user. Passwordless `sudo` is available when elevated privileges are required. If you want the IPython sandbox to run directly as root, enable **Run as root** in the `Python interpreter` plugin settings.
+The two execution tool sets are never exposed together.
 
+**IPython:** IPython is the recommended execution mode because it keeps kernel state between calls and supports iterative workflows, data analysis, and IPython magic/shell syntax such as `!pip install <package_name>`. Use `ipython_exec` for Python code and `ipython_sys_exec` for shell/system commands in the same runtime environment.
 
-You can find the installation instructions here: https://docs.docker.com/engine/install/
+**Standard Python:** `python_exec` executes Python code directly and accepts only the `code` argument. PyGPT manages the temporary script path internally. Use `python_exec_file(path)` only when an existing Python file should be executed. `python_sys_exec` runs shell/system commands in the same selected host or sandbox runtime as standard Python.
 
-**Tip: connecting IPython in Docker in Snap version**:
+**Sandbox:** The **Sandbox** selector is available at the beginning of the plugin's **General** tab. **Disabled** runs Python/IPython directly on the host and is unsafe for untrusted code. **Built-in sandbox** uses a separate uv-managed CPython environment and does not require Docker; it isolates the Python environment from PyGPT itself, but it is not a filesystem/network security boundary. **Docker** requires Docker to be installed and running and provides the strongest isolation of the available options. In both sandbox modes, the active conversation's `data` workdir is used as the runtime working directory; Docker exposes it as `/mnt/data`, while the built-in sandbox uses the host path.
 
-To use IPython in the Snap version, you must connect PyGPT to the Docker daemon:
+The built-in Python/System environments are stored application-wide under `<application base workdir>/sandbox`. The **application base workdir** is the directory that owns `path.cfg` (by default `{HOME_DIR}/.config/pygpt-net/`, unless `PYGPT_WORKDIR` overrides it). If `path.cfg` redirects the active profile/workdir elsewhere, the `sandbox` directory remains in the application base workdir.
+
+**Built-in packages:** Add persistent packages in `Plugins -> Settings -> Python interpreter -> Built-in sandbox`, one requirement per line. Package-list changes rebuild the environment on the next use; use `Tools -> Sandbox / Docker` to rebuild it immediately. Packages installed manually with `pip` are removed by a rebuild unless they are also listed there.
+
+**Docker permissions:** The stock Docker images run as the unprivileged `pygpt` user by default, with passwordless `sudo` available when elevated privileges are required. Separate **Run as root** options are available for the IPython and standard-Python Docker runtimes.
+
+Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
+
+**Tip: connecting Docker in the Snap version**:
+
+To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemon:
 
 ```commandline
 sudo snap connect pygpt:docker-executables docker:docker-executables
@@ -1897,16 +1775,11 @@ sudo snap connect pygpt:docker-executables docker:docker-executables
 sudo snap connect pygpt:docker docker:docker-daemon
 ````
 
-**Python interpreter:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon above the input field to open the Python/OS window. You can also open it from the main menu: `Tools -> Python / OS`. Alternatively, enable split-screen mode and open **Python/OS** in the second view column, or add it as a tool to a tab. Plugin code input/output is mirrored there only when **Connect to the Python/OS window** is enabled (default: enabled). The window keeps up to 30 input/output blocks by default; set `Max interpreter window entries` to `0` for no limit. Additionally, you can request the model to retrieve contents from the interpreter window output.
+**Python/OS window:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon above the input field, use `Tools -> Python / OS`, or open it in a split/output tab. Plugin code input/output is mirrored there when **Connect to the Python/OS window** is enabled. The same **Use IPython** setting controls manual execution from this window, so the UI and the model-facing tool set use the same interpreter mode.
 
 ![v2_interpreter_icon](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_interpreter_icon.png)
 
 ![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
-
-**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
-
-Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
-
 
 **Tip:** Remember to enable the `Tools` switch to allow tools from plugins to be executed.
 
@@ -1914,7 +1787,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#python-interp
 
 ## RAG (inline)
 
-Plugin integrates `LlamaIndex` storage in any chat and provides additional knowledge into context. The plugin also provides the `Image model` setting used by the Image (vision) data loader when API mode is active (default: `gpt-4o`). Audio/video transcription is not configured here; it uses the provider selected in the `Audio input` plugin.
+The RAG (inline) plugin lets standard chats query configured LlamaIndex indexes and inject retrieved context when needed. It can use the active project index automatically and also configures the image model used by the vision data loader.
 
 When **Use project index if in use** is enabled (default), the plugin automatically queries the isolated **Current project** index whenever the active conversation belongs to a project. Outside a project it uses the configured regular index or indexes.
 
@@ -1922,16 +1795,13 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#rag-inline
 
 ## Real time
 
-This plugin automatically adds the current date and time to each system prompt you send. 
-You have the option to include just the date, just the time, or both.
-
-When enabled, it quietly enhances each system prompt with current time information before sending it to model.
+The Real time plugin adds the current date, time or both to the system prompt, giving models explicit access to the local current time for each request.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#real-time
 
 ## Serial port / USB
 
-Provides commands for reading and sending data to USB ports.
+The Serial port / USB plugin lets the model exchange text or raw bytes with configured serial devices, such as Arduino boards and other controllers.
 
 **Tip:** in Snap version you must connect the interface first: https://snapcraft.io/docs/serial-port-interface
 
@@ -1941,7 +1811,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#serial-port-u
 
 ## Server (SSH/FTP)
 
-The Server plugin provides integration for remote server management via SSH, SFTP, and FTP protocols. This plugin allows executing commands, transferring files, and managing directories on remote servers.
+The Server (SSH/FTP) plugin provides remote command execution and file management over SSH, SFTP and FTP, including directory operations and file transfers.
 
 For security reasons, the model will not see any credentials, only the server name and port fields (see the docs)
 
@@ -1949,7 +1819,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#server-ssh-ft
 
 ## Slack
 
-The Slack plugin integrates with the Slack Web API, enabling interaction with Slack workspaces through the application. This plugin supports OAuth2 for authentication, which allows for seamless integration with Slack services, enabling actions such as posting messages, retrieving users, and managing conversations.
+The Slack plugin exposes workspace conversations, messages, users and file transfer operations through the Slack Web API. Authentication uses OAuth2.
 
 - Retrieving a list of users.
 - Listing all conversations.
@@ -1964,13 +1834,23 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#slack
 
 ## System (OS)
 
-The plugin provides access to the operating system and executes system commands. `sys_exec` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled (default: enabled). Docker sandbox execution is disabled by default; the stock sandbox runs as the unprivileged `pygpt` user by default, with passwordless `sudo` available when elevated commands are needed.
+The System (OS) plugin gives the model a `sys_exec` tool for running shell commands in the active data workdir. Commands can run on the host, in the built-in uv-managed environment, or in Docker.
+
+- **Disabled** executes `sys_exec` directly on the host and is unsafe for untrusted commands.
+- **Built-in sandbox** executes commands in a separate uv-managed CPython environment and does not require Docker. It separates the command environment from PyGPT's own Python installation, but it is not a filesystem/network security boundary. Its environment is stored under the shared `<application base workdir>/sandbox/os` path.
+- **Docker** executes `sys_exec` inside the Docker sandbox. Docker must be installed and running; this backend provides the strongest isolation of the available options.
+
+When Docker is selected, the active conversation's runtime `data` directory is mounted as `/mnt/data` and used as the command working directory. Project-specific data workdirs are mapped automatically. The stock Docker image runs as the unprivileged `pygpt` user by default and provides passwordless `sudo`; **Run as root** can be enabled when required.
+
+`sys_exec` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled. **Auto-append CWD to sys_exec** uses the active host data workdir in host mode and `/mnt/data` in Docker mode.
+
+**Built-in packages:** Configure the System / OS environment in `Plugins -> Settings -> System (OS) -> Built-in sandbox`, one requirement per line. Changes rebuild the environment on the next use; use `Tools -> Sandbox / Docker` for an immediate rebuild.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#system-os
 
 ## Telegram
 
-The plugin enables integration with Telegram for both bots and user accounts through the ``Bot API`` and the ``Telethon`` library respectively. It allows sending and receiving messages, managing chats, and handling updates.
+The Telegram plugin provides messaging, chat, contact, media and file tools for Telegram bots and user accounts through the Bot API and Telethon.
 
 - Sending text messages to a chat or channel.
 - Sending photos with an optional caption to a chat or channel.
@@ -1986,7 +1866,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#telegram
 
 ## Tuya (IoT)
 
-The Tuya plugin integrates with Tuya's Smart Home platform, enabling seamless interactions with your smart devices via the Tuya Cloud API. This plugin provides a user-friendly interface to manage and control devices directly from your assistant.
+The Tuya (IoT) plugin lets the model list, inspect, search and control supported smart-home devices connected through Tuya Cloud.
 
 * Provide your Tuya Cloud Client ID, Client Secret, and linked App Account UID to enable communication; access/refresh tokens and the device cache are managed automatically.
 * Access and list all smart devices connected to your Tuya app account.
@@ -2010,32 +1890,27 @@ Provide your API key in the plugin settings, or set the `TWELVELABS_API_KEY` env
 
 ## Vision (inline)
 
-The plugin adds image analysis to supported chat modes without relying on the deprecated standalone Vision mode. When an image attachment, screenshot, or camera capture is detected, the request is handled through Chat with the image-capable model configured in the plugin. This preserves the plugin's dedicated-model behavior while removing the dependency on the legacy Vision mode.
+Models with native image input can analyze images directly in Chat; **Vision (inline) is not needed for them**. Use this plugin only as a fallback when the selected chat model does not support vision. In that case, image attachments, screenshots and camera captures are routed through the separately configured image-capable Chat model.
 
-The plugin model list is filtered by capabilities (`Chat` + image input), not by provider, so supported models from OpenAI, Google, Anthropic, xAI, OpenRouter, local/OpenAI-compatible endpoints, and other configured providers can be selected. Native Google, Anthropic, and xAI SDK routing is respected when enabled; otherwise the configured OpenAI-compatible Chat endpoint is used where applicable.
-
-**Tip:** The `+ Vision` label at the bottom of the Chat window is an availability indicator for inline image analysis. Image handling is automatic when compatible image content is supplied; there is no separate legacy Vision-mode switch to enable.
+The fallback model list is filtered by `Chat` + image-input capability and can use any supported provider.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#vision-inline
 
 ## Voice control (inline)
 
-The plugin provides voice control command execution within a conversation. The optional **Magic prefix for voice commands** defaults to `Execute voice command`.
+The Voice control (inline) plugin recognizes spoken PyGPT actions while you are in a conversation. An optional magic prefix can be required before a spoken action is treated as a voice command.
 
 See the `Accessibility` section for more details.
 
 ## Web search
 
-**PyGPT** lets you connect model to the internet and carry out web searches in real time as you make queries.
+The Web search plugin gives the model live web search, page retrieval and crawling tools using DuckDuckGo, Google Custom Search, Microsoft Bing or You.com. Retrieved web content can also be passed into LlamaIndex-based workflows where supported.
 
-To activate this feature, turn on the `Web search` plugin found in the `Plugins` menu.
-
-Web searches can use `DuckDuckGo`, `Google Custom Search Engine`, or `Microsoft Bing` and can be extended with other search engine providers. DuckDuckGo does not require an API key. The default provider is Google Custom Search; the plugin opens at most 3 URLs at once by default, fetches thumbnail images, and currently has SSL verification disabled for crawling by default. 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#web-search
 
 ## Wikipedia
 
-The Wikipedia plugin allows for comprehensive interactions with Wikipedia, including language settings, article searching, summaries, and random article discovery. This plugin offers a variety of options to optimize your search experience.
+The Wikipedia plugin provides article search, summaries, full-page lookup, title suggestions, geographic discovery and random-page tools with configurable language handling.
 
 * Set your preferred language for Wikipedia queries.
 * Retrieve and check the current language setting.
@@ -2055,7 +1930,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#wolfram-alpha
 
 ## X/Twitter
 
-The X/Twitter plugin integrates with the X platform, allowing for comprehensive interactions such as tweeting, retweeting, liking, media uploads, and more. This plugin requires OAuth2 authentication and offers various configuration options to manage API interactions effectively.
+The X/Twitter plugin exposes X tools for reading and searching posts, publishing, replying, quoting, likes, reposts, bookmarks and media uploads. Authentication uses OAuth2.
 
 - Retrieve user details by providing their username.
 - Fetch user information using their unique ID.
@@ -2078,11 +1953,21 @@ The X/Twitter plugin integrates with the X platform, allowing for comprehensive 
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#x-twitter
 
-# Creating Your Own Plugins
+# Creating Your Own Plugins and Add-ons
 
-PyGPT can be extended with custom plugins, models, LLM wrappers, vector stores, data loaders, audio providers, web providers, and agents.
+PyGPT can install application-wide external Add-ons from `Config -> Install Add-on...`. Supported packages include plugins, LLM/provider wrappers, vector stores, data loaders, audio input/output providers, web providers, GUI tools, agents, themes, and locale packs. Each package uses a `manifest.json` and is stored below `<application base workdir>/addons`; Python Add-ons are loaded into the same runtime registries as built-in components and also work with compiled builds.
 
-For implementation guides, launcher examples, plugin APIs, and complete code samples, see the full documentation:
+Starting with **2.8.36**, the same installed Add-on set is available in every profile. On upgrade, a legacy `<profile workdir>/addons` directory is migrated to the application base workdir. Missing packages are merged into an existing global tree, identical duplicates are deduplicated, and conflicting packages with the same type/ID but different contents are left untouched with a warning instead of being overwritten.
+
+Add-ons can be imported from a directory, ZIP, GitHub, or the Explore registry. The default public registry is `https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json`. External code runs with the same permissions as PyGPT, so review untrusted source before installing it.
+
+Add-ons can declare required Python packages in `external_dependencies`. Missing required packages are installed through the shared **Config -> Package Manager** into the application-wide, Python-version-specific `extra_packages/<major.minor>` directory; this is separate from the Python/System execution sandboxes. The same manager can be opened manually to install or remove optional runtime packages.
+
+For packaging, manifests, local testing, publishing, Package Manager integration, plugin events, and a method-by-method API reference for every Add-on type, see:
+
+https://pygpt.readthedocs.io/en/latest/addons_api.html
+
+For custom launcher registration, themes and other non-package extension topics, see:
 
 https://pygpt.readthedocs.io/en/latest/extending.html
 
@@ -2113,9 +1998,9 @@ PyGPT features several useful tools, including:
 - Python/OS
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
-- Web Browser (Chromium)
+- Canvas
 - Agent Workflow
-- Agent Builder (Legacy)
+- Custom agent builder
 
 ![v2_tool_menu](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_menu.png)
 
@@ -2146,7 +2031,7 @@ Using the calendar, you can go back to selected conversations from a specific da
 ## Indexer
 
 
-This tool allows indexing of local files or directories and external web content to a vector database, which can then be used with the `Chat with Files` mode. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
+This tool allows indexing of local files or directories and external web content to a vector database, which can then be selected through the **RAG** selector in Chat and other supported workflows. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
 
 ![v2_tool_indexer](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_indexer.png)
 
@@ -2165,7 +2050,7 @@ A simple image browser that lets you preview images directly within the app.
 ## Text Editor
 
 
-A simple text editor that enables you to edit text files directly within the app.
+The built-in text editor provides syntax highlighting, line numbers, search, zoom, configurable indentation/tabs, and optional word wrapping. The same editor core is used by the Files preview/editor and Canvas source editor. Its context menu exposes application-wide **Indent using spaces**, **Tab width** (default 4), indentation conversion, and **Word wrap** (default off) controls.
 
 
 ## Transcribe Audio/Video Files
@@ -2183,9 +2068,7 @@ Remote vector stores management.
 ## Python/OS
 
 
-This tool allows you to run Python code directly from within the app. It is integrated with the `Python interpreter` plugin, ensuring that code generated by the model is automatically available from the interpreter. In the plugin settings, you can enable the execution of code in a Docker environment.
-
-**Python/IPython environment:** Local IPython execution requires a working Python environment on the host system. If local execution fails because of Python, package, kernel, or environment issues, enable the Docker sandbox in the `Python interpreter` plugin settings. Docker provides an isolated and reproducible runtime and is the recommended fallback for problematic host environments.
+This tool allows you to run Python code directly from within the app. It is integrated with the `Python interpreter` plugin. **Use IPython** selects IPython (default) or standard Python, while **Sandbox** selects host execution (**Disabled**), the **Built-in sandbox** based on a uv-managed CPython environment, or **Docker**. Docker provides the strongest isolation; the built-in sandbox separates the execution environment from PyGPT itself and does not require Docker, but it is not a filesystem/network security boundary. In Docker mode the active conversation data workdir is available as `/mnt/data`.
 
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
@@ -2197,34 +2080,36 @@ Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromiu
 
 Enables translation between multiple languages using an AI model.
 
-## Web Browser
+## Canvas
 
-A built-in web browser based on Chromium, allowing you to open webpages directly within the app. **SECURITY NOTICE:** For your protection, avoid using the built-in browser for sensitive or critical tasks. It is intended for basic use only.
+The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas (inline)** plugin to expose its model-callable tools; the global **Tools** switch is not required. See the [Canvas](#canvas) section above for an overview.
+
+Treat untrusted webpages and scripts with the same caution as other browser content.
 
 ## Agent Workflow
 
-**Agent Workflow** is a live, human-readable monitor for `Chat with Agents` / Agents v2. It displays the primary agent or orchestrator and worker agents as a hierarchy with timestamped status updates, agent turns, worker creation, task progress, and tool execution. Tool calls provide expandable input/output details, while each agent has a **Details** panel with available runtime information such as its system prompt, instruction, task, input, model/provider, language, and preset.
+**Agent Workflow** is a live, human-readable monitor for `Agents` / Agents v2. It displays the primary agent or orchestrator and worker agents as a hierarchy with timestamped status updates, agent turns, worker creation, task progress, and tool execution. Tool calls provide expandable input/output details, while each agent has a **Details** panel with available runtime information such as its system prompt, instruction, task, input, model/provider, language, and preset.
 
-Open it from `Tools -> Agent Workflow` as a dialog, or pin it to an output tab from the tab context menu. The default configuration includes an Agent Workflow tab in the second output column. When the first actual Chat with Agents run starts after the user sends input in a profile, PyGPT reveals this tab and expands split-screen once. Merely selecting Chat with Agents does not trigger it; after that first-run introduction has been recorded, later runs and mode changes do not alter the user's layout automatically.
+Open it from `Tools -> Agent Workflow` as a dialog, or pin it to an output tab from the tab context menu. The default configuration includes an Agent Workflow tab in the second output column. When the first actual Agents run starts after the user sends input in a profile, PyGPT reveals this tab and expands split-screen once. Merely selecting Agents does not trigger it; after that first-run introduction has been recorded, later runs and mode changes do not alter the user's layout automatically.
 
 ![agent_workflow_tool](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v3_workflow.png)
 
 
 The view is runtime-only and does not replace conversation history or Debug workflow logging. Every new top-level agent run clears the previous workflow automatically. Use **Clear view** to clear it manually.
 
-## Agent Builder (Legacy)
+## Custom agent builder
 
-**Legacy modes only:** Agent Builder is used by the legacy `Agent (LlamaIndex)` and `Agent (OpenAI)` workflows. It is not used by the modern `Chat with Agents` mode.
+**Custom agent builder** is the visual node editor for the **Custom agents** mode. It is intended for experimenting with your own agent workflow structures and is separate from the newer **Agents** mode and its Agent Workflows editor.
 
-To launch Agent Builder, navigate to:
+Open it from:
 
-`Tools -> Agent Builder (Legacy)`
+`Tools -> Custom agent builder`
 
 ![nodes](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/nodes.png)
 
-This tool allows you to create workflows for agents using a node editor, without writing any code. You can add a new agent type, and it will appear in the list of presets.
+The editor lets you create agent workflows without writing the graph by hand. You can add agents and shared memory nodes, connect them into a flow, and save the result as a custom agent type that becomes available to Custom agents presets.
 
-To add a new element, right-click on the editor grid and select `Add` to insert a new node.
+To add a new element, right-click on the editor grid and select `Add` to insert a node.
 
 **Types of Nodes:**
 
@@ -2233,11 +2118,7 @@ To add a new element, right-click on the editor grid and select `Add` to insert 
 - **Memory**: Shared memory between agents (shared Context).
 - **End**: The endpoint, returning control to the user.
 
-Agents with connected shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent.
-
-The first agent in the sequence always receives the full context passed by the user.
-
-Connecting agents and memory is done using node connections via slots. To connect slots, simply drag from the input port to the output port (Ctrl + mouse button removes a connection).
+Agents connected to shared memory share it among themselves. Agents without shared memory only receive the latest output from the previous agent. The first agent in the sequence receives the full context passed by the user.
 
 **Node Editor Navigation:**
 
@@ -2249,17 +2130,6 @@ Connecting agents and memory is done using node connections via slots. To connec
 - **Right-click or DELETE a node/connection**: Remove node/connection
 
 **Tip:** Enable agent debugging in `Settings -> Debug -> Log Agents usage to console` to log the full workflow to the console.
-
-Workflows built with this tool are compatible with the legacy `Agent (OpenAI)` and `Agent (LlamaIndex)` modes.
-
-**Notes:** Multi-branch agent flows automatically receive an internal routing instruction that tells the current agent which downstream route can be selected.
-
-For the complete routing schema, injected system-instruction example, and Agent Builder details, see:
-
-https://pygpt.readthedocs.io/en/latest/tools.html#agent-builder-legacy
-
-**INFO:** Agent Builder is a legacy tool for the older agent modes.
-
 
 # Token usage calculation
 
@@ -2357,7 +2227,6 @@ Voice command recognition works based on a model, so you don't have to worry abo
 - Send the message to input
 - Append message to current input without sending it
 - Switch to chat mode
-- Switch to chat with files (llama-index) mode
 - Switch to the next mode
 - Switch to the previous mode
 - Switch to the next model
@@ -2416,24 +2285,30 @@ Config -> Settings...
 
 ![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
-The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
+The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Context**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
 
-- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI
+- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI, Jev
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
-- **Chats:** List, Render, Options
+- **Chats:** List, Render, Annotations, Options
 - **Context:** General, Tools, Advanced handling
 - **Remote tools:** OpenAI, Google, Anthropic, xAI
 - **Images and video:** Image, Video
 - **Vision and camera:** Camera
 - **Audio:** Devices, Options, Cache
 - **Indexes / RAG:** General, Vector Store, Chat, Embeddings, File indexing, Context indexing, Data loaders, Clear and truncate
-- **Agents and experts:** Chat with Agents, Agents, Autonomous, Legacy
+- **Agents and experts:** Agents, Custom agents, Autonomous, Options
 - **Security:** General, Computer use, Linux, Windows, macOS
 
 For the complete configuration options reference, including descriptions and default values for all settings, see:
 
 https://pygpt.readthedocs.io/en/latest/configuration.html#settings
+
+## Package Manager
+
+Open `Config -> Package Manager` to install or remove optional Python dependencies used by PyGPT itself. This is separate from the Python/System execution sandboxes. Packages are installed with `uv` into the application-wide, Python-version-specific directory `extra_packages/<major.minor>` (for example `extra_packages/3.13`) so packages from a previous bundled/runtime Python version are not reused accidentally after an upgrade.
+
+The manager works on a temporary copy and swaps the package directory only after a successful operation. External Add-ons can request their declared dependencies through the same installer, and local Whisper can request installation of `openai-whisper`. Some packages become available immediately, while compiled extensions or already-imported modules may still require restarting PyGPT.
 
 ## JSON files
 
@@ -2446,15 +2321,31 @@ These configuration files are located in the user's work directory within the fo
 
 ## Manual configuration
 
-PyGPT stores its configuration and user data in the working directory, which by default is:
+PyGPT uses an **application base workdir**, which by default is:
 
 ```ini
 {HOME_DIR}/.config/pygpt-net/
 ```
 
-Configuration files such as `config.json` and `models.json` can also be edited manually.
+This base directory owns `path.cfg`. If `path.cfg` redirects the active profile/workdir to another directory, profile files such as `config.json`, `models.json`, and `db.sqlite` are read from that redirected workdir, while application-wide runtime data stays in the base directory. In particular:
 
-A project's custom workdir does **not** replace this profile/application workdir. It overrides only the logical `data` directory for conversations assigned to that project. The **Files** tab, file tools and Docker `/data` mapping follow the active project data directory at runtime, while `tmp`, configuration, database, cache, CSS, locale, fonts and logs remain in the base profile workdir.
+```text
+<application base workdir>/
+├── path.cfg
+├── addons/
+│   ├── themes/      # application-wide Theme Add-ons
+│   └── locale/      # application-wide Locale Add-ons
+├── css/             # optional application-wide custom CSS/themes
+├── locale/          # optional application-wide locale overrides
+├── sandbox/         # shared built-in Python/System runtime
+└── extra_packages/  # shared Package Manager dependencies
+```
+
+`extra_packages` stores Package Manager-installed runtime dependencies in a Python-version subdirectory such as `extra_packages/3.13`. `addons`, `sandbox`, and `extra_packages` are shared across profiles and remain under the application base workdir when the active profile/workdir changes. Application-base `css/` and `locale/` are also read as global customization layers; an active profile may still provide its own `css/` or `locale/` as the final explicit override.
+
+Configuration files such as `config.json` and `models.json` can also be edited manually in the active profile/workdir.
+
+A project's custom workdir does **not** replace this profile/application workdir. It overrides only the logical `data` directory for conversations assigned to that project. The **Files** tab, file tools and Docker `/mnt/data` mapping follow the active project data directory at runtime, while `tmp`, configuration, database, cache, CSS, locale, fonts and logs remain in the base profile workdir.
 
 For the complete manual configuration reference, including configuration files and workdir contents, see:
 
@@ -2477,9 +2368,11 @@ This command-line option changes the entire profile/application workdir. It is d
 
 ## Translations / Locale
 
-PyGPT supports custom translations and profile-specific themes. Locale files use the `.ini` format and are loaded automatically by the application.
+PyGPT supports custom translations and custom themes at both application-wide and profile-override scope. Locale files use the `.ini` format and are loaded automatically.
 
-Custom themes use a directory-per-theme layout under `%workdir%/css/<theme-id>/`, with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A user theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the PyGPT working directory.
+Application-wide custom themes can be placed under `<application base workdir>/css/<theme-id>/`, while Theme Add-ons are read directly from `<application base workdir>/addons/themes/<id>/[theme/]`. Locale overrides can be placed in `<application base workdir>/locale/`, while Locale Add-ons are read directly from `<application base workdir>/addons/locale/<id>/[locale/]`. Theme/locale Add-ons are never copied into a profile. If an active profile also contains `%workdir%/css` or `%workdir%/locale`, those files remain the final explicit override layer.
+
+Custom themes use a directory-per-theme layout with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A custom theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the active profile workdir.
 
 For the complete translation, locale, CSS override, and custom font reference, see:
 
@@ -2557,8 +2450,7 @@ Keyword arguments for RedisVectorStore(`**kwargs`):
 
 You can extend list of available providers by creating custom provider and registering it on app launch.
 
-By default, you are using chat-based mode when using `Chat with Files`.
-If you want to only query index (without chat) you can enable `Query index only (without chat)` option.
+Use `Settings -> Indexes / RAG -> Chat -> RAG mode` to choose between normal RAG-backed Chat, querying the index only, or retrieval only.
 
 ### Adding custom vector stores and data loaders
 
@@ -2578,7 +2470,7 @@ To get the new version, simply download it and start using it in place of the ol
 
 Most diagnostic options are available in `Config -> Settings -> Debug`. PyGPT writes application logs to `%workdir%/app.log`, and the log level can be set to `ERROR`, `WARNING`, `INFO`, or `DEBUG`. For startup troubleshooting, `--debug=1` forces `INFO` logging and `--debug=2` forces `DEBUG` logging.
 
-Additional switches can log conversation processing, events, plugin usage, **API inputs**, **API outputs**, **tool calls/results**, attachments, image/video generation, LlamaIndex activity, Realtime sessions, legacy API paths, and agent workflows. For `Chat with Agents`, you can choose either a concise workflow trace or **Log Chat with Agents (verbose mode, full output)**. API/tool/full-agent traces can include prompts, paths, history, tool parameters/results, retrieved context, and other sensitive data; known API secrets are masked by the API-input logger.
+Additional switches can log conversation processing, events, plugin usage, **API inputs**, **API outputs**, **tool calls/results**, attachments, image/video generation, LlamaIndex activity, Realtime sessions, legacy API paths, and agent workflows. For `Agents`, you can choose either a concise workflow trace or **Log Agents (verbose mode, full output)**. API/tool/full-agent traces can include prompts, paths, history, tool parameters/results, retrieved context, and other sensitive data; known API secrets are masked by the API-input logger.
 
 Enable `Show debug menu` to expose developer tools such as the live Logger/console, DB Viewer, application-state inspectors, Chromium diagnostics, and WebEngine DevTools. If a compiled build crashes or fails during startup, launch it from a terminal so stdout/stderr and Python/Qt diagnostics remain visible.
 
@@ -2586,15 +2478,43 @@ For the complete debugging reference, Logger commands, DB Viewer details, compil
 
 # Extending PyGPT
 
-PyGPT can also load custom themes directly from the active profile workdir. Put a theme in `%workdir%/css/<theme-id>/`; supported per-theme files are `app.css`, `app.xml`, and `chat.css`. New custom IDs should use a `-dark` or `-light` suffix to declare runtime compatibility, e.g. `my_custom-dark` becomes **My Custom** and `paper-light` becomes **Paper** in the menu. The suffix remains part of the stored theme ID. If both variants of one base name exist, they are shown as **(Dark)** / **(Light)**. Unsuffixed new custom IDs default to Dark. Reusing a built-in ID such as `ocean` overrides/extends that theme and preserves its built-in Dark/Light type. The runtime type controls qt-material behavior, platform fixes, widgets, renderer compatibility, and fallback assets. The global `data/css/app.css` is always the native UI base, `data/css/chat.css` is the chat base for both Standard and Wide layouts, and `chat.wide.css` is appended only for Wide. See the documentation section **Extending PyGPT -> Custom themes and styles** for the full load order and examples.
+PyGPT can be extended with custom:
 
-PyGPT can be extended with custom models, plugins, LLM wrappers, vector stores, data loaders, audio input/output providers, web providers, and custom agents. Extension components can be registered through a custom launcher.
+- themes (CSS/QSS)
+- plugins,
+- GUI tools,
+- LLM wrappers,
+- vector store providers,
+- data loaders,
+- audio input providers,
+- audio output providers,
+- web search providers,
+- agent providers.
+
+The repository's ``examples`` directory contains tutorial implementations for every add-on type:
+
+- `examples/custom_launcher.py`
+- `examples/addons/plugins/example_plugin`
+- `examples/addons/tools/example_tool`
+- `examples/addons/agents/example_agent`
+- `examples/addons/llms/example_llm`
+- `examples/addons/vector_stores/example_vector_store`
+- `examples/addons/loaders/example_loader`
+- `examples/addons/audio_input/example_audio_input`
+- `examples/addons/audio_output/example_audio_output`
+- `examples/addons/web/example_web`
+- `examples/addons/themes/example-extension-dark`
+- `examples/addons/locale/example-locale`
+
+PyGPT can be also extended with external Add-ons installed under `<application base workdir>/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
+
+You can install external Add-ons from `Config -> Install Add-on...` using a local directory/ZIP, GitHub, or the **Explore** catalog. The official catalog and community submissions are maintained in the [PyGPT Add-ons repository](https://github.com/szczyglis-dev/py-gpt-addons).
 
 The repository also contains ready-to-use examples in the `examples` directory.
 
-For complete Python examples, event handling, custom model configuration, provider interfaces, launcher code, and extension API reference, see:
+For complete Python examples, manifest format, publishing instructions, event handling, custom model configuration, provider interfaces, launcher code, and the Add-ons API reference, see:
 
-https://pygpt.readthedocs.io/en/latest/extending.html
+https://pygpt.readthedocs.io/en/latest/addons_api.html
 
 # DISCLAIMER
 
@@ -2612,93 +2532,80 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.8.26 (2026-09-20)**
+**2.8.36 (2026-09-30)**
 
-- Refactored, improved, and simplified CSS/QSS handling. Overriding and customizing CSS and QSS is now much easier - see the **Extending PyGPT** section in the documentation.
-- Fixed and optimized RAG retrieval for improved reliability and performance.
-- Fixed the splitter resize policy and improved layout resizing behavior.
+- Moved external Add-ons to the shared application-wide `addons` directory, with automatic migration from profile workdirs.
+- Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
+- Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
+- Improved Realtime + audio flow, stability and voice interaction handling.
+- Added a separate audio input level bar for microphone input.
+- Added a right-click hint to the New context button and a new `Config -> Open global base dir` option.
 
-**2.8.25 (2026-09-19)**
+**2.8.35 (2026-09-29)**
 
-- Added support for **Agent Skills**, including importing from GitHub, local files, and formats compatible with Claude, Codex, OpenClaw, and other supported ecosystems. Added a dedicated **Skills** management interface for browsing, installing, enabling, disabling, and removing skills.
-- Added support for **Claude/Codex-style Connectors**, integrated with the MCP plugin. Connectors can be imported from GitHub, local files, Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and compatible JSON, TOML, and YAML definitions. Connector management is available under **Config → MCP → Connectors**.
-- Added new application themes: **Matrix, Gray, Mint, Flare, Ocean, Sun, and Retro**.
-- Refactored theme/CSS assets into a directory-per-theme layout and added profile-level custom themes/overrides from `%workdir%/css`, including runtime `-dark` / `-light` compatibility classification for custom themes.
-- Added **Full Screen mode (F11)** and support for a frameless window layout.
-- Optimized message sending from the chat input by moving pre-send preparation tasks to asynchronous workers, reducing UI blocking before requests are sent.
-- Various **UI fixes, layout improvements, workflow fixes, and usability refinements** across the application.
+- Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.
+- Added an application-wide **Package Manager** for optional runtime dependencies, with packages stored per Python version under `<application base workdir>/extra_packages/<major.minor>`.
+- Added shared text editor preferences for indentation, tab width, and word wrap across the Text Editor, Files preview/editor, and Canvas source editor.
+- Added a search field to the Model Importer.
+- Added optional model-defined runtime MCP connections, with separate permissions for HTTP/SSE and stdio transports and integration with MCP tool discovery and caching.
+- Improved Canvas browser controls, source editing, and persistent address history/search behavior.
+- Improved local Whisper dependency installation through the Package Manager.
+- Added comprehensive Add-ons examples and API reference documentation. See **Documentation -> Add-ons API**.
+- Added various UI and CSS/QSS fixes and refinements.
 
-**2.8.24 (2026-09-18)**
+**2.8.34 (2026-09-28)**
 
-- Added **Import profile...** and **Export profile...** options to the **File** menu, allowing complete profiles to be exported and imported, including the database, configuration, files, and application data.
-- Added an automatic prompt-injection guard in **Settings -> Security -> Auto-prevent prompt injections**.
-- Moved the model selector to the input field.
-- Added a clock to the Calendar.
-- Added subdirectory lookup support for `@mentions`.
-- Added runtime switching to the Agent Workflows editor.
-- Removed the **Edit JSON configs** option.
-- Improved the chat input field.
-- Added a loader to the Docker builder.
-- Integrated system notifications with **Chat with Agents**.
-- The input field is now hidden in non-chat tabs.
-- Added date and time headers above chat input blocks.
-- Added support for referencing other conversations from the database using `@mentions` with conversation IDs, e.g. `What were we talking about in chat @123?`
-- Added various CSS, layout, and UI improvements.
+- Fixed LiteLLM issues by downgrading to version 1.81.16; fixed issue #214.
+- Added line numbers and annotations to file previews in the Files tab.
+- Added a recent chats list to the tray menu.
+- Added agent final result summaries to system notifications.
+- Added support for the `.agents` directory convention in Agents and Custom Agents.
+- Optimized file search in the Files tab.
+- Improved annotation handling.
+- Improved markers in Notepad.
+- Improved CSS/QSS styling.
 
-**2.8.23 (2026-09-17)**
+**2.8.33 (2026-09-27)**
 
-- Improved and extended Agents workflows.
-- Extended and condensed Agents instructions.
-- Added the Agent Workflow tool with real-time workflow preview, available as a dialog or tab.
-- Fixed auto-scroll and scroll-follow issues.
-- Optimized memory usage in the Python interpreter.
-- Improved CSS and UI layout.
+- Moved old legacy agent modes to Custom Agents; refactored legacy agent workflows; legacy agents now use the same runtime as Agents v2.
+- Added column sorting to the Files tool.
+- Added search engine support to the Canvas browser.
+- Added file preview and editing support to the Files tab.
+- Added filters and search input to the Skills, Connectors, and Add-ons lists.
+- Added pop-up daily notes to the Calendar tool.
+- Added annotations to the chat view via RMB → Annotate for AI.
+- Moved the Skills menu to Config.
+- Refactored LLM providers; setup options were moved to provider classes.
+- Improved toolbox responsiveness.
+- UI fixes.
 
-**2.8.22 (2026-09-16)**
+**2.8.32 (2026-09-26)**
 
-- Reorganized Context settings into **General**, **Tools**, and **Advanced handling**.
-- Added **Agent Workflows** for Chat with Agents with editable built-in workflows, custom UUID-based profiles, independent prompts, toolbox/Config access, migration support, documentation, and translations.
-- Moved Chat with Agents prompt editing from Settings to Agent Workflows.
-- Added direct `Config -> MCP...` access to MCP settings.
-- Added **Restore tool calls in runtime**, independent from database storage and history restore.
-- Added **Display tool calls JSON** in Chats -> Render, with aggregated Tool/Tools status when disabled.
-- Improved attachment handling.
+- Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
+- Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
+- Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
+- Fixed equal split-screen column widths when enabling split-screen mode.
+- Agent Workflow tool connected to legacy agents.
+- Added auto-updater.
+- UI improvements.
 
-**2.8.21 (2026-09-16)**
+**2.8.31 (2026-09-25)**
 
-- Fixed restoring hidden chats from collapsed columns.
-- Added tool call storage settings in Settings -> Context, with Disable, Truncate, and Full modes.
-- Added history restore mode settings in Settings -> Agents -> Chat with Agents.
-- Added a distinct background highlight for the current day of the week in Calendar.
-- Added Undo support to the Clear Image button in Painter.
-- Added a System Info dialog to the About menu.
-- Added support for custom instructions and system prompts in Chat with Agents under Settings -> Agents -> Chat with Agents -> Advanced.
-- Optimized database storage.
-- Simplified the token counter display.
-- Moved the Stream checkbox to Settings -> Context -> Render.
-- Moved the Plain Text mode switch to the icon bar above the input field.
+- Refactored and improved tab management.
+- Refactored and improved message rendering and event flow.
+- Improved the Canvas plugin.
+- Added the ability to send sketches and images directly from Painter to the model in real time via the Canvas plugin.
+- Improved and fixed runtime attachment and image handling.
+- Optimized memory usage and Python module initialization.
+- Added a new Jev / System One plugin - see the documentation for more information.
 - Various UI fixes and improvements.
+- Other fixes and improvements.
 
-**2.8.20 (2026-09-15)**
+**2.8.30 (2026-09-24)**
 
-- Added an integration layer between Chat with Agents and other conversation modes, allowing conversations to be continued seamlessly when switching between modes.
-- Optimized Agents memory storage.
-
-**2.8.19 (2026-09-15)**
-
-- Split the Plugins list into Popular and Other sections.
-- Optimized and simplified the Plugin Settings dialog.
-- Fixed status visibility on non-chat tabs.
-- Fixed footer state restoration after changing profiles.
-- Fixed a Google `show_reasoning` error when used as a background vision model.
-- Fixed @mention restoration after application startup.
-- Fixed runtime WebView restoration when returning from plain text view on another tab.
-- Fixed RAG engine LLM selection in Chat with Agents.
-- Added support for runtime attachment and image appending from the workdir.
-- Added token counters and usage tracking to Chat with Agents.
-- Improved image attachment @mentions.
-- Added loaders for heavy operations such as indexing and embedding.
-- Updated CSS styles and translations.
+- Added a new **Canvas (inline)** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. As an inline plugin, it works independently of the global **Tools** switch. See the new **Canvas** section in the documentation for details.
+- The chat input field is now pinned to its corresponding chat column.
+- Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
 
 # Credits and links
 

@@ -56,8 +56,6 @@ class Nodes:
         w = self.window
         ui = w.ui
         ctrl = w.controller
-        engine = ctrl.chat.render.get_engine()
-
         nodes = {
             'font.chat.input': [
                 'input',
@@ -90,7 +88,6 @@ class Nodes:
                 'prompt.mode',
                 'prompt.mode.label',
                 'prompt.model.label',
-                'toolbox.prompt.label',
                 'toolbox.preset.ai_name.label',
                 'toolbox.preset.user_name.label',
                 'vision.capture.auto',
@@ -102,7 +99,7 @@ class Nodes:
 
         # apply to nodes
         apply_ref = self.apply
-        skip_output = engine != 'legacy'
+        skip_output = True
         for t, keys in nodes.items():
             for k in keys:
                 if skip_output and k == "output":
@@ -118,13 +115,19 @@ class Nodes:
                 ta.apply_theme_style()
                 ta.value = size
 
+        files = ui.nodes.get('output_files')
+        if files is not None:
+            viewer = files.preview.viewer
+            if hasattr(viewer, 'restore_zoom'):
+                viewer.restore_zoom()
+
         # apply to calendar
         note = ui.calendar.get('note')
         if note is not None:
             note.setStyleSheet(style_output)
             note.value = size
 
-        # plain text/markdown
+        # plain-text output
         output_plain = ui.nodes.get('output_plain', {})
         for obj in output_plain.values():
             try:
@@ -135,26 +138,19 @@ class Nodes:
 
         # ------------------------
 
-        # zoom, (Chromium, web engine)
+        # WebEngine zoom/theme update.
         output_nodes = ui.nodes.get('output', {})
-        if engine == 'web':
-            zoom = w.core.config.get('zoom')
-            for obj in output_nodes.values():
-                try:
-                    obj.value = zoom
-                    obj.update_zoom()
-                except Exception:
-                    pass
-            input_container = ui.nodes.get('input.container')
-            if input_container is not None and hasattr(input_container, 'sync_width'):
-                input_container.sync_width()
-            if dispatch_theme:
-                w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
-
-        # font size, legacy (markdown)
-        elif engine == 'legacy':
-            for obj in output_nodes.values():
-                obj.value = size
-                obj.update()
+        zoom = w.core.config.get('zoom')
+        for obj in output_nodes.values():
+            try:
+                obj.value = zoom
+                obj.update_zoom()
+            except Exception:
+                pass
+        input_container = ui.nodes.get('input.container')
+        if input_container is not None and hasattr(input_container, 'sync_width'):
+            input_container.sync_width()
+        if dispatch_theme:
+            w.dispatch(RenderEvent(RenderEvent.ON_THEME_CHANGE))
 
         w.tools.setup_theme()  # update tools

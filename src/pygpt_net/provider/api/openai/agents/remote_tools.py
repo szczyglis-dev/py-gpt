@@ -34,9 +34,40 @@ from pygpt_net.item.model import ModelItem
 from pygpt_net.provider.core.model.compat import supports_future_computer_mode
 from pygpt_net.item.preset import PresetItem
 
-from pygpt_net.provider.llms.agent_computer import build_openai_agent_computer_tool
+from pygpt_net.provider.llms.computer import build_openai_agent_computer_tool
 
 from .computer import LocalComputer
+
+
+def _resolve_model_item(window, model):
+    """Resolve a PyGPT ModelItem for legacy OpenAI Agents helpers.
+
+    Presets may contain stale model ids after model-list updates.  Remote-tool
+    capability checks require a ModelItem, while the Agents SDK model wrapper
+    is a different object entirely.  Resolve strings/wrappers when possible and
+    finally fall back to the model currently selected in PyGPT.
+    """
+    models = getattr(getattr(window, "core", None), "models", None)
+    if models is None:
+        return model if isinstance(model, ModelItem) else None
+
+    if isinstance(model, ModelItem) and getattr(model, "id", None):
+        return model
+
+    candidate_id = None
+    if isinstance(model, str):
+        candidate_id = model
+    elif model is not None:
+        candidate_id = getattr(model, "id", None) or getattr(model, "model", None)
+
+    if isinstance(candidate_id, str) and candidate_id:
+        resolved = models.get(candidate_id)
+        if resolved is not None:
+            return resolved
+
+    config = getattr(getattr(window, "core", None), "config", None)
+    current_id = config.get("model") if config is not None else None
+    return models.get(current_id) if current_id else None
 
 
 def is_computer_tool(
@@ -45,7 +76,8 @@ def is_computer_tool(
         preset: PresetItem,
         is_expert_call: bool,
 ):
-    if not model.is_gpt():
+    model = _resolve_model_item(window, model)
+    if model is None or not model.is_gpt():
         return False
 
     if not is_expert_call:
@@ -53,7 +85,7 @@ def is_computer_tool(
         return (
             model.id.startswith("computer-use")
             or (
-                window.core.config.get("remote_tools.computer_use", False)
+                window.core.llm.get("openai").is_remote_tool_enabled("computer_use")
                 and (model.has_mode(MODE_COMPUTER)
                      or supports_future_computer_mode(model.provider, model.id))
             )
@@ -93,10 +125,11 @@ def append_tools(
     """
     kwargs = {}
     remote_tools = []
+    model = _resolve_model_item(window, model)
     if not allow_local_tools:
         tools = []
 
-    if allow_remote_tools:
+    if allow_remote_tools and model is not None:
         tool_kwargs = {
             "window": window,
             "model": model,
@@ -167,8 +200,9 @@ def get_remote_tools(
     :param window: Window instance
     """
     tools = []
+    model = _resolve_model_item(window, model)
 
-    if not model.is_gpt():
+    if model is None or not model.is_gpt():
         return []
 
     if model.id.startswith("o1") or model.id.startswith("o3"):
@@ -195,14 +229,14 @@ def get_remote_tools(
     # from global config if not expert call
     if not is_expert_call:
         enabled["web_search"] = enabled_global(model, "web_search") # <-- from global config
-        enabled["image"] = window.core.config.get("remote_tools.image", False)
-        enabled["code_interpreter"] = window.core.config.get("remote_tools.code_interpreter", False)
-        enabled["mcp"] = window.core.config.get("remote_tools.mcp", False)
-        enabled["file_search"] = window.core.config.get("remote_tools.file_search", False)
+        enabled["image"] = window.core.llm.get("openai").is_remote_tool_enabled("image")
+        enabled["code_interpreter"] = window.core.llm.get("openai").is_remote_tool_enabled("code_interpreter")
+        enabled["mcp"] = window.core.llm.get("openai").is_remote_tool_enabled("mcp")
+        enabled["file_search"] = window.core.llm.get("openai").is_remote_tool_enabled("file_search")
         enabled["computer_use"] = (
             model.id.startswith("computer-use")
             or (
-                window.core.config.get("remote_tools.computer_use", False)
+                window.core.llm.get("openai").is_remote_tool_enabled("computer_use")
                 and (model.has_mode(MODE_COMPUTER)
                      or supports_future_computer_mode(model.provider, model.id))
             )
@@ -254,7 +288,7 @@ def get_remote_tools(
             ))
 
         if model.id not in OPENAI_REMOTE_TOOL_DISABLE_FILE_SEARCH and enabled["file_search"]:
-            vector_store_ids = window.core.config.get("remote_tools.file_search.args", "")
+            vector_store_ids = window.core.llm.get("openai").get_remote_tool_config("file_search.args", "")
             if vector_store_ids:
                 vector_store_ids = [store.strip() for store in vector_store_ids.split(",") if store.strip()]
             tools.append(FileSearchTool(
@@ -264,7 +298,7 @@ def get_remote_tools(
             ))
 
         if model.id not in OPENAI_REMOTE_TOOL_DISABLE_MCP and enabled["mcp"]:
-            mcp_tool = window.core.config.get("remote_tools.mcp.args", "")
+            mcp_tool = window.core.llm.get("openai").get_remote_tool_config("mcp.args", "")
             if mcp_tool:
                 mcp_tool = json.loads(mcp_tool)
                 tools.append(HostedMCPTool(

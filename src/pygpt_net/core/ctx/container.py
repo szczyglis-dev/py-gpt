@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 21:50:00                  #
+# Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
 from typing import List
@@ -67,21 +67,13 @@ class Container:
         output_plain = PlainChatOutput(self.window)
         output_plain.set_tab(tab)
 
-        # web
-        if self.window.core.config.get("render.engine") == "web":
-            from pygpt_net.ui.widget.textarea.web import ChatWebOutput
-            
-            # build output
-            output_html = ChatWebOutput(self.window)
-            output_html.set_tab(tab)
+        from pygpt_net.ui.widget.textarea.web import ChatWebOutput
 
-            # connect signals
-            output_html.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
-            output_html.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
-        else:
-            # legacy
-            output_html = ChatOutput(self.window)
-            output_html.set_tab(tab)
+        # WebEngine output is always created as the normal chat renderer.
+        output_html = ChatWebOutput(self.window)
+        output_html.set_tab(tab)
+        output_html.signals.save_as.connect(self.window.controller.chat.render.handle_save_as)
+        output_html.signals.audio_read.connect(self.window.controller.chat.render.handle_audio_read)
 
         if 'output_plain' not in self.window.ui.nodes:
             self.window.ui.nodes['output_plain'] = {}
@@ -166,7 +158,7 @@ class Container:
                 return chat_pid
 
         # Normal idle case: the focused chat owns its own Bag.
-        pid = self.window.controller.ui.tabs.get_current_pid()
+        pid = self.window.controller.tabs.get_current_pid()
         tab = tabs.get_tab_by_pid(pid) if pid is not None else None
         if tab is not None and tab.type == Tab.TAB_CHAT:
             return pid

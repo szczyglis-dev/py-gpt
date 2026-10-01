@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.31 04:00:00                  #
+# Updated Date: 2026.09.20 17:32:00                  #
 # ================================================== #
 
 import time
 import wave
-import numpy as np
 from typing import List, Tuple
 from collections import deque
 from threading import Lock
@@ -19,10 +18,12 @@ from threading import Lock
 from PySide6.QtCore import QTimer
 from pygpt_net.core.qt import safe_emit
 
-from ..shared import f32_to_s16le, build_rt_input_delta_event
+from ..shared import f32_to_s16le, build_rt_input_delta_event, InputLevelMeter
+
+from ..shared.capture import has_minimum_audio
+
 
 class PygameBackend:
-    MIN_FRAMES = 25  # minimum frames to start transcription
 
     def __init__(self, window=None):
         """
@@ -62,6 +63,9 @@ class PygameBackend:
         self.selected_device = None
         self.initialized = False
         self.mode = "input"  # input|control
+
+        # Immediate speech-band input meter.
+        self._input_meter = InputLevelMeter()
 
         # --- REALTIME INPUT (mic -> dispatcher) ---
         self._rt_signals = None           # set with set_rt_signals()
@@ -150,8 +154,10 @@ class PygameBackend:
             return False
 
         # Set up the audio input device and start capturing.
-        self.setup_audio_input()
         self.start_time = time.time()
+        self.setup_audio_input()
+        if self.audio_source is None:
+            return False
 
         # Set up a QTimer to update the audio level based on the latest chunk.
         self.timer = QTimer()
@@ -207,6 +213,28 @@ class PygameBackend:
 
         return result
 
+    def shutdown(self):
+        """Stop SDL audio capture/playback and release pygame resources."""
+        if self.initialized:
+            try:
+                self.stop()
+            except Exception:
+                pass
+            try:
+                self.stop_playback()
+            except Exception:
+                pass
+            try:
+                import pygame
+                pygame.quit()
+            except Exception:
+                pass
+        self.audio_source = None
+        self.playback_sound = None
+        self.initialized = False
+        with self._rt_lock:
+            self._rt_queue.clear()
+
     def has_source(self) -> bool:
         """
         Check if the audio source is available.
@@ -224,15 +252,13 @@ class PygameBackend:
         return bool(self.frames)
 
     def has_min_frames(self) -> bool:
-        """
-        Check if at least MIN_FRAMES audio frames have been recorded.
-
-        :return: True if at least MIN_FRAMES recorded
-        """
-        return len(self.frames) >= self.MIN_FRAMES
+        """Return whether at least 100 ms of PCM audio was captured."""
+        # SDL capture uses float32 PCM, as does the WAV conversion below.
+        return has_minimum_audio(self.frames, self.rate, self.channels, 4)
 
     def reset_audio_level(self):
         """Reset the audio level bar (if available)."""
+        self._input_meter.reset()
         self.window.controller.audio.ui.on_input_volume_change(0, self.mode)
 
     def check_audio_input(self) -> bool:
@@ -339,9 +365,16 @@ class PygameBackend:
                 allowed_changes=self.allowed_changes,
                 callback=self._audio_callback,
             )
+            self._is_recording = True
             self.audio_source.pause(0)
         except Exception as e:
             print(f"Failed to open audio stream: {e}")
+            self._is_recording = False
+            if self.audio_source is not None:
+                try:
+                    self.audio_source.close()
+                except Exception:
+                    pass
             self.audio_source = None
             return
 
@@ -359,6 +392,7 @@ class PygameBackend:
         # Use the last captured chunk.
         last_chunk = self.frames[-1]
         try:
+            import numpy as np
             # Interpret the bytes as float32 samples.
             samples = np.frombuffer(last_chunk, dtype=np.float32)
         except Exception:
@@ -366,12 +400,14 @@ class PygameBackend:
         if samples.size == 0:
             return
 
-        # Compute RMS
-        rms = np.sqrt(np.mean(samples.astype(np.float64) ** 2))
-
-        # For float32 audio, the range is approximately -1.0 to 1.0.
-        level = min(max(rms, 0.0), 1.0)
-        level_percent = int(level * 100)
+        # Float32 capture uses full scale 1.0. Meter only the current
+        # chunk's speech-band energy; no smoothing or adaptive noise logic.
+        level_percent = self._input_meter.update(
+            samples,
+            sample_rate=self.rate,
+            full_scale=1.0,
+            channels=self.channels,
+        )
 
         QTimer.singleShot(0, lambda: self.window.controller.audio.ui.on_input_volume_change(level_percent, self.mode))
 
@@ -394,6 +430,7 @@ class PygameBackend:
         """
         full_data = b"".join(self.frames)
         try:
+            import numpy as np
             data_array = np.frombuffer(full_data, dtype=np.float32)
         except Exception as e:
             print("Error converting audio data:", e)

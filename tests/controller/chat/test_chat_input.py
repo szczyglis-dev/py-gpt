@@ -69,6 +69,7 @@ def test_send(mock_window):
         "mode_override": None,
         "model_override": None,
         "agent_continue": False,
+        "inline_message": None,
         "runtime_attachments": None,
         "send_initialized": False,
     }
@@ -105,6 +106,7 @@ def test_execute_text(mock_window):
             mode_override=None,
             model_override=None,
             agent_continue=False,
+            inline_message=None,
             runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -171,6 +173,7 @@ def test_execute_no_ctx(mock_window):
             mode_override=None,
             model_override=None,
             agent_continue=False,
+            inline_message=None,
             runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -230,6 +233,7 @@ def test_execute_vision_mode(mock_window):
             mode_override=None,
             model_override=None,
             agent_continue=False,
+            inline_message=None,
             runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()
@@ -276,6 +280,7 @@ def test_execute_vision_plugin(mock_window):
             mode_override=None,
             model_override=None,
             agent_continue=False,
+            inline_message=None,
             runtime_attachments=None,
         )
         # mock_window.controller.ui.update_tokens.assert_called_once()

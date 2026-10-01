@@ -4,20 +4,18 @@ Models
 Built-in models
 ---------------
 
-PyGPT has a preconfigured list of models (as of 2026-09-11):
+PyGPT has a preconfigured list of models (as of 2026-09-24):
 
 - ``claude-fable-5`` (Anthropic)
 - ``claude-fable-5-1`` (Anthropic)
 - ``claude-haiku-4-5`` (Anthropic)
 - ``claude-opus-4-5`` (Anthropic)
 - ``claude-opus-5`` (Anthropic)
+- ``claude-opus-5-5`` (Anthropic)
 - ``claude-sonnet-4-5`` (Anthropic)
 - ``claude-sonnet-5`` (Anthropic)
 - ``deepseek-v4-flash`` (DeepSeek)
 - ``deepseek-v4-pro`` (DeepSeek)
-- ``deep-research-max-preview-04-2026`` (Google)
-- ``deep-research-preview-04-2026`` (Google)
-- ``deep-research-pro-preview-12-2025`` (Google)
 - ``gemini-2.5-computer-use-preview-10-2025`` (Google)
 - ``gemini-2.5-flash`` (Google)
 - ``gemini-2.5-flash-image`` (Google)
@@ -65,6 +63,8 @@ PyGPT has a preconfigured list of models (as of 2026-09-11):
 - ``gpt-5.6-sol`` (OpenAI)
 - ``gpt-5.6-terra`` (OpenAI)
 - ``gpt-6-astra`` (OpenAI)
+- ``gpt-6-luna`` (OpenAI)
+- ``gpt-6-sol`` (OpenAI)
 - ``gpt-image-1.5`` (OpenAI)
 - ``gpt-image-2`` (OpenAI)
 - ``gpt-image-2.5-flare`` (OpenAI)
@@ -106,7 +106,7 @@ You can import new models by manually editing ``models.json`` or by using the mo
     The models on the list are sorted by provider, not by manufacturer. A model from a particular manufacturer may be available through different providers (e.g., OpenAI models can be provided by the ``OpenAI API`` or by ``OpenRouter``). If you want to use a specific model through a particular provider, you need to configure the provider in ``Config -> Models -> Edit``, or import it directly via ``Config -> Models -> Import``.
 
 .. tip::
-    Anthropic and Deepseek API providers use VoyageAI for embeddings (Chat with Files and attachments RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
+    Anthropic and Deepseek API providers use VoyageAI for embeddings (persistent and attachment RAG), so you must also configure the Voyage API key if you want to use embeddings from these providers.
 
 Adding a custom model
 ---------------------
@@ -135,23 +135,21 @@ There is built-in support for those LLM providers:
 Custom providers (OpenAI-compatible)
 ------------------------------------
 
-PyGPT can create OpenAI Chat Completions-compatible model providers at runtime. No custom launcher or source-code registration is required. Open:
+Add OpenAI Chat Completions-compatible providers in:
 
 .. code-block:: ini
 
    Config -> Settings -> Custom providers
 
-Add one row per provider and configure:
+Configure one row per provider with:
 
-* ``Provider name`` - display name used in provider selectors.
-* ``API base URL`` - OpenAI-compatible API base URL, typically ending in ``/v1``.
-* ``API key`` - provider API key; it can be empty for endpoints that do not require authentication.
+* ``Provider name``
+* ``API base URL``
+* ``API key`` (optional when the endpoint does not require authentication)
 
-The list is persisted in ``config.json`` under ``api_custom_providers``. Saving Settings updates the LLM provider registry immediately, so the provider becomes available in the Models Editor, model-provider filters, and ``Config -> Models -> Import`` without restarting PyGPT. The importer requests the provider's standard OpenAI-compatible ``/models`` endpoint.
+After saving, the provider is available in the Models Editor and ``Config -> Models -> Import``. Normal Chat uses the OpenAI-compatible Chat Completions API; LlamaIndex-backed flows reuse the same provider endpoint and credentials automatically.
 
-In normal ``Chat`` mode, models assigned to a runtime custom provider are sent through the native OpenAI Python SDK using the Chat Completions API and the configured base URL/key. In ``Chat with Files (LlamaIndex)`` and other LlamaIndex-based flows, PyGPT creates the corresponding LlamaIndex ``OpenAILike`` instance and automatically reuses the same provider-level API base URL and API key. You do not need to duplicate them in LlamaIndex ``**kwargs`` or ``ENV``. Runtime custom providers do not use the OpenAI Responses API.
-
-After defining the provider, import its models from ``Config -> Models -> Import`` or create/edit a model manually and select the new provider. Per-model ``API base`` and ``API key`` values, if set in the Models Editor, override the provider-level values for that model.
+Per-model ``API base`` and ``API key`` values can override the provider defaults.
 
 Per-model API base and API key
 ------------------------------
@@ -175,12 +173,12 @@ LlamaIndex ``**kwargs`` and ``ENV`` fields are optional overrides. Leave them em
 How to use local or other models
 --------------------------------
 
-Gemma 4, Qwen 3.6, Llama 4, Mistral, DeepSeek, Bielik, gpt-oss, and other local models
+DeepSeek, Qwen, gpt-oss, Gemma, Mistral, Llama, and other local models
 ``````````````````````````````````````````````````````````````````````````````````````
 
-How to use locally installed Gemma 4, Qwen 3.6, Llama 4, DeepSeek, Mistral, Bielik, and other models:
+How to use locally installed DeepSeek, Qwen, gpt-oss, Gemma, Mistral, Llama, and other models:
 
-1) Choose a working mode: ``Chat`` or ``Chat with Files``.
+1) Choose the ``Chat`` working mode.
 
 2) On the models list, select, edit, import, or add a model with the ``ollama`` provider. The model ID should match the name served by Ollama. No LlamaIndex ``model_name`` entry in Advanced ``**kwargs`` is required; PyGPT uses the model ID automatically.
 
@@ -244,7 +242,7 @@ The Ollama endpoint is inherited from the global ``OLLAMA_API_BASE`` configurati
 Other providers and LlamaIndex-based modes
 ``````````````````````````````````````````
 
-PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal ``Chat``, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. ``Chat with Files`` and other non-Chat workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
+PyGPT can route the same model differently depending on the selected work mode and provider integration. In normal ``Chat``, built-in providers can use their native SDKs when enabled, while local or third-party services can use OpenAI-compatible endpoints. RAG-backed Chat and other workflows that rely on LlamaIndex use the model's configured LlamaIndex provider/wrapper; provider-specific agent runtimes can use their own integration path.
 
 Configure provider credentials/endpoints once in ``Config -> Settings -> API Keys`` or, for runtime OpenAI-compatible providers, in ``Config -> Settings -> Custom providers``. LlamaIndex-backed modes reuse those global settings automatically and use the selected model ID as the model name. Model-level LlamaIndex ``**kwargs`` and ``ENV`` can remain empty.
 

@@ -216,14 +216,15 @@ class Theme:
         directories.
 
         Layer order for ``app.css`` is:
-        1. bundled ``data/css/app.css`` (always the global base),
-        2. bundled ``data/css/<theme-id>/app.css``,
-        3. profile ``%workdir%/css/app.css`` when present,
-        4. profile ``%workdir%/css/<theme-id>/app.css`` when present.
+        1. bundled ``data/css/app.css`` and bundled theme CSS,
+        2. application-base ``css/app.css`` and ``css/<theme-id>/app.css``,
+        3. application-wide ``addons/themes/<id>/[theme/]/app.css``,
+        4. active-profile ``%workdir%/css`` overrides when present.
 
-        ``app.xml`` is resolved from the profile theme first, then the bundled
-        theme. A completely custom theme without XML falls back to the bundled
-        Light/Dark XML selected by its runtime compatibility type.
+        ``app.xml`` uses the same precedence in reverse lookup order: the
+        active-profile theme wins, then the Theme Add-on, application-base
+        custom CSS, and finally the bundled theme/fallback Light/Dark XML.
+        Theme Add-ons are read in place and are never copied into a profile.
         """
         window = self.window
         core = window.core
@@ -267,7 +268,9 @@ class Theme:
         content = "".join(part for part in content_parts if part)
         if content:
             stylesheet = window.styleSheet()
-            window.setStyleSheet(stylesheet + self.common.format_css(content))
+            window.setStyleSheet(stylesheet + self.common.format_css(
+                content, self.common.get_css_variables(name)
+            ))
 
     @staticmethod
     def _file_signature(path: str):
@@ -289,6 +292,7 @@ class Theme:
             cfg.get("layout.density"),
             bool(is_light),
             self._file_signature(material_path) if material_path else None,
+            tuple(sorted(self.common.get_css_variables(name).items())),
         ]
 
         for path in self.common.get_theme_asset_paths(name, "app.css"):

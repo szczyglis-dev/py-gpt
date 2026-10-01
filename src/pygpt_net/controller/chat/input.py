@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 12:30:00
+# Updated Date: 2026.09.30 16:40:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -79,14 +79,14 @@ class Input:
         """Release request routing and apply any chat focus chosen meanwhile."""
         output = self.window.core.ctx.output
         output.finish_request(meta)
-        self.window.controller.ui.tabs.sync_focused_chat_context()
+        self.window.controller.tabs.sync_focused_chat_context()
 
     def _pin_user_chat(self, pid: Optional[int] = None):
         """Bind a manual send to the chat tab that actually invoked it."""
         core = self.window.core
-        tabs_ui = self.window.controller.ui.tabs
+        tabs_ui = self.window.controller.tabs
 
-        # ``pid`` is normally snapshotted at the very beginning of send_input(),
+        # ``pid`` is normally snapshoted at the very beginning of send_input(),
         # before USER_SEND/plugins can mutate focus. Keep a local fallback for
         # direct callers/tests.
         if pid is None:
@@ -233,11 +233,28 @@ class Input:
 
         :param force: force send
         """
+        # Send during ordinary microphone capture submits the recording first.
+        # Do this before INPUT_BEGIN can change the focused tab or claim a request.
+        if not force and not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                handler.stop_recording()
+                return
+
+        # Ignore an empty user send before input events can claim a request or
+        # show the busy status. Attachments and microphone capture are valid input.
+        mode = self.window.core.config.get('mode')
+        if (not force
+                and not self.window.ui.nodes['input'].toPlainText().strip()
+                and not self.window.core.attachments.has(mode)
+                and not self.window.controller.audio.is_recording()):
+            return
+
         dispatch = self.window.dispatch
         # Snapshot the invoker before any input/plugin event can move focus.
         # get_effective_current_pid() also sees the latest deferred column-focus
         # request, so a click+immediate Send is routed to the clicked chat.
-        source_pid = self.window.controller.ui.tabs.get_effective_current_pid()
+        source_pid = self.window.controller.tabs.get_effective_current_pid()
         mode = self.window.core.config.get('mode')
         event = Event(Event.INPUT_BEGIN, {
             'mode': mode,
@@ -270,6 +287,11 @@ class Input:
             self.window.controller.kernel.stop()  # TODO: to chat main
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
+
+        # The realtime controller owns text barge-in semantics. ENTER stays usable
+        # while the composer shows STOP: a new typed message first finalizes the
+        # current realtime turn/playback, then proceeds as a normal new request.
+        self.window.controller.realtime.on_user_text_submit(mode=mode, text=text)
 
         # A top-level request may already own a chat while attachments are still
         # being processed (generating can still be False in that phase). Never
@@ -348,6 +370,9 @@ class Input:
         """
         is_internal_reply = bool(extra.get("reply")) and bool(extra.get("internal"))
         is_agent_continue = bool(extra.get("agent_continue")) and bool(extra.get("internal"))
+        inline_message = extra.get("inline_message") if is_agent_continue else None
+        if not isinstance(inline_message, dict):
+            inline_message = None
         origin_ctx = context.ctx
         origin_mode = getattr(origin_ctx, "mode", None) if origin_ctx is not None else None
         origin_model = getattr(origin_ctx, "model", None) if origin_ctx is not None else None
@@ -390,6 +415,7 @@ class Input:
             mode_override=origin_mode if (is_internal_reply or is_agent_continue) else None,
             model_override=origin_model if (is_internal_reply or is_agent_continue) else None,
             agent_continue=is_agent_continue,
+            inline_message=inline_message,
             runtime_attachments=context.attachments if is_internal_reply else None,
             send_initialized=bool(extra.get("send_initialized", False)),
         )
@@ -405,6 +431,7 @@ class Input:
             mode_override: Optional[str] = None,
             model_override: Optional[str] = None,
             agent_continue: bool = False,
+            inline_message: Optional[Dict[str, str]] = None,
             runtime_attachments: Optional[dict] = None,
             send_initialized: bool = False,
     ):
@@ -420,6 +447,7 @@ class Input:
         :param mode_override: originating mode for an internal tool reply/agent continuation
         :param model_override: originating model key for an internal tool reply/agent continuation
         :param agent_continue: keep an autonomous Agent iteration in the same durable turn
+        :param inline_message: optional UI-only message metadata attached to this continuation
         :param runtime_attachments: ephemeral files produced by a tool for the immediate next model request
         :param send_initialized: manual send already entered SEND_INIT busy/clear state
         """
@@ -540,6 +568,7 @@ class Input:
                 mode_override=mode_override,
                 model_override=model_override,
                 agent_continue=agent_continue,
+                inline_message=inline_message,
                 runtime_attachments=runtime_attachments,
             )  # text mode: OpenAI, LlamaIndex, etc.
 

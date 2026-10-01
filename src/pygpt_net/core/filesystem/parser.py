@@ -77,7 +77,7 @@ class Parser:
         # Parse concrete paths first instead of replacing the active project
         # root in the whole response string. A broad project root may contain
         # the base PyGPT profile; blind replacement would then turn e.g.
-        # <base>/tmp/plot.png into /data/... and incorrectly classify tmp as
+        # <base>/tmp/plot.png into /mnt/data/... and incorrectly classify tmp as
         # project data.
         raw_paths = self.extract_local_paths(str(response))
 
@@ -93,7 +93,7 @@ class Parser:
                     return os.path.normpath(path)
 
             # Explicit base/shared data must remain base data while a project
-            # override is active; do not reinterpret it as project /data.
+            # override is active; do not reinterpret it as project sandbox data.
             if os.path.isabs(path) and filesystem._is_path_in(path, shared_data_dir):
                 if os.path.normcase(os.path.abspath(local_data_dir)) != os.path.normcase(os.path.abspath(shared_data_dir)):
                     return None

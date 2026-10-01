@@ -299,7 +299,7 @@ class XAITextToSpeech(BaseProvider):
         """
         Resolve xAI API key from the app's configuration or environment.
         """
-        key = self.plugin.window.core.config.get("api_key_xai")
+        key = self.plugin.window.core.llm.get_config("x_ai", "api_key")
         if key:
             return key
         return os.getenv("XAI_API_KEY")

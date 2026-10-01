@@ -104,20 +104,18 @@ def test_model_to_dict_preserves_llama_index_lists():
     assert data["llama_index.env"] is env
 
 
-def test_runtime_custom_provider_is_openai_compatible():
+def test_runtime_custom_provider_modes_follow_configured_list():
     item = ModelItem("custom-model")
     item.provider = "custom_my_api_12345678"
     item.mode = ["chat", "llama_index"]
-    assert item.is_openai_supported() is True
     assert item.is_supported(MODE_CHAT) is True
 
 
-def test_non_compatible_unknown_provider_is_not_supported_in_chat_but_other_modes_follow_list():
+def test_unknown_provider_modes_follow_configured_list():
     item = ModelItem("unknown-model")
     item.provider = "unknown_provider"
     item.mode = ["chat", "vision"]
-    assert item.is_openai_supported() is False
-    assert item.is_supported(MODE_CHAT) is False
+    assert item.is_supported(MODE_CHAT) is True
     assert item.is_supported(MODE_VISION) is True
 
 

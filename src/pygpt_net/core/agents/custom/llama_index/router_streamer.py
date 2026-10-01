@@ -30,12 +30,13 @@ class DelayedRouterStreamerLI:
 
 class RealtimeRouterStreamerLI:
     """
-    Stream only JSON 'content' string incrementally.
+    Stream the first nonempty configured JSON prose field incrementally.
     handle_delta(delta) -> returns decoded content suffix to emit (may be '').
     """
-    CONTENT_PATTERN = re.compile(r'"content"\s*:\s*"')
-
-    def __init__(self):
+    def __init__(self, fields=("content",)):
+        # Only display named prose fields; routing metadata never reaches the UI.
+        names = "|".join(re.escape(field) for field in fields)
+        self.CONTENT_PATTERN = re.compile(r'"(?:' + names + r')"\s*:\s*"(?=[^"])')
         self._raw = ""
         self._content_started = False
         self._content_closed = False

@@ -6,52 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 13:10:00                  #
+# Updated Date: 2026.09.20 14:35:00                  #
 # ================================================== #
 
 from pygpt_net.plugin.base.config import BaseConfig, BasePlugin
+from pygpt_net.core.sandbox import BUILTIN_OS_PACKAGES, builtin_packages_to_text
 
 
-SYSTEM_DOCKERFILE_39 = """
-FROM python:3.9-alpine
-
-RUN mkdir /data
-
-# Data directory, bound as a volume to the local 'data/' directory
-WORKDIR /data
-""".strip()
-
-SYSTEM_DOCKERFILE = r"""
-FROM python:3.12-alpine
-
-# IDs are supplied by PyGPT while building the stock image. On Linux they
-# match the desktop user so bind-mounted files keep the correct ownership.
-ARG PYGPT_UID=1000
-ARG PYGPT_GID=1000
-
-# Small set of commonly useful command-line tools plus passwordless sudo.
-RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file tree coreutils findutils
-
-RUN set -eux; \
-    group_name="$(awk -F: -v gid="$PYGPT_GID" '$3 == gid {print $1; exit}' /etc/group)"; \
-    if [ -z "$group_name" ]; then \
-        addgroup -g "$PYGPT_GID" pygpt; \
-        group_name=pygpt; \
-    fi; \
-    adduser -D -u "$PYGPT_UID" -G "$group_name" pygpt; \
-    echo 'pygpt ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/pygpt; \
-    chmod 0440 /etc/sudoers.d/pygpt; \
-    mkdir -p /data /opt/pygpt-venv; \
-    chown -R "$PYGPT_UID:$PYGPT_GID" /data /opt/pygpt-venv
-
-# Keep Python packages installed at runtime outside the system interpreter.
-USER pygpt
-RUN python -m venv /opt/pygpt-venv
-ENV PATH="/opt/pygpt-venv/bin:/home/pygpt/.local/bin:${PATH}"
-
-# Data directory, bound as a volume to the local 'data/' directory.
-WORKDIR /data
-""".strip()
+from .dockerfile import SYSTEM_DOCKERFILE
+from .sandbox import SandboxMode
 
 
 class Config(BaseConfig):
@@ -75,7 +38,7 @@ class Config(BaseConfig):
         volumes_items = [
             {
                 "enabled": True,
-                "docker": "/data",
+                "docker": "/mnt/data",
                 "host": "{workdir}",
             },
         ]
@@ -86,16 +49,25 @@ class Config(BaseConfig):
         }
         ports_items = []
 
-        # Sandbox / sys_exec (original)
         plugin.add_option(
-            "sandbox_docker",
-            type="bool",
-            value=False,
-            label="Sandbox (docker container)",
-            description="Executes commands in sandbox (docker container). "
-                        "Docker must be installed and running.",
-            tab="sandbox",
+            "sandbox",
+            type="combo",
+            value=SandboxMode.DISABLED.value,
+            label="Sandbox",
+            description="Disabled runs system commands directly on the host (unsafe). Built-in runs commands in a dedicated uv-managed CPython environment in a separate process, but does not restrict access to the host filesystem. Docker requires Docker to be installed and running and provides the strongest isolation; it is the safest option. The system-command whitelist/blacklist applies in every execution mode.",
+            keys=SandboxMode.options(),
+            tab="general",
         )
+        plugin.add_option(
+            "builtin_packages",
+            type="textarea",
+            value=builtin_packages_to_text(BUILTIN_OS_PACKAGES),
+            label="Packages to install",
+            description="Python package requirements installed in the Built-in sandbox used by the System / OS plugin. Enter one package specification per line. Re-create the Built-in venv to apply changes immediately; otherwise it will be recreated automatically on the next Built-in sandbox use.",
+            tab="builtin_sandbox",
+        )
+
+        # Sandbox options
         plugin.add_option(
             "docker_run_as_root",
             type="bool",
@@ -190,7 +162,7 @@ class Config(BaseConfig):
                 },
             ],
             enabled=True,
-            description="Allows system commands execution",
+            description="Allows system command execution through the selected backend. Commands are checked against the configured system-command whitelist/blacklist in every execution mode.",
             tab="general",
         )
 

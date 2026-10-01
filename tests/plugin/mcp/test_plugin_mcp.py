@@ -59,16 +59,16 @@ def test_mcp_cmd_syntax_builds_unique_sanitized_tool_and_index(mock_window):
     assert plugin.tools_index["My_Server__search_web"]["transport"] == "http"
 
 
-def test_mcp_cmd_syntax_invalidates_cache_when_config_changes(mock_window):
+def test_mcp_cmd_syntax_tracks_scoped_config_signature(mock_window):
     plugin = Plugin(window=mock_window)
     server = {"active": True, "label": "A", "server_address": "stdio: tool", "authorization": ""}
     plugin.set_option_value("servers", [server])
     plugin._tools_cache = {"old": {"tools": []}}
-    plugin._last_config_signature = "old"
+    plugin._last_config_signature = {"current": "old"}
     plugin._discover_tools_sync = MagicMock(return_value=[])
     plugin.cmd_syntax({"cmd": []})
-    assert plugin._tools_cache == {}
-    assert plugin._last_config_signature != "old"
+    assert plugin._tools_cache == {"old": {"tools": []}}
+    assert plugin._last_config_signature.get("current") != "old"
 
 
 def test_mcp_handle_routes_syntax_and_execute(mock_window):
@@ -79,7 +79,7 @@ def test_mcp_handle_routes_syntax_and_execute(mock_window):
     event.data = {"cmd": []}
     event.ctx = CtxItem()
     plugin.handle(event)
-    plugin.cmd_syntax.assert_called_once_with(event.data)
+    plugin.cmd_syntax.assert_called_once_with(event.data, event.ctx)
 
     plugin.cmd = MagicMock()
     event.name = Event.CMD_EXECUTE

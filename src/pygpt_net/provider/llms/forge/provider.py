@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.03.08 00:00:00                  #
+# ================================================== #
+from __future__ import annotations
+
+import os
+from typing import TYPE_CHECKING, Dict, List, Optional
+
+
+if TYPE_CHECKING:
+    from llama_index.core.base.embeddings.base import BaseEmbedding
+    from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
+
+from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_EMBEDDINGS
+from pygpt_net.provider.llms.base import BaseLLM
+from pygpt_net.item.model import ModelItem
+
+from .config import FORGE_DEFAULT_BASE_URL
+
+
+class ForgeLLM(BaseLLM):
+    def __init__(self, *args, **kwargs):
+        super(ForgeLLM, self).__init__(*args, **kwargs)
+        self.id = "forge"
+        self.name = "Forge"
+        self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
+
+    def setup(self) -> dict:
+        from .config import setup
+        return setup()
+
+    def _apply_auth(self, args: Dict, window) -> Dict:
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = os.environ.get("FORGE_API_KEY") or self.get_config("api_key", "")
+        if "api_base" not in args or args["api_base"] == "":
+            args["api_base"] = os.environ.get("FORGE_API_BASE") or self.get_config("api_base", "") or FORGE_DEFAULT_BASE_URL
+        return args
+
+    def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
+        from llama_index.llms.openai_like import OpenAILike
+        args = self.prepare_openai_compatible_args(window, model)
+        if "is_chat_model" not in args:
+            args["is_chat_model"] = True
+        if "is_function_calling_model" not in args:
+            args["is_function_calling_model"] = model.tool_calls
+        args = self.inject_llamaindex_http_clients(args, window.core.config)
+        self.log_llama_create(window, model, args, "OpenAILike")
+        return OpenAILike(**args)
+
+    def get_embeddings_model(self, window, config: Optional[List[Dict]] = None) -> BaseEmbedding:
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        return OpenAILikeEmbedding(**args)

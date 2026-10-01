@@ -16,6 +16,7 @@ import os
 from typing import List
 
 from llama_index.core.tools import FunctionTool
+from llama_index.core.agent.workflow import FunctionAgent as LlamaFunctionAgent
 from .autonomy import AutonomousFunctionAgent as FunctionAgent, AutonomousReActAgent as ReActAgent
 from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRole, TextBlock
 
@@ -24,75 +25,83 @@ from pygpt_net.utils import is_image
 from .utils import supports_function_calling
 
 
-class MainFunctionAgent(FunctionAgent):
-    """FunctionAgent variant that keeps runtime images visible to the top-level agent.
+async def _store_tool_results_with_runtime_images(agent, ctx, results) -> None:
+    """Store FunctionAgent tool results while promoting ImageBlocks to a user message.
 
-    LlamaIndex 0.14.x stores FunctionTool outputs in the agent scratchpad as
-    ``role=tool`` messages. OpenAI Responses function_call_output is textual, so
-    ImageBlock values in such a message are discarded by the provider adapter.
-    Workers keep the normal FunctionAgent image path that already works in PyGPT; only
-    the top-level workflow actor (Primary Agent / Orchestrator / Swarm
-    Orchestrator) normalizes runtime images into a following user multimodal
-    message while preserving the protocol-required textual tool result.
+    Several provider protocols only accept textual function/tool outputs. Runtime
+    image attachments therefore cannot stay inside a ``role=tool`` message. This
+    helper is shared by Agents v2 and legacy LlamaIndex mode agents so both paths
+    use the same transport rule instead of maintaining separate image handling.
     """
+    scratchpad = await ctx.store.get(agent.scratchpad_key, default=[])
+    promoted_images = []
 
-    async def handle_tool_call_results(self, ctx, results, memory) -> None:
-        scratchpad = await ctx.store.get(self.scratchpad_key, default=[])
-        promoted_images = []
+    for tool_call_result in results:
+        blocks = list(getattr(tool_call_result.tool_output, "blocks", None) or [])
+        image_blocks = [block for block in blocks if isinstance(block, ImageBlock)]
+        tool_blocks = [block for block in blocks if not isinstance(block, ImageBlock)]
 
-        for tool_call_result in results:
-            blocks = list(getattr(tool_call_result.tool_output, "blocks", None) or [])
-            image_blocks = [block for block in blocks if isinstance(block, ImageBlock)]
-            tool_blocks = [block for block in blocks if not isinstance(block, ImageBlock)]
+        # Preserve a protocol-valid textual tool output even when a tool happens
+        # to return only an image. attach_runtime_file normally also returns a
+        # TextBlock, so this is only a defensive fallback.
+        if not tool_blocks:
+            tool_blocks = [TextBlock(text=(
+                str(getattr(tool_call_result.tool_output, "content", "") or "")
+                or "Runtime image attached for native analysis."
+            ))]
 
-            # Preserve a protocol-valid textual tool output even when a tool
-            # happens to return only an image. attach_runtime_file normally also
-            # returns a TextBlock, so this is only a defensive fallback.
-            if not tool_blocks:
-                tool_blocks = [TextBlock(text=(
-                    str(getattr(tool_call_result.tool_output, "content", "") or "")
-                    or "Runtime image attached for native analysis."
-                ))]
+        scratchpad.append(ChatMessage(
+            role=MessageRole.TOOL,
+            blocks=tool_blocks,
+            additional_kwargs={"tool_call_id": tool_call_result.tool_id},
+        ))
+        promoted_images.extend(image_blocks)
 
+        # Match FunctionAgent's normal return_direct behavior. Runtime image
+        # attachment tools are not return_direct, but do not change semantics
+        # for any other plugin tool that is.
+        if (
+                tool_call_result.return_direct
+                and tool_call_result.tool_name != "handoff"
+        ):
             scratchpad.append(ChatMessage(
-                role=MessageRole.TOOL,
-                blocks=tool_blocks,
+                role=MessageRole.ASSISTANT,
+                content=str(tool_call_result.tool_output.content),
                 additional_kwargs={"tool_call_id": tool_call_result.tool_id},
             ))
-            promoted_images.extend(image_blocks)
+            break
 
-            # Match FunctionAgent's normal return_direct behavior. Runtime image
-            # attachment tools are not return_direct, but do not change semantics
-            # for any other plugin tool that is.
-            if (
-                    tool_call_result.return_direct
-                    and tool_call_result.tool_name != "handoff"
-            ):
-                scratchpad.append(ChatMessage(
-                    role=MessageRole.ASSISTANT,
-                    content=str(tool_call_result.tool_output.content),
-                    additional_kwargs={"tool_call_id": tool_call_result.tool_id},
-                ))
-                break
+    if promoted_images:
+        # Tool/function-result payloads are text-only in a number of APIs. A
+        # normal user multimodal message is portable and is consumed by the very
+        # next model pass. Attaching is not itself task completion.
+        scratchpad.append(ChatMessage(
+            role=MessageRole.USER,
+            blocks=[
+                TextBlock(text=(
+                    "Runtime image attachment(s) from the preceding tool call are provided below. "
+                    "Inspect and use their visual content now to continue the current user task. "
+                    "Do not merely acknowledge that the image was attached."
+                )),
+                *promoted_images,
+            ],
+        ))
 
-        if promoted_images:
-            # Tool/function-result payloads are text-only in a number of APIs.
-            # A normal user multimodal message is portable and is consumed by
-            # the very next top-level model pass. The instruction also makes it
-            # explicit that attaching is not itself task completion.
-            scratchpad.append(ChatMessage(
-                role=MessageRole.USER,
-                blocks=[
-                    TextBlock(text=(
-                        "Runtime image attachment(s) from the preceding tool call are provided below. "
-                        "Inspect and use their visual content now to continue the current user task. "
-                        "Do not merely acknowledge that the image was attached."
-                    )),
-                    *promoted_images,
-                ],
-            ))
+    await ctx.store.set(agent.scratchpad_key, scratchpad)
 
-        await ctx.store.set(self.scratchpad_key, scratchpad)
+
+class RuntimeImageFunctionAgent(LlamaFunctionAgent):
+    """Plain LlamaIndex FunctionAgent with PyGPT runtime-image transport support."""
+
+    async def handle_tool_call_results(self, ctx, results, memory) -> None:
+        await _store_tool_results_with_runtime_images(self, ctx, results)
+
+
+class MainFunctionAgent(FunctionAgent):
+    """Autonomous FunctionAgent with PyGPT runtime-image transport support."""
+
+    async def handle_tool_call_results(self, ctx, results, memory) -> None:
+        await _store_tool_results_with_runtime_images(self, ctx, results)
 
 
 class RuntimeContext:
@@ -100,47 +109,6 @@ class RuntimeContext:
 
     def __init__(self, runtime):
         self.runtime = runtime
-
-    def load_project_rules(self) -> str:
-        """Load optional AGENTS.md rules from the active conversation workdir.
-
-        The file is resolved against the CtxItem/project that started this runtime,
-        not against the project currently selected in the UI. Rules are runtime-only
-        and are intentionally exposed only to the top-level Chat with Agents actor.
-        """
-        ctx = getattr(self.runtime.context, "ctx", None)
-        try:
-            filesystem = self.runtime.window.core.filesystem
-            workdir = filesystem.get_data_dir(ctx=ctx, create=False)
-            path = os.path.join(workdir, "AGENTS.md")
-            if not os.path.isfile(path):
-                return ""
-
-            # AGENTS.md must physically remain inside the active workdir. This also
-            # prevents a symlink named AGENTS.md from silently importing rules from
-            # outside the project.
-            security = self.runtime.window.core.security
-            if not security.is_in_workdir(path, ctx=ctx):
-                self.runtime.verbose_log("PROJECT RULES SKIP", {
-                    "path": path,
-                    "reason": "AGENTS.md resolves outside the active workdir",
-                })
-                return ""
-
-            with open(path, "r", encoding="utf-8-sig", errors="replace") as handle:
-                rules = handle.read().strip()
-
-            if rules:
-                self.runtime.verbose_log("PROJECT RULES LOAD", {
-                    "path": path,
-                    "source": "%workdir%/AGENTS.md",
-                })
-                self.runtime.verbose_text("PROJECT RULES", rules)
-            return rules
-        except Exception as exc:
-            self.runtime.window.core.debug.log(exc)
-            self.runtime.verbose_log("PROJECT RULES ERROR", exc)
-            return ""
 
     def has_rag_index(self) -> bool:
         """Return True when the selected preset/runtime index can be queried."""

@@ -46,3 +46,23 @@ def test_handle_complete(mock_window):
     mock_window.core.ctx.post_update.assert_called_once()
     mock_window.core.ctx.store.assert_called_once()
     mock_window.controller.ctx.update_ctx.assert_called_once()
+
+
+def test_annotations_clear_after_stream_output_not_when_stream_is_started(mock_window):
+    from pygpt_net.ui.widget.textarea.annotations import ChatAnnotations
+    session = ChatAnnotations(mock_window, 1)
+    mock_window.core.config.data['ctx.annotations.clear_on_send.files'] = True
+    session.add_file_annotation('file.py', 1, 1, 'text', 'fix')
+    output = Output(mock_window)
+    output.handle_complete = MagicMock()
+    mock_window.core.command.extract_cmds = MagicMock(return_value=[])
+    ctx = CtxItem()
+    ctx.meta = CtxMeta()
+    prompt = session.prompt_block(ctx)
+    output.handle(ctx, 'chat', stream=True)
+    assert len(session.annotations) == 1
+    assert 'fix' in prompt
+    ctx.output = 'Done'
+    output.handle_after(ctx, 'chat', stream=True)
+    assert session.annotations == []
+    assert 'fix' in prompt  # the request payload remains intact

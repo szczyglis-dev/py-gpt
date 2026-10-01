@@ -11,12 +11,8 @@
 
 from types import SimpleNamespace
 
-from .context import RuntimeContext
 from .editor import AgentEditor
-from .memory import AgentsV2MemoryStore
 from .mode import AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
-from .prompt_builder import RuntimePromptBuilder
-from .runner import Runner
 from .strategy import get_agent_strategy
 
 
@@ -40,6 +36,10 @@ class _PromptPreviewRuntime:
             index_id,
             bridge_system_prompt: str,
     ):
+        from .context import RuntimeContext
+        from .prompt_builder import RuntimePromptBuilder
+        from .prompts import agents_directory_exists
+
         self.window = window
         self.model = model
         self.preset = preset
@@ -61,11 +61,11 @@ class _PromptPreviewRuntime:
         self.allow_remote_tools = bool(
             getattr(preset, "agent_v2_allow_remote_tools", True)
         )
-        self.index_id = (
-            (getattr(preset, "idx", None) if preset is not None else None)
-            or index_id
-        )
-        if self.index_id == "_":
+        # The preset controller loads preset.idx into the shared RAG selector.
+        # Preview must mirror the real runtime and use the current toolbox value,
+        # including an explicit clear performed after preset selection.
+        self.index_id = index_id
+        if self.index_id in ("_", "-"):
             self.index_id = None
 
         # Preflight happens before the user turn starts, so retrieval has not run
@@ -73,12 +73,11 @@ class _PromptPreviewRuntime:
         # selected; only request-specific retrieved text is absent at this point.
         self.rag_context_text = ""
         self.bridge_system_prompt = str(bridge_system_prompt or "").strip()
-        self.project_rules_text = ""
-        self.project_rules_loaded = False
 
         self.context_api = RuntimeContext(self)
         self.shared_context_text = self.context_api._build_shared_context()
         self.runtime_system_context = self.context_api._build_runtime_system_context()
+        self.agents_directory_exists = agents_directory_exists(window, ctx=ctx)
         self.prompt_api = RuntimePromptBuilder(self)
 
     @property
@@ -118,12 +117,25 @@ class _PromptPreviewRuntime:
 class AgentsV2:
     def __init__(self, window=None):
         self.window = window
-        self.runner = Runner(window)
+        self._runner = None
+        self._memory_store = None
         self.editor = AgentEditor(window)
-        # Stateless helper shared by the live UI token estimator. Runtime turns
-        # may still instantiate/use their own facade; both read the same hidden
-        # DB-backed Primary Agent memory.
-        self.memory_store = AgentsV2MemoryStore(window)
+
+    @property
+    def runner(self):
+        """Create the Agents v2 runner only when an Agents v2 request is executed."""
+        if self._runner is None:
+            from .runner import Runner
+            self._runner = Runner(self.window)
+        return self._runner
+
+    @property
+    def memory_store(self):
+        """Create the Agents v2 memory adapter only when history is queried."""
+        if self._memory_store is None:
+            from .memory import AgentsV2MemoryStore
+            self._memory_store = AgentsV2MemoryStore(self.window)
+        return self._memory_store
 
     def build_main_system_prompt_preview(
             self,

@@ -6,22 +6,24 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.22 19:00:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 import copy
 from typing import Optional, Any, Dict, List
+from contextlib import contextmanager
 
 from PySide6.QtCore import QObject, Slot
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.events import Event, KernelEvent
+from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.core.types.tools import PERSIST_HIDDEN_TOOL_CALLS, register_hidden_tool
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 
-class BasePlugin(QObject):
+class BasePlugin(QObject, LocaleDomain):
     DEFAULT_OPTION = {
         "value": None,
         "label": "",
@@ -44,6 +46,7 @@ class BasePlugin(QObject):
 
     def __init__(self, *args, **kwargs):
         super(BasePlugin, self).__init__()
+        self.init_locale_domain()
         self.window = kwargs.get('window', None)
         self.id = ""
         self.name = ""
@@ -60,6 +63,8 @@ class BasePlugin(QObject):
         self.use_locale = False
         self.is_common_plugin = False
         self.order = 0
+        self._option_locale_domain = None
+        self.tab_locale_domains = {}
 
     def setup(self) -> Dict[str, Any]:
         """
@@ -68,6 +73,16 @@ class BasePlugin(QObject):
         :return: config options
         """
         return self.options
+
+    @contextmanager
+    def option_locale_domain(self, domain: Optional[str]):
+        """Temporarily assign a locale domain to options added by a child provider."""
+        previous = self._option_locale_domain
+        self._option_locale_domain = domain or None
+        try:
+            yield
+        finally:
+            self._option_locale_domain = previous
 
     def add_option(
             self,
@@ -79,11 +94,14 @@ class BasePlugin(QObject):
         Add plugin configuration option
 
         :param name: option name (ID, key)
-        :param type: option type (text, textarea, bool, int, float, dict, combo)
+        :param type: option type (text, textarea, bool, int, float, dict, combo, button)
         :param kwargs: additional keyword arguments for option properties
         :return: added option config dict
         """
         option = BasePlugin.DEFAULT_OPTION.copy()
+        if self._option_locale_domain and kwargs.get("locale", True):
+            kwargs.setdefault("_locale_domain", self._option_locale_domain)
+            kwargs.setdefault("_use_locale", True)
         option.update(kwargs)
         option['tooltip'] = option['tooltip'] or option['description']
         option["id"] = name
@@ -299,6 +317,18 @@ class BasePlugin(QObject):
         """
         return
 
+    def shutdown(self, enabled: Optional[bool] = None):
+        """
+        Called during application shutdown.
+
+        This hook is invoked for every registered plugin, including disabled
+        plugins. ``enabled`` reports whether the plugin is active at the time
+        the application begins shutting down.
+
+        :param enabled: current plugin enabled state, or None if unavailable
+        """
+        return
+
     def trans(
             self,
             text: Optional[str] = None
@@ -311,7 +341,7 @@ class BasePlugin(QObject):
         """
         if text is None:
             return ""
-        domain = f'plugin.{self.id}'
+        domain = self.get_locale_domain() or f'plugin.{self.id}'
         return trans(text, False, domain)
 
     def error(self, err: Any):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 11:45:00
+# Updated Date: 2026.09.23 19:45:00
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -81,11 +81,18 @@ class Extra:
 
     def preview_code_text(self, value: str):
         """
-        Preview HTML
+        Preview HTML in the persistent Web Browser runtime.
 
         :param value: block text
         """
-        self.window.core.plugins.get("cmd_code_interpreter").handle_html_output(value)
+        browser = self.window.tools.get("web_browser")
+        if browser is None:
+            return
+        workdir = self.window.core.filesystem.get_data_dir()
+        browser.runtime_call(
+            "canvas_set_html",
+            {"html": value, "__workdir": workdir},
+        )
 
     def run_code_text(self, value: str):
         """
