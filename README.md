@@ -44,7 +44,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Extensible plugin system with `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and more.
 - Model Context Protocol (MCP) support.
 - Built-in `MCP Connectors` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
-- Agentsmulti-agent workflows with Chat, Orchestrator, and Swarm runtimes.
+- Agents multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
 - Optional project-specific `.agents/` directory support for Agents and Custom agents.
 - Portable `SKILL.md`-based `Agent Skills` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 - Built-in `Python/OS` tool for real-time Python, IPython, and system command execution.
