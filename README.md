@@ -502,10 +502,16 @@ See the **Agent Skills** documentation for supported formats, resources and runt
 
 This mode provides native, low-latency voice conversations with **OpenAI Realtime**, **Google Gemini Live**, and **xAI Grok** real-time models. Audio is streamed directly between PyGPT and the selected provider without the regular audio input/output plugins.
 
-The audio toolbox provides two options for controlling voice turns:
+The audio toolbox exposes a single turn-control option: **Auto (VAD)**. The separate **Loop** switch has been removed. Auto VAD now owns the complete continuous `listen -> respond -> listen` cycle. Fresh profiles start with Auto VAD disabled.
 
-- **Auto (VAD)** - enables automatic voice activity detection. While you speak, microphone audio is streamed to the active real-time model/provider, which detects when speech starts and when you stop speaking. The turn is then committed automatically and the model can respond without requiring you to manually stop the recording.
-- **Loop** - automatically starts microphone recording again after the model finishes playing its audio response. This enables continuous back-and-forth voice conversation without having to click the microphone button before every next turn. When used together with **Auto (VAD)**, each new turn can start automatically and end automatically when you stop speaking.
+- **Auto (VAD)** - enables automatic voice activity detection for the live microphone stream. While you speak, microphone audio is streamed to the active real-time provider. The provider detects speech boundaries using the configured VAD prefix padding and end-silence values, commits the utterance automatically, and PyGPT stops the current capture as the model response begins.
+- After the model's audio response finishes playing, PyGPT automatically starts the microphone again for the next VAD turn. There is no separate Loop setting to enable for this behavior.
+- You can click the microphone while a response is still pending or playing to start a new turn immediately. PyGPT interrupts the current response/playback, preserves the partial assistant output already received, keeps the live provider session open, and starts the new microphone capture.
+- Pressing **Esc** or using **Stop** cancels the current capture/response, stops playback, and cancels any queued automatic VAD restart. Auto VAD remains enabled, but the automatic cycle stays paused until you explicitly start the microphone again.
+- Sending a normal typed message while Auto VAD is active also pauses the automatic listen/respond/listen cycle. Click the microphone to resume voice turns; the live provider session/conversation is kept.
+- With **Auto (VAD)** disabled, microphone turns are manual and PyGPT does not automatically restart listening after a response.
+
+The VAD timing can be adjusted in `Config -> Settings -> Audio -> Options` with **VAD prefix padding (in ms)** (default: `300`) and **VAD end silence (in ms)** (default: `2000`). Prefix padding preserves audio immediately before detected speech starts; end silence controls how long silence must last before the utterance is considered complete.
 
 
 ## Research
@@ -899,10 +905,10 @@ Config -> Settings -> Context -> Tools -> Store tool calls in database
 The available modes are:
 
 - `Do not store` - tool calls and results are used normally during the live request, but are not written to durable history.
-- `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved.
-- `Store full input/output` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
+- `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved. **This is the default for fresh profiles.**
+- `Store full input/output` - stores complete tool requests and results, matching the previous full-storage behavior. Enable it when you explicitly need complete persisted tool payloads or want to restore persisted tool protocol after reloading a conversation.
 
-The storage policy applies to all modes that use tools, including Chat (with or without RAG), legacy Agents, and Agents. It affects only durable database persistence.
+The storage policy applies to all modes that use tools, including Chat (with or without RAG), Custom agents, and Agents. It affects only durable database persistence.
 
 **Restore tool calls in runtime** controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
