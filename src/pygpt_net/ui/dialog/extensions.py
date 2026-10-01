@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 16:00:00                  #
+# Updated Date: 2026.10.01 22:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -98,19 +98,19 @@ class Extensions:
         nodes = self.window.ui.nodes
         tab = QWidget()
         tree = QTreeWidget()
-        tree.setColumnCount(7)
+        tree.setColumnCount(8)
         tree.setHeaderLabels([
             trans("extensions.column.name"), trans("extensions.column.description"),
             trans("extensions.column.author"), trans("extensions.column.version"),
             trans("extensions.column.type"), trans("extensions.column.trusted"),
-            trans("extensions.column.official"),
+            trans("extensions.column.official"), trans("extensions.column.source"),
         ])
         tree.setRootIsDecorated(False)
         tree.setAlternatingRowColors(True)
         tree.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tree.customContextMenuRequested.connect(self.window.controller.extensions.show_installed_context_menu)
-        _configure_tree(tree, {0: 190, 1: 340, 2: 150, 3: 90, 4: 130, 5: 82, 6: 80})
+        _configure_tree(tree, {0: 190, 1: 340, 2: 150, 3: 90, 4: 130, 5: 82, 6: 80, 7: 350})
         nodes["extensions.installed.list"] = tree
 
         btn_zip = QPushButton(QIcon(":/icons/folder_open.svg"), trans("extensions.import.zip"))

@@ -6,13 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 17:36:00                  #
+# Updated Date: 2026.10.01 22:20:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QThreadPool, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidgetItem
 
+from pygpt_net.ui.dialog.list_details import set_item_tooltips, show_item_details
 from pygpt_net.utils import trans
 from .worker import ConnectorsWorker
 
@@ -82,8 +83,7 @@ class Connectors:
                 item.setText(3, str(server.get("server_address") or ""))
                 item.setText(4, str(server.get("source") or "manual"))
                 extra = str(server.get("extra") or "")
-                if extra:
-                    item.setToolTip(4, extra)
+                set_item_tooltips(tree, item, {4: extra} if extra else None)
             for column in (0, 1, 2, 4):
                 tree.resizeColumnToContents(column)
             self._apply_filter()
@@ -172,12 +172,16 @@ class Connectors:
             return
         idx = int(value)
         menu = QMenu(tree)
+        details_action = menu.addAction(QIcon(":/icons/info.svg"), trans("action.show_details"))
         edit_action = menu.addAction(QIcon(":/icons/edit.svg"), trans("action.edit"))
-        remove_action = menu.addAction(QIcon(":/icons/delete.svg"), trans("connectors.remove"))
+        menu.addSeparator()
+        uninstall_action = menu.addAction(QIcon(":/icons/delete.svg"), trans("action.uninstall"))
         selected = menu.exec(tree.viewport().mapToGlobal(pos))
-        if selected == edit_action:
+        if selected == details_action:
+            show_item_details(self.window, tree, item)
+        elif selected == edit_action:
             self.edit_connector(idx)
-        elif selected == remove_action:
+        elif selected == uninstall_action:
             self.remove_connector(idx)
 
     def remove_connector(self, idx: int):
@@ -272,12 +276,20 @@ class Connectors:
             entry = self._catalog[int(idx)]
         except (TypeError, ValueError, IndexError):
             return
-        if self._is_catalog_entry_installed(entry):
-            return
+        is_installed = self._is_catalog_entry_installed(entry)
         menu = QMenu(tree)
-        install_action = menu.addAction(QIcon(":/icons/download.svg"), trans("action.install"))
+        details_action = menu.addAction(QIcon(":/icons/info.svg"), trans("action.show_details"))
+        menu.addSeparator()
+        if is_installed:
+            action = menu.addAction(QIcon(":/icons/delete.svg"), trans("action.uninstall"))
+        else:
+            action = menu.addAction(QIcon(":/icons/download.svg"), trans("action.install"))
         selected = menu.exec(tree.viewport().mapToGlobal(pos))
-        if selected == install_action:
+        if selected == details_action:
+            show_item_details(self.window, tree, item)
+        elif selected == action and is_installed:
+            self.remove_catalog_entry(entry)
+        elif selected == action:
             button = self.window.ui.nodes.get("connectors.explore.btn.install")
             if button is not None:
                 button.setEnabled(False)
@@ -298,6 +310,36 @@ class Connectors:
         if installed_names is None:
             installed_names = self._installed_catalog_names()
         return name in installed_names
+
+    def remove_catalog_entry(self, entry: dict):
+        name = str(entry.get("name") or "").strip()
+        if not name:
+            return
+        source = f"catalog:{name}".lower()
+        servers = self.window.core.connectors.get_servers()
+        indices = [
+            idx for idx, server in enumerate(servers)
+            if str(server.get("source") or "").strip().lower() == source
+        ]
+        if not indices:
+            return
+        display_name = str(entry.get("display_name") or name)
+        answer = QMessageBox.question(
+            self.window,
+            trans("action.uninstall"),
+            trans("connectors.remove.confirm").format(name=display_name),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        for idx in reversed(indices):
+            self.window.core.connectors.remove_server(idx)
+        self.refresh_installed()
+        self.window.controller.presets.sync_mcp_from_global()
+        self.window.controller.plugins.update_info()
+        if self._catalog:
+            self._render_catalog(self._catalog)
 
     def install_selected(self):
         tree = self.window.ui.nodes.get("connectors.explore.list")
@@ -351,6 +393,7 @@ class Connectors:
             item.setText(4, str(entry.get("homepage") or entry.get("github") or entry.get("url") or ""))
             if is_installed:
                 item.setText(1, item.text(1) + " ✓")
+            set_item_tooltips(tree, item)
         tree.resizeColumnToContents(0)
         tree.resizeColumnToContents(1)
         tree.resizeColumnToContents(3)
