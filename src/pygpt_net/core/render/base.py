@@ -309,7 +309,8 @@ class BaseRenderer:
             meta: CtxMeta,
             ctx: CtxItem,
             text_chunk: str,
-            begin: bool = False
+            begin: bool = False,
+            part_key: Optional[object] = None,
     ):
         """
         Append output chunk to output
@@ -318,6 +319,7 @@ class BaseRenderer:
         :param ctx: context item
         :param text_chunk: text chunk
         :param begin: if it is the beginning of the text
+        :param part_key: optional logical partial identifier for web rendering
         """
         pass
 

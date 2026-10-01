@@ -377,13 +377,13 @@ def test_completed_legacy_timeline_is_rendered_with_shared_preferences():
     renderer = Renderer(window)
     renderer.helpers.pre_format_text = lambda value, **kwargs: value
     renderer.helpers.post_format_text = lambda value: value
-    timeline = renderer._build_partial_timeline(ctx, include_workflow_statuses=False, include_tool_calls=False)
+    timeline = renderer.timeline.build_partial_timeline(ctx, include_workflow_statuses=False, include_tool_calls=False)
     assert [item['text'] for item in timeline] == ['first', 'final']
-    assert renderer._display_full_agent_workflow_for_ctx(ctx) is True
+    assert renderer.agents.display_full_agent_workflow_for_ctx(ctx) is True
     # Old legacy rows retain their old layout and storage policy.
     old = CtxItem()
     old.mode = 'agent_llama'
-    assert renderer._display_full_agent_workflow_for_ctx(old) is False
+    assert renderer.agents.display_full_agent_workflow_for_ctx(old) is False
     assert window.core.ctx.should_persist_parts(old) is False
 
 

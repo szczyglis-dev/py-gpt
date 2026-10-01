@@ -11,6 +11,7 @@
 
 from unittest.mock import MagicMock, patch
 import platform
+import pytest
 
 from tests.mocks import mock_window
 from pygpt_net.core.render.plain.renderer import Renderer as Render
@@ -96,14 +97,15 @@ def test_append_extra(mock_window):
     render.append_extra(meta, item)
     render.append_raw.assert_called()
 
-def test_append_chunk(mock_window):
+@pytest.mark.parametrize("part_key", [None, "part-1"])
+def test_append_chunk(mock_window, part_key):
     """Test append chunk"""
     render = Render(mock_window)
     render.append_chunk_start = MagicMock()
     render.append_block = MagicMock()
     item = CtxItem()
     meta = CtxMeta()
-    render.append_chunk(meta, item, "test", True)
+    render.append_chunk(meta, item, "test", True, part_key=part_key)
     render.append_chunk_start.assert_called_once()
     render.append_block.assert_called_once()
 

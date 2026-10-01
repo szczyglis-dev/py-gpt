@@ -19,7 +19,6 @@ tmp/
 mp4/
 eggs/
 .eggs/
-parts/
 sdist/
 var/
 wheels/

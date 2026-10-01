@@ -113,7 +113,7 @@ class Render:
                 )
             else:
                 renderer = self.instance()
-                if data.get("part_key") is not None and hasattr(renderer, "_legacy_agent_name_prefix"):
+                if data.get("part_key") is not None:
                     renderer.append_chunk(
                         data.get("meta"),
                         data.get("ctx"),
