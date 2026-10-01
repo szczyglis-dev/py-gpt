@@ -11,5 +11,6 @@
   "name": "Example audio output",
   "description": "Runnable WAV tone generator demonstrating the audio-output provider contract.",
   "type": "audio_output",
-  "entrypoint": "provider.py:ExampleAudioOutput"
+  "entrypoint": "provider.py:ExampleAudioOutput",
+  "sha256": "095ba9c85842b02940718fe6e9747748bd3fd1600ccec94ae0bfef6f7dfb02bc"
 }

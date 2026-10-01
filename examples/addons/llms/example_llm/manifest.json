@@ -11,5 +11,6 @@
   "name": "Example Mock LLM",
   "description": "Offline runnable LlamaIndex LLM and embeddings tutorial provider.",
   "type": "llm",
-  "entrypoint": "provider.py:ExampleLLM"
+  "entrypoint": "provider.py:ExampleLLM",
+  "sha256": "f6c5a1fc5f383b74c79c16e810bf4aadf3f3214540db2699417a54103e64a9ac"
 }

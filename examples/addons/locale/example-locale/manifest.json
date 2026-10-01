@@ -10,5 +10,6 @@
   "id": "example-locale",
   "name": "Example locale add-on",
   "description": "Tutorial locale add-on with one English override key.",
-  "type": "locale"
+  "type": "locale",
+  "sha256": "04595bcfd3f3ca5a3fc4e6ed53a5b18b29a6ed4b1f5160d5c7458e94c1565258"
 }

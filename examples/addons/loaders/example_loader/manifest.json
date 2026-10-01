@@ -11,5 +11,6 @@
   "name": "Example data loader",
   "description": "Runnable .example file loader returning LlamaIndex Documents.",
   "type": "loader",
-  "entrypoint": "loader.py:ExampleLoader"
+  "entrypoint": "loader.py:ExampleLoader",
+  "sha256": "d6c051c6357f87e7d68dc4b30dc31f3660e85709aa9b96ce1d0f2aa2fdb08165"
 }

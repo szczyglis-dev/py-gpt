@@ -11,5 +11,6 @@
   "name": "Example GUI tool",
   "description": "Runnable tutorial GUI Tool that adds a Tools menu action.",
   "type": "tool",
-  "entrypoint": "tool.py:ExampleTool"
+  "entrypoint": "tool.py:ExampleTool",
+  "sha256": "23d1841325738098d563a22d7f78fdc2e9a99b9171666fadcd57093c8621f67d"
 }

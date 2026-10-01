@@ -10,5 +10,6 @@
   "id": "example-extension-dark",
   "name": "Example dark theme",
   "description": "Tutorial theme add-on with a visible QToolTip override.",
-  "type": "theme"
+  "type": "theme",
+  "sha256": "339a5b5fdab83cb4c1d3485018ce431c9ccc408569aa177bae63a661f373ee21"
 }

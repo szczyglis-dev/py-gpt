@@ -11,5 +11,6 @@
   "name": "Example agent",
   "description": "Runnable Custom-agents tutorial provider based on the built-in LlamaIndex base workflow.",
   "type": "agent",
-  "entrypoint": "agent.py:ExampleAgent"
+  "entrypoint": "agent.py:ExampleAgent",
+  "sha256": "3321c2a4797c87c2ae939c446f78c155e0b8e1bf76b88a8aa9d1f575a965f207"
 }

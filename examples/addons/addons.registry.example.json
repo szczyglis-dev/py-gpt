@@ -9,7 +9,8 @@
       "type": "plugin",
       "path": "./plugins/example_plugin",
       "trusted": true,
-      "official": true
+      "official": true,
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
     },
     {
       "id": "githubuser_project_my_plugin",
@@ -22,7 +23,8 @@
       "github_path": "plugins/githubuser_project_my_plugin",
       "ref": "main",
       "trusted": false,
-      "official": false
+      "official": false,
+      "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
     }
   ]
 }

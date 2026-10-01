@@ -11,5 +11,6 @@
   "name": "Example developer plugin",
   "description": "Runnable tutorial plugin with settings, model-callable tools and event hooks.",
   "type": "plugin",
-  "entrypoint": "plugin.py:ExamplePlugin"
+  "entrypoint": "plugin.py:ExamplePlugin",
+  "sha256": "9d8097c035cd49d44969d48135ea3b6cfca38c669dcac59d10243b5fd6874fd2"
 }

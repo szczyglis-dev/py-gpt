@@ -11,5 +11,6 @@
   "name": "Example web provider",
   "description": "Runnable Wikipedia OpenSearch web-provider tutorial.",
   "type": "web",
-  "entrypoint": "provider.py:ExampleWeb"
+  "entrypoint": "provider.py:ExampleWeb",
+  "sha256": "14fee606ec9791e238ff2a1b6433f8cbcde383f72758e67824184082836fd7ad"
 }

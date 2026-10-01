@@ -11,5 +11,6 @@
   "name": "Example audio input",
   "description": "Runnable WAV-inspector tutorial for the audio-input provider contract.",
   "type": "audio_input",
-  "entrypoint": "provider.py:ExampleAudioInput"
+  "entrypoint": "provider.py:ExampleAudioInput",
+  "sha256": "3fdfd09de17bd5e8da23c4d23962abf7d6ef047f6c27b0a9bcb03abaa2c90247"
 }

@@ -11,5 +11,6 @@
   "name": "Example vector store",
   "description": "Runnable persistent LlamaIndex vector-store tutorial provider.",
   "type": "vector_store",
-  "entrypoint": "provider.py:ExampleVectorStore"
+  "entrypoint": "provider.py:ExampleVectorStore",
+  "sha256": "657546f31afcd9499adebd9504df3525e1ad6a1b5b87cf335b946862746a9af1"
 }
