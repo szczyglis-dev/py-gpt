@@ -76,7 +76,7 @@ def _window():
         ui=SimpleNamespace(tray=MagicMock(), tray_menu={"restore": MagicMock()}),
         state="idle", is_post_update=False, is_closing=False,
         timer=None, post_timer=None, update_timer=None, prevState=None,
-        hide=MagicMock(), restore=MagicMock(), activateWindow=MagicMock(),
+        hide=MagicMock(), restore=MagicMock(), show=MagicMock(), raise_=MagicMock(), activateWindow=MagicMock(),
         showMinimized=MagicMock(), showMaximized=MagicMock(), showNormal=MagicMock(), showFullScreen=MagicMock(),
         isVisible=MagicMock(return_value=True), isActiveWindow=MagicMock(return_value=True),
         isMinimized=MagicMock(return_value=False), isMaximized=MagicMock(return_value=False),
@@ -172,12 +172,17 @@ def test_tray_toggle_hides_active_visible_window_when_enabled():
     w.hide.assert_called_once_with()
 
 
-def test_restore_preserves_maximized_state():
+def test_restore_preserves_current_window_state_when_prev_state_was_maximized():
     w = _window()
     w.prevState = Qt.WindowMaximized
+
     MainWindow.restore(w)
-    w.showMaximized.assert_called_once_with()
+
+    w.show.assert_called_once_with()
+    w.raise_.assert_called_once_with()
     w.activateWindow.assert_called_once_with()
+    w.showMaximized.assert_not_called()
+    w.showNormal.assert_not_called()
     w.ui.tray_menu["restore"].setVisible.assert_called_once_with(False)
 
 
