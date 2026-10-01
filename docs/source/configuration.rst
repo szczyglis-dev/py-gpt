@@ -36,7 +36,7 @@ General
 
 * ``Application environment (os.environ)``: Defines environment variables that PyGPT adds to its process environment during startup. Use this for provider SDKs, local model servers, proxies, or integrations that read configuration from environment variables.
 
-* ``Memory Limit``: Sets the memory threshold used by the renderer memory-management logic. When the renderer exceeds the configured threshold, PyGPT attempts to release renderer resources; set ``0`` to disable this mechanism. Accepted formats include ``3.5GB``, ``2GB``, ``2048MB`` and raw byte values; the minimum enabled limit is 2 GB. Default: 2.5GB.
+* ``Memory Limit``: Sets the memory threshold used by the renderer memory-management logic. When the renderer exceeds the configured threshold, PyGPT attempts to release renderer resources; set ``0`` to disable this mechanism. Accepted formats include ``3.5GB``, ``2GB``, ``2048MB`` and raw byte values; the minimum enabled limit is 2 GB. Default: 4GB.
 
 API Keys
 ~~~~~~~~
@@ -321,7 +321,15 @@ General
 Tools
 ^^^^^
 
-Tool-call persistence and replay options are grouped in this tab. ``Store tool calls in database`` controls durable storage, while ``Restore tool calls in runtime`` and ``Restore tool calls from history`` independently control replay for the active in-memory conversation and for history reloaded from the database. See ``Context and memory -> Tool call storage`` for details.
+Tool-call persistence and replay options are grouped in this tab. ``Store tool calls in database`` controls durable storage, while ``Restore tool calls in runtime`` and ``Restore tool calls from history`` independently control replay for the active in-memory conversation and for history reloaded from the database.
+
+* ``Store tool calls in database``: Selects how tool requests/results are persisted in conversation history. ``Do not store`` keeps no durable tool payloads, ``Store truncated`` preserves the structure while truncating stored string values, and ``Store full input/output`` persists complete payloads. Default: ``Store truncated``.
+
+* ``Restore tool calls in runtime``: Replays completed tool calls/results from earlier turns to the model while the current conversation remains active in memory. It does not control durable database storage and does not interrupt the tool exchange currently in progress. Default: True.
+
+* ``Restore tool calls from history``: Replays persisted tool protocol after a conversation is reloaded from the database. It requires ``Store full input/output`` and is ignored for ``Do not store`` or ``Store truncated``. Default: False.
+
+See ``Context and memory -> Tool call storage`` for details.
 
 Advanced handling
 ^^^^^^^^^^^^^^^^^
@@ -550,7 +558,7 @@ General
 Vector Store
 ^^^^^^^^^^^^
 
-* ``Vector Store``: Selects the storage backend in which LlamaIndex writes and queries document embeddings. Changing it determines where indexed vectors are persisted and which provider-specific connection options may be required. Default: ``SimpleVectorStore``.
+* ``Vector Store``: Selects the storage backend in which LlamaIndex writes and queries document embeddings. Changing it determines where indexed vectors are persisted and which provider-specific connection options may be required. Default: ``ChromaVectorStore``.
 
 * ``Vector Store (**kwargs)``: Additional keyword arguments (**kwargs), such as API keys, for the Vector Store provider. These arguments will be passed to the provider; please refer to the LlamaIndex API reference for a list of required arguments for the specified Vector Store.
 
@@ -636,7 +644,7 @@ Agents
 
 * ``Show full tool-chain in Agents``: When enabled, the final Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
-* ``Display full agent workflow``: Keeps the complete visible sequence of persisted Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: True.
+* ``Display full agent workflow``: Keeps the complete visible sequence of persisted Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: False.
 
 * ``Restore full workflow history on next request``: Controls the model-facing history restored from completed Agents turns. When enabled, later requests replay the full persisted workflow, including intermediate main-agent output and worker results. This can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored, reducing token usage at the cost of less detailed workflow context. The full workflow remains stored in the database/UI. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots follow the same selection. Default: True.
 

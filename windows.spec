@@ -259,6 +259,9 @@ exe = EXE(
     strip=False,
     upx=True,
     console=True,
+    # Keep diagnostic output, but do not foreground a new console when launched
+    # by Explorer/MSI. An existing terminal used for a CLI launch is unaffected.
+    hide_console='minimize-early',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

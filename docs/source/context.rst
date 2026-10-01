@@ -94,8 +94,8 @@ Tool requests and results can contain large payloads, for example file contents,
 The available modes are:
 
 * ``Do not store`` - tool calls and results are used normally during the live request, but are not written to durable history.
-* ``Store truncated`` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends ``....``. Object keys and nesting are preserved.
-* ``Store full input/output`` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
+* ``Store truncated`` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends ``....``. Object keys and nesting are preserved. **This is the default for fresh profiles.**
+* ``Store full input/output`` - stores complete tool requests and results, matching the previous full-storage behavior. Enable it when you explicitly need complete persisted tool payloads or want to restore persisted tool protocol after reloading a conversation.
 
 The storage policy applies to all modes that use tools, including Chat (with or without RAG), Custom agents, and Agents. It affects only durable database persistence.
 

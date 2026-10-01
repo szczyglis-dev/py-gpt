@@ -1,4 +1,5 @@
 2.8.36 (2026-09-30)
+
 - Moved external Add-ons to the shared application-wide addons directory, with automatic migration from profile workdirs.
 - Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
 - Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
