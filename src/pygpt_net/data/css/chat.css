@@ -635,6 +635,7 @@ html.tool-viewport-anchor-lock {{
   transition: color 0.15s ease;
 }}
 .tool-output .tool-output-name {{
+  color: #8d8d8c;
   font-family: 'Lato';
   transition: color 0.15s ease;
 }}
@@ -1016,4 +1017,24 @@ html.tool-viewport-anchor-lock {{
   margin: 6px 0 12px 0;
   border-bottom: 1px solid rgba(127, 127, 127, 0.18);
   padding-bottom: 12px;
+}}
+
+/* The running and completed controls share one accordion surface. */
+.live-tool-status {{ pointer-events: auto; width: auto; max-width: none; padding: 0; margin: 0; opacity: 1; }}
+.live-tool-status > .agents-v2-status__text {{ display: none; }}
+.tool-output-live > .tool-output-toggle .tool-output-arrow {{ visibility: hidden; }}
+.tool-output-live > .tool-output-toggle:hover .tool-output-arrow,
+.tool-output-live > .tool-output-toggle:focus-visible .tool-output-arrow {{ visibility: visible; }}
+.tool-output-live > .tool-output-toggle .tool-output-label,
+.tool-output-live > .tool-output-toggle .tool-output-name {{
+  background-image: linear-gradient(90deg, #7f7f7f 0%, #c5c5c5 48%, #7f7f7f 100%);
+  background-size: 240% 100%; background-clip: text; -webkit-background-clip: text;
+  color: transparent; animation: agents-v2-status-shimmer 1.8s linear infinite;
+}}
+.tool-output-live > .tool-output-toggle:hover span {{ background: none; animation: none; }}
+
+.tool-output-live > .tool-output-toggle .tool-output-name::after {{ content: "..."; }}
+
+@media (prefers-reduced-motion: reduce) {{
+  .tool-output-live > .tool-output-toggle span {{ animation: none; }}
 }}

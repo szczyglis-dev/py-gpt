@@ -11,6 +11,97 @@ class ToolOutput {
 		this._viewportAnchorTimer = 0;
 	}
 
+	// Reconcile authoritative snapshots by protocol identity. Keep the accordion
+	// and unchanged payload nodes alive, including their selection and scroll.
+	reconcile(parent, desired) {
+		const wanted = JSON.parse(desired.getAttribute('data-tool-keys') || '[]');
+		const sources = Array.from(parent.querySelectorAll('.tool-output[data-tool-keys]')).filter(el =>
+			(!wanted.length && el.id === desired.id) || JSON.parse(el.getAttribute('data-tool-keys') || '[]').some(key => wanted.includes(key)));
+		const existing = sources[0];
+		if (!existing) return desired.cloneNode(true);
+		const content = this._content(existing);
+		const expanded = sources.some(el => {
+			const body = this._content(el);
+			return body && body.classList.contains('is-expanded');
+		});
+		const clone = desired.cloneNode(true);
+		// Preserve each call's payload and nested expansion across growing groups.
+		for (const pair of Array.from(clone.querySelectorAll('[data-tool-key]'))) {
+			const old = sources.flatMap(source => Array.from(source.querySelectorAll('[data-tool-key]'))).find(el =>
+				el.getAttribute('data-tool-key') === pair.getAttribute('data-tool-key'));
+			if (!old) continue;
+			for (const selector of ['.tool-output-request-data', '.tool-output-result-data']) {
+				const nextData = pair.querySelector(selector), oldData = old.querySelector(selector);
+				if (!nextData || !oldData) continue;
+				const raw = el => {
+					const pending = el.querySelector('[md-block-markdown]');
+					if (pending) return pending.textContent;
+					const code = el.querySelector('pre code');
+					return code ? this._codeMarkdown(code.textContent) : '';
+				};
+				if (raw(nextData) === raw(oldData)) nextData.replaceWith(oldData);
+			}
+			const oldItem = old.closest('.tool-output-item'), nextItem = pair.closest('.tool-output-item');
+			if (nextItem && ((oldItem && oldItem.querySelector('[aria-expanded="true"]')) || (!oldItem && expanded))) {
+				this._setExpanded(nextItem.querySelector('.tool-group-content'), true);
+				nextItem.querySelector('button').setAttribute('aria-expanded', 'true');
+				nextItem.querySelector('.tool-output-arrow').classList.add('toggle-expanded');
+			}
+		}
+		for (const attr of Array.from(existing.attributes)) existing.removeAttribute(attr.name);
+		for (const attr of Array.from(clone.attributes)) existing.setAttribute(attr.name, attr.value);
+		const oldHeader = this._directChild(existing, '.tool-output-toggle');
+		const newHeader = this._directChild(clone, '.tool-output-toggle');
+		if (oldHeader && newHeader) {
+			oldHeader.onclick = null;
+			for (const attr of Array.from(oldHeader.attributes)) oldHeader.removeAttribute(attr.name);
+			for (const attr of Array.from(newHeader.attributes)) oldHeader.setAttribute(attr.name, attr.value);
+			for (const child of Array.from(newHeader.children)) {
+				const oldChild = Array.from(oldHeader.children).find(el => el.className === child.className);
+				if (!oldChild) continue;
+				if (oldChild.textContent !== child.textContent) oldChild.textContent = child.textContent;
+				child.replaceWith(oldChild);
+			}
+			oldHeader.replaceChildren(...Array.from(newHeader.childNodes));
+			newHeader.replaceWith(oldHeader);
+		}
+		const newContent = this._content(clone);
+		if (content && newContent) {
+			const body = this._contentBody(content);
+			body.replaceChildren(...Array.from(this._contentBody(newContent).childNodes));
+			newContent.replaceWith(content);
+		}
+		existing.replaceChildren(...Array.from(clone.childNodes));
+		if (expanded) {
+			this._setExpanded(this._content(existing), true);
+			existing.querySelector('button').setAttribute('aria-expanded', 'true');
+			existing.querySelector('.tool-output-arrow').classList.add('toggle-expanded');
+		}
+		for (const duplicate of sources.slice(1)) duplicate.remove();
+		return existing;
+	}
+
+	syncLive(parentId, calls) {
+		const host = runtime._statusMessageHost(parentId, false);
+		if (!host || !calls.length) return;
+		const status = Array.from(host.timeline.querySelectorAll('.workflow-status')).reverse().find(el => el.dataset.statusKind === 'tool');
+		if (!status) return;
+		const shell = document.createElement('div');
+		shell.innerHTML = runtime.templates._renderToolOutputWrapper({id: `live-${parentId}`, extra: {tool_calls: calls, tool_output_visible: true}});
+		const desired = shell.firstElementChild;
+		desired.setAttribute('data-live-tools', '1');
+		desired.classList.add('tool-output-live');
+		const output = this.reconcile(host.timeline, desired);
+		// Avoid interpolating nonnumeric live IDs into template onclick code.
+		output.querySelector('button').onclick = () => this.toggle(`live-${parentId}`);
+		status.classList.add('live-tool-status');
+		// A provider continuation may already have promoted this series into a
+		// timeline part. Update it in place instead of creating another status copy.
+		if (!output.isConnected) status.appendChild(output);
+		status.style.display = status.contains(output) ? '' : 'none';
+		runtime.renderer.renderPendingMarkdown(output);
+	}
+
 	// Expanding/collapsing a tool/workflow block is an explicit viewport
 	// interaction. Keep the clicked header at the same screen Y coordinate
 	// instead of letting page auto-follow or Chromium scroll anchoring pin the
@@ -482,7 +573,8 @@ class ToolOutput {
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
-			const resultEl = contentEl.querySelector('.tool-output-result-data');
+			const results = contentEl.querySelectorAll('.tool-output-result-data');
+			const resultEl = results.length ? results[results.length - 1] : null;
 			if (resultEl) {
 				const next = this._resultRaw(resultEl) + (content == null ? '' : String(content));
 				this._renderStructuredResult(resultEl, next);
@@ -501,7 +593,8 @@ class ToolOutput {
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
-			const resultEl = contentEl.querySelector('.tool-output-result-data');
+			const results = contentEl.querySelectorAll('.tool-output-result-data');
+			const resultEl = results.length ? results[results.length - 1] : null;
 			if (resultEl) {
 				this._renderStructuredResult(resultEl, content);
 			} else {
@@ -520,7 +613,8 @@ class ToolOutput {
 		if (els.length) {
 			const contentEl = this._content(els[els.length - 1]);
 			if (!contentEl) return;
-			const resultEl = contentEl.querySelector('.tool-output-result-data');
+			const results = contentEl.querySelectorAll('.tool-output-result-data');
+			const resultEl = results.length ? results[results.length - 1] : null;
 			if (resultEl) this._renderStructuredResult(resultEl, '');
 			else this._contentBody(contentEl).replaceChildren();
 		}

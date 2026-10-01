@@ -146,6 +146,7 @@ class Helpers:
             }
             item = {
                 "name": name,
+                "call_id": str(tool_call.get("call_id") or tool_call.get("id") or ""),
                 "request": json.dumps(request, ensure_ascii=False, separators=(",", ":"), default=str),
             }
             # Agents v2 stores each executed response next to its originating call.

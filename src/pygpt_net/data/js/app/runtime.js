@@ -705,9 +705,24 @@ class Runtime {
 		const host = wantedParent ? this._statusMessageHost(wantedParent, false) : null;
 		if (wantedParent && !host) return;
 		const root = host ? host.timeline : document;
+		for (const live of Array.from(root.querySelectorAll('.tool-output[data-live-tools]'))) {
+			if (live.closest('.workflow-status')) continue;
+			live.removeAttribute('data-live-tools');
+			live.classList.remove('tool-output-live');
+		}
 		for (const node of Array.from(root.querySelectorAll('.workflow-status'))) {
 			if (String(node.dataset.statusKind || '') !== 'tool') continue;
 			const part = node.closest ? node.closest('.msg-part-status') : null;
+			const live = node.querySelector('.tool-output[data-live-tools]');
+			if (live) {
+				// STOP/error can precede promotion. Retain the inspected payload,
+				// retiring only its running state rather than discarding results.
+				live.removeAttribute('data-live-tools');
+				live.classList.remove('tool-output-live');
+				node.parentNode.insertBefore(live, node);
+				node.remove();
+				continue;
+			}
 			if (part) part.remove();
 			else node.remove();
 		}
@@ -756,6 +771,9 @@ class Runtime {
 				value, sid, kind, label, !!record.active,
 				{ moveExisting: false }
 			);
+			if (kind === 'tool' && Array.isArray(record.live_tool_calls)) {
+				this.toolOutput.syncLive(value, record.live_tool_calls);
+			}
 		}
 
 		this._bindMainStreamAgentPrefix(timeline, partId, agentName);
@@ -906,14 +924,13 @@ class Runtime {
 		// Block-level tool output is structural: update it from the authoritative
 		// snapshot, but never touch neighboring streamed prose.
 		try {
-			Array.from(timeline.children).forEach((el) => {
-				if (el.classList && el.classList.contains('tool-output')
+			for (const el of Array.from(timeline.children)) {
+				if (el.classList.contains('tool-output') && !el.hasAttribute('data-tool-keys')
 						&& !el.classList.contains('agent-workflow-output')) el.remove();
-			});
+			}
 			for (const el of Array.from(desiredTimeline.children)) {
-				if (el.classList && el.classList.contains('tool-output')
-						&& !el.classList.contains('agent-workflow-output')) {
-					timeline.appendChild(el.cloneNode(true));
+				if (el.classList.contains('tool-output') && !el.classList.contains('agent-workflow-output')) {
+					timeline.appendChild(this.toolOutput.reconcile(timeline, el));
 				}
 			}
 		} catch (_) {}
@@ -924,6 +941,9 @@ class Runtime {
 		try {
 			for (const desiredPart of Array.from(desiredTimeline.children)) {
 				if (!desiredPart.classList || !desiredPart.classList.contains('msg-part')) continue;
+				// Runtime status records are restored by bindWorkflowStream. Their
+				// embedded live tools must not create a second structural message.
+				if (desiredPart.classList.contains('msg-part-status')) continue;
 				const partId = String((desiredPart.dataset && desiredPart.dataset.partId) || '');
 				const isInline = desiredPart.classList.contains('msg-part-inline');
 				const hasText = !!desiredPart.querySelector('.md-block');
@@ -932,7 +952,15 @@ class Runtime {
 
 				let existing = partId ? this._timelinePartById(timeline, partId, isInline ? 'inline' : 'content') : null;
 				if (!existing) {
-					timeline.appendChild(desiredPart.cloneNode(true));
+					const clone = desiredPart.cloneNode(true);
+					let liveSlot = null;
+					for (const output of Array.from(clone.querySelectorAll('.tool-output[data-tool-keys]'))) {
+						const reconciled = this.toolOutput.reconcile(timeline, output);
+						if (!liveSlot && reconciled.closest) liveSlot = reconciled.closest('.msg-part-status');
+						output.replaceWith(reconciled);
+					}
+					if (liveSlot && liveSlot.parentNode === timeline) timeline.insertBefore(clone, liveSlot);
+					else timeline.appendChild(clone);
 					if (isInline) inlineInserted = true;
 					continue;
 				}
@@ -940,12 +968,9 @@ class Runtime {
 
 				// A tool result may become UI-ready after the partial itself already
 				// exists. Reconcile only its tool controls, preserving prose nodes.
-				Array.from(existing.children).forEach((child) => {
-					if (child.classList && child.classList.contains('tool-output')) child.remove();
-				});
 				for (const child of Array.from(desiredPart.children)) {
-					if (child.classList && child.classList.contains('tool-output')) {
-						existing.appendChild(child.cloneNode(true));
+					if (child.classList.contains('tool-output')) {
+						existing.appendChild(this.toolOutput.reconcile(timeline, child));
 					}
 				}
 			}
@@ -1256,7 +1281,17 @@ class Runtime {
 		const timeline = this.dom.getMsgTimeline(msg, true);
 		const desiredTimeline = this.dom.getMsgTimeline(desiredMsg, true);
 		if (replaceText && timeline && desiredTimeline) {
-			timeline.replaceChildren(...Array.from(desiredTimeline.childNodes).map(n => n.cloneNode(true)));
+			const replacements = Array.from(desiredTimeline.childNodes).map(n => n.cloneNode(true));
+			for (const node of replacements) {
+				if (!node.querySelectorAll) continue;
+				const outputs = node.matches('.tool-output[data-tool-keys]') ? [node] : Array.from(node.querySelectorAll('.tool-output[data-tool-keys]'));
+				for (const output of outputs) {
+					const reconciled = this.toolOutput.reconcile(timeline, output);
+					if (output === node) replacements[replacements.indexOf(node)] = reconciled;
+					else output.replaceWith(reconciled);
+				}
+			}
+			timeline.replaceChildren(...replacements);
 		} else if (timeline && desiredTimeline) {
 			// Preserve token-streamed prose. Structural rows are reconciled around it.
 			// Completed Agents v2 turns get a dedicated transition so their final
@@ -1971,3 +2006,5 @@ setInterval(() => {
 }, 2000);*/
 window.setAgentWorking = (parentId, data) => runtime.api_setAgentWorking(parentId, data);
 window.clearAgentWorking = () => runtime.api_clearAgentWorking();
+
+window.syncLiveTools = (parentId, calls) => runtime.toolOutput.syncLive(parentId, calls);

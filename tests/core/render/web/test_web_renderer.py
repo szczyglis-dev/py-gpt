@@ -963,3 +963,47 @@ def test_working_timer_not_shown_for_regular_chat(renderer):
     ctx = CtxItem()
     ctx.mode = "chat"
     assert renderer._agent_working_payload(ctx, tool_started=True) is None
+
+
+def test_live_tool_snapshot_preserves_readiness_and_repeated_calls(renderer, fake_window):
+    from pygpt_net.item.ctx_part_task import CtxItemPartTask
+    from pygpt_net.item.ctx_part import CtxItemPart
+    from pygpt_net.item.ctx import CtxItem
+    ctx = CtxItem()
+    ctx.id = 42
+    part = CtxItemPart()
+    tasks = []
+    for call_id, visible, ready in [('a', True, False), ('b', True, False), ('hidden', False, False), ('old', True, True)]:
+        task = CtxItemPartTask()
+        task.tool_call_id = call_id
+        task.tool_input = {'query': call_id}
+        task.extra = {'tool_name': 'search', 'ui_visible': visible, 'ui_ready': ready}
+        tasks.append(task)
+    tasks[0].set_result({'found': 1})
+    part.tasks = tasks
+    ctx.parts = [part]
+    renderer._show_tool_chain_for_ctx = MagicMock(return_value=True)
+    from pygpt_net.core.render.web.helpers import Helpers
+    renderer.helpers = Helpers(fake_window)
+    renderer.helpers.is_tool_hidden = MagicMock(return_value=False)
+    renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current())
+    renderer._workflow_statuses = {(1, "42"): [{"kind": "tool", "active": True}]}
+    renderer.tool_output_snapshot(None, ctx)
+    assert not tasks[0].is_ui_ready()
+    tasks[0].mark_ui_ready(True)
+    renderer.tool_output_snapshot(None, ctx)
+    script = renderer.get_output_node().page().runJavaScript.call_args.args[0]
+    assert 'syncLiveTools("42"' in script
+    assert '"call_id": "a"' in script and '"call_id": "b"' in script
+    assert '"call_id": "hidden"' not in script and '"call_id": "old"' not in script
+    assert '"response"' in script
+    assert tasks[0].is_ui_ready()
+    assert not tasks[1].is_ui_ready()
+
+
+def test_live_tool_snapshot_respects_json_visibility(renderer, fake_window):
+    from pygpt_net.item.ctx import CtxItem
+    renderer._show_tool_chain_for_ctx = MagicMock(return_value=False)
+    renderer.get_output_node = MagicMock()
+    renderer.tool_output_snapshot(None, CtxItem())
+    renderer.get_output_node.assert_not_called()

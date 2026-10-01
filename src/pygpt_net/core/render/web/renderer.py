@@ -3116,7 +3116,6 @@ class Renderer(BaseRenderer):
                 f"clearToolStatus({parent_id}, {remove_js});"
                 "else if (typeof window.freezeWorkflowStatus !== 'undefined') "
                 f"freezeWorkflowStatus({parent_id}, 'tool');"
-                "if (typeof window.clearToolOutput !== 'undefined') clearToolOutput();"
             )
         except Exception:
             pass
@@ -3142,12 +3141,9 @@ class Renderer(BaseRenderer):
             return
         _key, _pid, resolved_ctx = self._workflow_status_key(meta, ctx)
 
-        # Consecutive tool calls share one transient row regardless of whether
-        # the durable JSON Tool/Tools accordion is enabled. Each TOOL_BEGIN only
-        # replaces the label with the current call/batch; the shimmer remains
-        # active across tool results and between provider continuations. Completed
-        # calls are accumulated in ctx partial tasks and become durable controls
-        # only at the next non-tool/final boundary.
+        # Consecutive calls share one chronological row. When JSON is enabled,
+        # its accordion receives task snapshots immediately; persistence readiness
+        # still advances only at the next non-tool/final boundary.
         status_id = self._workflow_status_add(
             meta,
             resolved_ctx,
@@ -3166,8 +3162,50 @@ class Renderer(BaseRenderer):
                 f"setToolStatus({names}, {parent_id}, {sid});"
                 "else if (typeof window.beginToolOutput !== 'undefined') beginToolOutput();"
             )
+            self.tool_output_snapshot(meta, resolved_ctx)
         except Exception:
             pass
+
+    def tool_output_snapshot(self, meta: CtxMeta, ctx: CtxItem):
+        """Publish unpromoted tasks without changing their persistence readiness.
+
+        Scoped to a parent turn; protocol call IDs identify repeated tool names.
+        This transport can also be reused by future worker status accordions.
+        """
+        ctx = getattr(ctx, "turn_parent", None) or ctx
+        if ctx is None or not self._show_tool_chain_for_ctx(ctx):
+            return
+        raw_calls = []
+        for part in ctx.parts or []:
+            part_calls = ctx.get_part_tool_calls(visible_only=False, part=part)
+            for task in getattr(part, "tasks", None) or []:
+                if task.is_ui_ready() or (task.extra or {}).get("ui_visible") is False:
+                    continue
+                raw_calls.extend(call for call in part_calls if call.get("call_id") == (task.tool_call_id or task.uuid))
+        calls = self.helpers.extract_extra_tool_calls(raw_calls)
+        if not calls:
+            return
+        for key, records in self._workflow_statuses.items():
+            if key[1] != str(ctx.id):
+                continue
+            record = next((row for row in reversed(records) if row.get("kind") == "tool"), None)
+            if record is not None:
+                # Promotion between provider rounds changes ui_ready, but it is
+                # not a visual series boundary. Keep earlier calls in this row.
+                combined = {
+                    call.get("call_id") or call.get("request"): call
+                    for call in record.get("live_tool_calls") or []
+                }
+                for call in calls:
+                    combined[call.get("call_id") or call.get("request")] = call
+                calls = list(combined.values())
+                record["live_tool_calls"] = calls
+        payload = json.dumps(calls, ensure_ascii=False)
+        parent = json.dumps(str(ctx.id or ""))
+        self.get_output_node(meta).page().runJavaScript(
+            "if (typeof window.syncLiveTools !== 'undefined') "
+            f"syncLiveTools({parent}, {payload});"
+        )
 
     def tool_output_end(self):
         """End tool output"""
@@ -4583,6 +4621,7 @@ class Renderer(BaseRenderer):
                 "status_text": str(record.get("text") or ""),
                 "status_tool_names": list(record.get("tool_names") or []),
                 "status_active": bool(record.get("active")),
+                "status_live_tool_calls": list(record.get("live_tool_calls") or []) if include_tool_calls else [],
             })
 
         def append_inline_message(part, message):

@@ -320,7 +320,7 @@ class NodeTemplateEngine {
 		let toolNamesAttr = '';
 		if (hasToolCalls) {
 			const rawNames = toolCalls.map((call) => String(call.name || 'tool'));
-			const hasPerCallResponses = toolCalls.some((call) =>
+			const hasPerCallResponses = toolCalls.every(call => call.call_id) || toolCalls.some((call) =>
 				call && Object.prototype.hasOwnProperty.call(call, 'response')
 			);
 			// A persisted Agents v2 workflow can contain several executed tools on one
@@ -350,7 +350,7 @@ class NodeTemplateEngine {
 				? String(window.LOCALE_TOOLS)
 				: toolLabel;
 			titleHtml =
-				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
+				`<button type='button' class='tool-output-toggle' onclick='toggleToolOutput(${this._escapeHtml(JSON.stringify(block.id))});' ` +
 				`title='${this._escapeHtml(toggleTitle)}' aria-expanded='false'>` +
 				`<span class='tool-output-label'>${this._escapeHtml(titleLabel)}:&nbsp;</span>` +
 				`<span class='tool-output-name'>${names.join(', ')}</span>${arrowHtml}` +
@@ -363,7 +363,7 @@ class NodeTemplateEngine {
 					const responseCode = hasResponse ? this._renderToolCode(call.response, responseLabel) : '';
 					const responseDisplay = hasResponse ? '' : 'display:none';
 					return (
-						`<div class='tool-output-pair'>` +
+						`<div class='tool-output-pair' data-tool-key='${this._escapeHtml(String(call.call_id || call.request || ""))}'>` +
 						`<div class='tool-output-section'>` +
 						`<div class='tool-output-data tool-output-request-data'>${requestCode}</div>` +
 						`</div>` +
@@ -413,13 +413,13 @@ class NodeTemplateEngine {
 		}
 
 		const legacyToggleHtml = hasToolCalls ? '' :
-			`<span class='toggle-cmd-output' onclick='toggleToolOutput(${this._esc(block.id)});' ` +
+			`<span class='toggle-cmd-output' onclick='toggleToolOutput(${this._escapeHtml(JSON.stringify(block.id))});' ` +
 			`title='${this._escapeHtml(toggleTitle)}' role='button'>` +
 			`<img src='${this._esc(expIcon)}' width='25' height='25' valign='middle'>` +
 			`</span>`;
 
 		const toolAttrs = hasToolCalls
-			? ` id='tool-output-${this._esc(block.id)}' data-tool-names='${toolNamesAttr}'`
+			? ` id='tool-output-${this._esc(block.id)}' data-tool-names='${toolNamesAttr}' data-tool-keys='${this._escapeHtml(JSON.stringify(toolCalls.map(call => call.call_id || call.request)))}'`
 			: '';
 
 		const contentClass = hasToolCalls ? 'tool-output-content' : 'content';
@@ -463,14 +463,20 @@ class NodeTemplateEngine {
 					label = `${prefix}: ${toolNames.join(', ')}...`;
 				}
 				if (label) {
+					const liveCalls = Array.isArray(segment.status_live_tool_calls) ? segment.status_live_tool_calls : [];
+					let liveHtml = '';
+					if (statusKind === 'tool' && liveCalls.length) {
+						liveHtml = this._renderToolOutputWrapper({id: `live-${block.id}`, extra: {tool_calls: liveCalls, tool_output_visible: true}})
+							.replace("class='tool-output'", "class='tool-output tool-output-live' data-live-tools='1'");
+					}
 					const activeClass = segment.status_active ? ' agents-v2-status--active' : '';
 					const sid = this._escapeHtml(statusId);
 					const skind = this._escapeHtml(statusKind || 'agent');
 					parts.push(
 						`<div class='msg-part msg-part-status' data-status-part='1'>` +
-						`<div class='agents-v2-status workflow-status${activeClass}' ` +
+						`<div class='agents-v2-status workflow-status${activeClass}${liveHtml ? ' live-tool-status' : ''}' ` +
 						`data-workflow-status-id='${sid}' data-status-kind='${skind}'>` +
-						`<span class='agents-v2-status__text'>${this._escapeHtml(label)}</span>` +
+						`<span class='agents-v2-status__text'>${this._escapeHtml(label)}</span>${liveHtml}` +
 						`</div></div>`
 					);
 				}
