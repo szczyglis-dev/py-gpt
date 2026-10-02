@@ -491,3 +491,30 @@ def test_annotation_gutter_follows_add_remove_delivery_and_conversation(app, tmp
     panel.close()
     panel.deleteLater()
     wait()
+
+
+@pytest.mark.parametrize('ending', [b'\r\n', b'\r', b'\n'])
+def test_csv_load_normalization_is_not_an_edit(app, tmp_path, monkeypatch, ending):
+    csv = tmp_path / 'table.csv'
+    original = ending.join([b'name,value', b'first,1', b'second,2', b''])
+    csv.write_bytes(original)
+    other = tmp_path / 'other.txt'
+    other.write_text('other file')
+    panel = PreviewPanel(MagicMock(), str(tmp_path))
+    question = MagicMock(return_value=QMessageBox.Cancel)
+    monkeypatch.setattr(QMessageBox, 'question', question)
+    assert panel.open_file(str(csv))
+    assert not panel.viewer.is_content_modified()
+    panel.viewer.document().setModified(True)  # formatting-only changes
+    assert panel.open_file(str(other))
+    question.assert_not_called()
+    assert csv.read_bytes() == original
+    assert panel.open_file(str(csv))
+    panel.viewer.insertPlainText('edited')
+    assert panel.viewer.is_content_modified()
+    assert not panel.open_file(str(other))
+    question.assert_called_once()
+    panel.viewer.undo()
+    assert not panel.viewer.is_content_modified()
+    assert panel.open_file(str(other))
+    panel.deleteLater()

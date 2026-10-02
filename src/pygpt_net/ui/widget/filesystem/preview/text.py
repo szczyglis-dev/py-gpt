@@ -40,6 +40,9 @@ class TextPreview(TextEditor):
         self.annotation_timer.setInterval(150)
         self.annotation_timer.timeout.connect(self.refresh_annotations)
         self.setPlainText(self._baseline_content)
+        # QTextDocument normalizes line endings and paragraph separators while
+        # loading. Compare edits against that representation, not raw file bytes.
+        self._baseline_content = self.toPlainText()
         self.ensurePolished()
         self.document().setModified(False)
         self.textChanged.connect(self._sync_modified_state)
