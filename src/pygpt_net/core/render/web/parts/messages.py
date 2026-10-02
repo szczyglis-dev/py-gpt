@@ -15,6 +15,9 @@ import json
 import os
 import re
 from datetime import datetime
+from copy import copy
+from pygpt_net.item.render_attachment import AttachmentPath, attachment_paths
+
 from typing import Optional, Tuple
 from pygpt_net.core.render.protocol import RenderMutation, RenderOp
 from pygpt_net.item.ctx import CtxItem, CtxMeta
@@ -76,6 +79,28 @@ class Messages:
 
         return str(text).strip()
 
+    def input_attachment_snapshot(self, ctx, pid):
+        """Render the pending upload list before provider-side ctx binding finishes."""
+        preview = copy(ctx)
+        preview.images = attachment_paths(ctx.images)
+        preview.files = attachment_paths(ctx.files)
+        mode = getattr(ctx, "mode", None) or self.renderer.window.core.config.get("mode")
+        manager = getattr(self.renderer.window.core, "attachments", None)
+        pending = manager.get_all(mode) if manager is not None else {}
+        for item in pending.values():
+            path = getattr(item, "path", None)
+            if getattr(item, "type", "file") != "file" or not isinstance(path, str) or not path:
+                continue
+            if self.renderer.window.core.filesystem.types.is_image(path):
+                preview.files = [file for file in preview.files if file != path]
+                preview.images = [image for image in preview.images if image != path]
+                preview.images.append(AttachmentPath(path, "user"))
+            else:
+                preview.files = [file for file in preview.files if file != path]
+                preview.files.append(AttachmentPath(path, "user"))
+        images, files, _, _ = self.renderer.body.build_extras_dicts(preview, pid, origin="user")
+        return {"images": images, "files": files}
+
     def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
         """
         Append user input as RenderBlock JSON
@@ -114,6 +139,8 @@ class Messages:
                 history_date_label=date_label,
             )
             if block:
+                if not append:
+                    block.extra["user_attachments"] = self.input_attachment_snapshot(ctx, pid)
                 self.renderer.bridge.emit_mutation(meta, RenderMutation(
                     op=RenderOp.APPEND_INPUT,
                     msg_id=getattr(ctx, "id", None),

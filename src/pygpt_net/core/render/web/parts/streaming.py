@@ -630,6 +630,8 @@ class Streaming:
                 "text": self.renderer.sanitize_html(text_chunk),
                 "date_label": date_label,
                 "msg_id": getattr(ctx, "id", None),
+                "user_attachments": self.renderer.messages.input_attachment_snapshot(
+                    ctx, self.renderer.session.get_or_create_pid(meta)),
             }, ensure_ascii=False, separators=(",", ":"))
             self.renderer.get_output_node(meta).page().bridge.nodeInput.emit(
                 payload

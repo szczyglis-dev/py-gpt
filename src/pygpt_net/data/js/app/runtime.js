@@ -33,7 +33,7 @@ class Runtime {
 			findStatusHost: (parentId, create) => this.workflows.workflowMessageHost(parentId, create)
 		});
 		this.loading = new Loading(this.dom);
-		this.nodes = new NodesManager(this.dom, this.renderer, this.highlighter, this.math, this.toolOutput);
+		this.nodes = new NodesManager(this.dom, this.renderer, this.highlighter, this.math, this.toolOutput, this.templates);
 		this.bridge = new BridgeManager(this.cfg, this.logger);
 		this.ui = new UIManager();
 		this.stream = new StreamEngine(this.cfg, this.dom, this.renderer, this.math, this.highlighter, this.codeScroll, this.scrollMgr, this.raf, this.async, this.logger);

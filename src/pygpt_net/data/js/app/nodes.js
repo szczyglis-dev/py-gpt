@@ -5,12 +5,13 @@
 class NodesManager {
 
 	// Nodes manager for handling message nodes.
-	constructor(dom, renderer, highlighter, math, toolOutput) {
+	constructor(dom, renderer, highlighter, math, toolOutput, templates) {
 		this.dom = dom;
 		this.renderer = renderer;
 		this.highlighter = highlighter;
 		this.math = math;
 		this.toolOutput = toolOutput || null;
+        this.templates = templates || null;
 		// User message collapse manager
 		this.userCollapse = new UserCollapseManager(this.renderer.cfg);
 	}
@@ -78,12 +79,14 @@ class NodesManager {
 
 		let html = String(content || '');
 		let dateLabel = '';
+        let attachments = null;
 		const inputEnvelopePrefix = '__PYGPT_INPUT_V1__';
 		if (html.startsWith(inputEnvelopePrefix)) {
 			try {
 				const payload = JSON.parse(html.slice(inputEnvelopePrefix.length));
 				html = String((payload && payload.text) || '');
 				dateLabel = String((payload && payload.date_label) || '');
+                attachments = payload && payload.user_attachments;
 			} catch (_) {
 				// Keep backward-compatible plain-text behavior if the envelope is malformed.
 			}
@@ -109,6 +112,10 @@ class NodesManager {
 			html = `<div class="msg-box msg-user"><div class="msg"><p style="margin:0">${body}</p></div></div>`;
 		}
 
+        const attachmentHtml = attachments && this.templates
+            ? this.templates.artifacts.renderUserAttachments(attachments) : '';
+        html = `<div class="msg-user-region input-live-arrival">${attachmentHtml}${html}</div>`;
+
 		if (dateLabel) {
 			const safeDateLabel = (typeof Utils !== 'undefined' && Utils.escapeHtml) ?
 				Utils.escapeHtml(dateLabel) :
@@ -119,7 +126,7 @@ class NodesManager {
 					'"': '&quot;',
 					"'": '&#039;'
 				} [m]));
-			html = `<div class="msg-date-separator">${safeDateLabel}</div>${html}`;
+			html = `<div class="msg-date-separator input-live-date">${safeDateLabel}</div>${html}`;
 		}
 
 		// Synchronous DOM update.

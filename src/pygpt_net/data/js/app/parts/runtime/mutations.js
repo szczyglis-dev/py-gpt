@@ -129,7 +129,10 @@ class RuntimeMutations {
 		const nodes = this.runtime.dom.get('_nodes_');
 		if (!nodes) return;
 		try {
-			const inputOnly = Object.assign({}, block, {output: null});
+			const transient = this.runtime.dom.get('_append_input_');
+            const alreadyVisible = transient && transient.querySelector('.msg-user');
+            const inputOnly = Object.assign({}, block, {output: null,
+                extra: Object.assign({}, block.extra || {}, {live_input_fade: !alreadyVisible})});
 			const html = this.runtime.templates.renderNode(inputOnly);
 			nodes.insertAdjacentHTML('beforeend', html);
 			nodes.classList.remove('empty_list');

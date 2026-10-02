@@ -349,3 +349,25 @@ def test_user_attachments_remain_visible_during_agent_stream():
     ctx.files = [AttachmentPath('/user.txt', 'user'), '/result.txt']
     assert body.build_extras_dicts(ctx, 0)[1] == {}
     assert body.build_extras_dicts(ctx, 0, origin='user')[1]['1']['basename'] == 'user.txt'
+
+
+def test_live_input_snapshot_has_pending_attachments_before_provider_response():
+    from types import SimpleNamespace
+    from pygpt_net.item.attachment import AttachmentItem
+    from pygpt_net.core.render.web.parts.messages import Messages
+    win = FakeWindow({})
+    pending = {
+        'image': AttachmentItem(path='/pending.png', name='pending.png'),
+        'file': AttachmentItem(path='/pending.pdf', name='pending.pdf'),
+    }
+    win.core.attachments = SimpleNamespace(get_all=lambda mode: pending)
+    win.core.filesystem.types = SimpleNamespace(is_image=lambda path: path.endswith('.png'))
+    renderer = SimpleNamespace(window=win, body=Body(win), state=SimpleNamespace())
+    ctx = CtxItem()
+    ctx.files = ['/pending.png']
+    snapshot = Messages(renderer).input_attachment_snapshot(ctx, 0)
+    assert snapshot['images']['1']['basename'] == 'pending.png'
+    assert snapshot['files']['1']['basename'] == 'pending.pdf'
+    assert snapshot['files']['1']['icon_url'] == 'qrc:///filetypes/pdf.svg'
+    assert ctx.images == []
+    assert ctx.files == ['/pending.png']
