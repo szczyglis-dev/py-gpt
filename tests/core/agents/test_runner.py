@@ -232,3 +232,25 @@ def test_regular_call_uses_preset_index_and_persists_composed_prompt(
     for name in ("tools", "function_tools", "plugin_tools", "plugin_specs"):
         assert prepared.agent_kwargs[name] == []
     assert prepared.agent_kwargs["retriever_tool"] is tools.get_retriever_tool.return_value
+
+
+def test_quick_call_passes_once_policy_and_records_failure():
+    from unittest.mock import patch
+    from types import SimpleNamespace
+    from pygpt_net.core.agents.runner import Runner
+    window = MagicMock()
+    window.controller.kernel.stopped.return_value = False
+    runner = Runner(window)
+    runner.preparation = MagicMock()
+    ctx = SimpleNamespace(mode='agent_llama')
+    signals = MagicMock()
+    with patch('pygpt_net.core.agents.runner.AgentExecution') as execution:
+        execution.return_value.run_once.return_value = 'answer'
+        assert runner.call_once(ctx, {}, signals) == 'answer'
+    assert runner.preparation.prepare.call_args.kwargs['once'] is True
+    runner.preparation.prepare.side_effect = RuntimeError('bad')
+    runner._record_error = MagicMock()
+    assert runner.call_once(ctx, {}, signals) is None
+    runner._record_error.assert_called_once()
+    window.controller.kernel.stopped.return_value = True
+    assert runner.call_once(ctx, {}, signals) is True

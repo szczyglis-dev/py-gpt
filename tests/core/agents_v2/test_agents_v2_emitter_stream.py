@@ -198,3 +198,13 @@ def test_computer_status_is_removed_when_agent_finishes():
     emitter.clear_status()
     statuses = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_STATUS]
     assert any(e.data.get('owner') == {'computer_use': True, 'active': False} for e in statuses)
+
+
+def test_materialized_final_stream_preserves_chunks_and_uuid():
+    emitter, signals = make_emitter()
+    emitter._final_stream_delay = 0
+    asyncio.run(emitter.stream_final('The final answer.', part_uuid='final-part'))
+    appends = [event for event in emitted_events(signals) if event.name == KernelEvent.AGENT_V2_APPEND]
+    assert ''.join(event.data['chunk'] for event in appends) == 'The final answer.'
+    assert all(event.data['part_uuid'] == 'final-part' for event in appends)
+    assert emitter.text.endswith('The final answer.')

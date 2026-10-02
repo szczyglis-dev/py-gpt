@@ -66,3 +66,11 @@ def test_append_agents_directory_support_uses_memory_hint_when_directory_missing
     assert AGENTS_DIRECTORY_MEMORIES_PROMPT in prompt
     assert "No `%workdir%/.agents/` directory exists" in prompt
     assert ".agents/memories/" in prompt
+
+
+def test_custom_main_prompt_and_unknown_default_preserve_user_policy():
+    from pygpt_net.core.agents_v2.prompts import build_custom_main_prompt, get_default_custom_prompt, CUSTOM_PRIMARY_PROMPT_CONFIG_KEY
+    assert build_custom_main_prompt(' custom ') == 'custom'
+    assert build_custom_main_prompt(None) == ''
+    assert get_default_custom_prompt('unknown') == ''
+    assert 'Primary Agent' in get_default_custom_prompt(CUSTOM_PRIMARY_PROMPT_CONFIG_KEY)

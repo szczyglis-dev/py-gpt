@@ -380,7 +380,9 @@ def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
     cursor.movePosition(QTextCursor.End)
     editor.setTextCursor(cursor)
     editor.finder.find('needle')
-    wait(150)
+    # Execute the pending search deterministically rather than racing the Qt timer.
+    editor.finder.timer.stop()
+    editor.finder.find_execute()
     assert len(editor.extraSelections()) == 9  # only search matches highlight the code
     editor.finder.clear_search()
     assert editor.extraSelections() == []

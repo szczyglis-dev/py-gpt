@@ -58,3 +58,11 @@ def test_mailbox_limits_and_stop_reject_without_partial_broadcast():
         bus.runtime.is_stopped = lambda: True
         assert "error" in json.loads(await bus.send("w1", "orchestrator", "Evidence"))
     asyncio.run(scenario())
+
+
+def test_peers_tool_returns_shared_worker_list():
+    from unittest.mock import AsyncMock
+    bus = make_bus()
+    bus.runtime.workers.list = AsyncMock(return_value='peers')
+    assert asyncio.run(bus.tools('w1')[2].acall()).content == 'peers'
+    bus.runtime.workers.list.assert_awaited_once_with()

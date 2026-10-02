@@ -253,3 +253,36 @@ def test_provider_phase_controls_continuation_without_synthetic_assignment(phase
         if phase=='commentary':
             assert result.input[-1].additional_kwargs['phase']=='commentary'
     asyncio.run(scenario())
+
+
+def test_message_receiver_injects_peer_evidence_into_next_model_step():
+    from unittest.mock import patch
+    from pygpt_net.core.agents_v2.autonomy import AutonomousAgentMixin
+    from llama_index.core.agent.workflow import FunctionAgent
+    agent = AutonomousFunctionAgent(llm=ToolLLM(), tools=[])
+    callback = MagicMock(return_value='peer evidence')
+    agent.set_message_receiver(callback)
+    memory = SimpleNamespace(aput=AsyncMock())
+    with patch.object(FunctionAgent, 'take_step', new=AsyncMock(return_value='result')) as step:
+        result = asyncio.run(agent.take_step('context', [ChatMessage(role='user', content='request')], [], memory))
+    assert result == 'result'
+    assert memory.aput.call_args.args[0].content == 'peer evidence'
+    assert step.call_args.args[1][-1].content == 'peer evidence'
+
+
+def test_new_run_resets_previous_completion_and_stall_state():
+    from unittest.mock import patch
+    from llama_index.core.agent.workflow import FunctionAgent
+    agent = AutonomousFunctionAgent(llm=ToolLLM(), tools=[])
+    reset = MagicMock()
+    agent.configure_completion('done', direct_reset=reset)
+    agent.request_completion('blocked')
+    agent._stalled = True
+    agent._iteration_limit_reached = True
+    agent._tool_activity_seen = True
+    with patch.object(FunctionAgent, 'run', return_value='handler') as run:
+        assert agent.run(user_msg='new request') == 'handler'
+    assert not agent.completion_requested and not agent.stalled and not agent.iteration_limit_reached
+    assert not agent._tool_activity_seen
+    reset.assert_called_once_with()
+    run.assert_called_once_with(user_msg='new request')

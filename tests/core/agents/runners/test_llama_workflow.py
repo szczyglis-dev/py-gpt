@@ -586,3 +586,77 @@ def test_tool_status_carries_worker_owner_even_when_ui_is_delayed():
     assert owner == {"part_uuid": tool_part.uuid, "agent_name": "Worker", "placement": "before"}
     Response(window).agent_v2_status(session.context, {}, tool_status.data["status"], owner=owner)
     assert window.dispatch.call_args.args[0].data["owner"] == owner
+
+
+@pytest.mark.parametrize('outcome', ['success', 'stopped', 'cancelled', 'error'])
+def test_workflow_entrypoint_terminal_lifecycle(outcome):
+    from unittest.mock import AsyncMock, patch
+    window, ctx, signals, session = setup()
+    workflow = LlamaWorkflow(window)
+    workflow.set_busy = MagicMock()
+    workflow.set_idle = MagicMock()
+    workflow.set_error = MagicMock()
+    session.emitter.begin = MagicMock()
+    session.abort = MagicMock()
+    monitor = MagicMock()
+    workflow.is_stopped = MagicMock(return_value=outcome == 'stopped')
+    async def run_agent(*args, **kwargs):
+        if outcome == 'error':
+            raise RuntimeError('provider failed')
+        if outcome == 'cancelled':
+            raise asyncio.CancelledError()
+        session.final_answer = 'done'
+        return ctx
+    workflow.run_agent = AsyncMock(side_effect=run_agent)
+    with patch('pygpt_net.core.agents.runners.llama_workflow.Context'):
+        result = asyncio.run(workflow.run(MagicMock(), ctx, 'task', signals, session=session, workflow_bridge=monitor))
+    assert result is (outcome != 'error')
+    if outcome == 'success':
+        monitor.finish.assert_called_once_with('done')
+        session.abort.assert_not_called()
+        workflow.set_idle.assert_not_called()
+    else:
+        session.abort.assert_called_once()
+        workflow.set_idle.assert_called_once_with(signals)
+        if outcome == 'error':
+            assert ctx.extra['error'] == 'provider failed'
+            monitor.fail.assert_called_once()
+        else:
+            monitor.stop.assert_called_once()
+
+
+def test_hidden_workflow_entrypoint_and_session_helpers():
+    from unittest.mock import AsyncMock, patch
+    window, ctx, signals, session = setup()
+    workflow = LlamaWorkflow(window)
+    workflow.is_stopped = MagicMock(return_value=False)
+    workflow.run_agent = AsyncMock(return_value=ctx)
+    with patch('pygpt_net.core.agents.runners.llama_workflow.Context'):
+        assert asyncio.run(workflow.run_once(MagicMock(), ctx, 'task', signals, session=session)) is ctx
+    assert workflow.run_agent.call_args.kwargs['flush'] is False
+    hidden = workflow._session(ctx, signals, visible=False)
+    assert hidden.visible is False
+    assert hidden.build_worker_message('request')
+    llm = MagicMock()
+    hidden.bind_llm(llm)
+    assert hidden.llm is llm
+    assert workflow._tool_output_to_text(SimpleNamespace(content=' output ')) == 'output'
+    assert workflow._tool_output_to_text(None) == ''
+
+
+def test_session_component_tool_history_and_visibility_contracts():
+    from pygpt_net.core.agents.runners.session_components import SessionStatus, SessionToolHistory
+    from unittest.mock import patch
+    window, ctx, signals, session = setup()
+    status = SessionStatus(session)
+    assert status.show_tool('read') is True
+    window.core.command.is_tool_hidden.return_value = True
+    assert status.show_tool('read') is False
+    history = SessionToolHistory(session)
+    assert history.register_plugin('read') is None
+    with patch.object(history, 'persist_call', return_value='call') as call, \
+         patch.object(history, 'persist_result') as result:
+        assert history.record_local_call('read', {'path': 'x'}) == 'call'
+        history.record_local_result('call', 'read', 'output')
+    call.assert_called_once_with('read', {'path': 'x'}, 'orchestrator')
+    result.assert_called_once_with('output', 'orchestrator', 'read', 'call')

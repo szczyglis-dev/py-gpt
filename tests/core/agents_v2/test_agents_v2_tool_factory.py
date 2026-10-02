@@ -243,3 +243,53 @@ def test_agents_v2_tool_factory_rag_tool_reuses_chat_index(monkeypatch):
     assert captured["metadata"].name == "query_index"
     assert "idx-1" in captured["metadata"].description
     index.as_query_engine.assert_called_once_with(llm=llm, similarity_top_k=3)
+
+
+def test_orchestrator_shared_context_and_skill_callbacks(tmp_path):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    from pygpt_net.core.agents_v2.tools import WorkerToolFactory
+    runtime = MagicMock()
+    runtime.allow_local_tools = False
+    runtime.shared_context_text = 'manifest'
+    factory = WorkerToolFactory(runtime)
+    factory._rag_tool = MagicMock(return_value=None)
+    tools = {t.metadata.name: t for t in factory.build_orchestrator(SimpleNamespace(id='orchestrator'))}
+    assert asyncio.run(tools['shared_context'].acall()).content == 'manifest'
+    skills = runtime.window.core.skills
+    skills.list_for_agent.return_value = 'catalog'
+    skills.load_for_agent.return_value = 'instructions'
+    skills.read_resource_for_agent.return_value = 'resource'
+    assert asyncio.run(tools['list_skills'].acall(query='query')).content == 'catalog'
+    assert asyncio.run(tools['load_skill'].acall(name='skill')).content == 'instructions'
+    assert asyncio.run(tools['read_skill_resource'].acall(name='skill', path='file')).content == 'resource'
+    skills.load_for_agent.assert_called_once_with('skill', ctx=runtime.context.ctx)
+    value = {'result': [{'agent_runtime_attachments': ['secret'], 'visible': 1}], 'agent_delivery_files': ['private']}
+    assert factory._strip_private_artifact_markers(value) == {'result': [{'visible': 1}]}
+    assert value['agent_delivery_files'] == ['private']
+    runtime.model.is_image_input.return_value = True
+    path = tmp_path / 'image.png'
+    path.write_bytes(b'image')
+    blocks = factory._runtime_attachment_blocks('output', [{'path': str(path)}, {'path': 'missing', 'name': 'missing'}])
+    assert 'missing' in blocks[0].text and len(blocks) == 2
+
+
+def test_worker_status_and_shared_context_tools_delegate_semantic_updates():
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    from pygpt_net.core.agents_v2.tools import WorkerToolFactory
+    runtime = MagicMock()
+    runtime.allow_local_tools = False
+    runtime.shared_context_text = ''
+    worker = SimpleNamespace(id='w', stop_requested=False)
+    runtime.is_stopped.return_value = False
+    factory = WorkerToolFactory(runtime)
+    factory._rag_tool = MagicMock(return_value=None)
+    factory._skill_tools = MagicMock(return_value=[])
+    tools = {t.metadata.name: t for t in factory.build(worker)}
+    assert 'No shared' in asyncio.run(tools['shared_context'].acall()).content
+    result = asyncio.run(tools['report_status'].acall(status='Reading'))
+    assert result.content
+    runtime.status.worker.assert_called_once_with(worker, 'Reading')

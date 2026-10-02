@@ -208,3 +208,20 @@ def test_show_tools_preference_defaults_off_and_respects_master_switch(monkeypat
     assert agent_policy.tool_calls_enabled({'agent.v2.show_tools': True})
     monkeypatch.setattr(agent_policy, 'AGENTS_V2_TOOL_CALLS_ENABLED', False)
     assert not agent_policy.tool_calls_enabled({'agent.v2.show_tools': True})
+
+
+def test_promote_actor_only_exposes_completed_calls_for_that_actor():
+    from pygpt_net.core.agents_v2.tool_history import RuntimeToolHistory
+    from pygpt_net.item.ctx_part_task import CtxItemPartTask
+    tasks = [CtxItemPartTask(agent_id=actor, extra={'status': status})
+             for actor, status in [('w', 'completed'), ('other', 'completed'), ('w', 'running')]]
+    runtime = SimpleNamespace(window=MagicMock(), timeline=MagicMock(),
+                              context=SimpleNamespace(ctx=SimpleNamespace(parts=[SimpleNamespace(tasks=tasks)])))
+    runtime.timeline.metadata.return_value = ('w', 'Worker', '')
+    history = RuntimeToolHistory(runtime)
+    history.promote_actor('w')
+    assert tasks[0].extra['ui_ready'] is True
+    assert not tasks[1].extra.get('ui_ready') and not tasks[2].extra.get('ui_ready')
+    runtime.window.core.ctx.update_part_task.assert_called_once_with(tasks[0])
+    history.promote_actor('w')
+    assert runtime.window.core.ctx.update_part_task.call_count == 1

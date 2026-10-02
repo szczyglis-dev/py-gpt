@@ -80,3 +80,16 @@ def test_compose_agent_system_prompt_honors_explicit_additional_prompt():
     assert "<additional_system_prompt>\nexplicit\n</additional_system_prompt>" in prompt
     assert "plugin prompt" not in prompt
     assert "preset prompt" not in prompt
+
+
+def test_builtin_prompt_slots_honor_overrides_without_injecting_policy():
+    runtime = make_runtime()
+    builder = RuntimePromptBuilder(runtime)
+    runtime.window.core.config.get.side_effect = lambda key, default=None: ' custom role ' if key.startswith('prompt.') else default
+    assert builder._compose_main('base').startswith('base')
+    assert builder._configured_main_prompt('default', 'override') == 'default'
+    runtime.window.core.config.get.side_effect = lambda key, default=None: ' custom role '
+    for method in (builder.primary, builder.orchestrator, builder.swarm):
+        prompt = method()
+        assert prompt.startswith('custom role')
+        assert '<workflow_progress_policy>' not in prompt

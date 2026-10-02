@@ -831,8 +831,12 @@ class TestRenderer:
         renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current(meta))
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
-        fake_window.core.command.realtime_visible_tool_names.return_value = ["search"]
-        renderer.tool_output_begin(meta, ["search"])
+        fake_window.core.command.realtime_visible_tool_names.return_value = ["read_file"]
+        ctx = DummyCtxItem()
+        renderer.agents.workflow_status_key = MagicMock(return_value=((1, "1"), 1, ctx))
+        renderer.agents.workflow_status_add = MagicMock(return_value="read_file-status")
+        renderer.agents.update_agent_working = MagicMock()
+        renderer.tool_output_begin(meta, ["read_file"], ctx)
         node.page().runJavaScript.assert_called()
 
     def test_tool_output_end(self, renderer, fake_window):
@@ -1220,7 +1224,7 @@ def test_legacy_consecutive_status_and_prose_share_one_agent_heading(renderer):
     assert timeline[status_index + 1]["agent_name_prefix"] == ""
 
 
-def test_computer_use_only_emits_special_runtime_status(renderer, fake_window, monkeypatch):
+def test_computer_use_does_not_emit_chat_tool_status(renderer, fake_window, monkeypatch):
     meta = DummyCtxMeta()
     ctx = DummyCtxItem()
     renderer.agents.workflow_status_key = MagicMock(return_value=((1, '1'), 1, ctx))
@@ -1231,8 +1235,7 @@ def test_computer_use_only_emits_special_runtime_status(renderer, fake_window, m
     monkeypatch.setattr('pygpt_net.core.render.web.parts.tools.trans', lambda key: 'Using computer... Press ESC to stop.')
     renderer.tool_output_begin(meta, ['mouse_click'], ctx)
     renderer.tool_output_begin(meta, ['keyboard_type'], ctx)
-    assert javascript.call_count == 2
-    assert all('setComputerUseStatus(' in call.args[0] for call in javascript.call_args_list)
-    assert all('Press ESC' in call.args[0] for call in javascript.call_args_list)
+    # Computer use is represented by the global badge, outside the chat renderer.
+    javascript.assert_not_called()
     renderer.agents.workflow_status_add.assert_not_called()
     renderer.tools.tool_output_snapshot.assert_not_called()
