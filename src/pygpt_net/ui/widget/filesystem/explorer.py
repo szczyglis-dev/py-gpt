@@ -2041,6 +2041,8 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param role: role
         :return: data
         """
+        if role == Qt.ToolTipRole and index.isValid():
+            return os.path.relpath(self.filePath(index.siblingAtColumn(0)), self.rootPath())
         last_col = self.columnCount() - 1
         if index.column() == last_col:
             if role == Qt.DisplayRole:
