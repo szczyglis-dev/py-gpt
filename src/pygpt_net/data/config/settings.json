@@ -2061,6 +2061,20 @@
         "advanced": false,
         "tab": "general"
     },
+    "agent.v2.show_tools": {
+        "section": "agent",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.agent.v2.show_tools",
+        "description": "settings.agent.v2.show_tools.desc",
+        "value": false,
+        "min": 0,
+        "max": 0,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": false,
+        "tab": "general"
+    },
     "agent.v2.show_tool_chain": {
         "section": "agent",
         "type": "bool",

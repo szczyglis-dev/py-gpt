@@ -430,6 +430,8 @@ xAI
 Models
 ~~~~~~
 
+* ``Group model providers``: Groups models by provider in expandable submenus in the model selector below the input field. Only providers with at least one available model are shown. When set to ``False``, models are displayed in a flat list. Default: False.
+
 * ``Restore used model from stored conversation``: Restores the model saved with a conversation or preset when it is loaded. Disable it to keep the currently selected model. Default: False.
 
 * ``Max output tokens``: Caps the number of tokens PyGPT asks the model to generate in a single response where the provider/API supports an output-token limit. Set ``0`` to avoid applying an application-level cap. Default: 0.
@@ -641,6 +643,8 @@ Agents
 * ``Automatically retrieve additional context from RAG``: Performs an initial retrieval from the configured index before a Agents run and supplies the matching RAG context to the workflow. Disable it if the agent should begin without automatic retrieval and obtain context only through explicit tools. Default: True.
 
 * ``Add support for .agents directory``: Checks the active workdir at run start. If ``%workdir%/.agents/`` exists, the top-level Agents agent receives its layout and guidance to use relevant project instructions/resources; otherwise it receives only a short note that ``.agents/`` may be created and ``.agents/memories/`` used for persistent notes. PyGPT does not preload the directory contents. Default: True.
+
+* ``Show tools in Agents``: Shows expandable tool calls beneath Agents status rows during a workflow and when restoring a conversation from history. Each tool call can be expanded to view its input and output. When disabled, status updates remain visible, but individual tool calls are not sent to the chat web view or rendered from history. Default: False.
 
 * ``Show full tool-chain in Agents``: When enabled, the final Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 

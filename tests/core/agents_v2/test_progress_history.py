@@ -196,7 +196,15 @@ def test_disabled_tool_history_keeps_status_without_extracting_or_emitting_calls
     assert Agents(renderer).progress_records(ctx)[0]['hierarchy'] is None
     assert Agents(renderer).progress_records(ctx)[0]['text'] == 'Odczytuję plik'
     assert Tools(renderer).show_tool_chain_for_ctx(ctx) is False
-    runtime = SimpleNamespace(emitter=MagicMock())
+    runtime = SimpleNamespace(emitter=MagicMock(), window=renderer.window)
     RuntimeStatus(runtime).refresh_tools('orchestrator')
     runtime.emitter.status.assert_not_called()
     extract.assert_not_called()
+def test_show_tools_preference_defaults_off_and_respects_master_switch(monkeypatch):
+    from pygpt_net.core.types import agent as agent_policy
+    monkeypatch.setattr(agent_policy, 'AGENTS_V2_TOOL_CALLS_ENABLED', True)
+    assert not agent_policy.tool_calls_enabled({})
+    assert not agent_policy.tool_calls_enabled({'agent.v2.show_tools': False})
+    assert agent_policy.tool_calls_enabled({'agent.v2.show_tools': True})
+    monkeypatch.setattr(agent_policy, 'AGENTS_V2_TOOL_CALLS_ENABLED', False)
+    assert not agent_policy.tool_calls_enabled({'agent.v2.show_tools': True})

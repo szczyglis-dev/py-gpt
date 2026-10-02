@@ -51,7 +51,7 @@ class Tools:
         _key, _pid, working_ctx = self.renderer.agents.workflow_status_key(meta, ctx)
         if any(name in MOUSE_KEYBOARD_TOOL_NAMES for name in tool_names or []):
             return
-        if CtxItem.uses_agent_timeline(working_ctx) and not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
+        if CtxItem.uses_agent_timeline(working_ctx) and not agent_policy.tool_calls_enabled(self.renderer.window.core.config):
             return
         if tool_names:
             self.renderer.agents.update_agent_working(meta, working_ctx, tool_started=True)
@@ -305,7 +305,7 @@ class Tools:
         Other modes keep their existing rendering semantics when the global
         preference is enabled.
         """
-        if CtxItem.uses_agent_timeline(ctx) and not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
+        if CtxItem.uses_agent_timeline(ctx) and not agent_policy.tool_calls_enabled(self.renderer.window.core.config):
             return False
         if not self._display_tool_calls_json():
             return False

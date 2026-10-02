@@ -1,6 +1,6 @@
 """Application-wide computer-control indicator, independent of chat rendering."""
-from PySide6.QtCore import QEvent, Qt, QTimer, Signal, Slot
-from PySide6.QtWidgets import QLabel
+from PySide6.QtCore import Qt, QTimer, Signal, Slot
+from PySide6.QtWidgets import QLabel, QApplication
 
 from pygpt_net.utils import trans
 from .computer_use_frame import ComputerUseFrame
@@ -9,10 +9,14 @@ from .computer_use_frame import ComputerUseFrame
 class ComputerUseBadge(QLabel):
     active_changed = Signal(bool)
     stop_requested = Signal()
+    escape_requested = Signal()
 
     def __init__(self, window):
         super().__init__(window.menuBar())
         self.window = window
+        self._desktop_badge = None
+        self._active = False
+        self._keyboard_listener = None
         self.setObjectName('computerUseBadge')
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.desktop_frame = ComputerUseFrame(self)
@@ -22,8 +26,11 @@ class ComputerUseBadge(QLabel):
         self._hide_timer.timeout.connect(self._retire)
         self.active_changed.connect(self.set_active)
         self.stop_requested.connect(self.stop)
+        self.escape_requested.connect(self._interrupt)
         self.hide()
-        window.menuBar().installEventFilter(self)
+        app = QApplication.instance()
+        app.aboutToQuit.connect(self.stop)
+        app.primaryScreenChanged.connect(self.reposition)
 
     @Slot(bool)
     def set_active(self, active):
@@ -40,19 +47,31 @@ class ComputerUseBadge(QLabel):
                 self._hide_timer.start()
             return
         self._hide_timer.stop()
+        self._active = True
         if active:
             self.setText(trans('tool.status.computer_use'))
             light = self.window.controller.theme.common.is_light_theme_id(
                 self.window.core.config.get('theme', 'dark'))
             color = '#248544' if light else '#55ff70'
-            background = 'rgba(36,133,68,24)' if light else 'rgba(85,255,112,24)'
+            background = '#e5f5e9' if light else '#17351e'
             self.setStyleSheet(
                 f'QLabel#computerUseBadge {{ color: {color}; background: {background}; '
-                'font-weight: bold; border-radius: 6px; padding: 3px 8px; margin: 0px; }')
+                'font-weight: bold; border-radius: 6px; padding: 8px 14px; margin: 0px; }')
             self.adjustSize()
+            if self._desktop_badge is None:
+                self._desktop_badge = QLabel(None, Qt.Tool | Qt.FramelessWindowHint |
+                    Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput | Qt.WindowDoesNotAcceptFocus)
+                self._desktop_badge.setObjectName('computerUseBadge')
+                self._desktop_badge.setAttribute(Qt.WA_ShowWithoutActivating)
+                self._desktop_badge.setAttribute(Qt.WA_TransparentForMouseEvents)
+                self._desktop_badge.setFocusPolicy(Qt.NoFocus)
+            self._desktop_badge.setText(self.text())
+            self._desktop_badge.setStyleSheet(self.styleSheet())
+            self._desktop_badge.adjustSize()
             self.reposition()
-        self.setVisible(bool(active))
+            self._desktop_badge.show()
         self.desktop_frame.show()
+        self._start_escape_listener()
 
     @Slot()
     def stop(self):
@@ -60,21 +79,43 @@ class ComputerUseBadge(QLabel):
         self._retire()
 
     def _retire(self):
+        self._active = False
+        if self._keyboard_listener is not None:
+            self._keyboard_listener.stop()
+            self._keyboard_listener = None
         self.hide()
+        if self._desktop_badge is not None:
+            self._desktop_badge.hide()
         self.desktop_frame.hide()
 
-    def reposition(self):
-        bar = self.window.menuBar()
-        chrome = getattr(self.window, 'window_chrome', None)
-        profile = getattr(chrome, 'profile_label', None)
-        if profile is not None:
-            x = profile.geometry().right() + 10
-        else:
-            x = max((bar.actionGeometry(a).right() for a in bar.actions() if a.isVisible()), default=0) + 10
-        self.move(x, max(0, (bar.height() - self.height()) // 2))
-        self.raise_()
+    def reposition(self, *_):
+        if self._desktop_badge is None:
+            return
+        screen = QApplication.primaryScreen()
+        if screen is None:
+            return
+        rect = screen.geometry()
+        self._desktop_badge.move(rect.x() + (rect.width() - self._desktop_badge.width()) // 2, rect.y() + 50)
+        self._desktop_badge.raise_()
 
-    def eventFilter(self, obj, event):
-        if event.type() in (QEvent.Resize, QEvent.LayoutRequest, QEvent.ActionChanged):
-            QTimer.singleShot(0, self.reposition)
-        return False
+    def _start_escape_listener(self):
+        if self._keyboard_listener is not None:
+            return
+        try:
+            from pynput.keyboard import Key, Listener
+            def on_press(key, injected=False):
+                # ESC generated by the computer tool itself is not a user stop.
+                if self._active and key == Key.esc and not injected:
+                    self.escape_requested.emit()
+            listener = Listener(on_press=on_press)
+            listener.start()
+            self._keyboard_listener = listener
+        except Exception as error:
+            self.window.core.debug.log(error)
+
+    @Slot()
+    def _interrupt(self):
+        if not self._active:
+            return
+        self.stop()
+        self.window.controller.access.on_escape(close_dialog=False)

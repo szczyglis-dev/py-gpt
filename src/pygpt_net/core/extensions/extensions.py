@@ -826,7 +826,7 @@ class Extensions:
                 if not addon_log_started:
                     print()
                     addon_log_started = True
-                print(f"[Add-ons] Loaded {ext_type}: {manifest['id']} ({manifest['version']})")
+                print(f"[Add-ons] Loaded {ext_type}: {manifest['id']} (v{manifest['version']})")
             except Exception as exc:
                 self._warn(f"Failed to load add-on '{manifest['id']}': {exc}")
         if addon_log_started:

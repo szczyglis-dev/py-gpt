@@ -4,6 +4,51 @@ from unittest.mock import Mock
 from pygpt_net.plugin.cmd_mouse_control.plugin import Plugin
 
 
+def test_desktop_badge_position_and_global_escape_listener_cleanup():
+    import sys
+    from unittest.mock import patch
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QApplication, QMainWindow
+    from pygpt_net.ui.widget.computer_use_badge import ComputerUseBadge
+    app = QApplication.instance() or QApplication([])
+    main = QMainWindow()
+    listener = Mock()
+    factory = Mock(return_value=listener)
+    keyboard = SimpleNamespace(Key=SimpleNamespace(esc='ESC'), Listener=factory)
+    window = SimpleNamespace(
+        menuBar=main.menuBar,
+        core=SimpleNamespace(config={'theme': 'dark'}, debug=Mock()),
+        controller=SimpleNamespace(kernel=SimpleNamespace(stopped=lambda: False),
+            theme=SimpleNamespace(common=SimpleNamespace(is_light_theme_id=lambda theme: False)),
+            access=Mock()))
+    with patch.dict(sys.modules, {'pynput': SimpleNamespace(keyboard=keyboard), 'pynput.keyboard': keyboard}):
+        badge = ComputerUseBadge(window)
+        assert badge._desktop_badge is None
+        factory.assert_not_called()
+        badge.set_active(True)
+        rect = app.primaryScreen().geometry()
+        overlay = badge._desktop_badge
+        assert overlay.isWindow()
+        assert overlay.windowFlags() & Qt.WindowDoesNotAcceptFocus
+        assert overlay.y() == rect.y() + 50
+        assert abs(overlay.geometry().center().x() - rect.center().x()) <= 1
+        callback = factory.call_args.kwargs['on_press']
+        callback('ESC', injected=True)
+        app.processEvents()
+        window.controller.access.on_escape.assert_not_called()
+        callback('ESC', injected=False)
+        app.processEvents()
+        window.controller.access.on_escape.assert_called_once_with(close_dialog=False)
+        listener.stop.assert_called_once()
+        assert not overlay.isVisible()
+        assert not badge.desktop_frame.active
+        badge.close()
+        badge.deleteLater()
+        overlay.deleteLater()
+        main.close()
+        app.processEvents()
+
+
 def test_native_computer_call_signals_badge_before_execution():
     badge = SimpleNamespace(active_changed=Mock())
     worker = Mock()

@@ -118,13 +118,16 @@ class Patch:
 
             if old < parse_version("2.8.38"):
                 if "model.group_providers" not in data:
-                    data["model.group_providers"] = True
+                    data["model.group_providers"] = False
                     updated = True
                 if data.get("access.microphone.notify") is not True:
                     data["access.microphone.notify"] = True
                     updated = True
                 if data.get("attachments_capture_clear") is not False:
                     data["attachments_capture_clear"] = False
+                    updated = True
+                if "agent.v2.show_tools" not in data:
+                    data["agent.v2.show_tools"] = False
                     updated = True
                 for key in ("filesystem.preview.markdown.font_size", "filesystem.preview.text.font_size"):
                     if key not in data:

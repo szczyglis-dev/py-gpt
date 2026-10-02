@@ -70,10 +70,10 @@ class RuntimeStatus:
         part.extra = extra
         self.runtime.window.core.ctx.update_part(main, part, sync_item=False)
         return {"part_uuid": str(part.uuid), "progress": progress,
-                "tool_revision": [(str(task.uuid), str(task.updated_at), (task.extra or {}).get("status")) for task in (part.tasks or []) if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED]}
+                "tool_revision": [(str(task.uuid), str(task.updated_at), (task.extra or {}).get("status")) for task in (part.tasks or []) if agent_policy.tool_calls_enabled(self.runtime.window.core.config)]}
 
     def refresh_tools(self, actor):
-        if not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
+        if not agent_policy.tool_calls_enabled(self.runtime.window.core.config):
             return
         part = self.runtime.timeline.part(actor, create=False)
         progress = (part.extra or {}).get("agents_v2_progress", {}) if part else {}

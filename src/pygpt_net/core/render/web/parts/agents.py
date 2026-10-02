@@ -562,8 +562,8 @@ class Agents:
             calls = []
             swarm = progress.get("swarm") is True
             workers = {key: dict(value, calls=[]) for key, value in (progress.get("workers") or {}).items()}
-            raw = ctx.get_part_tool_calls(visible_only=False, part=part) if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else []
-            for task in (part.tasks or []) if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else []:
+            raw = ctx.get_part_tool_calls(visible_only=False, part=part) if agent_policy.tool_calls_enabled(self.renderer.window.core.config) else []
+            for task in (part.tasks or []) if agent_policy.tool_calls_enabled(self.renderer.window.core.config) else []:
                 name = (task.extra or {}).get("tool_name") or task.task_name
                 if not name or self.renderer.window.core.command.is_tool_hidden(name):
                     continue
@@ -585,7 +585,7 @@ class Agents:
                 "text": label, "active": False,
                 "hierarchy": ({"calls": calls, "workers": list(workers.values()) if swarm else [],
                                "group_tools": agent_policy.AGENTS_V2_GROUP_TOOL_CALLS}
-                              if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else None),
+                              if agent_policy.tool_calls_enabled(self.renderer.window.core.config) else None),
             })
         return records
 

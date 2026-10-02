@@ -22,5 +22,10 @@ AGENT_TYPE_OPENAI = "agent.type.openai"  # OpenAI Agent
 # no per-call UI refreshes, WebView tool payloads, or history tool rendering.
 AGENTS_V2_TOOL_CALLS_ENABLED = True
 
+
+def tool_calls_enabled(config):
+    """Apply the code-level switch and the user's Agents display preference."""
+    return AGENTS_V2_TOOL_CALLS_ENABLED and bool(config.get("agent.v2.show_tools", False))
+
 # Group consecutive calls inside each Agents v2 partial, live and in history.
 AGENTS_V2_GROUP_TOOL_CALLS = True
