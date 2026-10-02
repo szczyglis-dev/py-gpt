@@ -13,6 +13,16 @@ class NodeArtifactsTemplate {
 	// Artifacts
 	// ========================================
 
+    renderUserAttachments(attachments) {
+        const data = attachments || {};
+        const images = this.renderExtras({images: data.images || {}});
+        const files = Object.values(data.files || {}).filter(Boolean).map(it => {
+            const name = this.templates.escapeHtml(it.basename || it.path || '');
+            return `<a class="user-file" href="${this.templates.escapeHtml(it.url || '')}" title="${name}"><img src="${this.templates.escapeHtml(it.icon_url || '')}" alt=""><span>${name}</span></a>`;
+        }).join('');
+        return `<div class="user-attachments"><div class="user-attachment-files">${files}</div><div class="user-attachment-images">${images}</div></div>`;
+    }
+
 	// Render extra blocks (images/files/urls/docs/tool-extra)
 	renderExtras(block) {
 		const parts = [];
@@ -57,7 +67,7 @@ class NodeArtifactsTemplate {
 				const url = this.templates.esc(it.url);
 				const fullName = Array.from(this.templates.esc(it.basename || it.path || ''));
                 const name = fullName.length > 100 ? fullName.slice(0, 97).join('') + '...' : fullName.join('');
-				const icon = (typeof window !== 'undefined' && window.ICON_ATTACHMENTS) ? `<img src="${window.ICON_ATTACHMENTS}" class="extra-src-icon">` : '';
+				const icon = `<img src="${this.templates.escapeHtml(it.icon_url || 'qrc:///filetypes/default.svg')}" class="extra-src-icon" alt="">`;
 				rows.push(`${icon} <a href="${url}">${this.templates.escapeHtml(name)}</a>${kF.length > 1 ? ` <b> [${k}] </b>` : ''}`);
 			});
 			if (rows.length) parts.push(this._renderCollapsibleExtraRows(rows));

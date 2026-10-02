@@ -270,6 +270,9 @@ class Messages:
 
         block = RenderBlock(id=getattr(ctx, "id", None), meta_id=getattr(meta, "id", None))
 
+        user_images, user_files, _, _ = self.renderer.body.build_extras_dicts(ctx, pid, origin="user")
+        block.extra["user_attachments"] = {"images": user_images, "files": user_files}
+
         # input
         if input_text:
             # Keep raw; formatting is a template duty (escape/BR etc.)

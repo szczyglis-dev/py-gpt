@@ -228,7 +228,7 @@ code {{
   padding: 6px;
   font-family: 'Monaspace Neon';
   overflow-y: auto;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
 }}
 think {{
   border-left: 4px solid silver;
@@ -1095,3 +1095,16 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .user-message-actions a:hover {{ opacity: 1; }}
 .user-message-actions img {{ width: 14px; height: 14px; }}
 .user-message-actions .copied {{ opacity: 1; }}
+
+/* User-uploaded attachments above the input bubble. */
+.user-attachments {{ margin: 8px 10px 0 auto; max-width: 75%; }}
+.user-attachment-images, .user-attachment-files {{ display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }}
+.user-attachment-images > br {{ display: none; }}
+.user-attachment-images .extra-src-img-box {{ margin-right: 0; padding-right: 0; max-width: 125px; }}
+.user-attachment-images .img-wrapper {{ max-width: 125px; height: 75px; }}
+.user-attachment-files:empty, .user-attachment-images:empty {{ display: none; }}
+.user-attachments:has(.user-attachment-images:empty):has(.user-attachment-files:empty) {{ display: none; }}
+.user-file {{ display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 230px; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--user-file-border); border-radius: 9px; background: var(--user-file-bg); color: inherit; text-decoration: none; }}
+.user-file:hover {{ background: var(--user-file-hover); }}
+.user-file img {{ width: 20px; height: 20px; flex-shrink: 0; }}
+.user-file span {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }}

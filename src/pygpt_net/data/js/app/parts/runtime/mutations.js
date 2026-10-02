@@ -27,10 +27,24 @@ class RuntimeMutations {
 		return obj.mutation;
 	};
 
+    _syncUserAttachments = (block) => {
+        if (!block || !block.extra || !block.extra.user_attachments) return;
+        const bubble = document.getElementById(`msg-user-${block.id}`);
+        const region = bubble && bubble.closest('.msg-user-region');
+        if (!region) return;
+        const html = this.runtime.templates.artifacts.renderUserAttachments(block.extra.user_attachments);
+        const current = region.querySelector('.user-attachments');
+        if (current && current.outerHTML === html) return;
+        if (current) current.outerHTML = html;
+        else bubble.insertAdjacentHTML('beforebegin', html);
+        this._postMutation(region);
+    };
+
 	applyMutation = (mutation) => {
 		if (!mutation || typeof mutation !== 'object') return false;
 		const op = String(mutation.op || '');
 		const block = mutation.block || null;
+		this._syncUserAttachments(block);
 		switch (op) {
 			case 'finalize_output':
 				this._finalizeOutputMutation(mutation);

@@ -12,7 +12,9 @@
 import os
 from json import dumps as _json_dumps
 from random import shuffle as _shuffle
-from pygpt_net.item.render_attachment import attachment_type
+from pygpt_net.item.render_attachment import attachment_type, attachment_paths
+from PySide6.QtCore import QFile
+import pygpt_net.icons_rc
 
 from typing import Optional, List, Dict, Tuple
 
@@ -508,11 +510,9 @@ class Body:
         :param num_all: Optional total number of files
         :return: HTML string
         """
-        app_path = self.window.core.config.get_app_path()
-        icon_path = os.path.join(app_path, "data", "icons", "attachments.svg").replace("\\", "/")
-        icon = f'<img src="file://{icon_path}" class="extra-src-icon">'
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
         url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
+        icon = f'<img src="{self.filetype_icon_url(path)}" class="extra-src-icon" alt="">'
         name = os.path.basename(path) or path
         if len(name) > 100:
             name = name[:97] + "..."
@@ -649,7 +649,8 @@ class Body:
             pid: int,
             edit_replay_id: Optional[int] = None,
             delete_start_id: Optional[int] = None,
-            delete_end_id: Optional[int] = None
+            delete_end_id: Optional[int] = None,
+            origin: str = "output",
     ) -> Tuple[dict, dict, dict, dict]:
         """
         Build images/files/urls raw dicts to be rendered by JS templates.
@@ -677,15 +678,15 @@ class Body:
         # Agents v2 exposes response artifacts only after the authoritative final
         # response has finished streaming. FINAL_BEGIN rebuilds the current turn,
         # so suppress both artifact extras and footer actions while it is active.
-        if CtxItem.uses_agent_timeline(ctx) and getattr(ctx, "current", False):
+        if origin == "output" and CtxItem.uses_agent_timeline(ctx) and getattr(ctx, "current", False):
             return images, files, urls, {"actions": []}
 
         # images
         if ctx.images:
             video_exts = (".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv")
             n = 1
-            for img in ctx.images:
-                if img is None:
+            for img in attachment_paths(ctx.images):
+                if attachment_type(img) != origin:
                     continue
                 attachments = getattr(self.window.core, "attachments", None)
                 if (attachments is not None
@@ -721,7 +722,9 @@ class Body:
         # files
         if ctx.files:
             n = 1
-            for f in ctx.files:
+            for f in attachment_paths(ctx.files):
+                if attachment_type(f) != origin:
+                    continue
                 try:
                     url, path = self._extract_local_url(f, ctx=ctx)
                     files[str(n)] = {
@@ -729,10 +732,14 @@ class Body:
                         "path": path,
                         "basename": os.path.basename(path) or path,
                         "type": attachment_type(f),
+                        "icon_url": self.filetype_icon_url(path),
                     }
                     n += 1
                 except Exception:
                     pass
+
+        if origin == "user":
+            return images, files, urls, {"actions": []}
 
         # urls
         if ctx.urls:
@@ -753,6 +760,12 @@ class Body:
         )
 
         return images, files, urls, {"actions": actions}
+
+    def filetype_icon_url(self, path: str) -> str:
+        """Resolve the packaged extension icon, with a generic fallback."""
+        extension = os.path.splitext(path)[1].lower().lstrip(".")
+        icon = extension if extension and QFile.exists(f":/filetypes/{extension}.svg") else "default"
+        return f"qrc:///filetypes/{icon}.svg"
 
     def normalize_docs(self, doc_ids) -> list[dict]:
         """

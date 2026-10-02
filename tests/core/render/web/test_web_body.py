@@ -280,7 +280,7 @@ def test_get_file_html():
     b = Body(win)
     url = "http://example.com/file.txt"
     html = b.get_file_html(url, 1, 2)
-    assert "attachments.svg" in html
+    assert "qrc:///filetypes/txt.svg" in html
     assert f'href="{url}"' in html
 
 def test_prepare_tool_extra_plugin():
@@ -320,3 +320,32 @@ def test_get_html(body_instance):
     assert html.strip().startswith("<!DOCTYPE html>")
     assert f"window.EXTRA_ITEMS_VISIBLE_LIMIT={Body.EXTRA_ITEMS_VISIBLE_LIMIT};" in html
     assert "window.LOCALE_MORE_ITEMS=" in html
+
+def test_attachment_origin_routes_user_and_legacy_output():
+    from pygpt_net.item.render_attachment import AttachmentPath
+    body = Body(FakeWindow({}))
+    ctx = CtxItem()
+    ctx.images = [AttachmentPath('/user.png', 'user'), '/legacy.png']
+    ctx.files = [AttachmentPath('/user.pdf', 'user'), '/legacy.txt',
+                 {'path': '/result.py', 'type': 'output'}]
+    images, files, _, _ = body.build_extras_dicts(ctx, 0)
+    assert [i['basename'] for i in images.values()] == ['legacy.png']
+    assert [i['basename'] for i in files.values()] == ['legacy.txt', 'result.py']
+    images, files, urls, actions = body.build_extras_dicts(ctx, 0, origin='user')
+    assert [i['basename'] for i in images.values()] == ['user.png']
+    assert [i['basename'] for i in files.values()] == ['user.pdf']
+    assert files['1']['icon_url'] == 'qrc:///filetypes/pdf.svg'
+    assert urls == {} and actions == {'actions': []}
+    assert body.filetype_icon_url('/no.unknown_extension') == 'qrc:///filetypes/default.svg'
+
+
+def test_user_attachments_remain_visible_during_agent_stream():
+    from pygpt_net.item.render_attachment import AttachmentPath
+    from pygpt_net.core.types import MODE_AGENT_V2
+    body = Body(FakeWindow({}))
+    ctx = CtxItem()
+    ctx.mode = MODE_AGENT_V2
+    ctx.current = True
+    ctx.files = [AttachmentPath('/user.txt', 'user'), '/result.txt']
+    assert body.build_extras_dicts(ctx, 0)[1] == {}
+    assert body.build_extras_dicts(ctx, 0, origin='user')[1]['1']['basename'] == 'user.txt'

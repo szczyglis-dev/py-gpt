@@ -15,6 +15,7 @@ import os
 from typing import List, Tuple
 from pygpt_net.core.render.protocol import RenderMutation, RenderOp
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.item.render_attachment import attachment_type
 
 
 class Artifacts:
@@ -52,11 +53,11 @@ class Artifacts:
         appended = set()
         html_parts = []
 
-        c = len(ctx.images)
+        c = sum(path is not None and attachment_type(path) == "output" for path in ctx.images)
         if c > 0:
             n = 1
             for image in ctx.images:
-                if image is None:
+                if image is None or attachment_type(image) == "user":
                     continue
                 attachments = getattr(self.renderer.window.core, "attachments", None)
                 if (attachments is not None
@@ -73,11 +74,13 @@ class Artifacts:
                 except Exception:
                     pass
 
-        c = len(ctx.files)
+        c = sum(path is not None and attachment_type(path) == "output" for path in ctx.files)
         if c > 0:
             files_html = []
             n = 1
             for file in ctx.files:
+                if attachment_type(file) == "user":
+                    continue
                 if file in appended or file in self.state.pids[pid].files_appended:
                     continue
                 try:

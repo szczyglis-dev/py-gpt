@@ -107,7 +107,7 @@ class NodeTemplateEngine {
 		const copyBtn = `<a href="empty:${this.esc(id)}" class="msg-copy-btn" data-id="${this.esc(id)}" data-tip="${this.escapeHtml(copyTitle)}" title="${this.escapeHtml(copyTitle)}" aria-label="${this.escapeHtml(copyTitle)}" role="button"><img src="${this.esc(copyIcon)}" class="copy-img" alt="${this.escapeHtml(copyTitle)}" data-id="${this.esc(id)}"></a>`;
 
 		const editBtn = `<a href="extra-edit:${this.esc(id)}" class="user-edit-btn" data-id="${this.esc(id)}" title="${this.escapeHtml(inp.edit_title || 'Edit')}" aria-label="${this.escapeHtml(inp.edit_title || 'Edit')}" role="button"><img src="${this.esc(inp.edit_icon || '')}" alt=""></a>`;
-        return `${dateLabel}<div class="msg-user-region"><div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg"><p style="margin:0">${content}</p></div></div><div class="user-message-actions"><time>${this.escapeHtml(inp.time_label || '')}</time>${copyBtn}${editBtn}</div></div>`;
+        return `${dateLabel}<div class="msg-user-region">${this.artifacts.renderUserAttachments((block.extra || {}).user_attachments)}<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg"><p style="margin:0">${content}</p></div></div><div class="user-message-actions"><time>${this.escapeHtml(inp.time_label || '')}</time>${copyBtn}${editBtn}</div></div>`;
 	}
 
 	// Render message-level actions
