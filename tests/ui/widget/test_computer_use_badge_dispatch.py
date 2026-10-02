@@ -42,6 +42,17 @@ def test_desktop_badge_position_and_global_escape_listener_cleanup():
         listener.stop.assert_called_once()
         assert not overlay.isVisible()
         assert not badge.desktop_frame.active
+        badge.set_active(True)
+        assert overlay.isVisible()
+        window.core.config['security.computer.show_warning'] = False
+        badge.set_active(False)
+        assert not overlay.isVisible()
+        assert not badge.desktop_frame.active
+        assert not badge._active
+        assert badge._keyboard_listener is None
+        badge.set_active(True)
+        assert not overlay.isVisible()
+        assert factory.call_count == 2
         badge.close()
         badge.deleteLater()
         overlay.deleteLater()
@@ -102,6 +113,17 @@ def test_sandbox_activation_retires_indicator_without_showing_it():
     from pygpt_net.ui.widget.computer_use_badge import ComputerUseBadge
     badge = SimpleNamespace(
         window=SimpleNamespace(core=SimpleNamespace(config={'computer_use.sandbox': True})),
+        stop=Mock(),
+    )
+    ComputerUseBadge.set_active(badge, True)
+    badge.stop.assert_called_once_with()
+
+
+def test_disabled_warning_retires_indicator_before_creating_any_ui():
+    from pygpt_net.ui.widget.computer_use_badge import ComputerUseBadge
+    badge = SimpleNamespace(
+        window=SimpleNamespace(core=SimpleNamespace(config={
+            'security.computer.show_warning': False})),
         stop=Mock(),
     )
     ComputerUseBadge.set_active(badge, True)

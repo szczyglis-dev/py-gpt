@@ -166,7 +166,6 @@ class AgentPreparation:
             to_append = ""
             if not ctx.hidden_input:
                 to_append = self.additional_context_prefix
-                ctx.hidden_input += to_append
             to_append += "\n" + retrieved
             ctx.hidden_input += to_append
             prompt += "\n\n" + to_append

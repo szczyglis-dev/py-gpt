@@ -63,3 +63,16 @@ def test_refresh_llm_provider_choices_updates_model_and_importer_widgets(monkeyp
     importer_provider.set_keys.assert_called_once_with(
         [{"_": "Select"}] + provider_keys
     )
+
+
+def test_saving_disabled_computer_warning_hides_active_overlay_immediately():
+    window = MagicMock()
+    values = {'security.computer.show_warning': False, 'layout.tray': True,
+              'layout.dialog.geometry.store': True}
+    window.core.config.get.side_effect = lambda key, default=None: values.get(key, default)
+    window.core.config.all.return_value = values
+    editor = Editor(window)
+    editor.options = {}
+    editor.before_config = {}
+    editor.save()
+    window.computer_use_badge.stop.assert_called_once_with()

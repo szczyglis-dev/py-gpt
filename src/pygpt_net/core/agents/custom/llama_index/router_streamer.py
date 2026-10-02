@@ -81,6 +81,9 @@ class RealtimeRouterStreamerLI:
         self._content_raw += new_raw_piece
         try:
             decoded_full = json.loads(f'"{self._content_raw}"')
+            # Do not publish half of a JSON-escaped UTF-16 surrogate pair.
+            if decoded_full and 0xD800 <= ord(decoded_full[-1]) <= 0xDBFF:
+                decoded_full = decoded_full[:-1]
             new_suffix = decoded_full[len(self._content_decoded):]
             self._content_decoded = decoded_full
             return new_suffix
