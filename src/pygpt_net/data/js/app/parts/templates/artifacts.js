@@ -48,16 +48,17 @@ class NodeArtifactsTemplate {
 
 		// files
 		const files = block.files || {};
-		const kF = Object.keys(files);
+		const kF = Object.keys(files).filter(k => files[k]);
 		if (kF.length) {
 			const rows = [];
 			kF.forEach((k) => {
 				const it = files[k];
 				if (!it) return;
 				const url = this.templates.esc(it.url);
-				const name = this.templates.esc(it.basename || it.path || '');
+				const fullName = Array.from(this.templates.esc(it.basename || it.path || ''));
+                const name = fullName.length > 100 ? fullName.slice(0, 97).join('') + '...' : fullName.join('');
 				const icon = (typeof window !== 'undefined' && window.ICON_ATTACHMENTS) ? `<img src="${window.ICON_ATTACHMENTS}" class="extra-src-icon">` : '';
-				rows.push(`${icon} <a href="${url}">${this.templates.escapeHtml(name)}</a> <b> [${k}] </b>`);
+				rows.push(`${icon} <a href="${url}">${this.templates.escapeHtml(name)}</a>${kF.length > 1 ? ` <b> [${k}] </b>` : ''}`);
 			});
 			if (rows.length) parts.push(this._renderCollapsibleExtraRows(rows));
 		}

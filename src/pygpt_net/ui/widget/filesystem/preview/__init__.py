@@ -123,7 +123,7 @@ class PreviewPanel(QWidget):
                 name += ' *'
             button = QPushButton(name)
             button.setFlat(True)
-            button.setToolTip(path)
+            button.setToolTip(os.path.relpath(path, self.root))
             if os.path.isdir(path):
                 button.clicked.connect(lambda checked=False, p=path, b=button: self.directory_menu(p, b))
             else:
@@ -132,7 +132,7 @@ class PreviewPanel(QWidget):
         self.breadcrumbs.addStretch()
 
     def directory_menu(self, path, button):
-        popup = DirectoryPopup(path, self.open_file, self)
+        popup = DirectoryPopup(path, self.open_file, self, workdir_root=self.root)
         position = button.mapToGlobal(QPoint(0, button.height()))
         screen = button.screen().availableGeometry()
         popup.resize(min(420, screen.width()), min(350, screen.height()))

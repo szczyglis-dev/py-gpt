@@ -513,6 +513,8 @@ class Body:
         num_str = f" [{num}]" if (num is not None and num_all is not None and num_all > 1) else ""
         url, path = self.window.core.filesystem.extract_local_url(url, ctx=ctx)
         name = os.path.basename(path) or path
+        if len(name) > 100:
+            name = name[:97] + "..."
         return f'{icon} <a href="{url}">{name}</a> <b>{num_str}</b>'
 
     def prepare_tool_extra(self, ctx: CtxItem) -> str:

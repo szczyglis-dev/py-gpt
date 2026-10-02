@@ -234,7 +234,7 @@ def test_single_click_and_breadcrumb_navigation(app, tmp_path):
                      pos=explorer.treeView.visualRect(index).center())
     assert explorer.preview.path == str(path)
     buttons = explorer.preview.findChildren(QPushButton)
-    next(button for button in buttons if button.toolTip() == str(tmp_path)).click()
+    next(button for button in buttons if button.toolTip() == '.').click()
     popup = explorer.preview._directory_popup
     wait(100)
     directory_index = popup.model.index(str(folder))
