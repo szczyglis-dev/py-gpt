@@ -195,3 +195,11 @@ code {{
 .code-header-tool-view {{ color: #686868; }}
 .code-header-tool-view:hover {{ color: #d4d4d4; background: rgba(255,255,255,.08); }}
 .code-header-tool-view:focus-visible {{ outline: 1px solid #9c9c9c; outline-offset: 2px; }}
+
+/* Match Tool/Processed hover for expandable agent status headers. */
+.workflow-status-progress .progress-details > summary:hover > .agents-v2-status__text,
+.workflow-status-progress .progress-worker > summary:hover > span {{
+  color: #fff;
+  background: none;
+  animation: none;
+}}

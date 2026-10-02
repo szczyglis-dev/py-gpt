@@ -190,3 +190,23 @@ def test_agents_v2_runtime_empty_new_chain_clears_previous_agents_v2_display():
     assert "tool_calls" not in main.extra
     assert "agents_v2_tool_calls_display" not in main.extra
     runtime.window.core.ctx.update_item.assert_called_once_with(main)
+
+
+def test_custom_agent_session_status_supports_shared_tool_persistence():
+    from pygpt_net.core.agents.runners.session_components import SessionStatus
+    runtime, main = make_runtime()
+    runtime.status = SessionStatus(runtime)
+    call_id = runtime.tool_history.persist_call('read_file', {'path': 'a.txt'}, 'orchestrator')
+    assert runtime.tool_history.persist_result('file content', 'orchestrator', 'read_file', call_id)
+    task = main.parts[0].tasks[0]
+    assert task.tool_output == 'file content'
+    assert task.extra['status'] == 'completed'
+
+
+def test_agents_v2_shared_tool_persistence_still_refreshes_status():
+    runtime, _main = make_runtime()
+    runtime.status = SimpleNamespace(refresh_tools=MagicMock())
+    call_id = runtime.tool_history.persist_call('read_file', {'path': 'a.txt'}, 'orchestrator')
+    assert runtime.tool_history.persist_result('file content', 'orchestrator', 'read_file', call_id)
+    assert runtime.status.refresh_tools.call_count == 2
+    runtime.status.refresh_tools.assert_called_with('orchestrator')

@@ -148,7 +148,7 @@ class RuntimeWorkflows {
 			if (!label) continue;
 			this._setWorkflowStatus(
 				value, sid, kind, label, !!record.active,
-				{ moveExisting: false, owner: { part_uuid: record.part_uuid, agent_name: record.agent_name } }
+				{ moveExisting: false, owner: { part_uuid: record.part_uuid, agent_name: record.agent_name, hierarchy: record.hierarchy } }
 			);
 			if (kind === 'tool' && Array.isArray(record.live_tool_calls)) {
 				this.runtime.toolOutput.syncLive(value, record.live_tool_calls);
@@ -215,7 +215,7 @@ class RuntimeWorkflows {
 		// One global chronological sequence: a new event freezes whatever was
 		// active and is appended after the previous text/tool/status segment.
 		this.freezeWorkflowStatus(parentId);
-		this._setWorkflowStatus(parentId, statusId, 'agent', value, true, { owner });
+		this._setWorkflowStatus(parentId, statusId, 'agent', value, true, { owner, moveExisting: !(owner && owner.hierarchy) });
 		this.runtime.scrollMgr.scheduleScroll(true);
 	};
 
@@ -431,6 +431,30 @@ class RuntimeWorkflows {
 			status.appendChild(label);
 		}
 		label.textContent = String(labelText || '');
+        if (opts.owner && opts.owner.hierarchy) {
+            status.classList.add('workflow-status-progress');
+            const opened = new Set(Array.from(status.querySelectorAll('details[open]')).map(node => node.dataset.progressKey));
+            const shell = document.createElement('div');
+            shell.innerHTML = this.runtime.templates.tools.renderProgress(labelText, opts.owner.hierarchy, statusId);
+            // Reconcile tool blocks so input/output expansion and DOM identity survive status churn.
+            for (const output of Array.from(shell.querySelectorAll('.tool-output[id]'))) {
+                const previous = Array.from(status.querySelectorAll('.tool-output[id]')).find(node => node.id === output.id);
+                if (previous) {
+                    const updated = this.runtime.toolOutput.reconcile(status, output);
+                    output.replaceWith(updated);
+                }
+            }
+            for (const detail of Array.from(shell.querySelectorAll('details')).reverse()) {
+                const previous = Array.from(status.querySelectorAll('details')).find(node => node.dataset.progressKey === detail.dataset.progressKey);
+                if (previous) {
+                    previous.replaceChildren(...detail.childNodes);
+                    detail.replaceWith(previous);
+                } else detail.open = opened.has(detail.dataset.progressKey);
+            }
+            status.replaceChildren(...shell.childNodes);
+            this.runtime.renderer.renderPendingMarkdown(status);
+        }
+
 		if (active) {
 			// Keep an already-active node active. Consecutive tool calls only change
 			// its label, so the shimmer continues without a CSS animation restart.

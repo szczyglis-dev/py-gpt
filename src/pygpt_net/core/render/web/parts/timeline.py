@@ -155,6 +155,7 @@ class Timeline:
                 "agent_name_prefix": str(record.get("agent_name") or ""),
                 "status_tool_names": list(record.get("tool_names") or []),
                 "status_active": bool(record.get("active")),
+                "status_hierarchy": record.get("hierarchy"),
                 "status_live_tool_calls": list(record.get("live_tool_calls") or []) if include_tool_calls else [],
             })
 
@@ -254,7 +255,7 @@ class Timeline:
                 text_after_round = 0
 
             round_ids = set()
-            if include_tool_calls:
+            if include_tool_calls and not part_extra.get("agents_v2_progress"):
                 for task in getattr(part, "tasks", None) or []:
                     extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
                     if not (task.tool_call_id or extra.get("tool_name")):
@@ -296,7 +297,7 @@ class Timeline:
                 visible_text = self.renderer.helpers.strip_tool_calls(raw_text)
                 if visible_text:
                     append_segment(part, text=visible_text)
-                if include_tool_calls and legacy_calls:
+                if include_tool_calls and legacy_calls and not part_extra.get("agents_v2_progress"):
                     append_segment(part, tool_calls=legacy_calls)
 
             append_part_statuses(after_by_part.get(part_uuid, []), part)

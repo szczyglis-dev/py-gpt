@@ -18,6 +18,7 @@ body {{
   margin: auto;
   max-width: 780px;
   border-radius: .25rem;
+  font-size: 0.9rem;
 }}
 h1,
 h2,
@@ -227,7 +228,7 @@ code {{
   padding: 6px;
   font-family: 'Monaspace Neon';
   overflow-y: auto;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }}
 think {{
   border-left: 4px solid silver;
@@ -335,6 +336,7 @@ think {{
   border-bottom-right-radius: 10px;
   overflow-y: auto;
   padding: 1.5rem;
+  font-size: 0.7rem;
   transition:
     padding-top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
     padding-bottom 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -1061,3 +1063,26 @@ html[data-tool-view="raw"] .tool-view-raw {{ display: block; }}
 html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .code-header-tool-view {{ display: inline-block; vertical-align: middle; background: transparent; color: #9c9c9c; border: 0; cursor: pointer; padding: 2px 6px; font: bold 16px monospace; border-radius: 6px; }}
 .code-header-tool-view:hover {{ background: rgba(150,150,150,.15); }}
+
+/* Durable Agents v2 progress accordions. */
+.progress-details > summary, .progress-worker > summary {{ list-style: none; cursor: pointer; }}
+.progress-details > summary::-webkit-details-marker, .progress-worker > summary::-webkit-details-marker {{ display: none; }}
+.progress-content {{ padding-left: 18px; }}
+.progress-details > summary .tool-output-arrow, .progress-worker > summary .tool-output-arrow {{ visibility: hidden; }}
+.progress-details > summary:hover .tool-output-arrow, .progress-worker > summary:hover .tool-output-arrow,
+.progress-details > summary:focus-visible .tool-output-arrow, .progress-worker > summary:focus-visible .tool-output-arrow {{ visibility: visible; }}
+.progress-details[open] > summary .tool-output-arrow, .progress-worker[open] > summary .tool-output-arrow {{ transform: rotate(180deg); }}
+
+/* Expandable progress must receive real mouse events; passive status rows do not. */
+.workflow-status-progress, .workflow-status-progress .progress-details,
+.workflow-status-progress .progress-worker, .workflow-status-progress .progress-content,
+.workflow-status-progress .tool-output-toggle {{ pointer-events: auto; }}
+
+/* Progress payloads fill the message rather than the status label's width. */
+.workflow-status-progress {{ width: calc(100% - 24px); box-sizing: border-box; }}
+.workflow-status-progress .progress-content,
+.workflow-status-progress .progress-details,
+.workflow-status-progress .progress-worker,
+.workflow-status-progress .tool-output,
+.workflow-status-progress .tool-output-pair,
+.workflow-status-progress .code-wrapper {{ width: 100%; box-sizing: border-box; min-width: 0; }}

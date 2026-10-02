@@ -15,6 +15,8 @@ import json
 from dataclasses import dataclass
 import time
 from typing import Optional
+from pygpt_net.core.types import agent as agent_policy
+
 from pygpt_net.core.types import MODE_AGENT_LLAMA
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 from pygpt_net.utils import trans
@@ -75,6 +77,8 @@ class Agents:
                 and runtime_status_records):
             replay_statuses = True
 
+        if CtxItem.uses_agent_timeline(ctx) and runtime_status_records:
+            replay_statuses = True
         show_tool_chain = self.renderer.tools.show_tool_chain_for_ctx(ctx)
         completed_agents_v2_output = None
         if (CtxItem.uses_agent_timeline(ctx)
@@ -289,10 +293,37 @@ class Agents:
         _key, _pid, resolved_ctx = self.workflow_status_key(meta, ctx)
         if resolved_ctx is None:
             resolved_ctx = ctx
+        if CtxItem.uses_agent_timeline(resolved_ctx) and not owner:
+            # Plugin progress arrives directly through RenderEvent, outside the
+            # runtime emitter. Keep it in the same durable partial status slot.
+            part = resolved_ctx.get_active_part()
+            if part is not None:
+                part.extra = dict(part.extra or {})
+                progress = dict(part.extra.get("agents_v2_progress") or {})
+                progress["text"] = value_text
+                part.extra["agents_v2_progress"] = progress
+                self.renderer.window.core.ctx.update_part(resolved_ctx, part, sync_item=False)
+                owner = {"part_uuid": str(part.uuid), "progress": progress}
+        if CtxItem.uses_agent_timeline(resolved_ctx) and owner and owner.get("progress"):
+            part = next((p for p in resolved_ctx.parts or [] if str(p.uuid) == owner.get("part_uuid")), None)
+            if part is not None:
+                # The queued event owns its status snapshot. Runtime/renderer
+                # partial objects can already contain a newer or stale label.
+                part.extra = dict(part.extra or {})
+                part.extra["agents_v2_progress"] = dict(owner["progress"])
+                self.renderer.window.core.ctx.update_part(resolved_ctx, part, sync_item=False)
+            record = next((r for r in self.progress_records(resolved_ctx) if r["part_uuid"] == owner.get("part_uuid")), None)
+            if record:
+                value_text = str(owner["progress"].get("text") or value_text)
+                owner = {**owner, "hierarchy": record["hierarchy"]}
+        else:
+            record = None
         self.update_agent_working(meta, resolved_ctx)
         status_id = self.workflow_status_add(
             meta, resolved_ctx, kind="agent", text=value_text, owner=owner,
         )
+        if record:
+            status_id = record["id"]
         try:
             value = json.dumps(value_text, ensure_ascii=False)
             parent_id = json.dumps(
@@ -522,6 +553,41 @@ class Agents:
         else:
             self.state.workflow_statuses.pop(key, None)
 
+    def progress_records(self, ctx):
+        records = []
+        for index, part in enumerate(ctx.parts or []):
+            progress = (part.extra or {}).get("agents_v2_progress")
+            if not isinstance(progress, dict):
+                continue
+            calls = []
+            swarm = progress.get("swarm") is True
+            workers = {key: dict(value, calls=[]) for key, value in (progress.get("workers") or {}).items()}
+            raw = ctx.get_part_tool_calls(visible_only=False, part=part) if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else []
+            for task in (part.tasks or []) if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else []:
+                name = (task.extra or {}).get("tool_name") or task.task_name
+                if not name or self.renderer.window.core.command.is_tool_hidden(name):
+                    continue
+                normalized = self.renderer.helpers.extract_extra_tool_calls([
+                    call for call in raw if call.get("call_id") == (task.tool_call_id or task.uuid)
+                ])
+                actor = str(task.agent_id or "orchestrator")
+                if actor == "orchestrator" or not swarm:
+                    calls.extend(normalized)
+                else:
+                    worker = workers.setdefault(actor, {"id": actor, "name": (task.extra or {}).get("agent_name") or actor, "text": "", "calls": []})
+                    worker["calls"].extend(normalized)
+            label = progress.get("text")
+            if not label or label == "Tools":
+                label = trans("status.agent_v2.thinking")
+            records.append({
+                "id": "progress-" + str(part.uuid), "kind": "agent",
+                "part_uuid": str(part.uuid), "placement": "after", "seq": index,
+                "text": label, "active": False,
+                "hierarchy": ({"calls": calls, "workers": list(workers.values()) if swarm else []}
+                              if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else None),
+            })
+        return records
+
     def workflow_status_records(
             self,
             ctx: CtxItem,
@@ -530,6 +596,8 @@ class Agents:
     ) -> list[dict]:
         meta = getattr(ctx, "meta", None)
         key, _pid, _ctx = self.workflow_status_key(meta, ctx) if meta is not None else (None, None, ctx)
+        if CtxItem.uses_agent_timeline(ctx):
+            return self.progress_records(ctx)
         if key is None:
             return []
         records = [dict(record) for record in self.state.workflow_statuses.get(key, [])]

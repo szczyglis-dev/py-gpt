@@ -12,10 +12,22 @@
 """Compact execution responses shared by execution plugins."""
 
 
+import re
+
+
+# Terminal formatting is useful in a console, but execution tool responses are
+# plain text. Match CSI colors/cursor controls and OSC titles/hyperlinks.
+_ANSI_ESCAPE = re.compile(
+    r"(?:\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)"
+    r"|(?:\x1b\[|\x9b)[0-?]*[ -/]*[@-~]"
+    r"|\x1b[@-Z\\-_])"
+)
+
+
 def text(value):
     if isinstance(value, bytes):
-        return value.decode('utf-8', errors='replace')
-    return value if isinstance(value, str) else ''
+        value = value.decode('utf-8', errors='replace')
+    return _ANSI_ESCAPE.sub('', value) if isinstance(value, str) else ''
 
 
 def output_text(response):

@@ -15,6 +15,8 @@ import asyncio
 import time
 from typing import Any, Dict, Optional
 
+from pygpt_net.core.types import agent as agent_policy
+
 from .state import WorkerState, WorkerStatus
 from .utils import short_status_text, translated_status
 
@@ -28,6 +30,64 @@ class RuntimeStatus:
         self.sequence = 0
         self.reporter_task = None
         self.last_report_at = 0.0
+        self.primary_status = ""
+        if getattr(runtime, "emitter", None) is not None:
+            runtime.emitter.status_owner_provider = self.owner
+
+    def owner(self, text, actor):
+        """Persist semantic progress beside the partial's durable task records."""
+        part = self.runtime.timeline.part(actor, create=True)
+        if part is None:
+            return None
+        main = self.runtime.context.ctx
+        extra = dict(part.extra or {})
+        progress = dict(extra.get("agents_v2_progress") or {})
+        if actor == "orchestrator":
+            self.primary_status = text
+        progress["swarm"] = bool(self.runtime.is_swarm_mode)
+        if actor == "orchestrator" or not self.runtime.is_swarm_mode:
+            if actor != "orchestrator":
+                worker = self.runtime.workers.states.get(actor)
+                name = worker.name if worker and worker.name else str(actor)
+                prefix = f"[{name}] "
+                if not text.startswith(prefix):
+                    text = prefix + text
+            progress["text"] = text
+        else:
+            workers = dict(progress.get("workers") or {})
+            worker = self.runtime.workers.states.get(actor)
+            workers[str(actor)] = {
+                "id": str(actor), "name": worker.name if worker else str(actor),
+                "text": text, "status": worker.status.value if worker else "",
+            }
+            progress["workers"] = workers
+        if self.runtime.is_swarm_mode:
+            progress["workers"] = {
+                item["id"]: {**item, "text": item["activity"]}
+                for item in self.snapshot()["activities"]
+            }
+        extra["agents_v2_progress"] = progress
+        part.extra = extra
+        self.runtime.window.core.ctx.update_part(main, part, sync_item=False)
+        return {"part_uuid": str(part.uuid), "progress": progress,
+                "tool_revision": [(str(task.uuid), str(task.updated_at), (task.extra or {}).get("status")) for task in (part.tasks or []) if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED]}
+
+    def refresh_tools(self, actor):
+        if not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
+            return
+        part = self.runtime.timeline.part(actor, create=False)
+        progress = (part.extra or {}).get("agents_v2_progress", {}) if part else {}
+        text = (self.primary_status or progress.get("text")) if actor == "orchestrator" else progress.get("text")
+        previous_primary_status = self.primary_status
+        if not text:
+            text = translated_status("status.agent_v2.thinking")
+        if actor != "orchestrator":
+            worker = self.runtime.workers.states.get(actor)
+            text = worker.progress or worker.current_task or worker.status.value if worker else text
+        self.runtime.emitter.status(text, source=actor)
+        if actor == "orchestrator":
+            # A task snapshot refresh must not become the semantic status source.
+            self.primary_status = previous_primary_status
 
     def show_tool(self, tool_name: str) -> bool:
         """Return whether Agents v2 should expose a raw per-tool status row.
@@ -109,6 +169,7 @@ class RuntimeStatus:
             # status row, but each active worker is rendered on its own line.
             # The legacy accumulating timeline keeps the old inline `` | `` form.
             activity_text = ("\n\n" if single_live_status else " | ") + activity_text
+        activity_text = ""  # Worker activity is shown in the nested accordions.
         template = translated_status(
             "status.agent_v2.swarm.summary",
             declared=snapshot["declared"] or 0,
@@ -228,6 +289,7 @@ class RuntimeStatus:
 
     async def update(self, status: str) -> str:
         value = str(status or "").strip()
+        self.primary_status = value
         self.runtime.verbose.log("WORKFLOW STATUS", {"status": value})
         self.runtime.emitter.status(value, source="orchestrator")
         return "Status updated."

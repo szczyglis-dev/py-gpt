@@ -13,6 +13,18 @@ class NodeToolsTemplate {
 	// Tools
 	// ========================================
 
+	renderProgress(label, hierarchy, id) {
+        const esc = value => this.templates.escapeHtml(String(value || ''));
+        const arrow = `<img src='${this.templates.esc(window.ICON_EXPAND || '')}' class='tool-output-arrow' width='25' height='25' alt=''>`;
+        const tools = (calls, prefix) => (calls || []).map(call =>
+            this.renderToolOutputWrapper({id: `${prefix}-${call.call_id}`, extra: {tool_calls: [call], tool_output_visible: true}})
+        ).join('');
+        const workers = (hierarchy.workers || []).map(worker =>
+            `<details class='tool-output progress-worker' data-progress-key='${esc(worker.id)}'><summary class='tool-output-toggle'><span>${esc(worker.name)}: ${esc(worker.status)} ${esc(worker.text)}</span>${arrow}</summary><div class='progress-content'>${tools(worker.calls, `${id}-${worker.id}`)}</div></details>`
+        ).join('');
+        return `<details class='tool-output progress-details' data-progress-key='${esc(id)}'><summary class='tool-output-toggle'><span class='agents-v2-status__text'>${esc(label)}</span>${arrow}</summary><div class='progress-content'>${tools(hierarchy.calls, id)}${workers}</div></details>`;
+    }
+
 	// Render tool output wrapper (always collapsed by default; wrapper visibility depends on flag)
 	// Inside class NodeTemplateEngine
 	renderToolOutputWrapper(block) {

@@ -92,9 +92,9 @@ class NodeTimelineTemplate {
 					parts.push(
 						`<div class='msg-part msg-part-status' data-status-part='1'>` +
 						(segment.agent_name_prefix ? `<span class='agent-name-prefix'>${this.templates.escapeHtml(segment.agent_name_prefix)}</span>` : '') +
-						`<div class='agents-v2-status workflow-status${activeClass}${liveHtml ? ' live-tool-status' : ''}' ` +
+						`<div class='agents-v2-status workflow-status${segment.status_hierarchy ? ' workflow-status-progress' : ''}${activeClass}${liveHtml ? ' live-tool-status' : ''}' ` +
 						`data-workflow-status-id='${sid}' data-status-kind='${skind}'>` +
-						`<span class='agents-v2-status__text'>${this.templates.escapeHtml(label)}</span>${liveHtml}` +
+						(segment.status_hierarchy ? this.templates.tools.renderProgress(label, segment.status_hierarchy, statusId) : `<span class='agents-v2-status__text'>${this.templates.escapeHtml(label)}</span>${liveHtml}`) +
 						`</div></div>`
 					);
 				}

@@ -71,3 +71,29 @@ def test_builtin_process_keeps_exit_status_without_shared_state(monkeypatch):
     output = runtime._communicate(['python'])
     assert tuple(output) == (b'out', b'err')
     assert output.return_code == 5
+
+
+@pytest.mark.parametrize('worker_type,cmd', [(PythonWorker, 'ipython_exec'), (SystemWorker, 'sys_exec')])
+def test_execution_response_cleans_terminal_formatting_before_tool_reply(mock_window, worker_type, cmd):
+    stdout = '\x1b[32mZażółć gęślą\x1b[0m\n'.encode('utf-8')
+    stderr = 'Error executing code:\x1b[31mModuleNotFoundError\x1b[39m\nNo module named googletrans'
+    backend = execution_response({'cmd': cmd}, stdout, stderr, 1)
+    worker = worker_type()
+    item = {'cmd': cmd, 'params': {}}
+    response = worker.make_response(item, backend, worker.prepare_extra(item, backend))
+    ctx = CtxItem()
+    plugin = BasePlugin(window=mock_window)
+    mock_window.core.command.is_tool_hidden.return_value = False
+    plugin.prepare_reply_ctx(response, ctx)
+    result = ctx.results[0]['result']
+    assert result['stdout'] == 'Zażółć gęślą\n'
+    assert result['stderr'] == 'Error executing code:ModuleNotFoundError\nNo module named googletrans'
+    assert result['result'] is False
+    assert result['return_code'] == 1
+    assert '\x1b' not in json.dumps(ctx.results, ensure_ascii=False)
+    assert '\\u001b' not in json.dumps(ctx.results)
+
+
+def test_execution_response_removes_osc_without_altering_plain_output():
+    output = '\x1b]0;title\x07line 1\n\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\\nline 2\tend'
+    assert execution_response({}, stdout=output)['stdout'] == 'line 1\nlink\nline 2\tend'

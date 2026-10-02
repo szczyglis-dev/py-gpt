@@ -17,3 +17,7 @@ AGENT_MODE_WORKFLOW = "agent.mode.workflow"  # LlamaIndex
 
 AGENT_TYPE_LLAMA = "agent.type.llama"  # LlamaIndex
 AGENT_TYPE_OPENAI = "agent.type.openai"  # OpenAI Agent
+
+# Agents v2 expandable tool history. False keeps semantic status labels only:
+# no per-call UI refreshes, WebView tool payloads, or history tool rendering.
+AGENTS_V2_TOOL_CALLS_ENABLED = True

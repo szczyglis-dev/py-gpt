@@ -15,6 +15,8 @@ import json
 from typing import Optional
 
 from ..tool_display import project
+from pygpt_net.core.types import agent as agent_policy
+
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
@@ -45,6 +47,8 @@ class Tools:
     ):
         """Show an animated tool row inside the chronological message body."""
         _key, _pid, working_ctx = self.renderer.agents.workflow_status_key(meta, ctx)
+        if CtxItem.uses_agent_timeline(working_ctx) and not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
+            return
         if tool_names:
             self.renderer.agents.update_agent_working(meta, working_ctx, tool_started=True)
         names_list = self.renderer.window.core.command.realtime_visible_tool_names(
@@ -297,6 +301,8 @@ class Tools:
         Other modes keep their existing rendering semantics when the global
         preference is enabled.
         """
+        if CtxItem.uses_agent_timeline(ctx) and not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
+            return False
         if not self._display_tool_calls_json():
             return False
         if not CtxItem.uses_agent_timeline(ctx):

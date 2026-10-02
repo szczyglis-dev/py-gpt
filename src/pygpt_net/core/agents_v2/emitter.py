@@ -35,6 +35,7 @@ class RuntimeEmitter:
         self.text = ""
         self.status_text = ""
         self._status_owner = None
+        self.status_owner_provider = None
         self._pending_part_uuid = None
         self._last_emitted_part_uuid = None
         self.final_started = False
@@ -398,6 +399,8 @@ class RuntimeEmitter:
             self._emit_status_now("", source, 0.0)
             return
 
+        if owner is None and self.status_owner_provider is not None:
+            owner = self.status_owner_provider(value, source)
         now = time.monotonic()
         if self._status_hold_until > now:
             # Coalesce rapid status churn while the current row is guaranteed to

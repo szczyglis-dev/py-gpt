@@ -182,3 +182,11 @@ code {{
 .tips p {{
   color: #806497;
 }}
+
+/* Match Tool/Processed hover for expandable agent status headers. */
+.workflow-status-progress .progress-details > summary:hover > .agents-v2-status__text,
+.workflow-status-progress .progress-worker > summary:hover > span {{
+  color: #fff;
+  background: none;
+  animation: none;
+}}

@@ -94,6 +94,9 @@ class RuntimeToolHistory:
             task.extra["ui_ready"] = False
             self.runtime.window.core.ctx.update_part_task(task)
             self.tasks[f"{actor_id}:{value}"] = task
+        refresh_tools = getattr(getattr(self.runtime, "status", None), "refresh_tools", None)
+        if callable(refresh_tools):
+            refresh_tools(actor)
         return value
 
     def persist_result(
@@ -142,6 +145,9 @@ class RuntimeToolHistory:
         task.task_summary = f"Tool {task.extra.get('tool_name') or name or 'tool'} completed"
         task.touch()
         self.runtime.window.core.ctx.update_part_task(task)
+        refresh_tools = getattr(getattr(self.runtime, "status", None), "refresh_tools", None)
+        if callable(refresh_tools):
+            refresh_tools(actor)
         return True
 
     def promote_part(self, part):
