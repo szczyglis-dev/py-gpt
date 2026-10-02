@@ -1022,12 +1022,12 @@ A compact OpenAI-backed example:
            )
            return LlamaOpenAI(**args)
 
-For embeddings, implement ``get_embeddings_model()`` and return a LlamaIndex ``BaseEmbedding`` instance.
+For embeddings, implement ``llama_embeddings()`` and return a LlamaIndex ``BaseEmbedding`` instance.
 
 Depending on its purpose, a wrapper can implement:
 
 * ``llama()`` - return a LlamaIndex LLM for RAG and LlamaIndex agents.
-* ``get_embeddings_model()`` - return a LlamaIndex embedding model.
+* ``llama_embeddings()`` - return a LlamaIndex embedding model.
 * ``get_models()`` - optionally expose provider-side model discovery.
 
 Legacy ``chat()`` and ``completion()`` methods remain in the base interface for compatibility, but current

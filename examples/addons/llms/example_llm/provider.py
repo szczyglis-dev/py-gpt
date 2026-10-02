@@ -48,7 +48,7 @@ class ExampleLLM(BaseLLM):
     def llama_completion(self, window, model, stream=False):
         return self.llama(window, model, stream=stream)
 
-    def get_embeddings_model(self, window, config=None):
+    def llama_embeddings(self, window, config=None):
         from llama_index.core.embeddings.mock_embed_model import MockEmbedding
 
         return MockEmbedding(embed_dim=8)

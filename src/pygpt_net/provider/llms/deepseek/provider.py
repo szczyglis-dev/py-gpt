@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 12:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ class DeepseekApiLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LlamaIndex chat provider
 
         :param window: window instance
         :param model: model instance
@@ -63,13 +63,13 @@ class DeepseekApiLLM(BaseLLM):
         self.log_llama_create(window, model, args, "DeepSeek")
         return DeepSeek(**args)
 
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
         """
-        Return provider instance for embeddings
+        Return LlamaIndex embeddings provider
 
         :param window: window instance
         :param config: config keyword arguments list
@@ -100,6 +100,11 @@ class DeepseekApiLLM(BaseLLM):
         proxy = window.core.config.get("api_proxy")
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = ""
+        self.log_llama_create(
+            window, None, args, "VoyageEmbeddingWithProxy",
+            {"proxy": proxy, "timeout": timeout, "max_retries": max_retries},
+            kind="embeddings",
+        )
         return VoyageEmbeddingWithProxy(
             **args,
             proxy=proxy,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 14:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -284,7 +284,7 @@ class Llm:
         )
         model_name = self.extract_model_name_from_args(args)
         self.window.core.idx.log(f"Embeddings: using global provider: {provider}, model_name: {model_name}")
-        return llm_provider.get_embeddings_model(
+        return llm_provider.llama_embeddings(
             window=self.window,
             config=args,
         )
@@ -383,7 +383,7 @@ class Llm:
         if is_custom_provider:
             llm_provider = self.window.core.llm.get(model.provider)
             if llm_provider is not None:
-                embed_model = llm_provider.get_embeddings_model(
+                embed_model = llm_provider.llama_embeddings(
                     window=self.window,
                     config=args,
                 )

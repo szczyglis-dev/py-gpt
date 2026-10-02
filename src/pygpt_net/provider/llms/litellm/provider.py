@@ -5,8 +5,8 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
-# Created By  : RheagalFire                          #
-# Updated Date: 2026.09.29 13:00:00                  #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -36,30 +36,6 @@ class LiteLLMProvider(BaseLLM):
     def setup(self) -> dict:
         from .config import setup
         return setup()
-
-    @staticmethod
-    def _positive_int(value: Any) -> int | None:
-        try:
-            value = int(value or 0)
-        except (TypeError, ValueError):
-            return None
-        return value if value > 0 else None
-
-    def _get_max_tokens(self, window, model: ModelItem, args: Dict[str, Any]) -> int | None:
-        """Return the effective output cap while preserving explicit overrides."""
-        configured = args.pop("max_tokens", None)
-        if configured is not None:
-            return self._positive_int(configured)
-
-        # ``max_completion_tokens`` is a provider-specific LiteLLM kwarg.  When
-        # it is explicitly configured, do not also synthesize ``max_tokens``.
-        if "max_completion_tokens" in args:
-            return None
-
-        model_limit = self._positive_int(getattr(model, "tokens", 0))
-        app_limit = self._positive_int(window.core.config.get("max_output_tokens"))
-        limits = [value for value in (model_limit, app_limit) if value is not None]
-        return min(limits) if limits else None
 
     def llama(
             self,
@@ -146,7 +122,7 @@ class LiteLLMProvider(BaseLLM):
         )
         return LiteLLMIndex(**constructor_args)
 
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None,
@@ -252,6 +228,29 @@ class LiteLLMProvider(BaseLLM):
 
         return items
 
+    @staticmethod
+    def _positive_int(value: Any) -> int | None:
+        try:
+            value = int(value or 0)
+        except (TypeError, ValueError):
+            return None
+        return value if value > 0 else None
+
+    def _get_max_tokens(self, window, model: ModelItem, args: Dict[str, Any]) -> int | None:
+        """Return the effective output cap while preserving explicit overrides."""
+        configured = args.pop("max_tokens", None)
+        if configured is not None:
+            return self._positive_int(configured)
+
+        # ``max_completion_tokens`` is a provider-specific LiteLLM kwarg.  When
+        # it is explicitly configured, do not also synthesize ``max_tokens``.
+        if "max_completion_tokens" in args:
+            return None
+
+        model_limit = self._positive_int(getattr(model, "tokens", 0))
+        app_limit = self._positive_int(window.core.config.get("max_output_tokens"))
+        limits = [value for value in (model_limit, app_limit) if value is not None]
+        return min(limits) if limits else None
 
 def __getattr__(name):
     # Backward-compatible lazy export. ``LiteLLMIndex`` is now only a thin

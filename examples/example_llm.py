@@ -70,7 +70,7 @@ class ExampleLlm(BaseLLM):
 
         return LlamaOpenAI(**args)
 
-    def get_embeddings_model(
+    def llama_embeddings(
         self,
         window,
         config: Optional[List[Dict]] = None,

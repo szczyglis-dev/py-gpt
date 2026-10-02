@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 12:48:00
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -23,11 +23,16 @@ from pygpt_net.core.types import (
     MODE_EMBEDDINGS,
 )
 from pygpt_net.provider.llms.base import BaseLLM
-from pygpt_net.provider.llms.artifacts import append_unique_urls, extract_anthropic_urls
 from pygpt_net.item.model import ModelItem
+
+from .agents import AnthropicAgents
+from .parameters import AnthropicParameters
+
 
 
 class AnthropicLLM(BaseLLM):
+    agents_class = AnthropicAgents
+
     def __init__(self, *args, **kwargs):
         super(AnthropicLLM, self).__init__(*args, **kwargs)
         """
@@ -37,6 +42,7 @@ class AnthropicLLM(BaseLLM):
             - model: model name, e.g. claude-3-opus-20240229
             - api_key: API key for Anthropic API
         """
+        self.parameters = AnthropicParameters(self)
         self.id = "anthropic"
         self.name = "Anthropic"
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
@@ -44,20 +50,6 @@ class AnthropicLLM(BaseLLM):
     def setup(self) -> dict:
         from .config import setup
         return setup()
-
-    def llama_completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> LlamaBaseLLM:
-        """Return LlamaIndex completion provider without server-side chat tools."""
-        return self.llama(
-            window=window,
-            model=model,
-            stream=stream,
-            remote_tools=False,
-        )
 
     def llama(
             self,
@@ -67,7 +59,7 @@ class AnthropicLLM(BaseLLM):
             remote_tools: bool = True
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LlamaIndex chat provider
 
         :param window: window instance
         :param model: model instance
@@ -75,88 +67,10 @@ class AnthropicLLM(BaseLLM):
         :param remote_tools: whether to enable remote tools (e.g., web search, computer use)
         :return: LLM provider instance
         """
-        from llama_index.core.bridge.pydantic import PrivateAttr
-        from llama_index.llms.anthropic import Anthropic
+        from .capture import AnthropicWithProxy
 
-        class AnthropicWithProxy(Anthropic):
-            _pygpt_urls: list[str] = PrivateAttr(default_factory=list)
 
-            def __init__(self, *args, proxy: str = None, **kwargs):
-                super().__init__(*args, **kwargs)
-                if proxy:
-                    # sync
-                    from anthropic import DefaultHttpxClient
-                    self._client = self._client.with_options(
-                        http_client=DefaultHttpxClient(proxy=proxy)
-                    )
-
-                    # async
-                    import httpx
-                    try:
-                        async_http = httpx.AsyncClient(proxy=proxy)  # httpx >= 0.28
-                    except TypeError:
-                        async_http = httpx.AsyncClient(proxies=proxy)  # httpx <= 0.27
-                    self._aclient = self._aclient.with_options(http_client=async_http)
-
-            def _capture_pygpt_urls(self, response) -> None:
-                try:
-                    append_unique_urls(
-                        self._pygpt_urls,
-                        extract_anthropic_urls(response),
-                    )
-                except Exception:
-                    pass
-
-            def pop_pygpt_urls(self) -> list[str]:
-                urls = list(self._pygpt_urls)
-                self._pygpt_urls.clear()
-                return urls
-
-            def chat(self, messages, **kwargs):
-                response = super().chat(messages, **kwargs)
-                self._capture_pygpt_urls(response)
-                return response
-
-            def stream_chat(self, messages, **kwargs):
-                stream = super().stream_chat(messages, **kwargs)
-
-                def gen():
-                    for response in stream:
-                        self._capture_pygpt_urls(response)
-                        yield response
-
-                return gen()
-
-            async def achat(self, messages, **kwargs):
-                response = await super().achat(messages, **kwargs)
-                self._capture_pygpt_urls(response)
-                return response
-
-            async def astream_chat(self, messages, **kwargs):
-                stream = await super().astream_chat(messages, **kwargs)
-
-                async def gen():
-                    async for response in stream:
-                        self._capture_pygpt_urls(response)
-                        yield response
-
-                return gen()
-
-        args = self.parse_args(model.llama_index, window)
-        proxy = window.core.config.get("api_proxy", None)
-        if not window.core.config.get("api_proxy.enabled", False):
-            proxy = None
-        if not args.get("model"):
-            args["model"] = model.id
-        if not args.get("api_key"):
-            args["api_key"] = (
-                self.get_env_override(
-                    window,
-                    (model.llama_index or {}).get("env", []),
-                    ["ANTHROPIC_API_KEY"],
-                )
-                or self.get_config("api_key", "")
-            )
+        args, proxy = self.parameters.prepare(window, model)
 
         # ---------------------------------------------
         # Remote server tools (e.g., web_search_20250305)
@@ -195,212 +109,37 @@ class AnthropicLLM(BaseLLM):
         # computes this in the native Anthropic provider, so mirror it here too.
         # Stable toolsets such as ``computer_toolset_20260801`` intentionally do
         # not add a beta header.
-        self._merge_anthropic_beta_header(
+        self.parameters.beta_headers(
             args,
-            self._remote_tool_beta_headers(args.get("tools") or []),
+            self.parameters.tool_beta_headers(args.get("tools") or []),
         )
         reasoning_effort = window.core.models.get_reasoning_effort(model)
-        self._merge_reasoning_effort(args, reasoning_effort)
+        self.parameters.reasoning(args, reasoning_effort)
 
         self.log_llama_create(window, model, args, "AnthropicWithProxy", {"proxy": proxy})
         return AnthropicWithProxy(**args, proxy=proxy)
 
-    @staticmethod
-    def _merge_reasoning_effort(args: dict, reasoning_effort: Optional[str]) -> None:
-        """Forward Anthropic effort without requiring a new SDK signature.
-
-        PyGPT currently supports anthropic==0.75.0. Its stable
-        ``Messages.create`` method does not declare ``output_config`` even
-        though the API accepts the field. LlamaIndex forwards
-        ``additional_kwargs`` directly to that method, so putting
-        ``output_config`` there raises ``unexpected keyword argument``.
-        ``extra_body`` is supported by that SDK and is merged into the JSON
-        request body, which also keeps this compatible with newer SDKs.
-        """
-        if not reasoning_effort:
-            return
-        additional_kwargs = dict(args.get("additional_kwargs") or {})
-        extra_body = dict(additional_kwargs.get("extra_body") or {})
-        output_config = dict(extra_body.get("output_config") or {})
-        output_config["effort"] = reasoning_effort
-        extra_body["output_config"] = output_config
-        additional_kwargs["extra_body"] = extra_body
-        args["additional_kwargs"] = additional_kwargs
-
-    @staticmethod
-    def _remote_tool_beta_headers(tools: List[dict]) -> List[str]:
-        """Return Anthropic beta headers required by provider-native tools.
-
-        Native Chat computes the same feature flags before choosing the beta
-        Messages API. LlamaIndex uses the regular ``messages.create`` path, so
-        both Chat with files and Agents v2 must pass the equivalent flags through
-        the client's default headers.
-        """
-        betas = []
-        for tool in tools or []:
-            if not isinstance(tool, dict):
-                continue
-            tool_type = str(tool.get("type") or "")
-            beta = None
-            if tool_type == "computer_20250124":
-                beta = "computer-use-2025-01-24"
-            elif tool_type == "computer_20251124":
-                beta = "computer-use-2025-11-24"
-            elif tool_type.startswith("web_fetch_"):
-                beta = "web-fetch-2025-09-10"
-            elif tool_type.startswith("code_execution_"):
-                beta = "code-execution-2025-08-25"
-            elif tool_type in {
-                "tool_search_tool_regex_20251119",
-                "tool_search_tool_bm25_20251119",
-            }:
-                beta = "advanced-tool-use-2025-11-20"
-            elif tool_type == "mcp_toolset":
-                beta = "mcp-client-2025-11-20"
-            if beta and beta not in betas:
-                betas.append(beta)
-        return betas
-
-    @staticmethod
-    def _merge_anthropic_beta_header(args: dict, betas: List[str]) -> None:
-        if not betas:
-            return
-        headers = args.get("default_headers") or {}
-        if not isinstance(headers, dict):
-            headers = {}
-        else:
-            headers = dict(headers)
-        current = str(headers.get("anthropic-beta") or "")
-        merged = [part.strip() for part in current.split(",") if part.strip()]
-        for beta in betas:
-            if beta not in merged:
-                merged.append(beta)
-        headers["anthropic-beta"] = ",".join(merged)
-        args["default_headers"] = headers
-
-    def llama_chat_with_files(
+    def llama_completion(
             self,
             window,
             model: ModelItem,
-            stream: bool = False,
-            computer_runtime=None,
-            force_computer_use: bool = False,
+            stream: bool = False
     ) -> LlamaBaseLLM:
-        """Use the shared provider continuation adapter when Computer Use is active."""
-        try:
-            if force_computer_use and window.core.api.anthropic.computer.supports_model(model):
-                remote_tools = [window.core.api.anthropic.computer.get_tool(model=model)]
-            else:
-                remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
-        except Exception as exc:
-            window.core.debug.log(exc)
-            remote_tools = []
-        computer_types = {
-            "computer_20250124",
-            "computer_20251124",
-            "computer_toolset_20260801",
-        }
-        if any(
-                isinstance(tool, dict) and str(tool.get("type") or "") in computer_types
-                for tool in remote_tools
-        ):
-            llm = self.llama_agent(
-                window=window,
-                model=model,
-                stream=stream,
-                allow_remote_tools=True,
-                force_computer_use=force_computer_use,
-            )
-            binder = getattr(llm, "bind_computer_runtime", None)
-            if callable(binder):
-                binder(computer_runtime)
-            return llm
-        return self.llama(window=window, model=model, stream=stream)
-
-    def llama_agent(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False,
-            allow_remote_tools: bool = True,
-            force_computer_use: bool = False,
-    ) -> LlamaBaseLLM:
-        """Return Anthropic configured for Agents v2.
-
-        Unlike plain LlamaIndex chat, the agent adapter owns Anthropic's
-        client-side Computer Use continuation and preserves the beta headers
-        required by legacy Computer Use tool versions.
-        """
-        from .agent import AgentAnthropic
-
-        args = self.parse_args(model.llama_index, window)
-        proxy = window.core.config.get("api_proxy", None)
-        if not window.core.config.get("api_proxy.enabled", False):
-            proxy = None
-        if not args.get("model"):
-            args["model"] = model.id
-        if not args.get("api_key"):
-            args["api_key"] = (
-                self.get_env_override(
-                    window,
-                    (model.llama_index or {}).get("env", []),
-                    ["ANTHROPIC_API_KEY"],
-                )
-                or self.get_config("api_key", "")
-            )
-
-        built_remote_tools = []
-        if force_computer_use:
-            try:
-                if window.core.api.anthropic.computer.supports_model(model):
-                    built_remote_tools = [window.core.api.anthropic.computer.get_tool(model=model)]
-            except Exception as e:
-                window.core.debug.log(e)
-                built_remote_tools = []
-        elif allow_remote_tools:
-            try:
-                built_remote_tools = window.core.api.anthropic.remote_tools.build_remote_tools(model=model) or []
-            except Exception as e:
-                window.core.debug.log(e)
-                built_remote_tools = []
-
-        if built_remote_tools:
-            if force_computer_use:
-                # Dedicated Computer Use mirrors native MODE_COMPUTER behavior:
-                # keep the provider Computer tool exclusive.
-                args["tools"] = built_remote_tools
-            else:
-                existing = args.get("tools") or []
-                if not isinstance(existing, list):
-                    existing = []
-
-                def _key(tool: dict) -> str:
-                    return f"{tool.get('type')}::{tool.get('name')}"
-
-                index = {_key(tool) for tool in existing if isinstance(tool, dict)}
-                for tool in built_remote_tools:
-                    key = _key(tool) if isinstance(tool, dict) else None
-                    if key and key not in index:
-                        existing.append(tool)
-                        index.add(key)
-                args["tools"] = existing
-
-        self._merge_anthropic_beta_header(
-            args,
-            self._remote_tool_beta_headers(args.get("tools") or []),
+        """Return LlamaIndex completion provider without server-side chat tools."""
+        return self.llama(
+            window=window,
+            model=model,
+            stream=stream,
+            remote_tools=False,
         )
-        reasoning_effort = window.core.models.get_reasoning_effort(model)
-        self._merge_reasoning_effort(args, reasoning_effort)
-        self.log_llama_create(window, model, args, "AgentAnthropic", {"proxy": proxy})
-        return AgentAnthropic(**args, proxy=proxy)
 
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
         """
-        Return provider instance for embeddings
+        Return LlamaIndex embeddings provider
 
         :param window: window instance
         :param config: config keyword arguments list
@@ -431,6 +170,11 @@ class AnthropicLLM(BaseLLM):
         proxy = window.core.config.get("api_proxy")
         if not window.core.config.get("api_proxy.enabled", False):
             proxy = ""
+        self.log_llama_create(
+            window, None, args, "VoyageEmbeddingWithProxy",
+            {"proxy": proxy, "timeout": timeout, "max_retries": max_retries},
+            kind="embeddings",
+        )
         return VoyageEmbeddingWithProxy(
             **args,
             proxy=proxy,

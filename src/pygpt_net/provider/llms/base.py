@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 08:14:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 import os
@@ -15,29 +15,44 @@ from typing import Optional, List, Dict, TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-    from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
 from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.core.types import (
     MODE_LANGCHAIN,
-    MODE_LLAMA_INDEX, 
+    MODE_LLAMA_INDEX,
     MODE_CHAT,
 )
 from pygpt_net.item.model import ModelItem
 from pygpt_net.utils import parse_args
 
 
+from .agents import ProviderAgents
+
+
 class BaseLLM(LocaleDomain):
+    agents_class = ProviderAgents
     _MISSING = object()
+
+    # ========================================
+    # Provider identity and initialization
+    # ========================================
 
     def __init__(self, *args, **kwargs):
         self.init_locale_domain()
         self.id = ""
         self.name = ""
-        self.type = []  # langchain, llama_index, embeddings
+        self.type = []  # llama_index, embeddings
         self.description = ""
         self.window = None
         self.config_id = ""
+        self.agents = self.agents_class(self)
+
+    def bind(self, window):
+        """Bind provider to the application window/config at registration time."""
+        self.window = window
+        if not getattr(self, "config_id", ""):
+            self.config_id = self.id
+        return self
 
     def get_name(self) -> str:
         """Return localized provider name when the current domain defines it."""
@@ -73,60 +88,194 @@ class BaseLLM(LocaleDomain):
             return False
         return bool(setup.get("openai_compatible", False)) if isinstance(setup, dict) else False
 
-    def get_remote_tools_schema(self) -> dict:
-        """Provider-owned fields, including tool switches and tool parameters.
-
-        Keys are local to the provider (e.g. ``mcp`` and ``mcp.args``).
-        Fields use the Settings schema; ``tool`` marks selectable tools,
-        ``hidden`` suppresses a field in Settings, and ``legacy_key`` is used
-        only by config migration. Providers may override the accessors below.
+    def init(
+            self,
+            window,
+            model: ModelItem,
+            mode: str,
+            sub_mode: str = None
+    ):
         """
-        schema = (self.setup() or {}).get("remote_tools", {})
-        return schema if isinstance(schema, dict) else {}
+        Initialize provider
 
-    def get_remote_tools(self) -> dict:
-        """Return selectable tool IDs and their definitions."""
-        return {key: field for key, field in self.get_remote_tools_schema().items()
-                if isinstance(field, dict) and field.get("tool")}
+        :param window: window instance
+        :param model: model instance
+        :param mode: mode (langchain, llama_index)
+        :param sub_mode: sub mode (chat, completion)
+        """
+        options = {}
+        if mode == MODE_LANGCHAIN:
+            pass
+            # options = model.langchain
+        elif mode == MODE_LLAMA_INDEX:
+            options = model.llama_index
+        if 'env' in options:
+            for item in options['env']:
+                if item['name'] is None or item['name'] == "":
+                    continue
+                try:
+                    os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+                except Exception as e:
+                    pass
 
-    def get_remote_tool_config(self, key: str, default: Any = _MISSING) -> Any:
-        """Read a tool switch/parameter, falling back to its declared default."""
-        value = self.get_config("remote_tools." + key, default)
-        field = self.get_remote_tools_schema().get(key, {})
-        if field.get("value_type") == "optional_bool":
-            if value in (None, ""):
-                return None
-            if isinstance(value, str):
-                return value.lower() == "true"
-        return value
+    # ========================================
+    # LlamaIndex models
+    # ========================================
 
-    def set_remote_tool_config(self, key: str, value: Any):
-        """Write a tool switch/parameter without saving the config file."""
-        self.set_config("remote_tools." + key, value)
+    def llama(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> "LlamaBaseLLM":
+        """
+        Return LLM provider instance for llama index query and chat
 
-    def is_remote_tool_enabled(self, tool_id: str) -> bool:
-        return tool_id in self.get_remote_tools() and bool(self.get_remote_tool_config(tool_id))
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: provider instance
+        """
+        pass
 
-    def set_remote_tool_enabled(self, tool_id: str, enabled: bool):
-        if tool_id in self.get_remote_tools():
-            self.set_remote_tool_config(tool_id, bool(enabled))
+    def llama_completion(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ) -> "LlamaBaseLLM":
+        """
+        Return LlamaIndex LLM instance for plain-text completion.
 
-    def supports_remote_tool(self, model: ModelItem, tool_id: str) -> bool:
-        """Forward-compatible capability policy, overridable by each provider."""
-        field = self.get_remote_tools().get(tool_id)
-        model_id = str(getattr(model, "id", "") or "").strip().lower()
-        if field is None or not model_id:
-            return False
-        return (model_id not in field.get("unsupported_models", ())
-                and not any(model_id.startswith(prefix)
-                            for prefix in field.get("unsupported_prefixes", ())))
+        Providers may override this when their regular LlamaIndex wrapper maps
+        ``complete()`` back to a chat endpoint. The default implementation uses
+        the same provider object as Chat with Files and the caller invokes its
+        ``complete`` / ``stream_complete`` methods directly.
 
-    def bind(self, window):
-        """Bind provider to the application window/config at registration time."""
-        self.window = window
-        if not getattr(self, "config_id", ""):
-            self.config_id = self.id
-        return self
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: LlamaIndex LLM provider instance
+        """
+        return self.llama(window=window, model=model, stream=stream)
+
+    # ========================================
+    # Embeddings
+    # ========================================
+
+    def llama_embeddings(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> "BaseEmbedding":
+        """
+        Return provider instance for embeddings
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: provider instance
+        """
+        pass
+
+    def init_embeddings(
+            self,
+            window,
+            env: Optional[List[Dict]] = None
+    ):
+        """
+        Initialize embeddings provider
+
+        :param window: window instance
+        :param env: ENV configuration list
+        """
+        if env is not None and len(env) > 0:
+            for item in env:
+                if item['name'] is None or item['name'] == "":
+                    continue
+                try:
+                    os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
+                except Exception as e:
+                    pass
+
+    def get_embeddings_timeout(self, cfg) -> float:
+        """Return the global embeddings request timeout in seconds."""
+        value = cfg.get("llama.idx.embeddings.timeout")
+        try:
+            timeout = float(value)
+        except (TypeError, ValueError):
+            timeout = 60.0
+        return timeout if timeout > 0 else 60.0
+
+    # ========================================
+    # Agents and Computer Use
+    # ========================================
+
+    def llama_agent(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            allow_remote_tools: bool = True,
+            force_computer_use: bool = False,
+    ) -> "LlamaBaseLLM":
+        """
+        Return LlamaIndex LLM instance for Agents v2.
+
+        Providers select their agent component through ``agents_class``. It owns
+        native tools and continuation adapters; the default component reuses
+        the regular LlamaIndex model.
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :param allow_remote_tools: allow provider-native remote tools
+        :param force_computer_use: force provider-native Computer Use remote tool
+        :return: provider instance
+        """
+        return self.agents.create(
+            window, model, stream, allow_remote_tools, force_computer_use,
+        )
+
+    def llama_with_computer_runtime(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False,
+            computer_runtime=None,
+            force_computer_use: bool = False,
+    ) -> "LlamaBaseLLM":
+        """Return a LlamaIndex LLM bound to the shared Computer Use runtime.
+
+        The agent component selects and binds the continuation adapter shared
+        by Chat with Files and legacy agents.
+        """
+        return self.agents.bind_computer_use(
+            window=window,
+            model=model,
+            stream=stream,
+            computer_runtime=computer_runtime,
+            force_computer_use=force_computer_use,
+        )
+
+    def get_openai_agent_provider(
+            self,
+            window,
+            model: ModelItem,
+            stream: bool = False
+    ):
+        """
+        Return agent provider instance for OpenAI agents
+
+        :param window: window instance
+        :param model: model instance
+        :param stream: stream mode
+        :return: agent provider instance
+        """
+        pass
+
+    # ========================================
+    # Provider settings
+    # ========================================
 
     def get_config_id(self) -> str:
         """Return the logical ID used under ``config.providers``."""
@@ -140,21 +289,6 @@ class BaseLLM(LocaleDomain):
             return {}
         settings = setup.get("settings", {}) if isinstance(setup, dict) else {}
         return settings if isinstance(settings, dict) else {}
-
-    def _get_schema_field(self, key: str) -> Optional[dict]:
-        if key.startswith("remote_tools."):
-            field = self.get_remote_tools_schema().get(key[len("remote_tools."):])
-            return field if isinstance(field, dict) else None
-        schema = self.get_settings_schema()
-        if key in ("api_key", "api_base"):
-            field = schema.get(key)
-            return field if isinstance(field, dict) else None
-        extra_key = key[6:] if key.startswith("extra.") else key
-        extra = schema.get("extra", {})
-        if isinstance(extra, dict):
-            field = extra.get(extra_key)
-            return field if isinstance(field, dict) else None
-        return None
 
     def has_config(self, key: str) -> bool:
         """Return True when the provider declares a configuration key."""
@@ -232,55 +366,61 @@ class BaseLLM(LocaleDomain):
             }
         return config.ensure_provider(self.get_config_id(), defaults)
 
-    def init(
-            self,
-            window,
-            model: ModelItem,
-            mode: str,
-            sub_mode: str = None
-    ):
-        """
-        Initialize provider
+    # ========================================
+    # Remote tools
+    # ========================================
 
-        :param window: window instance
-        :param model: model instance
-        :param mode: mode (langchain, llama_index)
-        :param sub_mode: sub mode (chat, completion)
-        """
-        options = {}
-        if mode == MODE_LANGCHAIN:
-            pass
-            # options = model.langchain
-        elif mode == MODE_LLAMA_INDEX:
-            options = model.llama_index
-        if 'env' in options:
-            for item in options['env']:
-                if item['name'] is None or item['name'] == "":
-                    continue
-                try:
-                    os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
-                except Exception as e:
-                    pass
+    def get_remote_tools_schema(self) -> dict:
+        """Provider-owned fields, including tool switches and tool parameters.
 
-    def init_embeddings(
-            self,
-            window,
-            env: Optional[List[Dict]] = None
-    ):
+        Keys are local to the provider (e.g. ``mcp`` and ``mcp.args``).
+        Fields use the Settings schema; ``tool`` marks selectable tools,
+        ``hidden`` suppresses a field in Settings, and ``legacy_key`` is used
+        only by config migration. Providers may override the accessors below.
         """
-        Initialize embeddings provider
+        schema = (self.setup() or {}).get("remote_tools", {})
+        return schema if isinstance(schema, dict) else {}
 
-        :param window: window instance
-        :param env: ENV configuration list
-        """
-        if env is not None and len(env) > 0:
-            for item in env:
-                if item['name'] is None or item['name'] == "":
-                    continue
-                try:
-                    os.environ[item['name']] = str(item['value'].format(**window.core.config.all()))
-                except Exception as e:
-                    pass
+    def get_remote_tools(self) -> dict:
+        """Return selectable tool IDs and their definitions."""
+        return {key: field for key, field in self.get_remote_tools_schema().items()
+                if isinstance(field, dict) and field.get("tool")}
+
+    def get_remote_tool_config(self, key: str, default: Any = _MISSING) -> Any:
+        """Read a tool switch/parameter, falling back to its declared default."""
+        value = self.get_config("remote_tools." + key, default)
+        field = self.get_remote_tools_schema().get(key, {})
+        if field.get("value_type") == "optional_bool":
+            if value in (None, ""):
+                return None
+            if isinstance(value, str):
+                return value.lower() == "true"
+        return value
+
+    def set_remote_tool_config(self, key: str, value: Any):
+        """Write a tool switch/parameter without saving the config file."""
+        self.set_config("remote_tools." + key, value)
+
+    def is_remote_tool_enabled(self, tool_id: str) -> bool:
+        return tool_id in self.get_remote_tools() and bool(self.get_remote_tool_config(tool_id))
+
+    def set_remote_tool_enabled(self, tool_id: str, enabled: bool):
+        if tool_id in self.get_remote_tools():
+            self.set_remote_tool_config(tool_id, bool(enabled))
+
+    def supports_remote_tool(self, model: ModelItem, tool_id: str) -> bool:
+        """Forward-compatible capability policy, overridable by each provider."""
+        field = self.get_remote_tools().get(tool_id)
+        model_id = str(getattr(model, "id", "") or "").strip().lower()
+        if field is None or not model_id:
+            return False
+        return (model_id not in field.get("unsupported_models", ())
+                and not any(model_id.startswith(prefix)
+                            for prefix in field.get("unsupported_prefixes", ())))
+
+    # ========================================
+    # Request parameters and environment
+    # ========================================
 
     def parse_args(
             self,
@@ -413,203 +553,23 @@ class BaseLLM(LocaleDomain):
             args["model_name"] = args.pop("model")
         return args
 
-    def log_llama_create(
-            self,
-            window,
-            model: Optional[ModelItem],
-            args: Optional[dict],
-            constructor: str,
-            extra: Optional[dict] = None,
-            kind: str = "llm",
-    ):
-        """Log final LlamaIndex constructor arguments when API input logging is enabled."""
-        kwargs = dict(args or {})
-        if extra:
-            kwargs.update(extra)
-        window.core.api.logger.log_input(
-            type=f"llama_index.{kind}.create",
-            provider=str(getattr(model, "provider", None) or self.id or ""),
-            kwargs=kwargs,
-            model=getattr(model, "id", None),
-            path=constructor,
-        )
+    # ========================================
+    # Clients and model discovery
+    # ========================================
 
-    def completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> any:
+    def get_client(self, window):
         """
-        Return LLM provider instance for completion in langchain mode
+        Return client for current provider
 
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: provider instance
+        :param window: Window instance
+        :return: Client instance for the provider
         """
-        pass
-
-    def chat(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> any:
-        """
-        Return LLM provider instance for chat in langchain mode
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: provider instance
-        """
-        pass
-
-    def llama_completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> "LlamaBaseLLM":
-        """
-        Return LlamaIndex LLM instance for plain-text completion.
-
-        Providers may override this when their regular LlamaIndex wrapper maps
-        ``complete()`` back to a chat endpoint. The default implementation uses
-        the same provider object as Chat with Files and the caller invokes its
-        ``complete`` / ``stream_complete`` methods directly.
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LlamaIndex LLM provider instance
-        """
-        return self.llama(window=window, model=model, stream=stream)
-
-    def llama(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> "LlamaBaseLLM":
-        """
-        Return LLM provider instance for llama index query and chat
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: provider instance
-        """
-        pass
-
-    def llama_chat_with_files(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False,
-            computer_runtime=None,
-            force_computer_use: bool = False,
-    ) -> "LlamaBaseLLM":
-        """Return a LlamaIndex LLM with the Chat with Files Computer Use bridge.
-
-        Kept as the provider override point for backward compatibility. New
-        callers should use :meth:`llama_with_computer_runtime`.
-        """
-        return self.llama(window=window, model=model, stream=stream)
-
-    def llama_with_computer_runtime(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False,
-            computer_runtime=None,
-            force_computer_use: bool = False,
-    ) -> "LlamaBaseLLM":
-        """Return a LlamaIndex LLM bound to the shared Computer Use runtime.
-
-        Existing provider implementations already expose their native Computer
-        Use continuation adapters through ``llama_chat_with_files``. Route the
-        generic hook through that implementation so Chat with Files and legacy
-        agents share one provider-specific code path.
-        """
-        return self.llama_chat_with_files(
-            window=window,
+        model = ModelItem()
+        model.provider = self.id
+        return window.core.api.openai.get_client(
+            mode=MODE_CHAT,
             model=model,
-            stream=stream,
-            computer_runtime=computer_runtime,
-            force_computer_use=force_computer_use,
         )
-
-    def llama_agent(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False,
-            allow_remote_tools: bool = True,
-            force_computer_use: bool = False,
-    ) -> "LlamaBaseLLM":
-        """
-        Return LlamaIndex LLM instance for Agents v2.
-
-        Providers with native/server-side remote tools can override this method
-        and attach them directly to the LLM request. The default implementation
-        simply reuses the regular LlamaIndex provider.
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :param allow_remote_tools: allow provider-native remote tools
-        :param force_computer_use: force provider-native Computer Use remote tool
-        :return: provider instance
-        """
-        return self.llama(window=window, model=model, stream=stream)
-
-    def llama_multimodal(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> "LlamaMultiModalLLM":
-        """
-        Return multimodal LLM provider instance for llama
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-        """
-        pass
-
-    def get_embeddings_model(
-            self,
-            window,
-            config: Optional[List[Dict]] = None
-    ) -> "BaseEmbedding":
-        """
-        Return provider instance for embeddings
-
-        :param window: window instance
-        :param config: config keyword arguments list
-        :return: provider instance
-        """
-        pass
-
-    def get_openai_agent_provider(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return agent provider instance for OpenAI agents
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: agent provider instance
-        """
-        pass
 
     def get_models(
             self,
@@ -638,20 +598,6 @@ class BaseLLM(LocaleDomain):
             window.core.debug.log(e)
         return items
 
-    def get_client(self, window):
-        """
-        Return client for current provider
-
-        :param window: Window instance
-        :return: Client instance for the provider
-        """
-        model = ModelItem()
-        model.provider = self.id
-        return window.core.api.openai.get_client(
-            mode=MODE_CHAT,
-            model=model,
-        )
-
     def inject_llamaindex_http_clients(self, args: dict, cfg) -> dict:
         import httpx
         proxy = (cfg.get("api_proxy") or "").strip()  # e.g. "http://user:pass@host:3128"
@@ -664,15 +610,6 @@ class BaseLLM(LocaleDomain):
         args["http_client"] = httpx.Client(**common_kwargs)
         args["async_http_client"] = httpx.AsyncClient(**common_kwargs)
         return args
-
-    def get_embeddings_timeout(self, cfg) -> float:
-        """Return the global embeddings request timeout in seconds."""
-        value = cfg.get("llama.idx.embeddings.timeout")
-        try:
-            timeout = float(value)
-        except (TypeError, ValueError):
-            timeout = 60.0
-        return timeout if timeout > 0 else 60.0
 
     def inject_llamaindex_embedding_http_clients(self, args: dict, cfg) -> dict:
         """Inject HTTP clients using the global embeddings request timeout."""
@@ -692,3 +629,62 @@ class BaseLLM(LocaleDomain):
         if "async_http_client" not in args:
             args["async_http_client"] = httpx.AsyncClient(**common_kwargs)
         return args
+
+    # ========================================
+    # Logging
+    # ========================================
+
+    def log_llama_create(
+            self,
+            window,
+            model: Optional[ModelItem],
+            args: Optional[dict],
+            constructor: str,
+            extra: Optional[dict] = None,
+            kind: str = "llm",
+    ):
+        """Log final LlamaIndex constructor arguments when API input logging is enabled."""
+        kwargs = dict(args or {})
+        if extra:
+            kwargs.update(extra)
+        model_id = getattr(model, "id", None)
+        if model_id is None and kind == "embeddings":
+            model_id = kwargs.get("model_name") or kwargs.get("model")
+        window.core.api.logger.log_input(
+            type=f"llama_index.{kind}.create",
+            provider=str(getattr(model, "provider", None) or self.id or ""),
+            kwargs=kwargs,
+            model=model_id,
+            path=constructor,
+        )
+
+    # ========================================
+    # Compatibility
+    # ========================================
+
+    def get_embeddings_model(
+            self,
+            window,
+            config: Optional[List[Dict]] = None,
+    ) -> "BaseEmbedding":
+        """Compatibility entry point; implementations belong in llama_embeddings()."""
+        return self.llama_embeddings(window=window, config=config)
+
+    # ========================================
+    # Private settings helpers
+    # ========================================
+
+    def _get_schema_field(self, key: str) -> Optional[dict]:
+        if key.startswith("remote_tools."):
+            field = self.get_remote_tools_schema().get(key[len("remote_tools."):])
+            return field if isinstance(field, dict) else None
+        schema = self.get_settings_schema()
+        if key in ("api_key", "api_base"):
+            field = schema.get(key)
+            return field if isinstance(field, dict) else None
+        extra_key = key[6:] if key.startswith("extra.") else key
+        extra = schema.get("extra", {})
+        if isinstance(extra, dict):
+            field = extra.get(extra_key)
+            return field if isinstance(field, dict) else None
+        return None

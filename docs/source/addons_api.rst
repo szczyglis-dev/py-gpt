@@ -1433,7 +1433,7 @@ An ``llm`` Add-on registers a provider in PyGPT's LLM registry. Its primary exte
 
 An external LLM Add-on does not automatically create a brand-new native Chat SDK transport. Native Chat provider paths may require application/core integration. For a normal third-party Add-on, implement the LlamaIndex hooks you need and advertise only those capabilities in ``self.type``.
 
-The most important rule is: **``self.type`` is a capability declaration, not descriptive metadata.** If you include ``MODE_LLAMA_INDEX``, ``llama()`` must return a working LlamaIndex LLM. If you include ``MODE_EMBEDDINGS``, ``get_embeddings_model()`` must return a working LlamaIndex ``BaseEmbedding``.
+The most important rule is: **``self.type`` is a capability declaration, not descriptive metadata.** If you include ``MODE_LLAMA_INDEX``, ``llama()`` must return a working LlamaIndex LLM. If you include ``MODE_EMBEDDINGS``, ``llama_embeddings()`` must return a working LlamaIndex ``BaseEmbedding``.
 
 Provider identity and capabilities
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1531,11 +1531,8 @@ Additional capability hooks
 ``llama_completion()``
    Implement when Completion mode needs behavior different from the main ``llama()`` wrapper. If the same LlamaIndex object correctly supports completion, delegating to ``llama()`` is normally enough.
 
-``get_embeddings_model()``
+``llama_embeddings()``
    Required when ``MODE_EMBEDDINGS`` is advertised. Return a LlamaIndex ``BaseEmbedding`` configured from the active provider/model settings.
-
-``llama_multimodal()``
-   Implement when the provider needs a distinct multimodal LlamaIndex object rather than handling image blocks through the ordinary LLM wrapper.
 
 ``llama_agent()`` / ``llama_with_computer_runtime()``
    Override only when agent or Computer Use execution needs provider-specific construction/tool wiring. Many providers can delegate to ``llama()``.
@@ -1678,30 +1675,24 @@ Full ``BaseLLM`` method reference
    * - ``log_llama_create(...)``
      - Logs final LlamaIndex constructor args when API-input logging is enabled.
      - Diagnostic helper.
-   * - ``completion(window, model, stream=False)`` / ``chat(...)``
-     - Legacy compatibility provider methods.
-     - Implement only for a flow that still uses them.
    * - ``llama_completion(window, model, stream=False)``
      - Returns a LlamaIndex LLM for plain-text completion.
      - Override/delegate when Completion is supported.
    * - ``llama(window, model, stream=False)``
      - Main LlamaIndex LLM constructor hook.
      - Primary override for LlamaIndex/RAG flows.
-   * - ``llama_chat_with_files(...)``
-     - Compatibility helper for LlamaIndex + Computer Use file flows.
-     - Usually inherit/delegate.
    * - ``llama_with_computer_runtime(...)``
      - Returns an LLM bound to shared Computer Use runtime.
      - Override/delegate when provider supports that integration.
    * - ``llama_agent(..., allow_remote_tools=True, force_computer_use=False)``
      - LlamaIndex LLM constructor for agent workflows.
      - Override/delegate if agents need provider-specific tools.
-   * - ``llama_multimodal(window, model, stream=False)``
-     - Returns multimodal LlamaIndex provider instance.
-     - Override for a distinct image-capable LlamaIndex path.
-   * - ``get_embeddings_model(window, config=None)``
+   * - ``llama_embeddings(window, config=None)``
      - Returns a LlamaIndex ``BaseEmbedding`` instance.
      - Required when embeddings capability is advertised.
+   * - ``get_embeddings_model(window, config=None)``
+     - Compatibility entry point delegating to ``llama_embeddings()``.
+     - Inherit; implement ``llama_embeddings()`` instead.
    * - ``get_openai_agent_provider(window, model, stream=False)``
      - Compatibility hook for OpenAI-agents provider object.
      - Specialized providers only.

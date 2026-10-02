@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.26 19:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -150,7 +150,7 @@ class HuggingFaceApiLLM(BaseLLM):
         self.log_llama_create(window, model, args, "HuggingFaceInferenceAPIWithProxy", {"proxy": proxy, "trust_env": trust_env})
         return HuggingFaceInferenceAPIWithProxy(proxy=proxy, trust_env=trust_env, **args)
 
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None
@@ -201,6 +201,11 @@ class HuggingFaceApiLLM(BaseLLM):
         trust_env = self.get_config("trust_env", False)
         args.setdefault("timeout", self.get_embeddings_timeout(window.core.config))
 
+        self.log_llama_create(
+            window, None, args, "HuggingFaceInferenceAPIEmbeddingWithProxy",
+            {"proxy": proxy, "trust_env": trust_env},
+            kind="embeddings",
+        )
         return HFEmbed(proxy=proxy, trust_env=trust_env, **args)
 
     def init_embeddings(

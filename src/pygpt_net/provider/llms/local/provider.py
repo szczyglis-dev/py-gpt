@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 08:14:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 from __future__ import annotations
 
@@ -35,23 +35,6 @@ class LocalLLM(BaseLLM):
     def setup(self) -> dict:
         return {"openai_compatible": True}
 
-    def get_embeddings_model(
-            self,
-            window,
-            config: Optional[List[Dict]] = None
-    ) -> BaseEmbedding:
-        """
-        Return provider instance for embeddings
-
-        :param window: window instance
-        :param config: config keyword arguments list
-        :return: Embedding provider instance
-        """
-        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
-        args = self.prepare_openai_compatible_embedding_args(window, config)
-        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
-        return OpenAILikeEmbedding(**args)
-
     def llama(
             self,
             window,
@@ -59,7 +42,7 @@ class LocalLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LlamaIndex chat provider
 
         :param window: window instance
         :param model: model instance
@@ -76,3 +59,24 @@ class LocalLLM(BaseLLM):
         args = self.inject_llamaindex_http_clients(args, window.core.config)
         self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
+
+    def llama_embeddings(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
+        """
+        Return LlamaIndex embeddings provider
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        self.log_llama_create(
+            window, None, args, "OpenAILikeEmbedding",
+            kind="embeddings",
+        )
+        return OpenAILikeEmbedding(**args)
