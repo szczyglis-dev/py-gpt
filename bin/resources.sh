@@ -10,7 +10,8 @@ source ./venv/bin/activate
 python3 bin/resources.py "$@"
 
 cd $DIR_PARENT/src/pygpt_net
-pyside6-rcc icons.qrc --format-version 1 -no-compress -o icons_rc.py
+# Compile both namespaces into the existing icon module loaded by the app.
+pyside6-rcc icons.qrc filetypes.qrc --format-version 1 -no-compress -o icons_rc.py
 pyside6-rcc js.qrc --format-version 1 -no-compress -o js_rc.py
 pyside6-rcc css.qrc --format-version 1 -no-compress -o css_rc.py
 pyside6-rcc fonts.qrc --format-version 1 -no-compress -o fonts_rc.py

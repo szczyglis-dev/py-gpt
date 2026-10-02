@@ -30,6 +30,11 @@ if __name__ == '__main__':
     icons_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'icons.qrc')
     generate_resource_file([icons_source_dir], icons_output_file, '.svg', '/icons')
 
+    # File type icons use their own namespace, e.g. :/filetypes/python.svg.
+    filetypes_source_dir = os.path.join(icons_source_dir, 'filetypes')
+    filetypes_output_file = os.path.join(os.path.dirname(__file__), '..', 'src', 'pygpt_net', 'filetypes.qrc')
+    generate_resource_file([filetypes_source_dir], filetypes_output_file, '.svg', '/filetypes')
+
     """
     # javascript
     js_source_dirs = [

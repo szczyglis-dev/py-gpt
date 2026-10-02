@@ -2650,3 +2650,5 @@ Markdown parsing powered by: https://github.com/markdown-it/markdown-it
 LaTeX support by: https://katex.org
 
 Playwright: https://playwright.dev/
+
+Filetypes icons by: https://github.com/dmhendricks/file-icon-vectors/
