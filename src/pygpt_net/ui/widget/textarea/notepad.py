@@ -80,37 +80,22 @@ class NotepadWidget(QWidget):
         # Reuse the same input recording widget as ChatInput so colors,
         # elapsed time, level rendering and animations stay identical.
         self.record_status = InputRecordWidget(self.window, self)
-
-        # Reserve equal fixed-width side slots at all times. The right slot
-        # remains in the layout even while the status widget itself is hidden,
-        # so the central microphone never shifts when recording starts/stops.
-        side_width = max(160, self.record_status.sizeHint().width())
-        self.mic_left_spacer = QWidget(self)
-        self.mic_left_spacer.setFixedWidth(side_width)
-
-        self.mic_right_slot = QWidget(self)
-        self.mic_right_slot.setFixedWidth(side_width)
-        right_layout = QHBoxLayout(self.mic_right_slot)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(0)
-        right_layout.addStretch(1)
-        right_layout.addWidget(self.record_status, 0, Qt.AlignRight | Qt.AlignVCenter)
+        policy = self.record_status.sizePolicy()
+        policy.setRetainSizeWhenHidden(True)
+        self.record_status.setSizePolicy(policy)
 
         self.mic_container = QWidget(self)
-        mic_layout = QHBoxLayout(self.mic_container)
+        mic_layout = QVBoxLayout(self.mic_container)
         mic_layout.setContentsMargins(15, 15, 15, 15)
-        mic_layout.setSpacing(0)
-        mic_layout.addWidget(self.mic_left_spacer, 0, Qt.AlignVCenter)
-        mic_layout.addStretch(1)
+        mic_layout.setSpacing(8)
         mic_layout.addWidget(self.mic_button, 0, Qt.AlignCenter)
-        mic_layout.addStretch(1)
-        mic_layout.addWidget(self.mic_right_slot, 0, Qt.AlignRight | Qt.AlignVCenter)
+        mic_layout.addWidget(self.record_status, 0, Qt.AlignCenter)
         self.mic_container.setVisible(False)
 
         layout = QVBoxLayout()
         layout.addWidget(self.textarea, 1)
         layout.addWidget(self.mic_container, 0)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
+        self.window.ui.nodes['tip.output.tab.notepad'].hide()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)

@@ -828,6 +828,20 @@
         "step": null,
         "secret": false
     },
+    "model.group_providers": {
+        "section": "model",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.model.group_providers",
+        "description": "settings.model.group_providers.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "secret": false,
+        "advanced": false
+    },
     "model.restore_from_ctx": {
         "section": "model",
         "type": "bool",

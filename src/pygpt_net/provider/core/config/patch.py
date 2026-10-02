@@ -116,6 +116,12 @@ class Patch:
                 )
                 updated = migrate_addons_to_application_base(self.window) or updated
 
+            # Provider submenus in the composer model selector (2.8.37).
+            if old < parse_version("2.8.38"):
+                if "model.group_providers" not in data:
+                    data["model.group_providers"] = True
+                    updated = True
+
         # update file
         migrated = False
         if updated:
