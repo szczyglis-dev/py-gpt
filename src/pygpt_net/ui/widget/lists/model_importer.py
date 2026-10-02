@@ -99,12 +99,14 @@ class ImporterList(BaseList):
         menu = QMenu(self)
         copy = menu.addAction(QIcon(":/icons/copy.svg"), trans("action.copy"))
         copy.triggered.connect(lambda: self._action_copy(index))
-        menu.addSeparator()
+        separator = menu.addSeparator()
         if self.id == "models.importer.available":
             act_import = QAction(QIcon(":/icons/add.svg"), trans("action.import"), menu)
             act_import.triggered.connect(self._action_import)
             act_import.setEnabled(len(self._selected_rows()) > 0)
-            menu.addAction(act_import)
+            menu.insertAction(copy, act_import)
+            menu.removeAction(separator)
+            menu.insertSeparator(copy)
         elif self.id == "models.importer.current":
             act_remove = QAction(QIcon(":/icons/close.svg"), trans("action.delete"), menu)
             act_remove.triggered.connect(self._action_remove)
