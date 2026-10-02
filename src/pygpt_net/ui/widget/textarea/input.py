@@ -2349,14 +2349,16 @@ class ChatInput(QTextEdit):
             # minimum, or add a second band to persisted splitter sizes.
             self._attachment_base_input_height = self.height() if self.isVisible() else self.minimumHeight()
             self._attachment_base_minimum_height = self.minimumHeight()
+        window = getattr(self, "window", None)
+        if window is not None:
+            # Capture parent baselines before the editor includes the attachment
+            # band. Otherwise its height is counted again in every ancestor.
+            window.ui.chat.input.set_attachment_min_height(height)
         if height:
             self.setMinimumHeight(self._attachment_base_minimum_height + height)
         elif previous:
             self.setMinimumHeight(self._attachment_base_minimum_height)
         self._attachment_row_height = height
-        window = getattr(self, "window", None)
-        if window is not None:
-            window.ui.chat.input.set_attachment_min_height(height)
         if splitter is not None and idx >= 0:
             if height and not previous and self._attachment_splitter_sizes:
                 sizes = list(self._attachment_splitter_sizes)

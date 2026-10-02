@@ -407,6 +407,8 @@ class Capture:
             # capture
             self.window.ui.painter.image.save(path)
             self.attach(name, path)
+            self.window.controller.tabs.switch_to_last_chat()
+            self.window.controller.chat.common.focus_input()
 
             # show last capture time in status
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")

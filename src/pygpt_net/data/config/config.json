@@ -8,7 +8,7 @@
   "access.audio.event.speech.disabled": [],
   "access.audio.notify.execute": true,
   "access.audio.use_cache": true,
-  "access.microphone.notify": false,
+  "access.microphone.notify": true,
   "access.shortcuts": [
     {
       "action": "voice_cmd.toggle",
@@ -99,7 +99,7 @@
   "assistant": "",
   "assistant_thread": "",
   "attachments_auto_index": true,
-  "attachments_capture_clear": true,
+  "attachments_capture_clear": false,
   "attachments_send_clear": true,
   "audio.cache.enabled": true,
   "audio.cache.max_files": 1000,

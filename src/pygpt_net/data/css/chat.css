@@ -336,7 +336,7 @@ think {{
   border-bottom-right-radius: 10px;
   overflow-y: auto;
   padding: 1.5rem;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   transition:
     padding-top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
     padding-bottom 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);

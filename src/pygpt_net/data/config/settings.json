@@ -2578,7 +2578,7 @@
         "slider": false,
         "label": "settings.access.microphone.notify",
         "description": "settings.access.microphone.notify.desc",
-        "value": false,
+        "value": true,
         "min": null,
         "max": null,
         "multiplier": null,

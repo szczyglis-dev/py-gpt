@@ -204,3 +204,36 @@ def test_attachment_minimum_is_recomputed_when_hidden_composer_is_shown(app):
     Input.set_attachment_min_height(layout, 0)
     assert composer.minimumHeight() == 0
     composer.close()
+
+
+def test_parent_minimum_counts_attachment_band_once_across_tab_returns(app):
+    from PySide6.QtWidgets import QVBoxLayout
+    from pygpt_net.ui.widget.textarea.input import ChatInput
+    from pygpt_net.ui.layout.chat.input import Input
+    root, editor = QWidget(), QWidget()
+    editor.setMinimumHeight(105)
+    parent_layout = QVBoxLayout(root)
+    parent_layout.addWidget(editor)
+    baseline = root.minimumSizeHint().height()
+    ui = SimpleNamespace(tabs={}, nodes={'input.root': root})
+    layout = SimpleNamespace(window=SimpleNamespace(ui=ui))
+    ui.chat = SimpleNamespace(input=SimpleNamespace(
+        set_attachment_min_height=lambda height: Input.set_attachment_min_height(layout, height)))
+    widget = SimpleNamespace(window=SimpleNamespace(ui=ui),
+        _attachment_row_height=0, _attachment_splitter_sizes=None,
+        isVisible=editor.isVisible, height=editor.height, minimumHeight=editor.minimumHeight,
+        setMinimumHeight=editor.setMinimumHeight, _get_main_splitter=lambda: None,
+        _find_container_in_splitter=lambda splitter: (None, -1),
+        _apply_margins=lambda: None, _position_attachment_strip=lambda: None)
+    ChatInput._attachment_height_changed(widget, 104)
+    assert root.minimumHeight() == baseline + 104
+    for _ in range(3):
+        root.show()
+        app.processEvents()
+        Input.set_attachment_min_height(layout, 104)
+        assert root.minimumHeight() == baseline + 104
+        root.hide()
+    ChatInput._attachment_height_changed(widget, 0)
+    assert root.minimumHeight() == 0
+    assert editor.minimumHeight() == 105
+    root.close()

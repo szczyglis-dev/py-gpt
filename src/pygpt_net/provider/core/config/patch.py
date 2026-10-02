@@ -116,13 +116,16 @@ class Patch:
                 )
                 updated = migrate_addons_to_application_base(self.window) or updated
 
-            # Provider submenus in the composer model selector (2.8.37).
             if old < parse_version("2.8.38"):
                 if "model.group_providers" not in data:
                     data["model.group_providers"] = True
                     updated = True
-
-            if old < parse_version("2.8.38"):
+                if data.get("access.microphone.notify") is not True:
+                    data["access.microphone.notify"] = True
+                    updated = True
+                if data.get("attachments_capture_clear") is not False:
+                    data["attachments_capture_clear"] = False
+                    updated = True
                 for key in ("filesystem.preview.markdown.font_size", "filesystem.preview.text.font_size"):
                     if key not in data:
                         data[key] = 0  # Use the default font until the first zoom gesture.

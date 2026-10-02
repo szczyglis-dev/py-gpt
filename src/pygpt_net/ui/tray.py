@@ -358,6 +358,7 @@ class Tray:
         if path:
             self.show_capture_flash(0)
         self.window.restore()
+        self.window.controller.tabs.switch_to_last_chat()
         self.window.controller.chat.common.focus_input()
 
     def select_screenshot_region(self):
@@ -407,6 +408,7 @@ class Tray:
         if path:
             self.show_capture_flash(screen_index)
         self.window.restore()
+        self.window.controller.tabs.switch_to_last_chat()
         self.window.controller.chat.common.focus_input()
 
     def show_capture_flash(self, screen_index: int = None):
