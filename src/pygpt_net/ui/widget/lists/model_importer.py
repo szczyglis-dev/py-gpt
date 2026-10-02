@@ -13,7 +13,7 @@
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, QAction, QIcon
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QVBoxLayout, QLabel, QCheckBox, QAbstractItemView, QMenu
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QVBoxLayout, QLabel, QCheckBox, QAbstractItemView, QMenu, QApplication
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.ui.widget.textarea.search_input import SearchInput
@@ -97,6 +97,9 @@ class ImporterList(BaseList):
             self._backup_selection = None
 
         menu = QMenu(self)
+        copy = menu.addAction(QIcon(":/icons/copy.svg"), trans("action.copy"))
+        copy.triggered.connect(lambda: self._action_copy(index))
+        menu.addSeparator()
         if self.id == "models.importer.available":
             act_import = QAction(QIcon(":/icons/add.svg"), trans("action.import"), menu)
             act_import.triggered.connect(self._action_import)
@@ -120,6 +123,13 @@ class ImporterList(BaseList):
                 sel_model.select(i, sel_model.Select | sel_model.Rows)
         self._backup_selection = None
         self.restore_after_ctx_menu = True
+
+    def _action_copy(self, index):
+        rows = [index] if index.isValid() else self._selected_rows()
+        ids = [str(row.data(QtCore.Qt.ToolTipRole)) for row in rows
+               if row.data(QtCore.Qt.ToolTipRole)]
+        if ids:
+            QApplication.clipboard().setText("\n".join(ids))
 
     def _action_import(self):
         """Import selected models from available list (same as '>')."""

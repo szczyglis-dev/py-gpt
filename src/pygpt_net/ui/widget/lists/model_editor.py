@@ -11,7 +11,7 @@
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtCore import Qt, QItemSelectionModel
-from PySide6.QtWidgets import QMenu, QAbstractItemView
+from PySide6.QtWidgets import QMenu, QAbstractItemView, QApplication
 
 from pygpt_net.ui.widget.lists.base import BaseList
 from pygpt_net.utils import trans
@@ -220,6 +220,9 @@ class ModelEditorList(BaseList):
         actions['duplicate'] = QAction(QIcon(":/icons/copy.svg"), trans('action.duplicate'), self)
 
         menu = QMenu(self)
+        copy = menu.addAction(QIcon(":/icons/copy.svg"), trans("action.copy"))
+        copy.triggered.connect(lambda: self.action_copy([idx] if index.isValid() else selected_rows))
+        menu.addSeparator()
         menu.addAction(actions['visibility'])
         menu.addSeparator()
         menu.addAction(actions['duplicate'])
@@ -253,6 +256,16 @@ class ModelEditorList(BaseList):
     # If 'item' is a list/tuple -> pass list of row ints to external code.
     # If 'item' is an int -> pass single row int to external code.
     # ----------------------------
+
+    def action_copy(self, rows):
+        ids = []
+        for row in rows:
+            key = self.window.controller.model.editor.get_model_by_tab_idx(row)
+            model = self.window.core.models.items.get(key)
+            if model is not None and model.id:
+                ids.append(model.id)
+        if ids:
+            QApplication.clipboard().setText("\n".join(ids))
 
     def action_visibility(self, item, hidden: bool):
         """Show or hide one or more models."""

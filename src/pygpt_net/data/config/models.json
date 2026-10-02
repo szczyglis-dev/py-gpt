@@ -1164,6 +1164,36 @@
             "reasoning_effort": true,
             "tool_calls": true
         },
+        "gpt-6.1-sol": {
+            "id": "gpt-6.1-sol",
+            "name": "gpt-6.1-sol",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "computer",
+                "completion"
+            ],
+            "ctx": 1050000,
+            "tokens": 128000,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "openai",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
         "gpt-6-sol": {
             "id": "gpt-6-sol",
             "name": "gpt-6-sol",
@@ -1602,6 +1632,35 @@
             "output": [
                 "text",
                 "audio"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "x_ai",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
+        "grok-4.7": {
+            "id": "grok-4.7",
+            "name": "grok-4.7",
+            "mode": [
+                "chat",
+                "agent_v2",
+                "vision",
+                "agent",
+                "agent_llama",
+                "expert",
+                "agent_openai",
+                "completion"
+            ],
+            "ctx": 500000,
+            "tokens": 0,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
             ],
             "extra": {},
             "imported": false,
