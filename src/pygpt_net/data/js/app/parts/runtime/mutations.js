@@ -78,7 +78,7 @@ class RuntimeMutations {
 			const html = this.runtime.templates.renderNode(block);
 			const tmp = document.createElement('div');
 			tmp.innerHTML = html;
-			return tmp.querySelector(role === 'user' ? '.msg-box.msg-user' : '.msg-box.msg-bot');
+			return tmp.querySelector(role === 'user' ? '.msg-user-region' : '.msg-box.msg-bot');
 		} catch (_) { return null; }
 	};
 
@@ -147,7 +147,7 @@ class RuntimeMutations {
 		const target = document.getElementById(`msg-user-${id}`);
 		const desired = this._mutationElement(block, 'user');
 		if (!desired) return;
-		if (target) target.replaceWith(desired);
+		if (target) (target.closest('.msg-user-region') || target).replaceWith(desired);
 		else {
 			const nodes = this.runtime.dom.get('_nodes_');
 			if (!nodes) return;

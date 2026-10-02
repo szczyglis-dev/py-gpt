@@ -327,8 +327,6 @@ class Body:
             icons.append(
                 f'<a href="extra-replay:{cid}" class="action-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("reload", t("ctx.extra.reply"), ctx)}</span></a>')
             icons.append(
-                f'<a href="extra-edit:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("edit", t("ctx.extra.edit"), ctx)}</span></a>')
-            icons.append(
                 f'<a href="extra-delete:{cid}" class="action-icon edit-icon" data-id="{cid}" role="button"><span class="cmd">{self.get_icon("delete", t("ctx.extra.delete"), ctx)}</span></a>')
         return icons
 
@@ -381,7 +379,6 @@ class Body:
             items.append({"href": f"extra-audio-read:{cid}", "title": t("ctx.extra.audio"), "icon": f"file://{icon_path('volume')}", "id": cid})
             items.append({"href": f"extra-copy:{cid}", "title": t("ctx.extra.copy"), "icon": f"file://{icon_path('copy')}", "id": cid})
             items.append({"href": f"extra-replay:{target_id}", "title": t("ctx.extra.reply"), "icon": f"file://{icon_path('reload')}", "id": cid})
-            items.append({"href": f"extra-edit:{target_id}", "title": t("ctx.extra.edit"), "icon": f"file://{icon_path('edit')}", "id": cid})
             items.append({"href": delete_href, "title": t("ctx.extra.delete"), "icon": f"file://{icon_path('delete')}", "id": cid})
         return items
 

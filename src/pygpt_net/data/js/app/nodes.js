@@ -66,64 +66,9 @@ class NodesManager {
 
 	// Ensure user copy icon exists inside each user message (.msg) under root.
 	ensureUserCopyIcons(root) {
-		try {
-			const scope = root || document;
-			const cfg = (this.renderer && this.renderer.cfg) || {};
-			const I = cfg.ICONS || {};
-			const L = cfg.LOCALE || {};
-			const copyIcon = I.CODE_COPY || '';
-			const copyTitle = L.COPY || 'Copy';
-
-			const list = scope.querySelectorAll('.msg-box.msg-user .msg');
-			for (let i = 0; i < list.length; i++) {
-				const msg = list[i];
-				if (!msg || !msg.isConnected) continue;
-
-				// If exists but sits inside .uc-content, move it up to .msg for stable absolute positioning.
-				const existing = msg.querySelector('.msg-copy-btn');
-				if (existing) {
-					try {
-						const p = existing.parentElement;
-						if (p && p.classList && p.classList.contains('uc-content')) {
-							msg.insertAdjacentElement('afterbegin', existing);
-						}
-					} catch (_) {}
-					continue;
-				}
-
-				const a = document.createElement('a');
-				a.href = 'empty:0';
-				a.className = 'msg-copy-btn';
-				a.setAttribute('role', 'button');
-				a.setAttribute('title', copyTitle);
-				a.setAttribute('aria-label', copyTitle);
-				a.setAttribute('data-tip', copyTitle);
-
-				try {
-					const box = msg.closest('.msg-box.msg-user');
-					if (box && box.id && box.id.startsWith('msg-user-')) {
-						const id = box.id.slice('msg-user-'.length);
-						a.setAttribute('data-id', id);
-					}
-				} catch (_) {}
-
-				const img = document.createElement('img');
-				img.className = 'copy-img';
-				img.src = copyIcon;
-				img.alt = copyTitle;
-
-				a.appendChild(img);
-
-				try {
-					msg.insertAdjacentElement('afterbegin', a);
-				} catch (_) {
-					try {
-						msg.appendChild(a);
-					} catch (__) {}
-				}
-			}
-		} catch (_) {}
-	}
+        // User actions are rendered below the bubble by the message template.
+        for (const button of (root || document).querySelectorAll('.msg-user .msg .msg-copy-btn')) button.remove();
+    }
 
 	// Append HTML/text into the message input container.
 	// If plain text is provided, wrap it into a minimal msg-user box to keep layout consistent.
@@ -423,7 +368,7 @@ class NodesManager {
 	removeNode(id, scrollMgr) {
 		scrollMgr.prevScroll = 0;
 		let el = document.getElementById('msg-user-' + id);
-		if (el) el.remove();
+		if (el) (el.closest('.msg-user-region') || el).remove();
 		el = document.getElementById('msg-bot-' + id);
 		if (el) el.remove();
 		this.dom.resetEphemeral();
@@ -443,7 +388,7 @@ class NodesManager {
 		let remove = false;
 		elements.forEach((element) => {
 			if (element.id && element.id.endsWith('-' + id)) remove = true;
-			if (remove) element.remove();
+			if (remove) (element.closest('.msg-user-region') || element).remove();
 		});
 		this.dom.resetEphemeral();
 		try {

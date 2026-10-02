@@ -18,6 +18,7 @@ from datetime import datetime
 from typing import Optional, Tuple
 from pygpt_net.core.render.protocol import RenderMutation, RenderOp
 from pygpt_net.item.ctx import CtxItem, CtxMeta
+from pygpt_net.utils import trans
 from .block import RenderBlock
 
 
@@ -278,6 +279,9 @@ class Messages:
                 "avatar_img": None,  # no user avatar by default
                 "text": str(input_text),
                 "timestamp": ctx.input_timestamp if hasattr(ctx, "input_timestamp") else None,
+                "time_label": datetime.fromtimestamp(ctx.input_timestamp).strftime("%H:%M") if ctx.input_timestamp else "",
+                "edit_title": trans("ctx.extra.edit"),
+                "edit_icon": "file://" + os.path.join(self.renderer.window.core.config.get_app_path(), "data", "icons", "edit.svg").replace("\\", "/"),
             }
             if history_date_label:
                 block.input["date_label"] = history_date_label

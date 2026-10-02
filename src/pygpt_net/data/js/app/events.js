@@ -348,7 +348,8 @@ class EventManager {
 			// Handle user message copy button (icon-only)
 			if (aUserCopy) {
 				try {
-					const msgBox = aUserCopy.closest('.msg-box.msg-user');
+					const region = aUserCopy.closest('.msg-user-region');
+                    const msgBox = region ? region.querySelector('.msg-box.msg-user') : aUserCopy.closest('.msg-box.msg-user');
 					const text = this._collectUserText(msgBox);
 					const ok = await this._copyTextRobust(text);
 

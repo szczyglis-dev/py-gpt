@@ -127,12 +127,14 @@ def test_get_action_icons():
     b = Body(win)
     ctx = FakeCtxItem("123", output="value")
     icons = b.get_action_icons(ctx, all=False)
-    assert len(icons) == 5
+    assert len(icons) == 4
+    assert not any("extra-edit:" in icon for icon in icons)
     win = FakeWindow(config_data, first_item=False)
     b = Body(win)
     ctx = FakeCtxItem("123", output="value")
     icons = b.get_action_icons(ctx, all=False)
-    assert len(icons) == 5
+    assert len(icons) == 4
+    assert not any("extra-edit:" in icon for icon in icons)
 
 def test_get_icon():
     config_data = {"app_path": "/fake/app"}

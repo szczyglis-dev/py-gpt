@@ -189,3 +189,5 @@ code {{
   background: none;
   animation: none;
 }}
+
+.user-message-actions {{ --user-actions-color: #a0a0a0; }}
