@@ -183,3 +183,24 @@ def test_startup_ignores_provisional_editor_height():
     ChatInput._attachment_height_changed(widget, 0)
     assert minimum[0] == 105
     splitter.setSizes.assert_not_called()
+
+
+def test_attachment_minimum_is_recomputed_when_hidden_composer_is_shown(app):
+    from pygpt_net.ui.layout.chat.input import Input
+    class Composer(QWidget):
+        def minimumSizeHint(self):
+            return QSize(100, 261 if self.isVisible() else 0)
+    composer = Composer()
+    ui = SimpleNamespace(tabs={}, nodes={'input.root': composer})
+    layout = SimpleNamespace(window=SimpleNamespace(ui=ui))
+    Input.set_attachment_min_height(layout, 96)
+    assert composer.minimumHeight() == 96
+    composer.show()
+    app.processEvents()
+    Input.set_attachment_min_height(layout, 96)
+    assert composer.minimumHeight() == 261
+    Input.set_attachment_min_height(layout, 96)
+    assert composer.minimumHeight() == 261
+    Input.set_attachment_min_height(layout, 0)
+    assert composer.minimumHeight() == 0
+    composer.close()

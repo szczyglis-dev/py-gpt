@@ -25,6 +25,8 @@ assert(rendered.indexOf('user-attachment-files') < rendered.indexOf('user-attach
 assert(rendered.indexOf('user-attachments') < rendered.indexOf('msg-box msg-user'));
 assert(rendered.includes('My prompt'));
 assert(rendered.startsWith('<div class="msg-user-region input-live-arrival">'));
+assert(rendered.includes('<div class="user-message-actions" aria-hidden="true"></div>'));
 nodes.appendToInput('Legacy prompt');
 assert(rendered.includes('Legacy prompt'));
+assert(rendered.includes('user-message-actions'));
 console.log('OK: immediate image/file attachment rendering and legacy input');

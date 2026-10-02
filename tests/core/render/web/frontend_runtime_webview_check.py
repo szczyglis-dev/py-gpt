@@ -25,6 +25,26 @@ TEST = r"""
     const mutate = (op, block, options={}) => appendNode(JSON.stringify({mutation:{op,block,...options}}));
     expect(typeof beginStream === 'function' && typeof syncLiveTools === 'function', 'host API missing');
     expect(runtime.renderer.MD && runtime.templates, 'runtime did not initialize');
+    // The transient user preview and durable input must reserve equal space
+    // below the bubble, before a response is promoted into history.
+    runtime.nodes.appendToInput('Geometry prompt');
+    const preview = document.getElementById('_append_input_').innerHTML;
+    runtime.dom.clearInput();
+    const durable = runtime.templates._renderUser({id:'geometry', input:{text:'Geometry prompt',time_label:'12:00'}, extra:{}});
+    const geometryHost = document.createElement('div');
+    document.body.appendChild(geometryHost);
+    const shadow = geometryHost.attachShadow({mode:'open'});
+    const responseHTML = `<div class="msg-box msg-bot"><div class="msg"><div class="msg-timeline"><p>Answer</p></div></div></div>`;
+    shadow.innerHTML = `<style>${window.__chatGeometryCSS}</style>` +
+        `<section>${preview}${responseHTML}</section><section>${durable}${responseHTML}</section>`;
+    const gaps = [...shadow.querySelectorAll('section')].map(section => {
+        const text = section.querySelector('.msg-bot p');
+        const range = document.createRange(); range.selectNodeContents(text);
+        return range.getBoundingClientRect().top - section.querySelector('.msg-user').getBoundingClientRect().bottom;
+    });
+    expect(Math.abs(gaps[0]-gaps[1])<1, `response shifts after replacing user preview: ${gaps}`);
+    expect(shadow.querySelector('.user-message-actions').getBoundingClientRect().height>=26, 'preview lacks action row space');
+    geometryHost.remove();
     appendNode(JSON.stringify(node(1,'Old **answer**')));
     await settle();
     expect(document.querySelector('#msg-bot-1 strong')?.textContent==='answer','history markdown');
@@ -185,6 +205,8 @@ def html(production):
         'app-' + name.replace('/', '-') for name in json.loads((APP / 'manifest.json').read_text())
     ]
     scripts = '<script>window.LOCALE_TOOL_VIEW_PLAIN="Zwykły tekst";window.LOCALE_TOOL_VIEW_RAW="Surowy JSON";</script>' + '\n'.join(f'<script src="qrc:///js/{name}"></script>' for name in vendors + files)
+    css = (ROOT / 'src/pygpt_net/data/css/chat.css').read_text().replace('{{', '{').replace('}}', '}')
+    scripts += '<script>window.__chatGeometryCSS=' + json.dumps(css) + ';</script>'
     return '<!doctype html><html><head>' + scripts + '</head><body><div id="container">' + ''.join(
         f'<div id="{name}"></div>' for name in [
             '_nodes_', '_append_input_', '_append_output_before_', '_append_output_',

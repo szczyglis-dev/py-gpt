@@ -2349,14 +2349,14 @@ class ChatInput(QTextEdit):
             # minimum, or add a second band to persisted splitter sizes.
             self._attachment_base_input_height = self.height() if self.isVisible() else self.minimumHeight()
             self._attachment_base_minimum_height = self.minimumHeight()
-        window = getattr(self, "window", None)
-        if window is not None:
-            window.ui.chat.input.set_attachment_min_height(height)
         if height:
             self.setMinimumHeight(self._attachment_base_minimum_height + height)
         elif previous:
             self.setMinimumHeight(self._attachment_base_minimum_height)
         self._attachment_row_height = height
+        window = getattr(self, "window", None)
+        if window is not None:
+            window.ui.chat.input.set_attachment_min_height(height)
         if splitter is not None and idx >= 0:
             if height and not previous and self._attachment_splitter_sizes:
                 sizes = list(self._attachment_splitter_sizes)
@@ -2412,6 +2412,16 @@ class ChatInput(QTextEdit):
             QTimer.singleShot(0, self._schedule_auto_resize)
         except Exception:
             pass
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Hidden tab layouts have no reliable size hints. Reapply constraints
+        # after reparenting/showing the composer and Qt's layout activation.
+        def restore_attachment_geometry():
+            if self.isVisible() and getattr(self, '_attachment_row_height', 0):
+                self.window.ui.chat.input.set_attachment_min_height(self._attachment_row_height)
+                self._position_attachment_strip()
+        QTimer.singleShot(0, restore_attachment_geometry)
 
     def resizeEvent(self, event):
         """Resize event keeps the icon bar in place."""

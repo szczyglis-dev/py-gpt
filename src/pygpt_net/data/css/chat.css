@@ -494,9 +494,6 @@ body.display-timestamp .ts {{
 .ts {{
   display: none;
 }}
-#_append_output_ .msg-bot {{
-  margin-top: 5px !important;
-}}
 
 /* images */
 .image {{

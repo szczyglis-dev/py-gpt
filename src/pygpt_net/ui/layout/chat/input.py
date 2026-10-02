@@ -900,9 +900,14 @@ class Input:
             self._attachment_minimums = [(widget, widget.minimumHeight(),
                                          max(widget.minimumHeight(), widget.minimumSizeHint().height()))
                                         for widget in widgets if widget is not None]
+        minimums = []
         for widget, original, base in getattr(self, '_attachment_minimums', []):
+            if height and widget.isVisible():
+                base = max(base, widget.minimumSizeHint().height() - height)
+            minimums.append((widget, original, base))
             widget.setMinimumHeight(base + height if height else original)
             widget.updateGeometry()
+        self._attachment_minimums = minimums
         if not height:
             self._attachment_minimums = []
 

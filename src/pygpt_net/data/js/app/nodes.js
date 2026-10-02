@@ -114,7 +114,9 @@ class NodesManager {
 
         const attachmentHtml = attachments && this.templates
             ? this.templates.artifacts.renderUserAttachments(attachments) : '';
-        html = `<div class="msg-user-region input-live-arrival">${attachmentHtml}${html}</div>`;
+        // Durable input has a permanent action row. Reserve its footprint now
+        // as well, so replacing this preview cannot shift the streamed reply.
+        html = `<div class="msg-user-region input-live-arrival">${attachmentHtml}${html}<div class="user-message-actions" aria-hidden="true"></div></div>`;
 
 		if (dateLabel) {
 			const safeDateLabel = (typeof Utils !== 'undefined' && Utils.escapeHtml) ?

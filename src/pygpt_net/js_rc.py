@@ -118711,7 +118711,7 @@ me });\x0a\x09\x09return \
 before + injecte\
 d + after;\x0a\x09}\x0a\x0a}\
 \x0a\
-\x00\x006a\
+\x00\x007:\
 /\
 / ==============\
 ================\
@@ -118983,101 +118983,263 @@ templates.artifa\
 cts.renderUserAt\
 tachments(attach\
 ments) : '';\x0a   \
-     html = `<di\
-v class=\x22msg-use\
-r-region input-l\
-ive-arrival\x22>${a\
-ttachmentHtml}${\
-html}</div>`;\x0a\x0a\x09\
-\x09if (dateLabel) \
-{\x0a\x09\x09\x09const safeD\
-ateLabel = (type\
-of Utils !== 'un\
-defined' && Util\
-s.escapeHtml) ?\x0a\
-\x09\x09\x09\x09Utils.escape\
-Html(dateLabel) \
-:\x0a\x09\x09\x09\x09String(dat\
-eLabel).replace(\
-/[&<>\x22']/g, m =>\
- ({\x0a\x09\x09\x09\x09\x09'&': '&\
-amp;',\x0a\x09\x09\x09\x09\x09'<':\
- '&lt;',\x0a\x09\x09\x09\x09\x09'>\
-': '&gt;',\x0a\x09\x09\x09\x09\x09\
-'\x22': '&quot;',\x0a\x09\
-\x09\x09\x09\x09\x22'\x22: '&#039;\
-'\x0a\x09\x09\x09\x09} [m]));\x0a\x09\
-\x09\x09html = `<div c\
-lass=\x22msg-date-s\
-eparator input-l\
-ive-date\x22>${safe\
-DateLabel}</div>\
-${html}`;\x0a\x09\x09}\x0a\x0a\x09\
-\x09// Synchronous \
-DOM update.\x0a\x09\x09el\
-.insertAdjacentH\
-TML('beforeend',\
- html);\x0a\x0a\x09\x09// Ap\
-ply collapse to \
-any user message\
-s in input area \
-(now or later).\x0a\
-\x09\x09try {\x0a\x09\x09\x09this.\
+     // Durable \
+input has a perm\
+anent action row\
+. Reserve its fo\
+otprint now\x0a    \
+    // as well, \
+so replacing thi\
+s preview cannot\
+ shift the strea\
+med reply.\x0a     \
+   html = `<div \
+class=\x22msg-user-\
+region input-liv\
+e-arrival\x22>${att\
+achmentHtml}${ht\
+ml}<div class=\x22u\
+ser-message-acti\
+ons\x22 aria-hidden\
+=\x22true\x22></div></\
+div>`;\x0a\x0a\x09\x09if (da\
+teLabel) {\x0a\x09\x09\x09co\
+nst safeDateLabe\
+l = (typeof Util\
+s !== 'undefined\
+' && Utils.escap\
+eHtml) ?\x0a\x09\x09\x09\x09Uti\
+ls.escapeHtml(da\
+teLabel) :\x0a\x09\x09\x09\x09S\
+tring(dateLabel)\
+.replace(/[&<>\x22'\
+]/g, m => ({\x0a\x09\x09\x09\
+\x09\x09'&': '&amp;',\x0a\
+\x09\x09\x09\x09\x09'<': '&lt;'\
+,\x0a\x09\x09\x09\x09\x09'>': '&gt\
+;',\x0a\x09\x09\x09\x09\x09'\x22': '&\
+quot;',\x0a\x09\x09\x09\x09\x09\x22'\x22\
+: '&#039;'\x0a\x09\x09\x09\x09}\
+ [m]));\x0a\x09\x09\x09html \
+= `<div class=\x22m\
+sg-date-separato\
+r input-live-dat\
+e\x22>${safeDateLab\
+el}</div>${html}\
+`;\x0a\x09\x09}\x0a\x0a\x09\x09// Syn\
+chronous DOM upd\
+ate.\x0a\x09\x09el.insert\
+AdjacentHTML('be\
+foreend', html);\
+\x0a\x0a\x09\x09// Apply col\
+lapse to any use\
+r messages in in\
+put area (now or\
+ later).\x0a\x09\x09try {\
+\x0a\x09\x09\x09this.userCol\
+lapse.apply(el);\
+\x0a\x09\x09} catch (_) {\
+}\x0a\x0a\x09\x09// Ensure c\
+opy icons exist \
+(inject or repos\
+ition outside uc\
+-content).\x0a\x09\x09try\
+ {\x0a\x09\x09\x09this.ensur\
+eUserCopyIcons(e\
+l);\x0a\x09\x09} catch (_\
+) {}\x0a\x09}\x0a\x0a\x09// Gro\
+up consecutive t\
+ool-only message\
+s after DOM inse\
+rtion. The group\
+ing engine\x0a\x09// u\
+ses explicit con\
+tinuation metada\
+ta, so a reload \
+and real-time ap\
+pend follow\x0a\x09// \
+exactly the same\
+ path.\x0a\x09refreshT\
+oolGroups(root) \
+{\x0a\x09\x09try {\x0a\x09\x09\x09if \
+(this.toolOutput\
+ && typeof this.\
+toolOutput.group\
+s.groupConsecuti\
+ve === 'function\
+') {\x0a\x09\x09\x09\x09this.to\
+olOutput.groups.\
+groupConsecutive\
+(root);\x0a\x09\x09\x09}\x0a\x09\x09}\
+ catch (_) {}\x0a\x09}\
+\x0a\x0a\x09// Append nod\
+es into messages\
+ list and perfor\
+m post-processin\
+g (markdown, cod\
+e, math).\x0a\x09appen\
+dNode(content, s\
+crollMgr) {\x0a\x09\x09//\
+ Keep scroll beh\
+avior consistent\
+ with existing l\
+ogic\x0a\x09\x09scrollMgr\
+.userInteracted \
+= false;\x0a\x09\x09scrol\
+lMgr.prevScroll \
+= 0;\x0a\x09\x09this.dom.\
+clearStreamBefor\
+e();\x0a\x0a\x09\x09const el\
+ = this.dom.get(\
+'_nodes_');\x0a\x09\x09if\
+ (!el) return;\x0a\x09\
+\x09el.classList.re\
+move('empty_list\
+');\x0a\x0a\x09\x09const use\
+rOnly = this._is\
+UserOnlyContent(\
+content);\x0a\x09\x09if (\
+userOnly) {\x0a\x09\x09\x09e\
+l.insertAdjacent\
+HTML('beforeend'\
+, content);\x0a\x09\x09\x09t\
+his.materializeU\
+serMdAsPlainText\
+(el);\x0a\x09\x09\x09// Coll\
+apse before scro\
+lling to ensure \
+final height is \
+used for scroll \
+computations.\x0a\x09\x09\
+\x09try {\x0a\x09\x09\x09\x09this.\
 userCollapse.app\
-ly(el);\x0a\x09\x09} catc\
-h (_) {}\x0a\x0a\x09\x09// E\
-nsure copy icons\
- exist (inject o\
-r reposition out\
-side uc-content)\
-.\x0a\x09\x09try {\x0a\x09\x09\x09thi\
-s.ensureUserCopy\
-Icons(el);\x0a\x09\x09} c\
-atch (_) {}\x0a\x09}\x0a\x0a\
-\x09// Group consec\
-utive tool-only \
-messages after D\
-OM insertion. Th\
-e grouping engin\
-e\x0a\x09// uses expli\
-cit continuation\
- metadata, so a \
-reload and real-\
-time append foll\
-ow\x0a\x09// exactly t\
-he same path.\x0a\x09r\
+ly(el);\x0a\x09\x09\x09} cat\
+ch (_) {}\x0a\x09\x09\x09// \
+Ensure copy icon\
+s exist for user\
+ messages.\x0a\x09\x09\x09tr\
+y {\x0a\x09\x09\x09\x09this.ens\
+ureUserCopyIcons\
+(el);\x0a\x09\x09\x09} catch\
+ (_) {}\x0a\x0a\x09\x09\x09scro\
+llMgr.scrollToBo\
+ttom(false);\x0a\x09\x09\x09\
+scrollMgr.schedu\
+leScrollFabUpdat\
+e();\x0a\x09\x09\x09scrollMg\
+r.virtualization\
+.scheduleMessage\
+VirtualizationRe\
+fresh();\x0a\x09\x09\x09retu\
+rn;\x0a\x09\x09}\x0a\x0a\x09\x09el.in\
+sertAdjacentHTML\
+('beforeend', co\
+ntent);\x0a\x09\x09this.r\
 efreshToolGroups\
-(root) {\x0a\x09\x09try {\
-\x0a\x09\x09\x09if (this.too\
-lOutput && typeo\
-f this.toolOutpu\
-t.groups.groupCo\
-nsecutive === 'f\
-unction') {\x0a\x09\x09\x09\x09\
-this.toolOutput.\
-groups.groupCons\
-ecutive(root);\x0a\x09\
-\x09\x09}\x0a\x09\x09} catch (_\
-) {}\x0a\x09}\x0a\x0a\x09// App\
-end nodes into m\
-essages list and\
- perform post-pr\
-ocessing (markdo\
-wn, code, math).\
-\x0a\x09appendNode(con\
-tent, scrollMgr)\
- {\x0a\x09\x09// Keep scr\
-oll behavior con\
-sistent with exi\
-sting logic\x0a\x09\x09sc\
-rollMgr.userInte\
-racted = false;\x0a\
-\x09\x09scrollMgr.prev\
-Scroll = 0;\x0a\x09\x09th\
-is.dom.clearStre\
-amBefore();\x0a\x0a\x09\x09c\
-onst el = this.d\
-om.get('_nodes_'\
+(el);\x0a\x0a\x09\x09try {\x0a\x09\
+\x09\x09// Defer post-\
+processing (high\
+light/math/colla\
+pse) and perform\
+ scroll AFTER co\
+llapse.\x0a\x09\x09\x09const\
+ maybePromise = \
+this.renderer.re\
+nderPendingMarkd\
+own(el);\x0a\x09\x09\x09cons\
+t post = () => {\
+\x0a\x09\x09\x09\x09// Viewport\
+ highlight sched\
+uling\x0a\x09\x09\x09\x09try {\x0a\
+\x09\x09\x09\x09\x09this.highli\
+ghter.scheduleSc\
+anVisibleCodes(n\
+ull);\x0a\x09\x09\x09\x09} catc\
+h (_) {}\x0a\x0a\x09\x09\x09\x09//\
+ In finalize-onl\
+y mode we must e\
+xplicitly schedu\
+le KaTeX\x0a\x09\x09\x09\x09try\
+ {\x0a\x09\x09\x09\x09\x09if (getM\
+athMode() === 'f\
+inalize-only') t\
+his.math.schedul\
+e(el, 0, true);\x0a\
+\x09\x09\x09\x09} catch (_) \
+{}\x0a\x0a\x09\x09\x09\x09// Colla\
+pse user message\
+s now that DOM i\
+s materialized (\
+ensures correct \
+height).\x0a\x09\x09\x09\x09try\
+ {\x0a\x09\x09\x09\x09\x09this.use\
+rCollapse.apply(\
+el);\x0a\x09\x09\x09\x09} catch\
+ (_) {}\x0a\x0a\x09\x09\x09\x09// \
+Ensure copy icon\
+s exist for user\
+ messages.\x0a\x09\x09\x09\x09t\
+ry {\x0a\x09\x09\x09\x09\x09this.e\
+nsureUserCopyIco\
+ns(el);\x0a\x09\x09\x09\x09} ca\
+tch (_) {}\x0a\x0a\x09\x09\x09\x09\
+// Only now scro\
+ll to bottom and\
+ update FAB \xe2\x80\x93 \
+uses post-collap\
+se heights.\x0a\x09\x09\x09\x09\
+scrollMgr.scroll\
+ToBottom(false);\
+\x0a\x09\x09\x09\x09scrollMgr.s\
+cheduleScrollFab\
+Update();\x0a\x09\x09\x09\x09sc\
+rollMgr.virtuali\
+zation.scheduleM\
+essageVirtualiza\
+tionRefresh();\x0a\x09\
+\x09\x09};\x0a\x0a\x09\x09\x09if (may\
+bePromise && typ\
+eof maybePromise\
+.then === 'funct\
+ion') {\x0a\x09\x09\x09\x09mayb\
+ePromise.then(po\
+st);\x0a\x09\x09\x09} else {\
+\x0a\x09\x09\x09\x09post();\x0a\x09\x09\x09\
+}\x0a\x09\x09} catch (_) \
+{\x0a\x09\x09\x09// In case \
+of error, do a c\
+onservative scro\
+ll to keep UX re\
+sponsive.\x0a\x09\x09\x09scr\
+ollMgr.scrollToB\
+ottom(false);\x0a\x09\x09\
+\x09scrollMgr.sched\
+uleScrollFabUpda\
+te();\x0a\x09\x09\x09scrollM\
+gr.virtualizatio\
+n.scheduleMessag\
+eVirtualizationR\
+efresh();\x0a\x09\x09}\x0a\x09}\
+\x0a\x0a\x09// Replace me\
+ssages list cont\
+ent entirely and\
+ re-run post-pro\
+cessing.\x0a\x09replac\
+eNodes(content, \
+scrollMgr) {\x0a\x09\x09/\
+/ Same semantics\
+ as appendNode, \
+but using a hard\
+ clone reset\x0a\x09\x09s\
+crollMgr.userInt\
+eracted = false;\
+\x0a\x09\x09scrollMgr.pre\
+vScroll = 0;\x0a\x09\x09t\
+his.dom.clearStr\
+eamBefore();\x0a\x0a\x09\x09\
+const el = this.\
+dom.hardReplaceB\
+yClone('_nodes_'\
 );\x0a\x09\x09if (!el) re\
 turn;\x0a\x09\x09el.class\
 List.remove('emp\
@@ -119110,480 +119272,331 @@ pyIcons(el);\x0a\x09\x09\x09\
 } catch (_) {}\x0a\x0a\
 \x09\x09\x09scrollMgr.scr\
 ollToBottom(fals\
-e);\x0a\x09\x09\x09scrollMgr\
-.scheduleScrollF\
-abUpdate();\x0a\x09\x09\x09s\
-crollMgr.virtual\
-ization.schedule\
-MessageVirtualiz\
-ationRefresh();\x0a\
-\x09\x09\x09return;\x0a\x09\x09}\x0a\x0a\
-\x09\x09el.insertAdjac\
-entHTML('beforee\
-nd', content);\x0a\x09\
-\x09this.refreshToo\
-lGroups(el);\x0a\x0a\x09\x09\
-try {\x0a\x09\x09\x09// Defe\
-r post-processin\
-g (highlight/mat\
-h/collapse) and \
-perform scroll A\
-FTER collapse.\x0a\x09\
-\x09\x09const maybePro\
-mise = this.rend\
-erer.renderPendi\
-ngMarkdown(el);\x0a\
-\x09\x09\x09const post = \
-() => {\x0a\x09\x09\x09\x09// V\
-iewport highligh\
-t scheduling\x0a\x09\x09\x09\
-\x09try {\x0a\x09\x09\x09\x09\x09this\
-.highlighter.sch\
-eduleScanVisible\
-Codes(null);\x0a\x09\x09\x09\
-\x09} catch (_) {}\x0a\
-\x0a\x09\x09\x09\x09// In final\
-ize-only mode we\
- must explicitly\
- schedule KaTeX\x0a\
-\x09\x09\x09\x09try {\x0a\x09\x09\x09\x09\x09i\
-f (getMathMode()\
- === 'finalize-o\
-nly') this.math.\
-schedule(el, 0, \
-true);\x0a\x09\x09\x09\x09} cat\
-ch (_) {}\x0a\x0a\x09\x09\x09\x09/\
-/ Collapse user \
-messages now tha\
-t DOM is materia\
-lized (ensures c\
-orrect height).\x0a\
-\x09\x09\x09\x09try {\x0a\x09\x09\x09\x09\x09t\
-his.userCollapse\
-.apply(el);\x0a\x09\x09\x09\x09\
-} catch (_) {}\x0a\x0a\
-\x09\x09\x09\x09// Ensure co\
-py icons exist f\
-or user messages\
-.\x0a\x09\x09\x09\x09try {\x0a\x09\x09\x09\x09\
-\x09this.ensureUser\
-CopyIcons(el);\x0a\x09\
-\x09\x09\x09} catch (_) {\
-}\x0a\x0a\x09\x09\x09\x09// Only n\
-ow scroll to bot\
-tom and update F\
-AB \xe2\x80\x93 uses post\
--collapse height\
-s.\x0a\x09\x09\x09\x09scrollMgr\
-.scrollToBottom(\
-false);\x0a\x09\x09\x09\x09scro\
-llMgr.scheduleSc\
-rollFabUpdate();\
-\x0a\x09\x09\x09\x09scrollMgr.v\
+e, true);\x0a\x09\x09\x09scr\
+ollMgr.scheduleS\
+crollFabUpdate()\
+;\x0a\x09\x09\x09scrollMgr.v\
 irtualization.sc\
 heduleMessageVir\
 tualizationRefre\
-sh();\x0a\x09\x09\x09};\x0a\x0a\x09\x09\x09\
-if (maybePromise\
- && typeof maybe\
-Promise.then ===\
- 'function') {\x0a\x09\
-\x09\x09\x09maybePromise.\
-then(post);\x0a\x09\x09\x09}\
- else {\x0a\x09\x09\x09\x09post\
-();\x0a\x09\x09\x09}\x0a\x09\x09} cat\
-ch (_) {\x0a\x09\x09\x09// I\
-n case of error,\
- do a conservati\
-ve scroll to kee\
-p UX responsive.\
-\x0a\x09\x09\x09scrollMgr.sc\
-rollToBottom(fal\
-se);\x0a\x09\x09\x09scrollMg\
-r.scheduleScroll\
-FabUpdate();\x0a\x09\x09\x09\
-scrollMgr.virtua\
-lization.schedul\
-eMessageVirtuali\
-zationRefresh();\
-\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09// Rep\
-lace messages li\
-st content entir\
-ely and re-run p\
-ost-processing.\x0a\
-\x09replaceNodes(co\
-ntent, scrollMgr\
-) {\x0a\x09\x09// Same se\
-mantics as appen\
-dNode, but using\
- a hard clone re\
-set\x0a\x09\x09scrollMgr.\
-userInteracted =\
- false;\x0a\x09\x09scroll\
-Mgr.prevScroll =\
- 0;\x0a\x09\x09this.dom.c\
-learStreamBefore\
-();\x0a\x0a\x09\x09const el \
-= this.dom.hardR\
-eplaceByClone('_\
-nodes_');\x0a\x09\x09if (\
-!el) return;\x0a\x09\x09e\
-l.classList.remo\
-ve('empty_list')\
-;\x0a\x0a\x09\x09const userO\
-nly = this._isUs\
-erOnlyContent(co\
-ntent);\x0a\x09\x09if (us\
-erOnly) {\x0a\x09\x09\x09el.\
-insertAdjacentHT\
-ML('beforeend', \
-content);\x0a\x09\x09\x09thi\
-s.materializeUse\
-rMdAsPlainText(e\
-l);\x0a\x09\x09\x09// Collap\
-se before scroll\
-ing to ensure fi\
-nal height is us\
-ed for scroll co\
-mputations.\x0a\x09\x09\x09t\
-ry {\x0a\x09\x09\x09\x09this.us\
-erCollapse.apply\
-(el);\x0a\x09\x09\x09} catch\
- (_) {}\x0a\x09\x09\x09// En\
-sure copy icons \
-exist for user m\
-essages.\x0a\x09\x09\x09try \
-{\x0a\x09\x09\x09\x09this.ensur\
-eUserCopyIcons(e\
-l);\x0a\x09\x09\x09} catch (\
-_) {}\x0a\x0a\x09\x09\x09scroll\
-Mgr.scrollToBott\
-om(false, true);\
-\x0a\x09\x09\x09scrollMgr.sc\
-heduleScrollFabU\
-pdate();\x0a\x09\x09\x09scro\
+sh();\x0a\x09\x09\x09return;\
+\x0a\x09\x09}\x0a\x0a\x09\x09el.inser\
+tAdjacentHTML('b\
+eforeend', conte\
+nt);\x0a\x09\x09this.refr\
+eshToolGroups(el\
+);\x0a\x0a\x09\x09try {\x0a\x09\x09\x09/\
+/ Defer KaTeX sc\
+hedule to post-M\
+arkdown to avoid\
+ races and colla\
+pse before scrol\
+l.\x0a\x09\x09\x09const mayb\
+ePromise = this.\
+renderer.renderP\
+endingMarkdown(e\
+l);\x0a\x09\x09\x09const pos\
+t = () => {\x0a\x09\x09\x09\x09\
+try {\x0a\x09\x09\x09\x09\x09this.\
+highlighter.sche\
+duleScanVisibleC\
+odes(null);\x0a\x09\x09\x09\x09\
+} catch (_) {}\x0a\x09\
+\x09\x09\x09try {\x0a\x09\x09\x09\x09\x09if\
+ (getMathMode() \
+=== 'finalize-on\
+ly') this.math.s\
+chedule(el, 0, t\
+rue);\x0a\x09\x09\x09\x09} catc\
+h (_) {}\x0a\x0a\x09\x09\x09\x09//\
+ Collapse after \
+materialization \
+to compute final\
+ heights correct\
+ly.\x0a\x09\x09\x09\x09try {\x0a\x09\x09\
+\x09\x09\x09this.userColl\
+apse.apply(el);\x0a\
+\x09\x09\x09\x09} catch (_) \
+{}\x0a\x0a\x09\x09\x09\x09// Ensur\
+e copy icons exi\
+st for user mess\
+ages.\x0a\x09\x09\x09\x09try {\x0a\
+\x09\x09\x09\x09\x09this.ensure\
+UserCopyIcons(el\
+);\x0a\x09\x09\x09\x09} catch (\
+_) {}\x0a\x0a\x09\x09\x09\x09// No\
+w scroll and upd\
+ate FAB using th\
+e collapsed layo\
+ut.\x0a\x09\x09\x09\x09scrollMg\
+r.scrollToBottom\
+(false, true);\x0a\x09\
+\x09\x09\x09scrollMgr.sch\
+eduleScrollFabUp\
+date();\x0a\x09\x09\x09\x09scro\
 llMgr.virtualiza\
 tion.scheduleMes\
 sageVirtualizati\
 onRefresh();\x0a\x09\x09\x09\
-return;\x0a\x09\x09}\x0a\x0a\x09\x09e\
-l.insertAdjacent\
-HTML('beforeend'\
-, content);\x0a\x09\x09th\
-is.refreshToolGr\
-oups(el);\x0a\x0a\x09\x09try\
- {\x0a\x09\x09\x09// Defer K\
-aTeX schedule to\
- post-Markdown t\
-o avoid races an\
-d collapse befor\
-e scroll.\x0a\x09\x09\x09con\
-st maybePromise \
-= this.renderer.\
-renderPendingMar\
-kdown(el);\x0a\x09\x09\x09co\
-nst post = () =>\
- {\x0a\x09\x09\x09\x09try {\x0a\x09\x09\x09\
-\x09\x09this.highlight\
-er.scheduleScanV\
-isibleCodes(null\
-);\x0a\x09\x09\x09\x09} catch (\
-_) {}\x0a\x09\x09\x09\x09try {\x0a\
-\x09\x09\x09\x09\x09if (getMath\
-Mode() === 'fina\
-lize-only') this\
-.math.schedule(e\
-l, 0, true);\x0a\x09\x09\x09\
-\x09} catch (_) {}\x0a\
-\x0a\x09\x09\x09\x09// Collapse\
- after materiali\
-zation to comput\
-e final heights \
-correctly.\x0a\x09\x09\x09\x09t\
-ry {\x0a\x09\x09\x09\x09\x09this.u\
-serCollapse.appl\
-y(el);\x0a\x09\x09\x09\x09} cat\
-ch (_) {}\x0a\x0a\x09\x09\x09\x09/\
-/ Ensure copy ic\
-ons exist for us\
-er messages.\x0a\x09\x09\x09\
-\x09try {\x0a\x09\x09\x09\x09\x09this\
-.ensureUserCopyI\
-cons(el);\x0a\x09\x09\x09\x09} \
-catch (_) {}\x0a\x0a\x09\x09\
-\x09\x09// Now scroll \
-and update FAB u\
-sing the collaps\
-ed layout.\x0a\x09\x09\x09\x09s\
-crollMgr.scrollT\
-oBottom(false, t\
-rue);\x0a\x09\x09\x09\x09scroll\
-Mgr.scheduleScro\
-llFabUpdate();\x0a\x09\
-\x09\x09\x09scrollMgr.vir\
-tualization.sche\
-duleMessageVirtu\
-alizationRefresh\
-();\x0a\x09\x09\x09};\x0a\x0a\x09\x09\x09if\
- (maybePromise &\
-& typeof maybePr\
-omise.then === '\
-function') {\x0a\x09\x09\x09\
-\x09maybePromise.th\
-en(post);\x0a\x09\x09\x09} e\
-lse {\x0a\x09\x09\x09\x09post()\
-;\x0a\x09\x09\x09}\x0a\x09\x09} catch\
- (_) {\x0a\x09\x09\x09scroll\
-Mgr.scrollToBott\
-om(false, true);\
-\x0a\x09\x09\x09scrollMgr.sc\
-heduleScrollFabU\
-pdate();\x0a\x09\x09\x09scro\
-llMgr.virtualiza\
-tion.scheduleMes\
-sageVirtualizati\
-onRefresh();\x0a\x09\x09}\
-\x0a\x09}\x0a\x0a\x09// Append \
-\x22extra\x22 content \
-into a specific \
-bot message and \
-post-process loc\
-ally.\x0a\x09appendExt\
-ra(id, content, \
-scrollMgr) {\x0a\x09\x09c\
-onst el = docume\
-nt.getElementByI\
-d('msg-bot-' + i\
-d);\x0a\x09\x09if (!el) r\
-eturn;\x0a\x09\x09const e\
-xtra = el.queryS\
-elector('.msg-ex\
-tra');\x0a\x09\x09if (!ex\
-tra) return;\x0a\x0a\x09\x09\
-// A delayed ext\
-ra may target a \
-history row that\
- is currently vi\
-rtualized.\x0a\x09\x09// \
-Materialize it f\
-irst, mutate/ren\
-der, then re-mea\
-sure before it c\
-an return\x0a\x09\x09// t\
-o the virtual po\
-ol.\x0a\x09\x09try { scro\
-llMgr.virtualiza\
-tion.beginMessag\
-eMutation(el); }\
- catch (_) {}\x0a\x09\x09\
-extra.insertAdja\
-centHTML('before\
-end', content);\x0a\
-\x0a\x09\x09// Extras liv\
-e below the stre\
-aming timeline. \
-If FOLLOW owns t\
-he viewport,\x0a\x09\x09/\
-/ reconcile to t\
-he real bottom i\
-n the same JS tu\
-rn; ResizeObserv\
-er then\x0a\x09\x09// cat\
-ches later async\
- height changes \
-(Markdown, image\
-s, fonts/icons).\
-\x0a\x09\x09try { scrollM\
-gr.syncBottomNow\
-IfFollowing(); }\
- catch (_) {}\x0a\x0a\x09\
-\x09try {\x0a\x09\x09\x09const \
-maybePromise = t\
-his.renderer.ren\
-derPendingMarkdo\
-wn(extra);\x0a\x0a\x09\x09\x09c\
-onst post = () =\
-> {\x0a\x09\x09\x09\x09const ac\
-tiveCode = (type\
-of runtime !== '\
-undefined' && ru\
-ntime.stream) ? \
-runtime.stream.c\
-ode.activeCode :\
- null;\x0a\x0a\x09\x09\x09\x09// A\
-ttach observers \
-after Markdown p\
-roduced the node\
-s\x0a\x09\x09\x09\x09try {\x0a\x09\x09\x09\x09\
-\x09this.highlighte\
-r.observeNewCode\
-(extra, {\x0a\x09\x09\x09\x09\x09\x09\
-deferLastIfStrea\
-ming: true,\x0a\x09\x09\x09\x09\
-\x09\x09minLinesForLas\
-t: this.renderer\
-.cfg.PROFILE_COD\
-E.minLinesForHL,\
-\x0a\x09\x09\x09\x09\x09\x09minCharsF\
-orLast: this.ren\
-derer.cfg.PROFIL\
-E_CODE.minCharsF\
-orHL\x0a\x09\x09\x09\x09\x09}, act\
-iveCode);\x0a\x09\x09\x09\x09\x09t\
-his.highlighter.\
-observeMsgBoxes(\
-extra, (box) => \
-this.processBox(\
-box));\x0a\x09\x09\x09\x09} cat\
-ch (_) {}\x0a\x0a\x09\x09\x09\x09/\
-/ KaTeX: honor s\
-tream mode; in f\
-inalize-only for\
-ce immediate sch\
-edule\x0a\x09\x09\x09\x09try {\x0a\
-\x09\x09\x09\x09\x09const mm = \
-getMathMode();\x0a\x09\
-\x09\x09\x09\x09if (mm === '\
-finalize-only') \
-this.math.schedu\
-le(extra, 0, tru\
-e);\x0a\x09\x09\x09\x09\x09else th\
-is.math.schedule\
-(extra);\x0a\x09\x09\x09\x09} c\
-atch (_) {}\x0a\x0a\x09\x09\x09\
-\x09// Markdown con\
-version can chan\
-ge line wrapping\
-/height after in\
-sertion.\x0a\x09\x09\x09\x09try\
- { scrollMgr.vir\
-tualization.endM\
-essageMutation(e\
-l); } catch (_) \
-{}\x0a\x09\x09\x09\x09try { scr\
-ollMgr.syncBotto\
-mNowIfFollowing(\
-); } catch (_) {\
-}\x0a\x09\x09\x09};\x0a\x0a\x09\x09\x09if (\
-maybePromise && \
-typeof maybeProm\
-ise.then === 'fu\
-nction') {\x0a\x09\x09\x09\x09m\
-aybePromise.then\
-(post);\x0a\x09\x09\x09} els\
-e {\x0a\x09\x09\x09\x09post();\x0a\
-\x09\x09\x09}\x0a\x09\x09} catch (\
-_) {\x0a\x09\x09\x09try { sc\
-rollMgr.virtuali\
-zation.endMessag\
-eMutation(el); }\
- catch (__) {}\x0a\x09\
-\x09}\x0a\x0a\x09\x09scrollMgr.\
-scheduleScroll(t\
-rue);\x0a\x09}\x0a\x0a\x09// Wh\
-en a new message\
- box appears, ho\
-ok up code/highl\
-ight handlers.\x0a\x09\
-processBox(box) \
-{\x0a\x09\x09const active\
-Code = (typeof r\
-untime !== 'unde\
-fined' && runtim\
-e.stream) ? runt\
-ime.stream.code.\
-activeCode : nul\
-l;\x0a\x09\x09this.highli\
-ghter.observeNew\
-Code(box, {\x0a\x09\x09\x09d\
-eferLastIfStream\
-ing: true,\x0a\x09\x09\x09mi\
-nLinesForLast: t\
-his.renderer.cfg\
-.PROFILE_CODE.mi\
-nLinesForHL,\x0a\x09\x09\x09\
+};\x0a\x0a\x09\x09\x09if (maybe\
+Promise && typeo\
+f maybePromise.t\
+hen === 'functio\
+n') {\x0a\x09\x09\x09\x09maybeP\
+romise.then(post\
+);\x0a\x09\x09\x09} else {\x0a\x09\
+\x09\x09\x09post();\x0a\x09\x09\x09}\x0a\
+\x09\x09} catch (_) {\x0a\
+\x09\x09\x09scrollMgr.scr\
+ollToBottom(fals\
+e, true);\x0a\x09\x09\x09scr\
+ollMgr.scheduleS\
+crollFabUpdate()\
+;\x0a\x09\x09\x09scrollMgr.v\
+irtualization.sc\
+heduleMessageVir\
+tualizationRefre\
+sh();\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09/\
+/ Append \x22extra\x22\
+ content into a \
+specific bot mes\
+sage and post-pr\
+ocess locally.\x0a\x09\
+appendExtra(id, \
+content, scrollM\
+gr) {\x0a\x09\x09const el\
+ = document.getE\
+lementById('msg-\
+bot-' + id);\x0a\x09\x09i\
+f (!el) return;\x0a\
+\x09\x09const extra = \
+el.querySelector\
+('.msg-extra');\x0a\
+\x09\x09if (!extra) re\
+turn;\x0a\x0a\x09\x09// A de\
+layed extra may \
+target a history\
+ row that is cur\
+rently virtualiz\
+ed.\x0a\x09\x09// Materia\
+lize it first, m\
+utate/render, th\
+en re-measure be\
+fore it can retu\
+rn\x0a\x09\x09// to the v\
+irtual pool.\x0a\x09\x09t\
+ry { scrollMgr.v\
+irtualization.be\
+ginMessageMutati\
+on(el); } catch \
+(_) {}\x0a\x09\x09extra.i\
+nsertAdjacentHTM\
+L('beforeend', c\
+ontent);\x0a\x0a\x09\x09// E\
+xtras live below\
+ the streaming t\
+imeline. If FOLL\
+OW owns the view\
+port,\x0a\x09\x09// recon\
+cile to the real\
+ bottom in the s\
+ame JS turn; Res\
+izeObserver then\
+\x0a\x09\x09// catches la\
+ter async height\
+ changes (Markdo\
+wn, images, font\
+s/icons).\x0a\x09\x09try \
+{ scrollMgr.sync\
+BottomNowIfFollo\
+wing(); } catch \
+(_) {}\x0a\x0a\x09\x09try {\x0a\
+\x09\x09\x09const maybePr\
+omise = this.ren\
+derer.renderPend\
+ingMarkdown(extr\
+a);\x0a\x0a\x09\x09\x09const po\
+st = () => {\x0a\x09\x09\x09\
+\x09const activeCod\
+e = (typeof runt\
+ime !== 'undefin\
+ed' && runtime.s\
+tream) ? runtime\
+.stream.code.act\
+iveCode : null;\x0a\
+\x0a\x09\x09\x09\x09// Attach o\
+bservers after M\
+arkdown produced\
+ the nodes\x0a\x09\x09\x09\x09t\
+ry {\x0a\x09\x09\x09\x09\x09this.h\
+ighlighter.obser\
+veNewCode(extra,\
+ {\x0a\x09\x09\x09\x09\x09\x09deferLa\
+stIfStreaming: t\
+rue,\x0a\x09\x09\x09\x09\x09\x09minLi\
+nesForLast: this\
+.renderer.cfg.PR\
+OFILE_CODE.minLi\
+nesForHL,\x0a\x09\x09\x09\x09\x09\x09\
 minCharsForLast:\
  this.renderer.c\
 fg.PROFILE_CODE.\
 minCharsForHL\x0a\x09\x09\
-}, activeCode);\x0a\
-\x09\x09this.renderer.\
-hooks.codeScroll\
-Init(box);\x0a\x09}\x0a\x0a\x09\
-// Remove messag\
-e by id and keep\
- scroll consiste\
-nt.\x0a\x09removeNode(\
-id, scrollMgr) {\
-\x0a\x09\x09scrollMgr.pre\
-vScroll = 0;\x0a\x09\x09l\
-et el = document\
-.getElementById(\
-'msg-user-' + id\
-);\x0a\x09\x09if (el) (el\
-.closest('.msg-u\
-ser-region') || \
-el).remove();\x0a\x09\x09\
-el = document.ge\
-tElementById('ms\
-g-bot-' + id);\x0a\x09\
-\x09if (el) el.remo\
-ve();\x0a\x09\x09this.dom\
+\x09\x09\x09}, activeCode\
+);\x0a\x09\x09\x09\x09\x09this.hig\
+hlighter.observe\
+MsgBoxes(extra, \
+(box) => this.pr\
+ocessBox(box));\x0a\
+\x09\x09\x09\x09} catch (_) \
+{}\x0a\x0a\x09\x09\x09\x09// KaTeX\
+: honor stream m\
+ode; in finalize\
+-only force imme\
+diate schedule\x0a\x09\
+\x09\x09\x09try {\x0a\x09\x09\x09\x09\x09co\
+nst mm = getMath\
+Mode();\x0a\x09\x09\x09\x09\x09if \
+(mm === 'finaliz\
+e-only') this.ma\
+th.schedule(extr\
+a, 0, true);\x0a\x09\x09\x09\
+\x09\x09else this.math\
+.schedule(extra)\
+;\x0a\x09\x09\x09\x09} catch (_\
+) {}\x0a\x0a\x09\x09\x09\x09// Mar\
+kdown conversion\
+ can change line\
+ wrapping/height\
+ after insertion\
+.\x0a\x09\x09\x09\x09try { scro\
+llMgr.virtualiza\
+tion.endMessageM\
+utation(el); } c\
+atch (_) {}\x0a\x09\x09\x09\x09\
+try { scrollMgr.\
+syncBottomNowIfF\
+ollowing(); } ca\
+tch (_) {}\x0a\x09\x09\x09};\
+\x0a\x0a\x09\x09\x09if (maybePr\
+omise && typeof \
+maybePromise.the\
+n === 'function'\
+) {\x0a\x09\x09\x09\x09maybePro\
+mise.then(post);\
+\x0a\x09\x09\x09} else {\x0a\x09\x09\x09\
+\x09post();\x0a\x09\x09\x09}\x0a\x09\x09\
+} catch (_) {\x0a\x09\x09\
+\x09try { scrollMgr\
+.virtualization.\
+endMessageMutati\
+on(el); } catch \
+(__) {}\x0a\x09\x09}\x0a\x0a\x09\x09s\
+crollMgr.schedul\
+eScroll(true);\x0a\x09\
+}\x0a\x0a\x09// When a ne\
+w message box ap\
+pears, hook up c\
+ode/highlight ha\
+ndlers.\x0a\x09process\
+Box(box) {\x0a\x09\x09con\
+st activeCode = \
+(typeof runtime \
+!== 'undefined' \
+&& runtime.strea\
+m) ? runtime.str\
+eam.code.activeC\
+ode : null;\x0a\x09\x09th\
+is.highlighter.o\
+bserveNewCode(bo\
+x, {\x0a\x09\x09\x09deferLas\
+tIfStreaming: tr\
+ue,\x0a\x09\x09\x09minLinesF\
+orLast: this.ren\
+derer.cfg.PROFIL\
+E_CODE.minLinesF\
+orHL,\x0a\x09\x09\x09minChar\
+sForLast: this.r\
+enderer.cfg.PROF\
+ILE_CODE.minChar\
+sForHL\x0a\x09\x09}, acti\
+veCode);\x0a\x09\x09this.\
+renderer.hooks.c\
+odeScrollInit(bo\
+x);\x0a\x09}\x0a\x0a\x09// Remo\
+ve message by id\
+ and keep scroll\
+ consistent.\x0a\x09re\
+moveNode(id, scr\
+ollMgr) {\x0a\x09\x09scro\
+llMgr.prevScroll\
+ = 0;\x0a\x09\x09let el =\
+ document.getEle\
+mentById('msg-us\
+er-' + id);\x0a\x09\x09if\
+ (el) (el.closes\
+t('.msg-user-reg\
+ion') || el).rem\
+ove();\x0a\x09\x09el = do\
+cument.getElemen\
+tById('msg-bot-'\
+ + id);\x0a\x09\x09if (el\
+) el.remove();\x0a\x09\
+\x09this.dom.resetE\
+phemeral();\x0a\x09\x09tr\
+y {\x0a\x09\x09\x09this.rend\
+erer.renderPendi\
+ngMarkdown();\x0a\x09\x09\
+} catch (_) {}\x0a\x09\
+\x09scrollMgr.virtu\
+alization.schedu\
+leMessageVirtual\
+izationRefresh()\
+;\x0a\x09\x09scrollMgr.sc\
+heduleScroll(tru\
+e);\x0a\x09}\x0a\x0a\x09// Remo\
+ve all messages \
+from (and includ\
+ing) a given mes\
+sage id.\x0a\x09remove\
+NodesFromId(id, \
+scrollMgr) {\x0a\x09\x09s\
+crollMgr.prevScr\
+oll = 0;\x0a\x09\x09const\
+ container = thi\
+s.dom.get('_node\
+s_');\x0a\x09\x09if (!con\
+tainer) return;\x0a\
+\x09\x09const elements\
+ = container.que\
+rySelectorAll('.\
+msg-box');\x0a\x09\x09let\
+ remove = false;\
+\x0a\x09\x09elements.forE\
+ach((element) =>\
+ {\x0a\x09\x09\x09if (elemen\
+t.id && element.\
+id.endsWith('-' \
++ id)) remove = \
+true;\x0a\x09\x09\x09if (rem\
+ove) (element.cl\
+osest('.msg-user\
+-region') || ele\
+ment).remove();\x0a\
+\x09\x09});\x0a\x09\x09this.dom\
 .resetEphemeral(\
 );\x0a\x09\x09try {\x0a\x09\x09\x09th\
 is.renderer.rend\
 erPendingMarkdow\
-n();\x0a\x09\x09} catch (\
-_) {}\x0a\x09\x09scrollMg\
-r.virtualization\
-.scheduleMessage\
-VirtualizationRe\
-fresh();\x0a\x09\x09scrol\
-lMgr.scheduleScr\
-oll(true);\x0a\x09}\x0a\x0a\x09\
-// Remove all me\
-ssages from (and\
- including) a gi\
-ven message id.\x0a\
-\x09removeNodesFrom\
-Id(id, scrollMgr\
-) {\x0a\x09\x09scrollMgr.\
-prevScroll = 0;\x0a\
-\x09\x09const containe\
-r = this.dom.get\
-('_nodes_');\x0a\x09\x09i\
-f (!container) r\
-eturn;\x0a\x09\x09const e\
-lements = contai\
-ner.querySelecto\
-rAll('.msg-box')\
-;\x0a\x09\x09let remove =\
- false;\x0a\x09\x09elemen\
-ts.forEach((elem\
-ent) => {\x0a\x09\x09\x09if \
-(element.id && e\
-lement.id.endsWi\
-th('-' + id)) re\
-move = true;\x0a\x09\x09\x09\
-if (remove) (ele\
-ment.closest('.m\
-sg-user-region')\
- || element).rem\
-ove();\x0a\x09\x09});\x0a\x09\x09t\
-his.dom.resetEph\
-emeral();\x0a\x09\x09try \
-{\x0a\x09\x09\x09this.render\
-er.renderPending\
-Markdown(contain\
-er);\x0a\x09\x09} catch (\
-_) {}\x0a\x09\x09scrollMg\
-r.virtualization\
-.scheduleMessage\
-VirtualizationRe\
-fresh();\x0a\x09\x09scrol\
-lMgr.scheduleScr\
-oll(true);\x0a\x09}\x0a}\x0a\
-\
+n(container);\x0a\x09\x09\
+} catch (_) {}\x0a\x09\
+\x09scrollMgr.virtu\
+alization.schedu\
+leMessageVirtual\
+izationRefresh()\
+;\x0a\x09\x09scrollMgr.sc\
+heduleScroll(tru\
+e);\x0a\x09}\x0a}\x0a\
 \x00\x00\x1cU\
 /\
 / CustomMarkupLi\
@@ -124667,12 +124680,12 @@ r,r.macros=r.mac\
 ros||{},d(e,r)}}\
 (),i=i.default}(\
 )}));\
-\x00\x04\xff4\
+\x00\x04\xffo\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
-26-10-02 22:26:3\
-0 by bin/minify.\
+26-10-02 23:53:4\
+5 by bin/minify.\
 py using rjsmin \
 */\x0a\x0a/* data/js/a\
 pp/parts/markdow\
@@ -140410,137 +140423,57 @@ s=\x22msg-user-regi\
 on input-live-ar\
 rival\x22>${attachm\
 entHtml}${html}<\
-/div>`;if(dateLa\
-bel){const safeD\
-ateLabel=(typeof\
- Utils!=='undefi\
-ned'&&Utils.esca\
-peHtml)?Utils.es\
-capeHtml(dateLab\
-el):String(dateL\
-abel).replace(/[\
-&<>\x22']/g,m=>({'&\
-':'&amp;','<':'&\
-lt;','>':'&gt;',\
-'\x22':'&quot;',\x22'\x22\
-:'&#039;'}[m]));\
-html=`<div class\
-=\x22msg-date-separ\
-ator input-live-\
-date\x22>${safeDate\
-Label}</div>${ht\
-ml}`;}\x0ael.insert\
-AdjacentHTML('be\
-foreend',html);t\
-ry{this.userColl\
-apse.apply(el);}\
-catch(_){}\x0atry{t\
-his.ensureUserCo\
-pyIcons(el);}cat\
-ch(_){}}\x0arefresh\
-ToolGroups(root)\
-{try{if(this.too\
-lOutput&&typeof \
-this.toolOutput.\
-groups.groupCons\
-ecutive==='funct\
-ion'){this.toolO\
-utput.groups.gro\
-upConsecutive(ro\
-ot);}}catch(_){}\
-}\x0aappendNode(con\
-tent,scrollMgr){\
-scrollMgr.userIn\
-teracted=false;s\
-crollMgr.prevScr\
-oll=0;this.dom.c\
-learStreamBefore\
-();const el=this\
-.dom.get('_nodes\
-_');if(!el)retur\
-n;el.classList.r\
-emove('empty_lis\
-t');const userOn\
-ly=this._isUserO\
-nlyContent(conte\
-nt);if(userOnly)\
-{el.insertAdjace\
-ntHTML('beforeen\
-d',content);this\
-.materializeUser\
-MdAsPlainText(el\
-);try{this.userC\
-ollapse.apply(el\
-);}catch(_){}\x0atr\
-y{this.ensureUse\
-rCopyIcons(el);}\
-catch(_){}\x0ascrol\
-lMgr.scrollToBot\
-tom(false);scrol\
-lMgr.scheduleScr\
-ollFabUpdate();s\
-crollMgr.virtual\
-ization.schedule\
-MessageVirtualiz\
-ationRefresh();r\
-eturn;}\x0ael.inser\
-tAdjacentHTML('b\
-eforeend',conten\
-t);this.refreshT\
-oolGroups(el);tr\
-y{const maybePro\
-mise=this.render\
-er.renderPending\
-Markdown(el);con\
-st post=()=>{try\
-{this.highlighte\
-r.scheduleScanVi\
-sibleCodes(null)\
-;}catch(_){}\x0atry\
-{if(getMathMode(\
-)==='finalize-on\
-ly')this.math.sc\
-hedule(el,0,true\
-);}catch(_){}\x0atr\
-y{this.userColla\
-pse.apply(el);}c\
-atch(_){}\x0atry{th\
-is.ensureUserCop\
-yIcons(el);}catc\
-h(_){}\x0ascrollMgr\
-.scrollToBottom(\
-false);scrollMgr\
-.scheduleScrollF\
-abUpdate();scrol\
-lMgr.virtualizat\
-ion.scheduleMess\
-ageVirtualizatio\
-nRefresh();};if(\
-maybePromise&&ty\
-peof maybePromis\
-e.then==='functi\
-on'){maybePromis\
-e.then(post);}el\
-se{post();}}catc\
-h(_){scrollMgr.s\
-crollToBottom(fa\
-lse);scrollMgr.s\
-cheduleScrollFab\
-Update();scrollM\
-gr.virtualizatio\
-n.scheduleMessag\
-eVirtualizationR\
-efresh();}}\x0arepl\
-aceNodes(content\
-,scrollMgr){scro\
-llMgr.userIntera\
-cted=false;scrol\
-lMgr.prevScroll=\
-0;this.dom.clear\
-StreamBefore();c\
-onst el=this.dom\
-.hardReplaceByCl\
-one('_nodes_');i\
+div class=\x22user-\
+message-actions\x22\
+ aria-hidden=\x22tr\
+ue\x22></div></div>\
+`;if(dateLabel){\
+const safeDateLa\
+bel=(typeof Util\
+s!=='undefined'&\
+&Utils.escapeHtm\
+l)?Utils.escapeH\
+tml(dateLabel):S\
+tring(dateLabel)\
+.replace(/[&<>\x22'\
+]/g,m=>({'&':'&a\
+mp;','<':'&lt;',\
+'>':'&gt;','\x22':'\
+&quot;',\x22'\x22:'&#0\
+39;'}[m]));html=\
+`<div class=\x22msg\
+-date-separator \
+input-live-date\x22\
+>${safeDateLabel\
+}</div>${html}`;\
+}\x0ael.insertAdjac\
+entHTML('beforee\
+nd',html);try{th\
+is.userCollapse.\
+apply(el);}catch\
+(_){}\x0atry{this.e\
+nsureUserCopyIco\
+ns(el);}catch(_)\
+{}}\x0arefreshToolG\
+roups(root){try{\
+if(this.toolOutp\
+ut&&typeof this.\
+toolOutput.group\
+s.groupConsecuti\
+ve==='function')\
+{this.toolOutput\
+.groups.groupCon\
+secutive(root);}\
+}catch(_){}}\x0aapp\
+endNode(content,\
+scrollMgr){scrol\
+lMgr.userInterac\
+ted=false;scroll\
+Mgr.prevScroll=0\
+;this.dom.clearS\
+treamBefore();co\
+nst el=this.dom.\
+get('_nodes_');i\
 f(!el)return;el.\
 classList.remove\
 ('empty_list');c\
@@ -140560,2187 +140493,2122 @@ s.ensureUserCopy\
 Icons(el);}catch\
 (_){}\x0ascrollMgr.\
 scrollToBottom(f\
-alse,true);scrol\
-lMgr.scheduleScr\
-ollFabUpdate();s\
-crollMgr.virtual\
-ization.schedule\
-MessageVirtualiz\
-ationRefresh();r\
-eturn;}\x0ael.inser\
-tAdjacentHTML('b\
-eforeend',conten\
-t);this.refreshT\
-oolGroups(el);tr\
-y{const maybePro\
-mise=this.render\
-er.renderPending\
-Markdown(el);con\
-st post=()=>{try\
-{this.highlighte\
-r.scheduleScanVi\
-sibleCodes(null)\
-;}catch(_){}\x0atry\
-{if(getMathMode(\
-)==='finalize-on\
-ly')this.math.sc\
-hedule(el,0,true\
-);}catch(_){}\x0atr\
-y{this.userColla\
-pse.apply(el);}c\
-atch(_){}\x0atry{th\
-is.ensureUserCop\
-yIcons(el);}catc\
-h(_){}\x0ascrollMgr\
-.scrollToBottom(\
-false,true);scro\
-llMgr.scheduleSc\
-rollFabUpdate();\
-scrollMgr.virtua\
-lization.schedul\
-eMessageVirtuali\
-zationRefresh();\
-};if(maybePromis\
-e&&typeof maybeP\
-romise.then==='f\
-unction'){maybeP\
-romise.then(post\
-);}else{post();}\
-}catch(_){scroll\
-Mgr.scrollToBott\
-om(false,true);s\
-crollMgr.schedul\
-eScrollFabUpdate\
-();scrollMgr.vir\
-tualization.sche\
-duleMessageVirtu\
-alizationRefresh\
-();}}\x0aappendExtr\
-a(id,content,scr\
-ollMgr){const el\
-=document.getEle\
-mentById('msg-bo\
-t-'+id);if(!el)r\
-eturn;const extr\
-a=el.querySelect\
-or('.msg-extra')\
-;if(!extra)retur\
-n;try{scrollMgr.\
-virtualization.b\
-eginMessageMutat\
-ion(el);}catch(_\
-){}\x0aextra.insert\
-AdjacentHTML('be\
-foreend',content\
-);try{scrollMgr.\
-syncBottomNowIfF\
-ollowing();}catc\
-h(_){}\x0atry{const\
- maybePromise=th\
-is.renderer.rend\
-erPendingMarkdow\
-n(extra);const p\
-ost=()=>{const a\
-ctiveCode=(typeo\
-f runtime!=='und\
-efined'&&runtime\
-.stream)?runtime\
-.stream.code.act\
-iveCode:null;try\
-{this.highlighte\
-r.observeNewCode\
-(extra,{deferLas\
-tIfStreaming:tru\
-e,minLinesForLas\
-t:this.renderer.\
-cfg.PROFILE_CODE\
-.minLinesForHL,m\
-inCharsForLast:t\
-his.renderer.cfg\
-.PROFILE_CODE.mi\
-nCharsForHL},act\
-iveCode);this.hi\
-ghlighter.observ\
-eMsgBoxes(extra,\
-(box)=>this.proc\
-essBox(box));}ca\
-tch(_){}\x0atry{con\
-st mm=getMathMod\
-e();if(mm==='fin\
-alize-only')this\
-.math.schedule(e\
-xtra,0,true);els\
-e this.math.sche\
-dule(extra);}cat\
-ch(_){}\x0atry{scro\
-llMgr.virtualiza\
-tion.endMessageM\
-utation(el);}cat\
-ch(_){}\x0atry{scro\
-llMgr.syncBottom\
-NowIfFollowing()\
-;}catch(_){}};if\
-(maybePromise&&t\
-ypeof maybePromi\
-se.then==='funct\
-ion'){maybePromi\
-se.then(post);}e\
-lse{post();}}cat\
-ch(_){try{scroll\
-Mgr.virtualizati\
-on.endMessageMut\
-ation(el);}catch\
-(__){}}\x0ascrollMg\
-r.scheduleScroll\
-(true);}\x0aprocess\
-Box(box){const a\
-ctiveCode=(typeo\
-f runtime!=='und\
-efined'&&runtime\
-.stream)?runtime\
-.stream.code.act\
-iveCode:null;thi\
-s.highlighter.ob\
-serveNewCode(box\
-,{deferLastIfStr\
-eaming:true,minL\
-inesForLast:this\
-.renderer.cfg.PR\
-OFILE_CODE.minLi\
-nesForHL,minChar\
-sForLast:this.re\
-nderer.cfg.PROFI\
-LE_CODE.minChars\
-ForHL},activeCod\
-e);this.renderer\
-.hooks.codeScrol\
-lInit(box);}\x0arem\
-oveNode(id,scrol\
-lMgr){scrollMgr.\
-prevScroll=0;let\
- el=document.get\
-ElementById('msg\
--user-'+id);if(e\
-l)(el.closest('.\
-msg-user-region'\
-)||el).remove();\
-el=document.getE\
-lementById('msg-\
-bot-'+id);if(el)\
-el.remove();this\
-.dom.resetEpheme\
-ral();try{this.r\
-enderer.renderPe\
-ndingMarkdown();\
-}catch(_){}\x0ascro\
-llMgr.virtualiza\
-tion.scheduleMes\
-sageVirtualizati\
-onRefresh();scro\
-llMgr.scheduleSc\
-roll(true);}\x0arem\
-oveNodesFromId(i\
-d,scrollMgr){scr\
-ollMgr.prevScrol\
-l=0;const contai\
-ner=this.dom.get\
-('_nodes_');if(!\
-container)return\
-;const elements=\
-container.queryS\
-electorAll('.msg\
--box');let remov\
-e=false;elements\
-.forEach((elemen\
-t)=>{if(element.\
-id&&element.id.e\
-ndsWith('-'+id))\
-remove=true;if(r\
-emove)(element.c\
-losest('.msg-use\
-r-region')||elem\
-ent).remove();})\
-;this.dom.resetE\
-phemeral();try{t\
-his.renderer.ren\
-derPendingMarkdo\
-wn(container);}c\
-atch(_){}\x0ascroll\
+alse);scrollMgr.\
+scheduleScrollFa\
+bUpdate();scroll\
 Mgr.virtualizati\
 on.scheduleMessa\
 geVirtualization\
-Refresh();scroll\
-Mgr.scheduleScro\
-ll(true);}};\x0a\x0a/*\
- data/js/app/raf\
-.js */\x0aclass Raf\
-Manager{construc\
-tor(cfg){this.cf\
-g=cfg||{RAF:{},A\
-SYNC:{}};this.ta\
-sks=new Map();th\
-is.groups=new Ma\
-p();this.tickId=\
-0;this._mode='ra\
-f';this.schedule\
-d=false;this._fl\
-ushInProgress=fa\
-lse;this._watchd\
-ogId=0;this._wea\
-kKeyTokens=new W\
-eakMap();const R\
-=(this.cfg&&this\
-.cfg.RAF)||{};th\
-is.FLUSH_BUDGET_\
-MS=Utils.g('RAF_\
-FLUSH_BUDGET_MS'\
-,R.FLUSH_BUDGET_\
-MS??7);this.MAX_\
-TASKS_PER_FLUSH=\
-Utils.g('RAF_MAX\
-_TASKS_PER_FLUSH\
-',R.MAX_TASKS_PE\
-R_FLUSH??120);th\
-is.SORT_THRESHOL\
-D=Utils.g('RAF_S\
-ORT_THRESHOLD',R\
-.SORT_THRESHOLD?\
-?32);this.VISIBI\
-LITY_FALLBACK_MS\
-=Utils.g('RAF_VI\
-SIBILITY_FALLBAC\
-K_MS',R.VISIBILI\
-TY_FALLBACK_MS??\
-300);this.USE_VI\
-SIBILITY_FALLBAC\
-K=(R.USE_VISIBIL\
-ITY_FALLBACK??tr\
-ue);}\x0aschedule(k\
-ey,fn,group='def\
-ault',priority=0\
-){if(!key)key={k\
-:'anon'};key=thi\
-s._normalizeKey(\
-key);const prev=\
-this.tasks.get(k\
-ey);if(prev&&pre\
-v.group&&prev.gr\
-oup!==group){con\
-st oldSet=this.g\
-roups.get(prev.g\
-roup);if(oldSet)\
-{oldSet.delete(k\
-ey);if(oldSet.si\
-ze===0)this.grou\
-ps.delete(prev.g\
-roup);}}\x0athis.ta\
-sks.set(key,{fn,\
-group,priority})\
-;if(group){let s\
-et=this.groups.g\
-et(group);if(!se\
-t){set=new Set()\
-;this.groups.set\
-(group,set);}\x0ase\
-t.add(key);}\x0athi\
-s._armPump();}\x0af\
-lush(){try{if(th\
-is.tickId)cancel\
-AnimationFrame(t\
-his.tickId);}cat\
-ch(_){}\x0athis.tic\
-kId=0;this.sched\
-uled=false;if(th\
-is._watchdogId){\
-clearTimeout(thi\
-s._watchdogId);t\
-his._watchdogId=\
-0;}\x0aconst list=[\
-];this.tasks.for\
-Each((v,key)=>li\
-st.push({key,...\
-v}));this.tasks.\
-clear();if(list.\
-length>1&&list.l\
-ength>this.SORT_\
-THRESHOLD){list.\
-sort((a,b)=>a.pr\
-iority-b.priorit\
-y);}\x0aconst start\
-=Utils.now();let\
- processed=0;for\
-(let idx=0;idx<l\
-ist.length;idx++\
-){const t=list[i\
-dx];try{t.fn();}\
-catch(_){}\x0aproce\
-ssed++;if(t.grou\
-p){const set=thi\
-s.groups.get(t.g\
-roup);if(set){se\
-t.delete(t.key);\
-if(set.size===0)\
-this.groups.dele\
-te(t.group);}}\x0ac\
-onst elapsed=Uti\
-ls.now()-start;i\
-f(processed>=thi\
-s.MAX_TASKS_PER_\
-FLUSH||elapsed>=\
-this.FLUSH_BUDGE\
-T_MS){for(let j=\
-idx+1;j<list.len\
-gth;j++){const r\
-=list[j];this.ta\
-sks.set(r.key,{f\
-n:r.fn,group:r.g\
-roup,priority:r.\
-priority});if(r.\
-group){let set=t\
-his.groups.get(r\
-.group);if(!set)\
-{set=new Set();t\
-his.groups.set(r\
-.group,set);}\x0ase\
-t.add(r.key);}}\x0a\
-this._armPump();\
-return;}}\x0aif(thi\
-s.tasks.size)thi\
-s._armPump();}\x0ak\
-ick(forceImmedia\
-te=true){if(forc\
-eImmediate&&this\
-.tasks.size){if(\
-this._flushInPro\
-gress)return;thi\
-s._flushInProgre\
-ss=true;try{this\
-.scheduled=true;\
-this.flush();}ca\
-tch(_){}finally{\
-this._flushInPro\
-gress=false;}\x0are\
-turn;}\x0athis._arm\
-Pump();}\x0acancel(\
-key){const t=thi\
-s.tasks.get(key)\
-;if(!t)return;th\
-is.tasks.delete(\
-key);if(t.group)\
-{const set=this.\
-groups.get(t.gro\
-up);if(set){set.\
-delete(key);if(s\
-et.size===0)this\
-.groups.delete(t\
-.group);}}}\x0acanc\
-elGroup(group){c\
-onst set=this.gr\
-oups.get(group);\
-if(!set)return;f\
-or(const key of \
-set)this.tasks.d\
-elete(key);this.\
-groups.delete(gr\
-oup);}\x0acancelAll\
-(){this.tasks.cl\
-ear();this.group\
-s.clear();try{if\
-(this.tickId)can\
-celAnimationFram\
-e(this.tickId);}\
-catch(_){}\x0athis.\
-tickId=0;this.sc\
-heduled=false;if\
-(this._watchdogI\
-d){clearTimeout(\
-this._watchdogId\
-);this._watchdog\
-Id=0;}}\x0aisSchedu\
-led(key){return \
-this.tasks.has(t\
-his._normalizeKe\
-y(key));}\x0anextFr\
-ame(){return new\
- Promise((resolv\
-e)=>{const key=S\
-ymbol('raf:nextF\
-rame');this.sche\
-dule(key,()=>res\
-olve(),'RafNext'\
-,0);});}\x0astats()\
-{const byGroup=n\
-ew Map();for(con\
-st task of this.\
-tasks.values()){\
-const group=task\
-.group||'default\
-';byGroup.set(gr\
-oup,(byGroup.get\
-(group)||0)+1);}\
-\x0areturn{tasks:th\
-is.tasks.size,gr\
-oups:Array.from(\
-byGroup,([group,\
-count])=>({group\
-,count})).sort((\
-a,b)=>b.count-a.\
-count)};}\x0adumpHo\
-tGroups(label=''\
-){const stats=th\
-is.stats();conso\
-le.log('[RAF]',l\
-abel,'tasks=',st\
-ats.tasks,'byGro\
-up=',stats.group\
-s.slice(0,8));}\x0a\
-findDomTasks(){c\
-onst result=[];f\
-or(const[key,tas\
-k]of this.tasks)\
-{let element=nul\
-l;if(key&&key.no\
-deType===1)eleme\
-nt=key;else if(k\
-ey&&key.el&&key.\
-el.nodeType===1)\
-element=key.el;i\
-f(element)result\
-.push({group:tas\
-k.group,tag:elem\
-ent.tagName,conn\
-ected:element.is\
-Connected});}\x0are\
-turn result;}\x0a_n\
-ormalizeKey(key)\
-{if(!key)return \
-Symbol('raf:anon\
-');const typ=typ\
-eof key;if(typ==\
-='string'||typ==\
-='symbol'||typ==\
-='number')return\
- key;try{if(type\
-of Node!=='undef\
-ined'&&key insta\
-nceof Node){let \
-tok=this._weakKe\
-yTokens.get(key)\
-;if(!tok){tok=Sy\
-mbol('raf:k');th\
-is._weakKeyToken\
-s.set(key,tok);}\
-\x0areturn tok;}}ca\
-tch(_){}\x0areturn \
-key;}\x0a_armPump()\
-{if(this.schedul\
-ed)return;this.s\
-cheduled=true;co\
-nst canRAF=typeo\
-f requestAnimati\
-onFrame==='funct\
-ion';if(canRAF){\
-this._mode='raf'\
-;try{this.tickId\
-=requestAnimatio\
-nFrame(()=>this.\
-flush());if(this\
-.USE_VISIBILITY_\
-FALLBACK&&!this.\
-_watchdogId){thi\
-s._watchdogId=se\
-tTimeout(()=>{if\
-(this.scheduled|\
-|this.tickId){tr\
-y{this.flush();}\
-catch(_){}}},thi\
-s.VISIBILITY_FAL\
-LBACK_MS);}\x0aretu\
-rn;}catch(_){}}\x0a\
-this._mode='raf'\
-;Promise.resolve\
-().then(()=>this\
-.flush());}}\x0afun\
-ction getMathMod\
-e(){const v=Stri\
-ng(window.MATH_S\
-TREAM_MODE||'fin\
-alize-only').toL\
-owerCase();retur\
-n(v==='idle'||v=\
-=='always'||v===\
-'finalize-only')\
-?v:'finalize-onl\
-y';};\x0a\x0a/* data/j\
-s/app/scroll.js \
-*/\x0aclass ScrollM\
-anager{construct\
-or(cfg,dom,raf){\
-this.cfg=cfg;thi\
-s.dom=dom;this.r\
-af=raf;this.auto\
-Follow=true;this\
-.userInteracted=\
-false;this.manua\
-lResumeCandidate\
-=false;this.manu\
-alResumeTimer=0;\
-this.manualResum\
-eSeq=0;this.user\
-ScrollDirection=\
-0;this.pointerSc\
-rollActive=false\
-;this.lastScroll\
-Top=0;this.prevS\
-croll=0;this.cur\
-rentFabAction='n\
-one';this.fabFre\
-ezeUntil=0;this.\
-scrollScheduled=\
-false;this.scrol\
-lFabUpdateSchedu\
-led=false;this.s\
-crollRAF=0;this.\
-scrollFabRAF=0;t\
-his.programmatic\
-ScrollPending=fa\
-lse;this.program\
-maticScrollTarge\
-t=null;this.cont\
-entObserver=null\
-;this.contentObs\
-erverTarget=null\
-;this.contentObs\
-erverActive=fals\
-e;this.virtualiz\
-ation=new Messag\
-eVirtualization(\
-cfg,dom,raf);}\x0as\
-yncBottomNowIfFo\
-llowing(){if(thi\
-s.autoFollow!==t\
-rue)return false\
-;const moved=thi\
-s._syncToPhysica\
-lBottom(false);t\
-his.scheduleScro\
-llFabUpdate();re\
-turn moved;}\x0asus\
-pendAutoFollow()\
-{this._cancelSch\
-eduledPageScroll\
-();this._clearMa\
-nualResume();thi\
-s.autoFollow=fal\
-se;this.userInte\
-racted=true;this\
-.userScrollDirec\
-tion=-1;}\x0aresume\
-AutoFollow(snapT\
-oBottom=true){th\
-is._clearManualR\
-esume();this.aut\
-oFollow=true;thi\
-s.userInteracted\
-=false;this.user\
-ScrollDirection=\
-0;if(snapToBotto\
-m)this._syncToPh\
-ysicalBottom(tru\
-e);this.schedule\
-ScrollFabUpdate(\
-);}\x0anoteUserScro\
-ll(deltaY=0){con\
-st dir=deltaY<0?\
--1:(deltaY>0?1:0\
-);if(dir<0){this\
-.suspendAutoFoll\
-ow();return;}\x0aif\
-(dir>0&&!this.au\
-toFollow){this._\
-cancelScheduledP\
-ageScroll();this\
-.userInteracted=\
-true;this.userSc\
-rollDirection=1;\
-if(this.isAtBott\
-om())this.armMan\
-ualResume();}}\x0an\
-oteObservedUserS\
-croll(deltaTop=0\
-){if(this.autoFo\
-llow&&!this.poin\
-terScrollActive)\
-return;if(deltaT\
-op<-0.5){this.su\
-spendAutoFollow(\
-);return;}\x0aif(de\
-ltaTop>0.5&&!thi\
-s.autoFollow){th\
-is._cancelSchedu\
-ledPageScroll();\
-this.userInterac\
-ted=true;this.us\
-erScrollDirectio\
-n=1;if(this.isAt\
-Bottom())this.ar\
-mManualResume();\
-else this._clear\
-ManualResume();}\
-}\x0aarmManualResum\
-e(delayMs=90){if\
-(this.autoFollow\
-||this.userScrol\
-lDirection<0)ret\
-urn;this.manualR\
-esumeCandidate=t\
-rue;const seq=++\
-this.manualResum\
-eSeq;if(this.man\
-ualResumeTimer)c\
-learTimeout(this\
-.manualResumeTim\
-er);this.manualR\
-esumeTimer=setTi\
-meout(()=>{this.\
-manualResumeTime\
-r=0;if(seq!==thi\
-s.manualResumeSe\
-q)return;if(!thi\
-s.manualResumeCa\
-ndidate||this.au\
-toFollow)return;\
-if(this.userScro\
-llDirection<0)re\
-turn;if(this.poi\
-nterScrollActive\
-){this.armManual\
-Resume(delayMs);\
-return;}\x0athis.re\
-sumeAutoFollow(t\
-rue);},Math.max(\
-0,delayMs|0));}\x0a\
-setPointerScroll\
-Active(active){i\
-f(!active&&this.\
-pointerScrollAct\
-ive){const top=N\
-umber(Utils.SE.s\
-crollTop||0);if(\
-!this.isProgramm\
-aticScroll(top))\
-this.noteObserve\
-dUserScroll(top-\
-this.lastScrollT\
-op);this.lastScr\
-ollTop=top;}\x0athi\
-s.pointerScrollA\
-ctive=!!active;i\
-f(this.pointerSc\
-rollActive)retur\
-n;if(this.manual\
-ResumeCandidate&\
-&!this.autoFollo\
-w){this.armManua\
-lResume(0);retur\
-n;}\x0aif(this.auto\
-Follow)this._syn\
-cToPhysicalBotto\
-m(false);}\x0aisUse\
-rScrollingUp(){r\
-eturn!this.autoF\
-ollow&&this.user\
-ScrollDirection<\
-0;}\x0ashouldFollow\
-OnStreamStart(){\
-return this.auto\
-Follow===true;}\x0a\
-isNearBottom(mar\
-ginPx=100){const\
- el=Utils.SE;ret\
-urn(el.scrollHei\
-ght-el.clientHei\
-ght-el.scrollTop\
-)<=marginPx;}\x0ais\
-AtBottom(){const\
- el=Utils.SE;con\
-st distance=el.s\
-crollHeight-el.c\
-lientHeight-el.s\
-crollTop;const t\
-hreshold=Math.ma\
-x(1,Math.min(Num\
-ber(this.cfg.UI.\
-AUTO_FOLLOW_REEN\
-ABLE_PX||2),2));\
-return distance<\
-=threshold;}\x0amay\
-beEnableAutoFoll\
-owByProximity(){\
-if(!this.autoFol\
-low&&this.manual\
-ResumeCandidate)\
-this.armManualRe\
-sume();}\x0ascrollT\
-oTopUser(){this.\
-suspendAutoFollo\
-w();const el=Uti\
-ls.SE;this.markP\
-rogrammaticScrol\
-l(0);try{el.scro\
-llTop=0;}catch(_\
-){try{el.scrollT\
-o({top:0,behavio\
-r:'instant'});}c\
-atch(__){}}\x0athis\
-.lastScrollTop=N\
-umber(el.scrollT\
-op||0);}\x0ascrollT\
-oBottomUser(){th\
-is.resumeAutoFol\
-low(true);}\x0ainst\
-allContentObserv\
-er(target=null){\
-this.disconnectC\
-ontentObserver()\
-;const host=targ\
-et||this.dom.get\
-('container');if\
-(!host||typeof R\
-esizeObserver===\
-'undefined')retu\
-rn false;try{thi\
-s.contentObserve\
-r=new ResizeObse\
-rver(()=>{this.r\
-af.schedule('SM:\
-contentResizeObs\
-erver',()=>{if(t\
-his.autoFollow==\
-=true&&!this.poi\
-nterScrollActive\
-){this._syncToPh\
-ysicalBottom(fal\
-se);}\x0athis.sched\
-uleScrollFabUpda\
-te();},'ScrollMa\
-nager',0);});thi\
-s.contentObserve\
-r.observe(host);\
-this.contentObse\
-rverTarget=host;\
-this.contentObse\
-rverActive=true;\
-return true;}cat\
-ch(_){this.conte\
-ntObserver=null;\
-this.contentObse\
-rverTarget=null;\
-this.contentObse\
-rverActive=false\
-;return false;}}\
-\x0adisconnectConte\
-ntObserver(){if(\
-this.contentObse\
-rver){try{this.c\
-ontentObserver.d\
-isconnect();}cat\
-ch(_){}}\x0athis.co\
-ntentObserver=nu\
-ll;this.contentO\
-bserverTarget=nu\
-ll;this.contentO\
-bserverActive=fa\
-lse;try{this.raf\
-.cancel('SM:cont\
-entResizeObserve\
-r');}catch(_){}}\
-\x0amarkProgrammati\
-cScroll(targetTo\
-p=null){this.pro\
-grammaticScrollP\
-ending=true;this\
-.programmaticScr\
-ollTarget=Number\
-.isFinite(target\
-Top)?targetTop:n\
-ull;}\x0aisProgramm\
-aticScroll(top){\
-if(!this.program\
-maticScrollPendi\
-ng)return false;\
-const target=thi\
-s.programmaticSc\
-rollTarget;const\
- match=target==n\
-ull||Math.abs(Nu\
-mber(top||0)-tar\
-get)<=4;this.pro\
-grammaticScrollP\
-ending=false;thi\
-s.programmaticSc\
-rollTarget=null;\
-return match;}\x0as\
-cheduleScroll(li\
-ve=false,force=f\
-alse){if(!force&\
-&this.autoFollow\
-!==true)return;i\
-f(this.contentOb\
-serverActive){if\
-(force||live===f\
-alse)this._syncT\
-oPhysicalBottom(\
-!!force);this.sc\
-heduleScrollFabU\
-pdate();return;}\
-\x0aif(this.scrollS\
-cheduled)return;\
-this.scrollSched\
-uled=true;this.r\
-af.schedule('SM:\
-scroll',()=>{thi\
-s.scrollSchedule\
-d=false;this.scr\
-ollToBottom(live\
-,force);this.sch\
-eduleScrollFabUp\
-date();},'Scroll\
-Manager',1);}\x0aca\
-ncelPendingScrol\
-l(){try{this.raf\
-.cancelGroup('Sc\
-rollManager');}c\
-atch(_){}\x0athis.s\
-crollScheduled=f\
-alse;this.scroll\
-FabUpdateSchedul\
-ed=false;this.sc\
-rollRAF=0;this.s\
-crollFabRAF=0;th\
-is.programmaticS\
-crollPending=fal\
-se;this.programm\
-aticScrollTarget\
-=null;this.messa\
-geVirtualRefresh\
-Scheduled=false;\
-}\x0aforceScrollToB\
-ottomImmediate()\
-{this._syncToPhy\
-sicalBottom(true\
-);}\x0aforceScrollT\
-oBottomImmediate\
-AtEnd(){if(!this\
-.autoFollow)retu\
-rn;this._syncToP\
-hysicalBottom(fa\
-lse);this.schedu\
+Refresh();return\
+;}\x0ael.insertAdja\
+centHTML('before\
+end',content);th\
+is.refreshToolGr\
+oups(el);try{con\
+st maybePromise=\
+this.renderer.re\
+nderPendingMarkd\
+own(el);const po\
+st=()=>{try{this\
+.highlighter.sch\
+eduleScanVisible\
+Codes(null);}cat\
+ch(_){}\x0atry{if(g\
+etMathMode()==='\
+finalize-only')t\
+his.math.schedul\
+e(el,0,true);}ca\
+tch(_){}\x0atry{thi\
+s.userCollapse.a\
+pply(el);}catch(\
+_){}\x0atry{this.en\
+sureUserCopyIcon\
+s(el);}catch(_){\
+}\x0ascrollMgr.scro\
+llToBottom(false\
+);scrollMgr.sche\
+duleScrollFabUpd\
+ate();scrollMgr.\
+virtualization.s\
+cheduleMessageVi\
+rtualizationRefr\
+esh();};if(maybe\
+Promise&&typeof \
+maybePromise.the\
+n==='function'){\
+maybePromise.the\
+n(post);}else{po\
+st();}}catch(_){\
+scrollMgr.scroll\
+ToBottom(false);\
+scrollMgr.schedu\
 leScrollFabUpdat\
-e();}\x0ascrollToBo\
-ttom(live=false,\
-force=false){if(\
-!force&&this.aut\
-oFollow!==true){\
-this.prevScroll=\
-Utils.SE.scrollH\
-eight;return;}\x0at\
-his._syncToPhysi\
-calBottom(!!forc\
-e);}\x0ahasVertical\
-Scroll(){const e\
-l=Utils.SE;retur\
-n(el.scrollHeigh\
-t-el.clientHeigh\
-t)>1;}\x0acomputeFa\
-bAction(){const \
-el=Utils.SE;cons\
-t h=el.scrollHei\
-ght;const c=el.c\
-lientHeight;cons\
-t hasScroll=(h-c\
-)>1;if(!hasScrol\
-l)return'none';c\
-onst dist=h-c-el\
-.scrollTop;if(di\
-st<=2)return'up'\
-;if(dist>=this.c\
-fg.FAB.SHOW_DOWN\
-_THRESHOLD_PX)re\
-turn'down';retur\
-n'none';}\x0aupdate\
-ScrollFab(force=\
-false,actionOver\
-ride=null,bypass\
-Freeze=false){co\
-nst btn=this.dom\
-.get('scrollFab'\
-);const icon=thi\
-s.dom.get('scrol\
-lFabIcon');if(!b\
-tn||!icon)return\
-;const now=Utils\
-.now();const act\
-ion=actionOverri\
-de||this.compute\
-FabAction();if(!\
-force&&!bypassFr\
-eeze&&now<this.f\
-abFreezeUntil&&a\
-ction!==this.cur\
-rentFabAction)re\
-turn;if(action==\
-='none'){if(this\
-.currentFabActio\
-n!=='none'||forc\
-e){btn.classList\
-.remove('visible\
-');this.currentF\
-abAction='none';\
-}\x0areturn;}\x0aif(ac\
-tion!==this.curr\
-entFabAction||fo\
-rce){if(action==\
-='up'){if(icon.d\
-ataset.dir!=='up\
-'){icon.src=this\
-.cfg.ICONS.COLLA\
-PSE;icon.dataset\
-.dir='up';}\x0abtn.\
-title='Go to top\
-';}else{if(icon.\
-dataset.dir!=='d\
-own'){icon.src=t\
-his.cfg.ICONS.EX\
-PAND;icon.datase\
-t.dir='down';}\x0ab\
-tn.title='Go to \
-bottom';}\x0abtn.se\
-tAttribute('aria\
--label',btn.titl\
-e);this.currentF\
-abAction=action;\
-btn.classList.ad\
-d('visible');}el\
-se if(!btn.class\
-List.contains('v\
-isible'))btn.cla\
-ssList.add('visi\
-ble');}\x0aschedule\
-ScrollFabUpdate(\
-){if(this.scroll\
-FabUpdateSchedul\
-ed)return;this.s\
-crollFabUpdateSc\
-heduled=true;thi\
-s.raf.schedule('\
-SM:fab',()=>{thi\
-s.scrollFabUpdat\
-eScheduled=false\
-;const action=th\
-is.computeFabAct\
-ion();if(action!\
-==this.currentFa\
-bAction)this.upd\
-ateScrollFab(fal\
-se,action);},'Sc\
-rollManager',2);\
-}\x0a_cancelSchedul\
-edPageScroll(){t\
-ry{this.raf.canc\
-el('SM:scroll');\
-}catch(_){}\x0athis\
-.scrollScheduled\
-=false;}\x0a_maxScr\
-ollTop(){const e\
-l=Utils.SE;retur\
-n Math.max(0,el.\
-scrollHeight-el.\
-clientHeight);}\x0a\
-_syncToPhysicalB\
-ottom(force=fals\
-e){if(!force&&th\
-is.autoFollow!==\
-true)return fals\
-e;if(!force&&thi\
-s.pointerScrollA\
-ctive)return fal\
-se;const el=Util\
-s.SE;const targe\
-t=this._maxScrol\
-lTop();const cur\
-rent=Number(el.s\
-crollTop||0);thi\
-s.prevScroll=el.\
-scrollHeight;if(\
-Math.abs(current\
--target)<=0.5){t\
-his.lastScrollTo\
-p=current;return\
- false;}\x0athis.ma\
-rkProgrammaticSc\
-roll(target);try\
-{el.scrollTop=ta\
-rget;}catch(_){t\
-ry{el.scrollTo({\
-top:target,behav\
-ior:'instant'});\
-}catch(__){}}\x0ath\
-is.lastScrollTop\
-=Number(el.scrol\
-lTop||target);th\
-is.prevScroll=el\
-.scrollHeight;re\
-turn true;}\x0a_cle\
-arManualResume()\
-{this.manualResu\
+e();scrollMgr.vi\
+rtualization.sch\
+eduleMessageVirt\
+ualizationRefres\
+h();}}\x0areplaceNo\
+des(content,scro\
+llMgr){scrollMgr\
+.userInteracted=\
+false;scrollMgr.\
+prevScroll=0;thi\
+s.dom.clearStrea\
+mBefore();const \
+el=this.dom.hard\
+ReplaceByClone('\
+_nodes_');if(!el\
+)return;el.class\
+List.remove('emp\
+ty_list');const \
+userOnly=this._i\
+sUserOnlyContent\
+(content);if(use\
+rOnly){el.insert\
+AdjacentHTML('be\
+foreend',content\
+);this.materiali\
+zeUserMdAsPlainT\
+ext(el);try{this\
+.userCollapse.ap\
+ply(el);}catch(_\
+){}\x0atry{this.ens\
+ureUserCopyIcons\
+(el);}catch(_){}\
+\x0ascrollMgr.scrol\
+lToBottom(false,\
+true);scrollMgr.\
+scheduleScrollFa\
+bUpdate();scroll\
+Mgr.virtualizati\
+on.scheduleMessa\
+geVirtualization\
+Refresh();return\
+;}\x0ael.insertAdja\
+centHTML('before\
+end',content);th\
+is.refreshToolGr\
+oups(el);try{con\
+st maybePromise=\
+this.renderer.re\
+nderPendingMarkd\
+own(el);const po\
+st=()=>{try{this\
+.highlighter.sch\
+eduleScanVisible\
+Codes(null);}cat\
+ch(_){}\x0atry{if(g\
+etMathMode()==='\
+finalize-only')t\
+his.math.schedul\
+e(el,0,true);}ca\
+tch(_){}\x0atry{thi\
+s.userCollapse.a\
+pply(el);}catch(\
+_){}\x0atry{this.en\
+sureUserCopyIcon\
+s(el);}catch(_){\
+}\x0ascrollMgr.scro\
+llToBottom(false\
+,true);scrollMgr\
+.scheduleScrollF\
+abUpdate();scrol\
+lMgr.virtualizat\
+ion.scheduleMess\
+ageVirtualizatio\
+nRefresh();};if(\
+maybePromise&&ty\
+peof maybePromis\
+e.then==='functi\
+on'){maybePromis\
+e.then(post);}el\
+se{post();}}catc\
+h(_){scrollMgr.s\
+crollToBottom(fa\
+lse,true);scroll\
+Mgr.scheduleScro\
+llFabUpdate();sc\
+rollMgr.virtuali\
+zation.scheduleM\
+essageVirtualiza\
+tionRefresh();}}\
+\x0aappendExtra(id,\
+content,scrollMg\
+r){const el=docu\
+ment.getElementB\
+yId('msg-bot-'+i\
+d);if(!el)return\
+;const extra=el.\
+querySelector('.\
+msg-extra');if(!\
+extra)return;try\
+{scrollMgr.virtu\
+alization.beginM\
+essageMutation(e\
+l);}catch(_){}\x0ae\
+xtra.insertAdjac\
+entHTML('beforee\
+nd',content);try\
+{scrollMgr.syncB\
+ottomNowIfFollow\
+ing();}catch(_){\
+}\x0atry{const mayb\
+ePromise=this.re\
+nderer.renderPen\
+dingMarkdown(ext\
+ra);const post=(\
+)=>{const active\
+Code=(typeof run\
+time!=='undefine\
+d'&&runtime.stre\
+am)?runtime.stre\
+am.code.activeCo\
+de:null;try{this\
+.highlighter.obs\
+erveNewCode(extr\
+a,{deferLastIfSt\
+reaming:true,min\
+LinesForLast:thi\
+s.renderer.cfg.P\
+ROFILE_CODE.minL\
+inesForHL,minCha\
+rsForLast:this.r\
+enderer.cfg.PROF\
+ILE_CODE.minChar\
+sForHL},activeCo\
+de);this.highlig\
+hter.observeMsgB\
+oxes(extra,(box)\
+=>this.processBo\
+x(box));}catch(_\
+){}\x0atry{const mm\
+=getMathMode();i\
+f(mm==='finalize\
+-only')this.math\
+.schedule(extra,\
+0,true);else thi\
+s.math.schedule(\
+extra);}catch(_)\
+{}\x0atry{scrollMgr\
+.virtualization.\
+endMessageMutati\
+on(el);}catch(_)\
+{}\x0atry{scrollMgr\
+.syncBottomNowIf\
+Following();}cat\
+ch(_){}};if(mayb\
+ePromise&&typeof\
+ maybePromise.th\
+en==='function')\
+{maybePromise.th\
+en(post);}else{p\
+ost();}}catch(_)\
+{try{scrollMgr.v\
+irtualization.en\
+dMessageMutation\
+(el);}catch(__){\
+}}\x0ascrollMgr.sch\
+eduleScroll(true\
+);}\x0aprocessBox(b\
+ox){const active\
+Code=(typeof run\
+time!=='undefine\
+d'&&runtime.stre\
+am)?runtime.stre\
+am.code.activeCo\
+de:null;this.hig\
+hlighter.observe\
+NewCode(box,{def\
+erLastIfStreamin\
+g:true,minLinesF\
+orLast:this.rend\
+erer.cfg.PROFILE\
+_CODE.minLinesFo\
+rHL,minCharsForL\
+ast:this.rendere\
+r.cfg.PROFILE_CO\
+DE.minCharsForHL\
+},activeCode);th\
+is.renderer.hook\
+s.codeScrollInit\
+(box);}\x0aremoveNo\
+de(id,scrollMgr)\
+{scrollMgr.prevS\
+croll=0;let el=d\
+ocument.getEleme\
+ntById('msg-user\
+-'+id);if(el)(el\
+.closest('.msg-u\
+ser-region')||el\
+).remove();el=do\
+cument.getElemen\
+tById('msg-bot-'\
++id);if(el)el.re\
+move();this.dom.\
+resetEphemeral()\
+;try{this.render\
+er.renderPending\
+Markdown();}catc\
+h(_){}\x0ascrollMgr\
+.virtualization.\
+scheduleMessageV\
+irtualizationRef\
+resh();scrollMgr\
+.scheduleScroll(\
+true);}\x0aremoveNo\
+desFromId(id,scr\
+ollMgr){scrollMg\
+r.prevScroll=0;c\
+onst container=t\
+his.dom.get('_no\
+des_');if(!conta\
+iner)return;cons\
+t elements=conta\
+iner.querySelect\
+orAll('.msg-box'\
+);let remove=fal\
+se;elements.forE\
+ach((element)=>{\
+if(element.id&&e\
+lement.id.endsWi\
+th('-'+id))remov\
+e=true;if(remove\
+)(element.closes\
+t('.msg-user-reg\
+ion')||element).\
+remove();});this\
+.dom.resetEpheme\
+ral();try{this.r\
+enderer.renderPe\
+ndingMarkdown(co\
+ntainer);}catch(\
+_){}\x0ascrollMgr.v\
+irtualization.sc\
+heduleMessageVir\
+tualizationRefre\
+sh();scrollMgr.s\
+cheduleScroll(tr\
+ue);}};\x0a\x0a/* data\
+/js/app/raf.js *\
+/\x0aclass RafManag\
+er{constructor(c\
+fg){this.cfg=cfg\
+||{RAF:{},ASYNC:\
+{}};this.tasks=n\
+ew Map();this.gr\
+oups=new Map();t\
+his.tickId=0;thi\
+s._mode='raf';th\
+is.scheduled=fal\
+se;this._flushIn\
+Progress=false;t\
+his._watchdogId=\
+0;this._weakKeyT\
+okens=new WeakMa\
+p();const R=(thi\
+s.cfg&&this.cfg.\
+RAF)||{};this.FL\
+USH_BUDGET_MS=Ut\
+ils.g('RAF_FLUSH\
+_BUDGET_MS',R.FL\
+USH_BUDGET_MS??7\
+);this.MAX_TASKS\
+_PER_FLUSH=Utils\
+.g('RAF_MAX_TASK\
+S_PER_FLUSH',R.M\
+AX_TASKS_PER_FLU\
+SH??120);this.SO\
+RT_THRESHOLD=Uti\
+ls.g('RAF_SORT_T\
+HRESHOLD',R.SORT\
+_THRESHOLD??32);\
+this.VISIBILITY_\
+FALLBACK_MS=Util\
+s.g('RAF_VISIBIL\
+ITY_FALLBACK_MS'\
+,R.VISIBILITY_FA\
+LLBACK_MS??300);\
+this.USE_VISIBIL\
+ITY_FALLBACK=(R.\
+USE_VISIBILITY_F\
+ALLBACK??true);}\
+\x0aschedule(key,fn\
+,group='default'\
+,priority=0){if(\
+!key)key={k:'ano\
+n'};key=this._no\
+rmalizeKey(key);\
+const prev=this.\
+tasks.get(key);i\
+f(prev&&prev.gro\
+up&&prev.group!=\
+=group){const ol\
+dSet=this.groups\
+.get(prev.group)\
+;if(oldSet){oldS\
+et.delete(key);i\
+f(oldSet.size===\
+0)this.groups.de\
+lete(prev.group)\
+;}}\x0athis.tasks.s\
+et(key,{fn,group\
+,priority});if(g\
+roup){let set=th\
+is.groups.get(gr\
+oup);if(!set){se\
+t=new Set();this\
+.groups.set(grou\
+p,set);}\x0aset.add\
+(key);}\x0athis._ar\
+mPump();}\x0aflush(\
+){try{if(this.ti\
+ckId)cancelAnima\
+tionFrame(this.t\
+ickId);}catch(_)\
+{}\x0athis.tickId=0\
+;this.scheduled=\
+false;if(this._w\
+atchdogId){clear\
+Timeout(this._wa\
+tchdogId);this._\
+watchdogId=0;}\x0ac\
+onst list=[];thi\
+s.tasks.forEach(\
+(v,key)=>list.pu\
+sh({key,...v}));\
+this.tasks.clear\
+();if(list.lengt\
+h>1&&list.length\
+>this.SORT_THRES\
+HOLD){list.sort(\
+(a,b)=>a.priorit\
+y-b.priority);}\x0a\
+const start=Util\
+s.now();let proc\
+essed=0;for(let \
+idx=0;idx<list.l\
+ength;idx++){con\
+st t=list[idx];t\
+ry{t.fn();}catch\
+(_){}\x0aprocessed+\
++;if(t.group){co\
+nst set=this.gro\
+ups.get(t.group)\
+;if(set){set.del\
+ete(t.key);if(se\
+t.size===0)this.\
+groups.delete(t.\
+group);}}\x0aconst \
+elapsed=Utils.no\
+w()-start;if(pro\
+cessed>=this.MAX\
+_TASKS_PER_FLUSH\
+||elapsed>=this.\
+FLUSH_BUDGET_MS)\
+{for(let j=idx+1\
+;j<list.length;j\
+++){const r=list\
+[j];this.tasks.s\
+et(r.key,{fn:r.f\
+n,group:r.group,\
+priority:r.prior\
+ity});if(r.group\
+){let set=this.g\
+roups.get(r.grou\
+p);if(!set){set=\
+new Set();this.g\
+roups.set(r.grou\
+p,set);}\x0aset.add\
+(r.key);}}\x0athis.\
+_armPump();retur\
+n;}}\x0aif(this.tas\
+ks.size)this._ar\
+mPump();}\x0akick(f\
+orceImmediate=tr\
+ue){if(forceImme\
+diate&&this.task\
+s.size){if(this.\
+_flushInProgress\
+)return;this._fl\
+ushInProgress=tr\
+ue;try{this.sche\
+duled=true;this.\
+flush();}catch(_\
+){}finally{this.\
+_flushInProgress\
+=false;}\x0areturn;\
+}\x0athis._armPump(\
+);}\x0acancel(key){\
+const t=this.tas\
+ks.get(key);if(!\
+t)return;this.ta\
+sks.delete(key);\
+if(t.group){cons\
+t set=this.group\
+s.get(t.group);i\
+f(set){set.delet\
+e(key);if(set.si\
+ze===0)this.grou\
+ps.delete(t.grou\
+p);}}}\x0acancelGro\
+up(group){const \
+set=this.groups.\
+get(group);if(!s\
+et)return;for(co\
+nst key of set)t\
+his.tasks.delete\
+(key);this.group\
+s.delete(group);\
+}\x0acancelAll(){th\
+is.tasks.clear()\
+;this.groups.cle\
+ar();try{if(this\
+.tickId)cancelAn\
+imationFrame(thi\
+s.tickId);}catch\
+(_){}\x0athis.tickI\
+d=0;this.schedul\
+ed=false;if(this\
+._watchdogId){cl\
+earTimeout(this.\
+_watchdogId);thi\
+s._watchdogId=0;\
+}}\x0aisScheduled(k\
+ey){return this.\
+tasks.has(this._\
+normalizeKey(key\
+));}\x0anextFrame()\
+{return new Prom\
+ise((resolve)=>{\
+const key=Symbol\
+('raf:nextFrame'\
+);this.schedule(\
+key,()=>resolve(\
+),'RafNext',0);}\
+);}\x0astats(){cons\
+t byGroup=new Ma\
+p();for(const ta\
+sk of this.tasks\
+.values()){const\
+ group=task.grou\
+p||'default';byG\
+roup.set(group,(\
+byGroup.get(grou\
+p)||0)+1);}\x0aretu\
+rn{tasks:this.ta\
+sks.size,groups:\
+Array.from(byGro\
+up,([group,count\
+])=>({group,coun\
+t})).sort((a,b)=\
+>b.count-a.count\
+)};}\x0adumpHotGrou\
+ps(label=''){con\
+st stats=this.st\
+ats();console.lo\
+g('[RAF]',label,\
+'tasks=',stats.t\
+asks,'byGroup=',\
+stats.groups.sli\
+ce(0,8));}\x0afindD\
+omTasks(){const \
+result=[];for(co\
+nst[key,task]of \
+this.tasks){let \
+element=null;if(\
+key&&key.nodeTyp\
+e===1)element=ke\
+y;else if(key&&k\
+ey.el&&key.el.no\
+deType===1)eleme\
+nt=key.el;if(ele\
+ment)result.push\
+({group:task.gro\
+up,tag:element.t\
+agName,connected\
+:element.isConne\
+cted});}\x0areturn \
+result;}\x0a_normal\
+izeKey(key){if(!\
+key)return Symbo\
+l('raf:anon');co\
+nst typ=typeof k\
+ey;if(typ==='str\
+ing'||typ==='sym\
+bol'||typ==='num\
+ber')return key;\
+try{if(typeof No\
+de!=='undefined'\
+&&key instanceof\
+ Node){let tok=t\
+his._weakKeyToke\
+ns.get(key);if(!\
+tok){tok=Symbol(\
+'raf:k');this._w\
+eakKeyTokens.set\
+(key,tok);}\x0aretu\
+rn tok;}}catch(_\
+){}\x0areturn key;}\
+\x0a_armPump(){if(t\
+his.scheduled)re\
+turn;this.schedu\
+led=true;const c\
+anRAF=typeof req\
+uestAnimationFra\
+me==='function';\
+if(canRAF){this.\
+_mode='raf';try{\
+this.tickId=requ\
+estAnimationFram\
+e(()=>this.flush\
+());if(this.USE_\
+VISIBILITY_FALLB\
+ACK&&!this._watc\
+hdogId){this._wa\
+tchdogId=setTime\
+out(()=>{if(this\
+.scheduled||this\
+.tickId){try{thi\
+s.flush();}catch\
+(_){}}},this.VIS\
+IBILITY_FALLBACK\
+_MS);}\x0areturn;}c\
+atch(_){}}\x0athis.\
+_mode='raf';Prom\
+ise.resolve().th\
+en(()=>this.flus\
+h());}}\x0afunction\
+ getMathMode(){c\
+onst v=String(wi\
+ndow.MATH_STREAM\
+_MODE||'finalize\
+-only').toLowerC\
+ase();return(v==\
+='idle'||v==='al\
+ways'||v==='fina\
+lize-only')?v:'f\
+inalize-only';};\
+\x0a\x0a/* data/js/app\
+/scroll.js */\x0acl\
+ass ScrollManage\
+r{constructor(cf\
+g,dom,raf){this.\
+cfg=cfg;this.dom\
+=dom;this.raf=ra\
+f;this.autoFollo\
+w=true;this.user\
+Interacted=false\
+;this.manualResu\
 meCandidate=fals\
 e;this.manualRes\
-umeSeq+=1;if(thi\
+umeTimer=0;this.\
+manualResumeSeq=\
+0;this.userScrol\
+lDirection=0;thi\
+s.pointerScrollA\
+ctive=false;this\
+.lastScrollTop=0\
+;this.prevScroll\
+=0;this.currentF\
+abAction='none';\
+this.fabFreezeUn\
+til=0;this.scrol\
+lScheduled=false\
+;this.scrollFabU\
+pdateScheduled=f\
+alse;this.scroll\
+RAF=0;this.scrol\
+lFabRAF=0;this.p\
+rogrammaticScrol\
+lPending=false;t\
+his.programmatic\
+ScrollTarget=nul\
+l;this.contentOb\
+server=null;this\
+.contentObserver\
+Target=null;this\
+.contentObserver\
+Active=false;thi\
+s.virtualization\
+=new MessageVirt\
+ualization(cfg,d\
+om,raf);}\x0asyncBo\
+ttomNowIfFollowi\
+ng(){if(this.aut\
+oFollow!==true)r\
+eturn false;cons\
+t moved=this._sy\
+ncToPhysicalBott\
+om(false);this.s\
+cheduleScrollFab\
+Update();return \
+moved;}\x0asuspendA\
+utoFollow(){this\
+._cancelSchedule\
+dPageScroll();th\
+is._clearManualR\
+esume();this.aut\
+oFollow=false;th\
+is.userInteracte\
+d=true;this.user\
+ScrollDirection=\
+-1;}\x0aresumeAutoF\
+ollow(snapToBott\
+om=true){this._c\
+learManualResume\
+();this.autoFoll\
+ow=true;this.use\
+rInteracted=fals\
+e;this.userScrol\
+lDirection=0;if(\
+snapToBottom)thi\
+s._syncToPhysica\
+lBottom(true);th\
+is.scheduleScrol\
+lFabUpdate();}\x0an\
+oteUserScroll(de\
+ltaY=0){const di\
+r=deltaY<0?-1:(d\
+eltaY>0?1:0);if(\
+dir<0){this.susp\
+endAutoFollow();\
+return;}\x0aif(dir>\
+0&&!this.autoFol\
+low){this._cance\
+lScheduledPageSc\
+roll();this.user\
+Interacted=true;\
+this.userScrollD\
+irection=1;if(th\
+is.isAtBottom())\
+this.armManualRe\
+sume();}}\x0anoteOb\
+servedUserScroll\
+(deltaTop=0){if(\
+this.autoFollow&\
+&!this.pointerSc\
+rollActive)retur\
+n;if(deltaTop<-0\
+.5){this.suspend\
+AutoFollow();ret\
+urn;}\x0aif(deltaTo\
+p>0.5&&!this.aut\
+oFollow){this._c\
+ancelScheduledPa\
+geScroll();this.\
+userInteracted=t\
+rue;this.userScr\
+ollDirection=1;i\
+f(this.isAtBotto\
+m())this.armManu\
+alResume();else \
+this._clearManua\
+lResume();}}\x0aarm\
+ManualResume(del\
+ayMs=90){if(this\
+.autoFollow||thi\
+s.userScrollDire\
+ction<0)return;t\
+his.manualResume\
+Candidate=true;c\
+onst seq=++this.\
+manualResumeSeq;\
+if(this.manualRe\
+sumeTimer)clearT\
+imeout(this.manu\
+alResumeTimer);t\
+his.manualResume\
+Timer=setTimeout\
+(()=>{this.manua\
+lResumeTimer=0;i\
+f(seq!==this.man\
+ualResumeSeq)ret\
+urn;if(!this.man\
+ualResumeCandida\
+te||this.autoFol\
+low)return;if(th\
+is.userScrollDir\
+ection<0)return;\
+if(this.pointerS\
+crollActive){thi\
+s.armManualResum\
+e(delayMs);retur\
+n;}\x0athis.resumeA\
+utoFollow(true);\
+},Math.max(0,del\
+ayMs|0));}\x0asetPo\
+interScrollActiv\
+e(active){if(!ac\
+tive&&this.point\
+erScrollActive){\
+const top=Number\
+(Utils.SE.scroll\
+Top||0);if(!this\
+.isProgrammaticS\
+croll(top))this.\
+noteObservedUser\
+Scroll(top-this.\
+lastScrollTop);t\
+his.lastScrollTo\
+p=top;}\x0athis.poi\
+nterScrollActive\
+=!!active;if(thi\
+s.pointerScrollA\
+ctive)return;if(\
+this.manualResum\
+eCandidate&&!thi\
+s.autoFollow){th\
+is.armManualResu\
+me(0);return;}\x0ai\
+f(this.autoFollo\
+w)this._syncToPh\
+ysicalBottom(fal\
+se);}\x0aisUserScro\
+llingUp(){return\
+!this.autoFollow\
+&&this.userScrol\
+lDirection<0;}\x0as\
+houldFollowOnStr\
+eamStart(){retur\
+n this.autoFollo\
+w===true;}\x0aisNea\
+rBottom(marginPx\
+=100){const el=U\
+tils.SE;return(e\
+l.scrollHeight-e\
+l.clientHeight-e\
+l.scrollTop)<=ma\
+rginPx;}\x0aisAtBot\
+tom(){const el=U\
+tils.SE;const di\
+stance=el.scroll\
+Height-el.client\
+Height-el.scroll\
+Top;const thresh\
+old=Math.max(1,M\
+ath.min(Number(t\
+his.cfg.UI.AUTO_\
+FOLLOW_REENABLE_\
+PX||2),2));retur\
+n distance<=thre\
+shold;}\x0amaybeEna\
+bleAutoFollowByP\
+roximity(){if(!t\
+his.autoFollow&&\
+this.manualResum\
+eCandidate)this.\
+armManualResume(\
+);}\x0ascrollToTopU\
+ser(){this.suspe\
+ndAutoFollow();c\
+onst el=Utils.SE\
+;this.markProgra\
+mmaticScroll(0);\
+try{el.scrollTop\
+=0;}catch(_){try\
+{el.scrollTo({to\
+p:0,behavior:'in\
+stant'});}catch(\
+__){}}\x0athis.last\
+ScrollTop=Number\
+(el.scrollTop||0\
+);}\x0ascrollToBott\
+omUser(){this.re\
+sumeAutoFollow(t\
+rue);}\x0ainstallCo\
+ntentObserver(ta\
+rget=null){this.\
+disconnectConten\
+tObserver();cons\
+t host=target||t\
+his.dom.get('con\
+tainer');if(!hos\
+t||typeof Resize\
+Observer==='unde\
+fined')return fa\
+lse;try{this.con\
+tentObserver=new\
+ ResizeObserver(\
+()=>{this.raf.sc\
+hedule('SM:conte\
+ntResizeObserver\
+',()=>{if(this.a\
+utoFollow===true\
+&&!this.pointerS\
+crollActive){thi\
+s._syncToPhysica\
+lBottom(false);}\
+\x0athis.scheduleSc\
+rollFabUpdate();\
+},'ScrollManager\
+',0);});this.con\
+tentObserver.obs\
+erve(host);this.\
+contentObserverT\
+arget=host;this.\
+contentObserverA\
+ctive=true;retur\
+n true;}catch(_)\
+{this.contentObs\
+erver=null;this.\
+contentObserverT\
+arget=null;this.\
+contentObserverA\
+ctive=false;retu\
+rn false;}}\x0adisc\
+onnectContentObs\
+erver(){if(this.\
+contentObserver)\
+{try{this.conten\
+tObserver.discon\
+nect();}catch(_)\
+{}}\x0athis.content\
+Observer=null;th\
+is.contentObserv\
+erTarget=null;th\
+is.contentObserv\
+erActive=false;t\
+ry{this.raf.canc\
+el('SM:contentRe\
+sizeObserver');}\
+catch(_){}}\x0amark\
+ProgrammaticScro\
+ll(targetTop=nul\
+l){this.programm\
+aticScrollPendin\
+g=true;this.prog\
+rammaticScrollTa\
+rget=Number.isFi\
+nite(targetTop)?\
+targetTop:null;}\
+\x0aisProgrammaticS\
+croll(top){if(!t\
+his.programmatic\
+ScrollPending)re\
+turn false;const\
+ target=this.pro\
+grammaticScrollT\
+arget;const matc\
+h=target==null||\
+Math.abs(Number(\
+top||0)-target)<\
+=4;this.programm\
+aticScrollPendin\
+g=false;this.pro\
+grammaticScrollT\
+arget=null;retur\
+n match;}\x0aschedu\
+leScroll(live=fa\
+lse,force=false)\
+{if(!force&&this\
+.autoFollow!==tr\
+ue)return;if(thi\
+s.contentObserve\
+rActive){if(forc\
+e||live===false)\
+this._syncToPhys\
+icalBottom(!!for\
+ce);this.schedul\
+eScrollFabUpdate\
+();return;}\x0aif(t\
+his.scrollSchedu\
+led)return;this.\
+scrollScheduled=\
+true;this.raf.sc\
+hedule('SM:scrol\
+l',()=>{this.scr\
+ollScheduled=fal\
+se;this.scrollTo\
+Bottom(live,forc\
+e);this.schedule\
+ScrollFabUpdate(\
+);},'ScrollManag\
+er',1);}\x0acancelP\
+endingScroll(){t\
+ry{this.raf.canc\
+elGroup('ScrollM\
+anager');}catch(\
+_){}\x0athis.scroll\
+Scheduled=false;\
+this.scrollFabUp\
+dateScheduled=fa\
+lse;this.scrollR\
+AF=0;this.scroll\
+FabRAF=0;this.pr\
+ogrammaticScroll\
+Pending=false;th\
+is.programmaticS\
+crollTarget=null\
+;this.messageVir\
+tualRefreshSched\
+uled=false;}\x0afor\
+ceScrollToBottom\
+Immediate(){this\
+._syncToPhysical\
+Bottom(true);}\x0af\
+orceScrollToBott\
+omImmediateAtEnd\
+(){if(!this.auto\
+Follow)return;th\
+is._syncToPhysic\
+alBottom(false);\
+this.scheduleScr\
+ollFabUpdate();}\
+\x0ascrollToBottom(\
+live=false,force\
+=false){if(!forc\
+e&&this.autoFoll\
+ow!==true){this.\
+prevScroll=Utils\
+.SE.scrollHeight\
+;return;}\x0athis._\
+syncToPhysicalBo\
+ttom(!!force);}\x0a\
+hasVerticalScrol\
+l(){const el=Uti\
+ls.SE;return(el.\
+scrollHeight-el.\
+clientHeight)>1;\
+}\x0acomputeFabActi\
+on(){const el=Ut\
+ils.SE;const h=e\
+l.scrollHeight;c\
+onst c=el.client\
+Height;const has\
+Scroll=(h-c)>1;i\
+f(!hasScroll)ret\
+urn'none';const \
+dist=h-c-el.scro\
+llTop;if(dist<=2\
+)return'up';if(d\
+ist>=this.cfg.FA\
+B.SHOW_DOWN_THRE\
+SHOLD_PX)return'\
+down';return'non\
+e';}\x0aupdateScrol\
+lFab(force=false\
+,actionOverride=\
+null,bypassFreez\
+e=false){const b\
+tn=this.dom.get(\
+'scrollFab');con\
+st icon=this.dom\
+.get('scrollFabI\
+con');if(!btn||!\
+icon)return;cons\
+t now=Utils.now(\
+);const action=a\
+ctionOverride||t\
+his.computeFabAc\
+tion();if(!force\
+&&!bypassFreeze&\
+&now<this.fabFre\
+ezeUntil&&action\
+!==this.currentF\
+abAction)return;\
+if(action==='non\
+e'){if(this.curr\
+entFabAction!=='\
+none'||force){bt\
+n.classList.remo\
+ve('visible');th\
+is.currentFabAct\
+ion='none';}\x0aret\
+urn;}\x0aif(action!\
+==this.currentFa\
+bAction||force){\
+if(action==='up'\
+){if(icon.datase\
+t.dir!=='up'){ic\
+on.src=this.cfg.\
+ICONS.COLLAPSE;i\
+con.dataset.dir=\
+'up';}\x0abtn.title\
+='Go to top';}el\
+se{if(icon.datas\
+et.dir!=='down')\
+{icon.src=this.c\
+fg.ICONS.EXPAND;\
+icon.dataset.dir\
+='down';}\x0abtn.ti\
+tle='Go to botto\
+m';}\x0abtn.setAttr\
+ibute('aria-labe\
+l',btn.title);th\
+is.currentFabAct\
+ion=action;btn.c\
+lassList.add('vi\
+sible');}else if\
+(!btn.classList.\
+contains('visibl\
+e'))btn.classLis\
+t.add('visible')\
+;}\x0ascheduleScrol\
+lFabUpdate(){if(\
+this.scrollFabUp\
+dateScheduled)re\
+turn;this.scroll\
+FabUpdateSchedul\
+ed=true;this.raf\
+.schedule('SM:fa\
+b',()=>{this.scr\
+ollFabUpdateSche\
+duled=false;cons\
+t action=this.co\
+mputeFabAction()\
+;if(action!==thi\
+s.currentFabActi\
+on)this.updateSc\
+rollFab(false,ac\
+tion);},'ScrollM\
+anager',2);}\x0a_ca\
+ncelScheduledPag\
+eScroll(){try{th\
+is.raf.cancel('S\
+M:scroll');}catc\
+h(_){}\x0athis.scro\
+llScheduled=fals\
+e;}\x0a_maxScrollTo\
+p(){const el=Uti\
+ls.SE;return Mat\
+h.max(0,el.scrol\
+lHeight-el.clien\
+tHeight);}\x0a_sync\
+ToPhysicalBottom\
+(force=false){if\
+(!force&&this.au\
+toFollow!==true)\
+return false;if(\
+!force&&this.poi\
+nterScrollActive\
+)return false;co\
+nst el=Utils.SE;\
+const target=thi\
+s._maxScrollTop(\
+);const current=\
+Number(el.scroll\
+Top||0);this.pre\
+vScroll=el.scrol\
+lHeight;if(Math.\
+abs(current-targ\
+et)<=0.5){this.l\
+astScrollTop=cur\
+rent;return fals\
+e;}\x0athis.markPro\
+grammaticScroll(\
+target);try{el.s\
+crollTop=target;\
+}catch(_){try{el\
+.scrollTo({top:t\
+arget,behavior:'\
+instant'});}catc\
+h(__){}}\x0athis.la\
+stScrollTop=Numb\
+er(el.scrollTop|\
+|target);this.pr\
+evScroll=el.scro\
+llHeight;return \
+true;}\x0a_clearMan\
+ualResume(){this\
+.manualResumeCan\
+didate=false;thi\
+s.manualResumeSe\
+q+=1;if(this.man\
+ualResumeTimer){\
+clearTimeout(thi\
 s.manualResumeTi\
-mer){clearTimeou\
-t(this.manualRes\
-umeTimer);this.m\
-anualResumeTimer\
-=0;}}};\x0a\x0a/* data\
-/js/app/stream.j\
-s */\x0aconst RE_SA\
-FE_BREAK=/\x5cs|[.,\
-;:!?()\x5c[\x5c]{}'\x22\xc2\xab\
-\xc2\xbb\xe2\x80\x9e\xe2\x80\x9d\xe2\x80\x9c\xe2\x80\x94\xe2\x80\
-\x93\x5c-\xe2\x80\xa6>]/;const \
-RE_STRUCT_BOUNDA\
-RY=/\x5cn(\x5cn|[-*]\x5cs\
-|\x5cd+\x5c.\x5cs|#{1,6}\x5c\
-s|>\x5cs)/;const RE\
-_MD_INLINE_TRIGG\
-ER=/(\x5c*\x5c*|__|[_`\
-]|~~|\x5c[[^\x5c]]+\x5c]\x5c\
-([^)]+\x5c))/;const\
- RE_LINE_END=/[\x5c\
-n\x5cr]$/;class Str\
-eamEngine{constr\
-uctor(cfg,dom,re\
-nderer,math,high\
-lighter,codeScro\
-ll,scrollMgr,raf\
-,asyncer,logger)\
-{this.cfg=cfg;th\
-is.dom=dom;this.\
-renderer=rendere\
-r;this.math=math\
-;this.highlighte\
-r=highlighter;th\
-is.codeScroll=co\
-deScroll;this.sc\
-rollMgr=scrollMg\
-r;this.raf=raf;t\
-his.asyncer=asyn\
-cer;this.logger=\
-logger||new Logg\
-er(cfg);this.sup\
-pressPostFinaliz\
-ePass=false;this\
-._firstCodeOpenS\
-napDone=false;th\
-is.isStreaming=f\
-alse;this._lastI\
-njectedEOL=false\
-;this._mdQuickRe\
-=/(\x5c*\x5c*|__|~~|`|\
-!\x5c[|\x5c[[^\x5c]]+\x5c]\x5c(\
-[^)]+\x5c)|^> |\x5cn> \
-|\x5cn#{1,6}\x5cs|\x5cn[-\
-*+]\x5cs|\x5cn\x5cd+\x5c.\x5cs)\
-/m;this._reSafeB\
-reak=RE_SAFE_BRE\
-AK;this._reStruc\
-tBoundary=RE_STR\
-UCT_BOUNDARY;thi\
-s._reMDInlineTri\
-gger=RE_MD_INLIN\
-E_TRIGGER;this._\
-reLineEnd=RE_LIN\
-E_END;this._tpl=\
-(typeof document\
-!=='undefined')?\
-document.createE\
-lement('template\
-'):null;this.buf\
-fer=new StreamBu\
-ffer(this.cfg,(t\
-ag,data)=>this.d\
-ebug(tag,data));\
-this.plain=new S\
-treamPlain(this)\
-;this.reasoning=\
-new StreamReason\
-ing(this);this.f\
-ences=new Stream\
-Fences(this);thi\
-s.code=new Strea\
-mCode(this);this\
-.language=new St\
-reamLanguage(thi\
-s);this.stabilit\
-y=new StreamStab\
-ility(this);this\
-.snapshots=new S\
-treamSnapshots(t\
-his);this.debug(\
-'init',{material\
-izeTailAt:this.b\
-uffer._tailMater\
-ializeAt,hasTpl:\
-!!this._tpl});}\x0a\
-debug(tag,data){\
-try{const lg=thi\
-s.logger||(this.\
-cfg&&this.cfg.lo\
-gger)||(window.r\
-untime&&runtime.\
-logger)||null;if\
-(!lg||typeof lg.\
-debug!=='functio\
-n')return;lg.deb\
-ug_obj(\x22STREAM\x22,\
-tag,data);}catch\
-(_){}}\x0areset(){t\
-his.debug('reset\
-',{});this.buffe\
-r.clear();this.f\
-ences.reset();th\
-is.snapshots.res\
-et();this.code.r\
-eset();this.reas\
-oning.reset();th\
-is.plain.reset()\
-;this.suppressPo\
-stFinalizePass=f\
-alse;this._first\
-CodeOpenSnapDone\
-=false;this._las\
-tInjectedEOL=fal\
-se;}\x0aabortAndRes\
-et(opts){const o\
-=Object.assign({\
-finalizeActive:t\
-rue,clearBuffer:\
-true,clearMsg:fa\
-lse,defuseOrphan\
-s:true,reason:''\
-,suppressLog:fal\
-se},(opts||{}));\
-this.debug('abor\
-t',o);try{this.r\
-af.cancelGroup('\
-StreamEngine');}\
-catch(_){}\x0atry{t\
-his.raf.cancel('\
-SE:snapshot');}c\
-atch(_){}\x0athis.s\
-napshots.snapsho\
-tScheduled=false\
-;this.snapshots.\
-snapshotRAF=0;co\
-nst hadActive=!!\
-this.code.active\
-Code;try{if(this\
-.code.activeCode\
-){if(o.finalizeA\
-ctive===true)thi\
-s.code.finalizeA\
-ctiveCode();else\
- this.code.defus\
-eActiveToPlain()\
-;}}catch(e){}\x0aif\
-(o.defuseOrphans\
-){try{this.code.\
-defuseOrphanActi\
-veBlocks();}catc\
-h(e){}}\x0aif(o.cle\
-arBuffer){this.b\
-uffer.clear();th\
-is.fences.fenceO\
-pen=false;this.f\
-ences.fenceMark=\
-'`';this.fences.\
-fenceLen=3;this.\
-fences.fenceTail\
-='';this.fences.\
-fenceBuf='';this\
-.code.codeStream\
-.open=false;this\
-.code.codeStream\
-.lines=0;this.co\
-de.codeStream.ch\
-ars=0;window.__l\
-astSnapshotLen=0\
-;}\x0aif(o.clearMsg\
-===true){try{thi\
-s.dom.resetEphem\
-eral();}catch(_)\
-{}}\x0athis.plain.r\
-eset();}\x0agetMsg(\
-create,name_head\
-er){return this.\
-dom.getStreamMsg\
-(create,name_hea\
-der);}\x0abeginStre\
-am(chunk=false,c\
-learOutput=true)\
-{this.isStreamin\
-g=true;this.debu\
-g('stream.begin'\
-,{chunk,clearOut\
-put});const foll\
-ow=this.scrollMg\
-r.shouldFollowOn\
-StreamStart();if\
-(chunk){try{runt\
-ime.loading.hide\
-(false);}catch(_\
-){}}\x0aif(clearOut\
-put)this.dom.cle\
-arOutput();this.\
-reset();if(follo\
-w){this.scrollMg\
-r.resumeAutoFoll\
-ow(true);}else{t\
-his.scrollMgr.su\
-spendAutoFollow(\
-);this.scrollMgr\
-.scheduleScrollF\
-abUpdate();}}\x0aen\
-dStream(){this.i\
-sStreaming=false\
-;const msg=this.\
-getMsg(false,'')\
-;if(msg)this.sna\
-pshots.renderSna\
-pshot(msg);if(!t\
-his.reasoning.re\
-asoningHideAfter\
-Response&&this.r\
-easoning.reasoni\
-ngHasResponseTex\
-t){this.reasonin\
-g.cancelReasonin\
-gTimers();this.r\
-easoning.reasoni\
-ngVisible=false;\
-this.reasoning.r\
-easoningFadeInSt\
-artedAt=0;this.r\
-easoning.reasoni\
-ngFadeOutStarted\
-At=0;if(msg)this\
-.reasoning.syncR\
-easoningVisibili\
-ty(this.snapshot\
-s.getMsgSnapshot\
-Root(msg));}\x0athi\
-s.snapshots.snap\
-shotScheduled=fa\
-lse;try{this.raf\
-.cancel('SE:snap\
-shot');}catch(_)\
-{}\x0atry{this.raf.\
-cancelGroup('Str\
-eamEngine');}cat\
-ch(_){}\x0atry{this\
-.raf.cancelGroup\
-('CodeScroll');}\
-catch(_){}\x0atry{t\
-his.raf.cancelGr\
-oup('ScrollMgr')\
-;}catch(_){}\x0aif(\
-this.code._promo\
-teTimer){clearTi\
-meout(this.code.\
-_promoteTimer);t\
-his.code._promot\
-eTimer=0;}\x0athis.\
-snapshots.snapsh\
-otRAF=0;const ha\
-dActive=!!this.c\
-ode.activeCode;i\
-f(this.code.acti\
-veCode)this.code\
-.finalizeActiveC\
-ode();if(!hadAct\
-ive){if(this.hig\
-hlighter.hlQueue\
-&&this.highlight\
-er.hlQueue.lengt\
-h){this.highligh\
-ter.flush(this.c\
-ode.activeCode);\
-}\x0aconst snap=msg\
-?this.snapshots.\
-getMsgSnapshotRo\
-ot(msg):null;if(\
-snap)this.math.r\
-enderAsync(snap)\
-;}\x0athis.buffer.c\
-lear();this.fenc\
-es.fenceOpen=fal\
-se;this.code.cod\
-eStream.open=fal\
-se;this.code.act\
-iveCode=null;thi\
-s.snapshots.last\
-SnapshotTs=Utils\
-.now();this.supp\
-ressPostFinalize\
-Pass=false;this.\
-plain.reset();th\
-is.debug('stream\
-.end',{hadActive\
-});}\x0aapplyStream\
-(name_header,chu\
-nk,alreadyBuffer\
-ed=false){if(!th\
-is.code.activeCo\
-de&&!this.fences\
-.fenceOpen){try{\
-if(document.quer\
-ySelector('pre c\
-ode[data-_active\
-_stream=\x221\x22]'))t\
-his.code.defuseO\
-rphanActiveBlock\
-s();}catch(_){}}\
-\x0aif(this.snapsho\
-ts.snapshotSched\
-uled&&!this.raf.\
-isScheduled('SE:\
-snapshot'))this.\
-snapshots.snapsh\
-otScheduled=fals\
-e;const msg=this\
-.getMsg(true,nam\
-e_header);if(!ms\
-g||!chunk)return\
-;const s=String(\
-chunk);const rea\
-soningState=this\
-.reasoning.updat\
-eReasoningVisibi\
-lityFromChunk(s)\
-;const reasoning\
-Opened=reasoning\
-State.changed&&t\
-his.reasoning.re\
-asoningThinking;\
-if(reasoningStat\
-e.hasResponseTex\
-t&&!this.reasoni\
-ng.reasoningThin\
-king){this.reaso\
-ning.scheduleRea\
-soningHide(msg);\
-}\x0aif(/[<>]/.test\
-(s)){this.debug(\
-'apply.chunk',{l\
-en:s.length,nl:U\
-tils.countNewlin\
-es(s),head:s.sli\
-ce(0,120),tail:s\
-.slice(-120)});}\
-\x0aif(!alreadyBuff\
-ered)this.buffer\
-.append(s);if(re\
-asoningOpened&&t\
-his.reasoning.re\
-asoningEnabled&&\
-!this.fences.fen\
-ceOpen&&!this.co\
-de.codeStream.op\
-en){try{this.sna\
-pshots.renderSna\
-pshot(msg);try{t\
-his.raf.cancel('\
-SE:snapshot');}c\
-atch(_){}\x0athis.s\
-napshots.snapsho\
-tScheduled=false\
-;}catch(_){}}\x0aco\
-nst change=this.\
-fences.updateFen\
-ceHeuristic(s);c\
-onst nlCount=Uti\
-ls.countNewlines\
-(s);const chunkH\
-asNL=nlCount>0;i\
-f(!change.opened\
-&&!this.fences.f\
-enceOpen){this.s\
-napshots.maybeEa\
-gerSnapshotForCu\
-stomOpeners(msg,\
-s);}\x0aif(!this.fe\
-nces.fenceOpen&&\
-!this.code.codeS\
-tream.open){cons\
-t mdPresent=this\
-.snapshots.chunk\
-HasMarkdown(s)||\
-this.snapshots.c\
-hunkHasCustomOpe\
-ners(s)||change.\
-opened;const thr\
-=this.plain.thre\
-shold();if(mdPre\
-sent){if(this.pl\
-ain.state.noMdNL\
-!==0){this.debug\
-('apply.plain.re\
-setOnMD',{noMdNL\
-:this.plain.stat\
-e.noMdNL});}\x0athi\
-s.plain.state.no\
-MdNL=0;if(this.p\
-lain.state.enabl\
-ed){this.plain.s\
-tate.enabled=fal\
-se;this.plain.st\
-ate.suppressInli\
-ne=false;this.pl\
-ain.state.forceF\
-ullMDOnce=true;t\
-his.debug('apply\
-.plain.disableOn\
-MD',{});this.sna\
-pshots.scheduleS\
-napshot(msg,true\
-);}}else if(chun\
-kHasNL){this.pla\
-in.state.noMdNL+\
-=nlCount;if(!thi\
-s.plain.state.en\
-abled&&this.plai\
-n.state.noMdNL>=\
-thr){this.plain.\
-state.enabled=tr\
-ue;this.plain.st\
-ate.suppressInli\
-ne=true;this.deb\
-ug('apply.plain.\
-enable',{noMdNL:\
-this.plain.state\
-.noMdNL,thr});th\
-is.snapshots.sch\
-eduleSnapshot(ms\
-g);}}}\x0alet didIm\
-mediateOpenSnap=\
-false;if(change.\
-opened){this.cod\
-e.codeStream.ope\
-n=true;this.code\
+mer);this.manual\
+ResumeTimer=0;}}\
+};\x0a\x0a/* data/js/a\
+pp/stream.js */\x0a\
+const RE_SAFE_BR\
+EAK=/\x5cs|[.,;:!?(\
+)\x5c[\x5c]{}'\x22\xc2\xab\xc2\xbb\xe2\x80\x9e\
+\xe2\x80\x9d\xe2\x80\x9c\xe2\x80\x94\xe2\x80\x93\x5c-\xe2\x80\
+\xa6>]/;const RE_ST\
+RUCT_BOUNDARY=/\x5c\
+n(\x5cn|[-*]\x5cs|\x5cd+\x5c\
+.\x5cs|#{1,6}\x5cs|>\x5cs\
+)/;const RE_MD_I\
+NLINE_TRIGGER=/(\
+\x5c*\x5c*|__|[_`]|~~|\
+\x5c[[^\x5c]]+\x5c]\x5c([^)]\
++\x5c))/;const RE_L\
+INE_END=/[\x5cn\x5cr]$\
+/;class StreamEn\
+gine{constructor\
+(cfg,dom,rendere\
+r,math,highlight\
+er,codeScroll,sc\
+rollMgr,raf,asyn\
+cer,logger){this\
+.cfg=cfg;this.do\
+m=dom;this.rende\
+rer=renderer;thi\
+s.math=math;this\
+.highlighter=hig\
+hlighter;this.co\
+deScroll=codeScr\
+oll;this.scrollM\
+gr=scrollMgr;thi\
+s.raf=raf;this.a\
+syncer=asyncer;t\
+his.logger=logge\
+r||new Logger(cf\
+g);this.suppress\
+PostFinalizePass\
+=false;this._fir\
+stCodeOpenSnapDo\
+ne=false;this.is\
+Streaming=false;\
+this._lastInject\
+edEOL=false;this\
+._mdQuickRe=/(\x5c*\
+\x5c*|__|~~|`|!\x5c[|\x5c\
+[[^\x5c]]+\x5c]\x5c([^)]+\
+\x5c)|^> |\x5cn> |\x5cn#{\
+1,6}\x5cs|\x5cn[-*+]\x5cs\
+|\x5cn\x5cd+\x5c.\x5cs)/m;th\
+is._reSafeBreak=\
+RE_SAFE_BREAK;th\
+is._reStructBoun\
+dary=RE_STRUCT_B\
+OUNDARY;this._re\
+MDInlineTrigger=\
+RE_MD_INLINE_TRI\
+GGER;this._reLin\
+eEnd=RE_LINE_END\
+;this._tpl=(type\
+of document!=='u\
+ndefined')?docum\
+ent.createElemen\
+t('template'):nu\
+ll;this.buffer=n\
+ew StreamBuffer(\
+this.cfg,(tag,da\
+ta)=>this.debug(\
+tag,data));this.\
+plain=new Stream\
+Plain(this);this\
+.reasoning=new S\
+treamReasoning(t\
+his);this.fences\
+=new StreamFence\
+s(this);this.cod\
+e=new StreamCode\
+(this);this.lang\
+uage=new StreamL\
+anguage(this);th\
+is.stability=new\
+ StreamStability\
+(this);this.snap\
+shots=new Stream\
+Snapshots(this);\
+this.debug('init\
+',{materializeTa\
+ilAt:this.buffer\
+._tailMaterializ\
+eAt,hasTpl:!!thi\
+s._tpl});}\x0adebug\
+(tag,data){try{c\
+onst lg=this.log\
+ger||(this.cfg&&\
+this.cfg.logger)\
+||(window.runtim\
+e&&runtime.logge\
+r)||null;if(!lg|\
+|typeof lg.debug\
+!=='function')re\
+turn;lg.debug_ob\
+j(\x22STREAM\x22,tag,d\
+ata);}catch(_){}\
+}\x0areset(){this.d\
+ebug('reset',{})\
+;this.buffer.cle\
+ar();this.fences\
+.reset();this.sn\
+apshots.reset();\
+this.code.reset(\
+);this.reasoning\
+.reset();this.pl\
+ain.reset();this\
+.suppressPostFin\
+alizePass=false;\
+this._firstCodeO\
+penSnapDone=fals\
+e;this._lastInje\
+ctedEOL=false;}\x0a\
+abortAndReset(op\
+ts){const o=Obje\
+ct.assign({final\
+izeActive:true,c\
+learBuffer:true,\
+clearMsg:false,d\
+efuseOrphans:tru\
+e,reason:'',supp\
+ressLog:false},(\
+opts||{}));this.\
+debug('abort',o)\
+;try{this.raf.ca\
+ncelGroup('Strea\
+mEngine');}catch\
+(_){}\x0atry{this.r\
+af.cancel('SE:sn\
+apshot');}catch(\
+_){}\x0athis.snapsh\
+ots.snapshotSche\
+duled=false;this\
+.snapshots.snaps\
+hotRAF=0;const h\
+adActive=!!this.\
+code.activeCode;\
+try{if(this.code\
+.activeCode){if(\
+o.finalizeActive\
+===true)this.cod\
+e.finalizeActive\
+Code();else this\
+.code.defuseActi\
+veToPlain();}}ca\
+tch(e){}\x0aif(o.de\
+fuseOrphans){try\
+{this.code.defus\
+eOrphanActiveBlo\
+cks();}catch(e){\
+}}\x0aif(o.clearBuf\
+fer){this.buffer\
+.clear();this.fe\
+nces.fenceOpen=f\
+alse;this.fences\
+.fenceMark='`';t\
+his.fences.fence\
+Len=3;this.fence\
+s.fenceTail='';t\
+his.fences.fence\
+Buf='';this.code\
+.codeStream.open\
+=false;this.code\
 .codeStream.line\
 s=0;this.code.co\
 deStream.chars=0\
-;this.snapshots.\
-resetBudget();th\
-is.debug('code.o\
-pen',{});this.sn\
-apshots.schedule\
-Snapshot(msg);if\
-(!this._firstCod\
-eOpenSnapDone&&!\
-this.code.active\
-Code&&((window._\
-_lastSnapshotLen\
-||0)===0)){try{t\
-his.snapshots.re\
-nderSnapshot(msg\
-);try{this.raf.c\
-ancel('SE:snapsh\
-ot');}catch(_){}\
-\x0athis.snapshots.\
-snapshotSchedule\
-d=false;this._fi\
-rstCodeOpenSnapD\
-one=true;didImme\
-diateOpenSnap=tr\
-ue;this.debug('c\
-ode.open.immedia\
-teSnap',{});}cat\
-ch(_){}}}\x0aif(thi\
-s.code.codeStrea\
-m.open){this.cod\
-e.codeStream.lin\
-es+=nlCount;this\
+;window.__lastSn\
+apshotLen=0;}\x0aif\
+(o.clearMsg===tr\
+ue){try{this.dom\
+.resetEphemeral(\
+);}catch(_){}}\x0at\
+his.plain.reset(\
+);}\x0agetMsg(creat\
+e,name_header){r\
+eturn this.dom.g\
+etStreamMsg(crea\
+te,name_header);\
+}\x0abeginStream(ch\
+unk=false,clearO\
+utput=true){this\
+.isStreaming=tru\
+e;this.debug('st\
+ream.begin',{chu\
+nk,clearOutput})\
+;const follow=th\
+is.scrollMgr.sho\
+uldFollowOnStrea\
+mStart();if(chun\
+k){try{runtime.l\
+oading.hide(fals\
+e);}catch(_){}}\x0a\
+if(clearOutput)t\
+his.dom.clearOut\
+put();this.reset\
+();if(follow){th\
+is.scrollMgr.res\
+umeAutoFollow(tr\
+ue);}else{this.s\
+crollMgr.suspend\
+AutoFollow();thi\
+s.scrollMgr.sche\
+duleScrollFabUpd\
+ate();}}\x0aendStre\
+am(){this.isStre\
+aming=false;cons\
+t msg=this.getMs\
+g(false,'');if(m\
+sg)this.snapshot\
+s.renderSnapshot\
+(msg);if(!this.r\
+easoning.reasoni\
+ngHideAfterRespo\
+nse&&this.reason\
+ing.reasoningHas\
+ResponseText){th\
+is.reasoning.can\
+celReasoningTime\
+rs();this.reason\
+ing.reasoningVis\
+ible=false;this.\
+reasoning.reason\
+ingFadeInStarted\
+At=0;this.reason\
+ing.reasoningFad\
+eOutStartedAt=0;\
+if(msg)this.reas\
+oning.syncReason\
+ingVisibility(th\
+is.snapshots.get\
+MsgSnapshotRoot(\
+msg));}\x0athis.sna\
+pshots.snapshotS\
+cheduled=false;t\
+ry{this.raf.canc\
+el('SE:snapshot'\
+);}catch(_){}\x0atr\
+y{this.raf.cance\
+lGroup('StreamEn\
+gine');}catch(_)\
+{}\x0atry{this.raf.\
+cancelGroup('Cod\
+eScroll');}catch\
+(_){}\x0atry{this.r\
+af.cancelGroup('\
+ScrollMgr');}cat\
+ch(_){}\x0aif(this.\
+code._promoteTim\
+er){clearTimeout\
+(this.code._prom\
+oteTimer);this.c\
+ode._promoteTime\
+r=0;}\x0athis.snaps\
+hots.snapshotRAF\
+=0;const hadActi\
+ve=!!this.code.a\
+ctiveCode;if(thi\
+s.code.activeCod\
+e)this.code.fina\
+lizeActiveCode()\
+;if(!hadActive){\
+if(this.highligh\
+ter.hlQueue&&thi\
+s.highlighter.hl\
+Queue.length){th\
+is.highlighter.f\
+lush(this.code.a\
+ctiveCode);}\x0acon\
+st snap=msg?this\
+.snapshots.getMs\
+gSnapshotRoot(ms\
+g):null;if(snap)\
+this.math.render\
+Async(snap);}\x0ath\
+is.buffer.clear(\
+);this.fences.fe\
+nceOpen=false;th\
+is.code.codeStre\
+am.open=false;th\
+is.code.activeCo\
+de=null;this.sna\
+pshots.lastSnaps\
+hotTs=Utils.now(\
+);this.suppressP\
+ostFinalizePass=\
+false;this.plain\
+.reset();this.de\
+bug('stream.end'\
+,{hadActive});}\x0a\
+applyStream(name\
+_header,chunk,al\
+readyBuffered=fa\
+lse){if(!this.co\
+de.activeCode&&!\
+this.fences.fenc\
+eOpen){try{if(do\
+cument.querySele\
+ctor('pre code[d\
+ata-_active_stre\
+am=\x221\x22]'))this.c\
+ode.defuseOrphan\
+ActiveBlocks();}\
+catch(_){}}\x0aif(t\
+his.snapshots.sn\
+apshotScheduled&\
+&!this.raf.isSch\
+eduled('SE:snaps\
+hot'))this.snaps\
+hots.snapshotSch\
+eduled=false;con\
+st msg=this.getM\
+sg(true,name_hea\
+der);if(!msg||!c\
+hunk)return;cons\
+t s=String(chunk\
+);const reasonin\
+gState=this.reas\
+oning.updateReas\
+oningVisibilityF\
+romChunk(s);cons\
+t reasoningOpene\
+d=reasoningState\
+.changed&&this.r\
+easoning.reasoni\
+ngThinking;if(re\
+asoningState.has\
+ResponseText&&!t\
+his.reasoning.re\
+asoningThinking)\
+{this.reasoning.\
+scheduleReasonin\
+gHide(msg);}\x0aif(\
+/[<>]/.test(s)){\
+this.debug('appl\
+y.chunk',{len:s.\
+length,nl:Utils.\
+countNewlines(s)\
+,head:s.slice(0,\
+120),tail:s.slic\
+e(-120)});}\x0aif(!\
+alreadyBuffered)\
+this.buffer.appe\
+nd(s);if(reasoni\
+ngOpened&&this.r\
+easoning.reasoni\
+ngEnabled&&!this\
+.fences.fenceOpe\
+n&&!this.code.co\
+deStream.open){t\
+ry{this.snapshot\
+s.renderSnapshot\
+(msg);try{this.r\
+af.cancel('SE:sn\
+apshot');}catch(\
+_){}\x0athis.snapsh\
+ots.snapshotSche\
+duled=false;}cat\
+ch(_){}}\x0aconst c\
+hange=this.fence\
+s.updateFenceHeu\
+ristic(s);const \
+nlCount=Utils.co\
+untNewlines(s);c\
+onst chunkHasNL=\
+nlCount>0;if(!ch\
+ange.opened&&!th\
+is.fences.fenceO\
+pen){this.snapsh\
+ots.maybeEagerSn\
+apshotForCustomO\
+peners(msg,s);}\x0a\
+if(!this.fences.\
+fenceOpen&&!this\
 .code.codeStream\
-.chars+=s.length\
-;if(this.code.ac\
-tiveCode&&this.c\
-ode.activeCode.c\
-odeEl&&this.code\
-.activeCode.code\
-El.isConnected){\
-let partForCode=\
-s;let remainder=\
-'';if(didImmedia\
-teOpenSnap)partF\
-orCode='';else i\
-f(change.closed&\
-&change.splitAt>\
-=0&&change.split\
-At<=s.length){pa\
-rtForCode=s.slic\
-e(0,change.split\
-At);remainder=s.\
-slice(change.spl\
-itAt);}\x0aif(partF\
-orCode){this.cod\
-e.appendToActive\
-Tail(partForCode\
-);this.code.acti\
-veCode.lines+=Ut\
-ils.countNewline\
-s(partForCode);t\
-his.language.may\
-bePromoteLanguag\
-eFromDirective()\
-;this.code.enfor\
-ceHLStopBudget()\
-;const tailLenNo\
-w=(this.code.act\
-iveCode.tailEl.t\
-extContent||'').\
-length;const has\
-NL=partForCode.i\
-ndexOf('\x5cn')>=0;\
-if(!this.code.ac\
-tiveCode.plainSt\
-ream){const HL_M\
-IN=this.cfg.PROF\
-ILE_CODE.minChar\
-sForHL;if(hasNL|\
-|tailLenNow>=HL_\
-MIN)this.code.sc\
-hedulePromoteTai\
-l(false);}}\x0athis\
-.scrollMgr.scrol\
-lFabUpdateSchedu\
-led=false;this.s\
-crollMgr.schedul\
-eScroll(true);th\
-is.scrollMgr.fab\
-FreezeUntil=Util\
-s.now()+this.cfg\
-.FAB.TOGGLE_DEBO\
-UNCE_MS;this.scr\
-ollMgr.scheduleS\
-crollFabUpdate()\
-;if(change.close\
-d){this.debug('c\
-ode.close',{rema\
-inderLen:remaind\
-er.length});this\
-.code.finalizeAc\
-tiveCode();this.\
-code.codeStream.\
-open=false;this.\
-snapshots.resetB\
-udget();this.pla\
-in.state.forceFu\
-llMDOnce=true;th\
-is.snapshots.sch\
-eduleSnapshot(ms\
-g,true);if(remai\
-nder&&remainder.\
-length){this.app\
-lyStream(name_he\
-ader,remainder,t\
-rue);}}\x0areturn;}\
-else{if(!this.co\
-de.activeCode&&(\
-this.code.codeSt\
-ream.lines>=2||t\
-his.code.codeStr\
-eam.chars>=80)){\
-this.debug('code\
-.awaitActive.for\
-ceSnap',{lines:t\
-his.code.codeStr\
-eam.lines,chars:\
-this.code.codeSt\
-ream.chars});thi\
-s.snapshots.sche\
-duleSnapshot(msg\
-,true);return;}\x0a\
-if(change.closed\
-){this.code.code\
-Stream.open=fals\
-e;this.snapshots\
-.resetBudget();t\
-his.debug('code.\
-closed.outside',\
-{});this.plain.s\
+.open){const mdP\
+resent=this.snap\
+shots.chunkHasMa\
+rkdown(s)||this.\
+snapshots.chunkH\
+asCustomOpeners(\
+s)||change.opene\
+d;const thr=this\
+.plain.threshold\
+();if(mdPresent)\
+{if(this.plain.s\
+tate.noMdNL!==0)\
+{this.debug('app\
+ly.plain.resetOn\
+MD',{noMdNL:this\
+.plain.state.noM\
+dNL});}\x0athis.pla\
+in.state.noMdNL=\
+0;if(this.plain.\
+state.enabled){t\
+his.plain.state.\
+enabled=false;th\
+is.plain.state.s\
+uppressInline=fa\
+lse;this.plain.s\
 tate.forceFullMD\
-Once=true;this.s\
-napshots.schedul\
-eSnapshot(msg,tr\
-ue);}else{const \
-boundary=this.sn\
-apshots.hasStruc\
-turalBoundary(s)\
-;if(this.snapsho\
-ts.shouldSnapsho\
-tOnChunk(s,chunk\
-HasNL,boundary))\
-{this.debug('sna\
-pshot.decide',{r\
-eason:'boundary/\
-step'});this.sna\
+Once=true;this.d\
+ebug('apply.plai\
+n.disableOnMD',{\
+});this.snapshot\
+s.scheduleSnapsh\
+ot(msg,true);}}e\
+lse if(chunkHasN\
+L){this.plain.st\
+ate.noMdNL+=nlCo\
+unt;if(!this.pla\
+in.state.enabled\
+&&this.plain.sta\
+te.noMdNL>=thr){\
+this.plain.state\
+.enabled=true;th\
+is.plain.state.s\
+uppressInline=tr\
+ue;this.debug('a\
+pply.plain.enabl\
+e',{noMdNL:this.\
+plain.state.noMd\
+NL,thr});this.sn\
+apshots.schedule\
+Snapshot(msg);}}\
+}\x0alet didImmedia\
+teOpenSnap=false\
+;if(change.opene\
+d){this.code.cod\
+eStream.open=tru\
+e;this.code.code\
+Stream.lines=0;t\
+his.code.codeStr\
+eam.chars=0;this\
+.snapshots.reset\
+Budget();this.de\
+bug('code.open',\
+{});this.snapsho\
+ts.scheduleSnaps\
+hot(msg);if(!thi\
+s._firstCodeOpen\
+SnapDone&&!this.\
+code.activeCode&\
+&((window.__last\
+SnapshotLen||0)=\
+==0)){try{this.s\
+napshots.renderS\
+napshot(msg);try\
+{this.raf.cancel\
+('SE:snapshot');\
+}catch(_){}\x0athis\
+.snapshots.snaps\
+hotScheduled=fal\
+se;this._firstCo\
+deOpenSnapDone=t\
+rue;didImmediate\
+OpenSnap=true;th\
+is.debug('code.o\
+pen.immediateSna\
+p',{});}catch(_)\
+{}}}\x0aif(this.cod\
+e.codeStream.ope\
+n){this.code.cod\
+eStream.lines+=n\
+lCount;this.code\
+.codeStream.char\
+s+=s.length;if(t\
+his.code.activeC\
+ode&&this.code.a\
+ctiveCode.codeEl\
+&&this.code.acti\
+veCode.codeEl.is\
+Connected){let p\
+artForCode=s;let\
+ remainder='';if\
+(didImmediateOpe\
+nSnap)partForCod\
+e='';else if(cha\
+nge.closed&&chan\
+ge.splitAt>=0&&c\
+hange.splitAt<=s\
+.length){partFor\
+Code=s.slice(0,c\
+hange.splitAt);r\
+emainder=s.slice\
+(change.splitAt)\
+;}\x0aif(partForCod\
+e){this.code.app\
+endToActiveTail(\
+partForCode);thi\
+s.code.activeCod\
+e.lines+=Utils.c\
+ountNewlines(par\
+tForCode);this.l\
+anguage.maybePro\
+moteLanguageFrom\
+Directive();this\
+.code.enforceHLS\
+topBudget();cons\
+t tailLenNow=(th\
+is.code.activeCo\
+de.tailEl.textCo\
+ntent||'').lengt\
+h;const hasNL=pa\
+rtForCode.indexO\
+f('\x5cn')>=0;if(!t\
+his.code.activeC\
+ode.plainStream)\
+{const HL_MIN=th\
+is.cfg.PROFILE_C\
+ODE.minCharsForH\
+L;if(hasNL||tail\
+LenNow>=HL_MIN)t\
+his.code.schedul\
+ePromoteTail(fal\
+se);}}\x0athis.scro\
+llMgr.scrollFabU\
+pdateScheduled=f\
+alse;this.scroll\
+Mgr.scheduleScro\
+ll(true);this.sc\
+rollMgr.fabFreez\
+eUntil=Utils.now\
+()+this.cfg.FAB.\
+TOGGLE_DEBOUNCE_\
+MS;this.scrollMg\
+r.scheduleScroll\
+FabUpdate();if(c\
+hange.closed){th\
+is.debug('code.c\
+lose',{remainder\
+Len:remainder.le\
+ngth});this.code\
+.finalizeActiveC\
+ode();this.code.\
+codeStream.open=\
+false;this.snaps\
+hots.resetBudget\
+();this.plain.st\
+ate.forceFullMDO\
+nce=true;this.sn\
+apshots.schedule\
+Snapshot(msg,tru\
+e);if(remainder&\
+&remainder.lengt\
+h){this.applyStr\
+eam(name_header,\
+remainder,true);\
+}}\x0areturn;}else{\
+if(!this.code.ac\
+tiveCode&&(this.\
+code.codeStream.\
+lines>=2||this.c\
+ode.codeStream.c\
+hars>=80)){this.\
+debug('code.awai\
+tActive.forceSna\
+p',{lines:this.c\
+ode.codeStream.l\
+ines,chars:this.\
+code.codeStream.\
+chars});this.sna\
+pshots.scheduleS\
+napshot(msg,true\
+);return;}\x0aif(ch\
+ange.closed){thi\
+s.code.codeStrea\
+m.open=false;thi\
+s.snapshots.rese\
+tBudget();this.d\
+ebug('code.close\
+d.outside',{});t\
+his.plain.state.\
+forceFullMDOnce=\
+true;this.snapsh\
+ots.scheduleSnap\
+shot(msg,true);}\
+else{const bound\
+ary=this.snapsho\
+ts.hasStructural\
+Boundary(s);if(t\
+his.snapshots.sh\
+ouldSnapshotOnCh\
+unk(s,chunkHasNL\
+,boundary)){this\
+.debug('snapshot\
+.decide',{reason\
+:'boundary/step'\
+});this.snapshot\
+s.scheduleSnapsh\
+ot(msg);}else{th\
+is.snapshots.may\
+beScheduleSoftSn\
+apshot(msg,chunk\
+HasNL);}}\x0areturn\
+;}}\x0aif(change.cl\
+osed){this.code.\
+codeStream.open=\
+false;this.snaps\
+hots.resetBudget\
+();this.debug('c\
+ode.closed.outsi\
+de',{});this.sna\
 pshots.scheduleS\
 napshot(msg);}el\
-se{this.snapshot\
-s.maybeScheduleS\
-oftSnapshot(msg,\
-chunkHasNL);}}\x0ar\
-eturn;}}\x0aif(chan\
-ge.closed){this.\
-code.codeStream.\
-open=false;this.\
-snapshots.resetB\
-udget();this.deb\
-ug('code.closed.\
-outside',{});thi\
-s.snapshots.sche\
-duleSnapshot(msg\
-);}else{const bo\
-undary=this.snap\
-shots.hasStructu\
-ralBoundary(s);i\
-f(this.snapshots\
-.shouldSnapshotO\
-nChunk(s,chunkHa\
-sNL,boundary)){t\
-his.debug('snaps\
-hot.decide',{rea\
-son:'boundary/st\
-ep'});this.snaps\
-hots.scheduleSna\
-pshot(msg);}else\
-{this.snapshots.\
-maybeScheduleSof\
-tSnapshot(msg,ch\
-unkHasNL);}}}};\x0a\
-\x0a/* data/js/app/\
-queue.js */\x0aclas\
-s StreamQueue{co\
-nstructor(cfg,en\
-gine,scrollMgr,r\
-af){this.cfg=cfg\
-;this.engine=eng\
-ine;this.scrollM\
-gr=scrollMgr;thi\
-s.raf=raf;this.q\
-=[];this.rd=0;th\
-is.drainSchedule\
-d=false;this.bat\
-ching=false;this\
-.needScroll=fals\
-e;this.DRAIN_KEY\
-=Symbol('SQ:drai\
-n');const R=(thi\
-s.cfg&&this.cfg.\
-RAF)||{};this.DR\
-AIN_BUDGET_MS=(R\
-.STREAM_DRAIN_BU\
-DGET_MS!=null)?R\
-.STREAM_DRAIN_BU\
-DGET_MS:4;this.C\
-OMPACT_SLICE_THR\
-ESHOLD=1024;this\
-._lastCompactRd=\
-0;}\x0acount(){retu\
-rn Math.max(0,th\
-is.q.length-this\
-.rd);}\x0a_compactC\
-ontiguousSameNam\
-e(){const n=this\
-.count();if(n<2)\
-return;const out\
-=[];let prev=nul\
-l;for(let i=this\
-.rd;i<this.q.len\
-gth;i++){const c\
-ur=this.q[i];if(\
-!cur)continue;if\
-(prev&&prev.name\
-===cur.name){if(\
-cur.parts&&cur.p\
-arts.length){for\
-(let k=0;k<cur.p\
-arts.length;k++)\
-prev.parts.push(\
-cur.parts[k]);}e\
-lse if(cur.chunk\
-){prev.parts.pus\
-h(cur.chunk);}\x0ap\
-rev.len+=(cur.le\
-n|0);if(cur.part\
-s)cur.parts.leng\
-th=0;cur.chunk='\
-';cur.len=0;cur.\
-name='';}else{co\
-nst parts=cur.pa\
-rts?cur.parts:(c\
-ur.chunk?[cur.ch\
-unk]:[]);prev={n\
-ame:cur.name,par\
-ts:parts,len:cur\
-.len!=null?cur.l\
-en:(cur.chunk?cu\
-r.chunk.length:0\
-)};out.push(prev\
-);if(cur.parts)c\
-ur.parts=[];cur.\
-chunk='';cur.len\
-=0;cur.name='';}\
-}\x0athis.q=out;thi\
-s.rd=0;this._las\
-tCompactRd=0;}\x0a_\
-maybeCompact(){i\
-f(this.rd===0)re\
-turn;const n=thi\
-s.count();if(n==\
-=0){this.q=[];th\
-is.rd=0;this._la\
-stCompactRd=0;re\
-turn;}\x0aif(this.r\
-d>=this.COMPACT_\
-SLICE_THRESHOLD)\
-{this.q=this.q.s\
-lice(this.rd);th\
-is.rd=0;this._la\
-stCompactRd=0;re\
-turn;}\x0aif(this.r\
-d-this._lastComp\
-actRd>=128||(thi\
-s.rd>64&&this.rd\
->=(this.q.length\
->>1))){this.q=th\
-is.q.slice(this.\
-rd);this.rd=0;th\
-is._lastCompactR\
-d=0;}}\x0a_schedule\
-Drain(){if(this.\
-drainScheduled)r\
-eturn;this.drain\
-Scheduled=true;t\
-his.raf.schedule\
-(this.DRAIN_KEY,\
-()=>this.drain()\
-,'StreamQueue',-\
-5);}\x0aenqueue(nam\
-e_header,chunk){\
-if(!chunk||chunk\
-.length===0)retu\
-rn;const name=na\
-me_header;const \
-hasPending=this.\
-count()>0;const \
-tail=hasPending?\
-this.q[this.q.le\
-ngth-1]:null;if(\
-tail&&tail.name=\
-==name){tail.par\
-ts.push(chunk);t\
-ail.len+=chunk.l\
-ength;}else{this\
-.q.push({name,pa\
-rts:[chunk],len:\
-chunk.length});}\
-\x0aconst cnt=this.\
-count();if(cnt>(\
-this.cfg.STREAM.\
-EMERGENCY_COALES\
-CE_LEN|0))this._\
-compactContiguou\
-sSameName();else\
- if(cnt>(this.cf\
-g.STREAM.QUEUE_M\
-AX_ITEMS|0))this\
-._compactContigu\
-ousSameName();th\
-is._scheduleDrai\
-n();}\x0adrain(){th\
-is.drainSchedule\
-d=false;const ad\
-aptive=(this.cfg\
-.STREAM.COALESCE\
-_MODE==='adaptiv\
-e');const coales\
-ceAggressive=ada\
-ptive&&(this.cou\
-nt()>=(this.cfg.\
-STREAM.EMERGENCY\
-_COALESCE_LEN|0)\
-);const basePerF\
-rame=this.cfg.ST\
-REAM.MAX_PER_FRA\
-ME|0;const perFr\
-ame=adaptive?Mat\
-h.min(basePerFra\
-me+Math.floor(th\
-is.count()/20),b\
-asePerFrame*4):b\
-asePerFrame;cons\
-t start=Utils.no\
-w();const sched=\
-(navigator&&navi\
-gator.scheduling\
-&&navigator.sche\
-duling.isInputPe\
-nding)?navigator\
-.scheduling:null\
-;this.batching=t\
-rue;let processe\
-d=0;while(this.r\
-d<this.q.length&\
-&processed<perFr\
-ame){const idx=t\
-his.rd++;const e\
-=this.q[idx];if(\
-!e)continue;if(c\
-oalesceAggressiv\
-e){while(this.rd\
-<this.q.length&&\
-this.q[this.rd]&\
-&this.q[this.rd]\
-.name===e.name){\
-const n=this.q[t\
-his.rd++];if(n.p\
-arts&&n.parts.le\
-ngth){for(let k=\
-0;k<n.parts.leng\
-th;k++)e.parts.p\
-ush(n.parts[k]);\
-}else if(n.chunk\
-){e.parts.push(n\
-.chunk);}\x0ae.len+\
-=(n.len|0);if(n.\
-parts)n.parts.le\
-ngth=0;n.chunk='\
-';n.len=0;n.name\
-='';this.q[this.\
-rd-1]=null;}}\x0ale\
-t payload='';if(\
-!e.parts||e.part\
-s.length===0)pay\
-load=e.chunk||''\
-;else if(e.parts\
-.length===1)payl\
-oad=e.parts[0]||\
-'';else payload=\
-e.parts.join('')\
-;this.engine.app\
-lyStream(e.name,\
-payload);process\
-ed++;if(e.parts)\
-e.parts.length=0\
-;e.chunk='';e.le\
-n=0;e.name='';th\
-is.q[idx]=null;p\
-ayload='';if(sch\
-ed&&sched.isInpu\
-tPending({includ\
-eContinuous:true\
-}))break;if((Uti\
-ls.now()-start)>\
-=this.DRAIN_BUDG\
-ET_MS)break;}\x0ath\
-is.batching=fals\
-e;if(this.needSc\
-roll){this.scrol\
-lMgr.scheduleScr\
-oll(true);this.n\
-eedScroll=false;\
-}\x0athis._maybeCom\
-pact();if(this.c\
-ount()>0)this._s\
-cheduleDrain();}\
-\x0akick(){if(this.\
-count()||this.dr\
-ainScheduled)thi\
-s._scheduleDrain\
-();}\x0aclear(){for\
+se{const boundar\
+y=this.snapshots\
+.hasStructuralBo\
+undary(s);if(thi\
+s.snapshots.shou\
+ldSnapshotOnChun\
+k(s,chunkHasNL,b\
+oundary)){this.d\
+ebug('snapshot.d\
+ecide',{reason:'\
+boundary/step'})\
+;this.snapshots.\
+scheduleSnapshot\
+(msg);}else{this\
+.snapshots.maybe\
+ScheduleSoftSnap\
+shot(msg,chunkHa\
+sNL);}}}};\x0a\x0a/* d\
+ata/js/app/queue\
+.js */\x0aclass Str\
+eamQueue{constru\
+ctor(cfg,engine,\
+scrollMgr,raf){t\
+his.cfg=cfg;this\
+.engine=engine;t\
+his.scrollMgr=sc\
+rollMgr;this.raf\
+=raf;this.q=[];t\
+his.rd=0;this.dr\
+ainScheduled=fal\
+se;this.batching\
+=false;this.need\
+Scroll=false;thi\
+s.DRAIN_KEY=Symb\
+ol('SQ:drain');c\
+onst R=(this.cfg\
+&&this.cfg.RAF)|\
+|{};this.DRAIN_B\
+UDGET_MS=(R.STRE\
+AM_DRAIN_BUDGET_\
+MS!=null)?R.STRE\
+AM_DRAIN_BUDGET_\
+MS:4;this.COMPAC\
+T_SLICE_THRESHOL\
+D=1024;this._las\
+tCompactRd=0;}\x0ac\
+ount(){return Ma\
+th.max(0,this.q.\
+length-this.rd);\
+}\x0a_compactContig\
+uousSameName(){c\
+onst n=this.coun\
+t();if(n<2)retur\
+n;const out=[];l\
+et prev=null;for\
 (let i=this.rd;i\
 <this.q.length;i\
-++){const e=this\
-.q[i];if(!e)cont\
-inue;if(e.parts)\
-e.parts.length=0\
-;e.chunk='';e.le\
-n=0;e.name='';th\
-is.q[i]=null;}\x0at\
+++){const cur=th\
+is.q[i];if(!cur)\
+continue;if(prev\
+&&prev.name===cu\
+r.name){if(cur.p\
+arts&&cur.parts.\
+length){for(let \
+k=0;k<cur.parts.\
+length;k++)prev.\
+parts.push(cur.p\
+arts[k]);}else i\
+f(cur.chunk){pre\
+v.parts.push(cur\
+.chunk);}\x0aprev.l\
+en+=(cur.len|0);\
+if(cur.parts)cur\
+.parts.length=0;\
+cur.chunk='';cur\
+.len=0;cur.name=\
+'';}else{const p\
+arts=cur.parts?c\
+ur.parts:(cur.ch\
+unk?[cur.chunk]:\
+[]);prev={name:c\
+ur.name,parts:pa\
+rts,len:cur.len!\
+=null?cur.len:(c\
+ur.chunk?cur.chu\
+nk.length:0)};ou\
+t.push(prev);if(\
+cur.parts)cur.pa\
+rts=[];cur.chunk\
+='';cur.len=0;cu\
+r.name='';}}\x0athi\
+s.q=out;this.rd=\
+0;this._lastComp\
+actRd=0;}\x0a_maybe\
+Compact(){if(thi\
+s.rd===0)return;\
+const n=this.cou\
+nt();if(n===0){t\
 his.q=[];this.rd\
 =0;this._lastCom\
-pactRd=0;try{thi\
-s.raf.cancelGrou\
-p('StreamQueue')\
-;}catch(_){}\x0athi\
-s.drainScheduled\
-=false;}};\x0a\x0a/* d\
-ata/js/app/templ\
-ate.js */\x0aclass \
-NodeTemplateEngi\
-ne{constructor(c\
-fg,logger){this.\
-cfg=cfg||{};this\
-.logger=logger||\
-{debug:()=>{}};t\
-his.tools=new No\
-deToolsTemplate(\
-this);this.artif\
-acts=new NodeArt\
-ifactsTemplate(t\
-his);this.timeli\
-ne=new NodeTimel\
-ineTemplate(this\
-);}\x0aesc(s){retur\
-n(s==null)?'':St\
-ring(s);}\x0aescape\
-Html(s){return(t\
-ypeof Utils!=='u\
-ndefined')?Utils\
-.escapeHtml(s):S\
-tring(s).replace\
-(/[&<>\x22']/g,m=>(\
-{'&':'&amp;','<'\
-:'&lt;','>':'&gt\
-;','\x22':'&quot;',\
-\x22'\x22:'&#039;'}[m]\
-));}\x0arenderNode(\
-block){const par\
-ts=[];if(block&&\
-block.input&&blo\
-ck.input.text)pa\
-rts.push(this._r\
-enderUser(block)\
-);if(block&&bloc\
-k.output){const \
-extra=block.extr\
-a||{};const hasT\
-oolCalls=Array.i\
-sArray(extra.too\
-l_calls)&&extra.\
-tool_calls.lengt\
-h>0;const hasTim\
-eline=Array.isAr\
-ray(extra.partia\
-l_timeline)&&ext\
-ra.partial_timel\
-ine.length>0;con\
-st hasCollapsedW\
-orkflow=!!(extra\
-.collapsed_workf\
-low&&Array.isArr\
-ay(extra.collaps\
-ed_workflow.time\
-line)&&extra.col\
-lapsed_workflow.\
-timeline.length>\
-0);if(block.outp\
-ut.text||hasTool\
-Calls||hasTimeli\
-ne||hasCollapsed\
-Workflow||extra.\
-tool_output_visi\
-ble===true){part\
-s.push(this._ren\
-derBot(block));}\
-}\x0areturn parts.j\
-oin('');}\x0arender\
-Nodes(blocks){if\
-(!Array.isArray(\
-blocks))return''\
-;const out=[];fo\
-r(let i=0;i<bloc\
-ks.length;i++){c\
-onst b=blocks[i]\
-||null;if(!b)con\
-tinue;out.push(t\
-his.renderNode(b\
-));}\x0areturn out.\
-join('');}\x0a_name\
-Header(role,name\
-,avatarUrl){if(!\
-name&&!avatarUrl\
-)return'';const \
-cls=(role==='use\
-r')?'name-user':\
-'name-bot';const\
- img=avatarUrl?`\
-<img src=\x22${this\
-.esc(avatarUrl)}\
-\x22 class=\x22avatar\x22\
-> `:'';return`<d\
-iv class=\x22name-h\
-eader ${cls}\x22>${\
-img}${this.esc(n\
-ame || '')}</div\
->`;}\x0a_renderUser\
-(block){const id\
-=block.id;const \
-inp=block.input|\
-|{};const msgId=\
-`msg-user-${id}`\
-;const personali\
-ze=!!(block&&blo\
-ck.extra&&block.\
-extra.personaliz\
-e===true);const \
-nameHeader=perso\
-nalize?this._nam\
-eHeader('user',i\
-np.name||'',inp.\
-avatar_img||null\
-):'';const dateL\
-abel=inp.date_la\
-bel?`<div class=\
-\x22msg-date-separa\
-tor${block.extra\
- && block.extra.\
-live_input_fade \
-? ' input-live-d\
-ate' : ''}\x22>${th\
-is.escapeHtml(in\
-p.date_label)}</\
-div>`:'';const c\
-ontent=(typeof U\
-tils!=='undefine\
-d'&&Utils.render\
-MentionText)?Uti\
-ls.renderMention\
-Text(inp.text||'\
-'):this.escapeHt\
-ml(inp.text||'')\
-.replace(/\x5cr?\x5cn/\
-g,'<br>');const \
-I=(this.cfg&&thi\
-s.cfg.ICONS)||{}\
-;const L=(this.c\
-fg&&this.cfg.LOC\
-ALE)||{};const c\
-opyIcon=I.CODE_C\
-OPY||'';const co\
-pyTitle=L.COPY||\
-'Copy';const cop\
-yBtn=`<a href=\x22e\
-mpty:${this.esc(\
-id)}\x22 class=\x22msg\
--copy-btn\x22 data-\
-id=\x22${this.esc(i\
-d)}\x22 data-tip=\x22$\
-{this.escapeHtml\
-(copyTitle)}\x22 ti\
-tle=\x22${this.esca\
-peHtml(copyTitle\
-)}\x22 aria-label=\x22\
-${this.escapeHtm\
-l(copyTitle)}\x22 r\
-ole=\x22button\x22><im\
-g src=\x22${this.es\
-c(copyIcon)}\x22 cl\
-ass=\x22copy-img\x22 a\
-lt=\x22${this.escap\
-eHtml(copyTitle)\
-}\x22 data-id=\x22${th\
-is.esc(id)}\x22></a\
->`;const editBtn\
-=`<a href=\x22extra\
--edit:${this.esc\
-(id)}\x22 class=\x22us\
-er-edit-btn\x22 dat\
-a-id=\x22${this.esc\
-(id)}\x22 title=\x22${\
-this.escapeHtml(\
-inp.edit_title |\
-| 'Edit')}\x22 aria\
--label=\x22${this.e\
-scapeHtml(inp.ed\
-it_title || 'Edi\
-t')}\x22 role=\x22butt\
-on\x22><img src=\x22${\
-this.esc(inp.edi\
-t_icon || '')}\x22 \
-alt=\x22\x22></a>`;ret\
-urn`${dateLabel}\
-<div class=\x22msg-\
-user-region${blo\
-ck.extra && bloc\
-k.extra.live_inp\
-ut_fade ? ' inpu\
-t-live-arrival' \
-: ''}\x22>${this.ar\
-tifacts.renderUs\
-erAttachments((b\
-lock.extra || {}\
-).user_attachmen\
-ts)}<div class=\x22\
-msg-box msg-user\
-\x22 id=\x22${msgId}\x22>\
-${nameHeader}<di\
-v class=\x22msg\x22><p\
- style=\x22margin:0\
-\x22>${content}</p>\
-</div></div><div\
- class=\x22user-mes\
-sage-actions\x22><t\
-ime>${this.escap\
-eHtml(inp.time_l\
-abel || '')}</ti\
-me>${copyBtn}${e\
-ditBtn}</div></d\
-iv>`;}\x0a_renderAc\
-tions(block){con\
-st extra=block.e\
-xtra||{};const a\
-ctions=extra.act\
-ions||[];if(!act\
-ions||!actions.l\
-ength)return'';c\
-onst parts=actio\
-ns.map((a)=>{con\
-st href=this.esc\
-(a.href||'#');co\
-nst title=this.e\
-sc(a.title||'');\
-const icon=this.\
-esc(a.icon||'');\
-const id=this.es\
-c(a.id||block.id\
-);return`<a href\
-=\x22${href}\x22 class\
-=\x22action-icon\x22 d\
-ata-id=\x22${id}\x22 r\
-ole=\x22button\x22><sp\
-an class=\x22cmd\x22><\
-img src=\x22${icon}\
-\x22 class=\x22action-\
-img\x22 title=\x22${ti\
-tle}\x22 alt=\x22${tit\
-le}\x22 data-id=\x22${\
-id}\x22></span></a>\
-`;});return`<div\
- class=\x22action-i\
-cons\x22 data-id=\x22$\
-{this.esc(block.\
-id)}\x22>${parts.jo\
-in('')}</div>`;}\
-\x0a_renderBot(bloc\
+pactRd=0;return;\
+}\x0aif(this.rd>=th\
+is.COMPACT_SLICE\
+_THRESHOLD){this\
+.q=this.q.slice(\
+this.rd);this.rd\
+=0;this._lastCom\
+pactRd=0;return;\
+}\x0aif(this.rd-thi\
+s._lastCompactRd\
+>=128||(this.rd>\
+64&&this.rd>=(th\
+is.q.length>>1))\
+){this.q=this.q.\
+slice(this.rd);t\
+his.rd=0;this._l\
+astCompactRd=0;}\
+}\x0a_scheduleDrain\
+(){if(this.drain\
+Scheduled)return\
+;this.drainSched\
+uled=true;this.r\
+af.schedule(this\
+.DRAIN_KEY,()=>t\
+his.drain(),'Str\
+eamQueue',-5);}\x0a\
+enqueue(name_hea\
+der,chunk){if(!c\
+hunk||chunk.leng\
+th===0)return;co\
+nst name=name_he\
+ader;const hasPe\
+nding=this.count\
+()>0;const tail=\
+hasPending?this.\
+q[this.q.length-\
+1]:null;if(tail&\
+&tail.name===nam\
+e){tail.parts.pu\
+sh(chunk);tail.l\
+en+=chunk.length\
+;}else{this.q.pu\
+sh({name,parts:[\
+chunk],len:chunk\
+.length});}\x0acons\
+t cnt=this.count\
+();if(cnt>(this.\
+cfg.STREAM.EMERG\
+ENCY_COALESCE_LE\
+N|0))this._compa\
+ctContiguousSame\
+Name();else if(c\
+nt>(this.cfg.STR\
+EAM.QUEUE_MAX_IT\
+EMS|0))this._com\
+pactContiguousSa\
+meName();this._s\
+cheduleDrain();}\
+\x0adrain(){this.dr\
+ainScheduled=fal\
+se;const adaptiv\
+e=(this.cfg.STRE\
+AM.COALESCE_MODE\
+==='adaptive');c\
+onst coalesceAgg\
+ressive=adaptive\
+&&(this.count()>\
+=(this.cfg.STREA\
+M.EMERGENCY_COAL\
+ESCE_LEN|0));con\
+st basePerFrame=\
+this.cfg.STREAM.\
+MAX_PER_FRAME|0;\
+const perFrame=a\
+daptive?Math.min\
+(basePerFrame+Ma\
+th.floor(this.co\
+unt()/20),basePe\
+rFrame*4):basePe\
+rFrame;const sta\
+rt=Utils.now();c\
+onst sched=(navi\
+gator&&navigator\
+.scheduling&&nav\
+igator.schedulin\
+g.isInputPending\
+)?navigator.sche\
+duling:null;this\
+.batching=true;l\
+et processed=0;w\
+hile(this.rd<thi\
+s.q.length&&proc\
+essed<perFrame){\
+const idx=this.r\
+d++;const e=this\
+.q[idx];if(!e)co\
+ntinue;if(coales\
+ceAggressive){wh\
+ile(this.rd<this\
+.q.length&&this.\
+q[this.rd]&&this\
+.q[this.rd].name\
+===e.name){const\
+ n=this.q[this.r\
+d++];if(n.parts&\
+&n.parts.length)\
+{for(let k=0;k<n\
+.parts.length;k+\
++)e.parts.push(n\
+.parts[k]);}else\
+ if(n.chunk){e.p\
+arts.push(n.chun\
+k);}\x0ae.len+=(n.l\
+en|0);if(n.parts\
+)n.parts.length=\
+0;n.chunk='';n.l\
+en=0;n.name='';t\
+his.q[this.rd-1]\
+=null;}}\x0alet pay\
+load='';if(!e.pa\
+rts||e.parts.len\
+gth===0)payload=\
+e.chunk||'';else\
+ if(e.parts.leng\
+th===1)payload=e\
+.parts[0]||'';el\
+se payload=e.par\
+ts.join('');this\
+.engine.applyStr\
+eam(e.name,paylo\
+ad);processed++;\
+if(e.parts)e.par\
+ts.length=0;e.ch\
+unk='';e.len=0;e\
+.name='';this.q[\
+idx]=null;payloa\
+d='';if(sched&&s\
+ched.isInputPend\
+ing({includeCont\
+inuous:true}))br\
+eak;if((Utils.no\
+w()-start)>=this\
+.DRAIN_BUDGET_MS\
+)break;}\x0athis.ba\
+tching=false;if(\
+this.needScroll)\
+{this.scrollMgr.\
+scheduleScroll(t\
+rue);this.needSc\
+roll=false;}\x0athi\
+s._maybeCompact(\
+);if(this.count(\
+)>0)this._schedu\
+leDrain();}\x0akick\
+(){if(this.count\
+()||this.drainSc\
+heduled)this._sc\
+heduleDrain();}\x0a\
+clear(){for(let \
+i=this.rd;i<this\
+.q.length;i++){c\
+onst e=this.q[i]\
+;if(!e)continue;\
+if(e.parts)e.par\
+ts.length=0;e.ch\
+unk='';e.len=0;e\
+.name='';this.q[\
+i]=null;}\x0athis.q\
+=[];this.rd=0;th\
+is._lastCompactR\
+d=0;try{this.raf\
+.cancelGroup('St\
+reamQueue');}cat\
+ch(_){}\x0athis.dra\
+inScheduled=fals\
+e;}};\x0a\x0a/* data/j\
+s/app/template.j\
+s */\x0aclass NodeT\
+emplateEngine{co\
+nstructor(cfg,lo\
+gger){this.cfg=c\
+fg||{};this.logg\
+er=logger||{debu\
+g:()=>{}};this.t\
+ools=new NodeToo\
+lsTemplate(this)\
+;this.artifacts=\
+new NodeArtifact\
+sTemplate(this);\
+this.timeline=ne\
+w NodeTimelineTe\
+mplate(this);}\x0ae\
+sc(s){return(s==\
+null)?'':String(\
+s);}\x0aescapeHtml(\
+s){return(typeof\
+ Utils!=='undefi\
+ned')?Utils.esca\
+peHtml(s):String\
+(s).replace(/[&<\
+>\x22']/g,m=>({'&':\
+'&amp;','<':'&lt\
+;','>':'&gt;','\x22\
+':'&quot;',\x22'\x22:'\
+&#039;'}[m]));}\x0a\
+renderNode(block\
+){const parts=[]\
+;if(block&&block\
+.input&&block.in\
+put.text)parts.p\
+ush(this._render\
+User(block));if(\
+block&&block.out\
+put){const extra\
+=block.extra||{}\
+;const hasToolCa\
+lls=Array.isArra\
+y(extra.tool_cal\
+ls)&&extra.tool_\
+calls.length>0;c\
+onst hasTimeline\
+=Array.isArray(e\
+xtra.partial_tim\
+eline)&&extra.pa\
+rtial_timeline.l\
+ength>0;const ha\
+sCollapsedWorkfl\
+ow=!!(extra.coll\
+apsed_workflow&&\
+Array.isArray(ex\
+tra.collapsed_wo\
+rkflow.timeline)\
+&&extra.collapse\
+d_workflow.timel\
+ine.length>0);if\
+(block.output.te\
+xt||hasToolCalls\
+||hasTimeline||h\
+asCollapsedWorkf\
+low||extra.tool_\
+output_visible==\
+=true){parts.pus\
+h(this._renderBo\
+t(block));}}\x0aret\
+urn parts.join('\
+');}\x0arenderNodes\
+(blocks){if(!Arr\
+ay.isArray(block\
+s))return'';cons\
+t out=[];for(let\
+ i=0;i<blocks.le\
+ngth;i++){const \
+b=blocks[i]||nul\
+l;if(!b)continue\
+;out.push(this.r\
+enderNode(b));}\x0a\
+return out.join(\
+'');}\x0a_nameHeade\
+r(role,name,avat\
+arUrl){if(!name&\
+&!avatarUrl)retu\
+rn'';const cls=(\
+role==='user')?'\
+name-user':'name\
+-bot';const img=\
+avatarUrl?`<img \
+src=\x22${this.esc(\
+avatarUrl)}\x22 cla\
+ss=\x22avatar\x22> `:'\
+';return`<div cl\
+ass=\x22name-header\
+ ${cls}\x22>${img}$\
+{this.esc(name |\
+| '')}</div>`;}\x0a\
+_renderUser(bloc\
 k){const id=bloc\
-k.id;const out=b\
-lock.output||{};\
-const msgId=`msg\
--bot-${id}`;cons\
+k.id;const inp=b\
+lock.input||{};c\
+onst msgId=`msg-\
+user-${id}`;cons\
 t personalize=!!\
 (block&&block.ex\
 tra&&block.extra\
@@ -142748,2395 +142616,2543 @@ tra&&block.extra\
 rue);const nameH\
 eader=personaliz\
 e?this._nameHead\
-er('bot',out.nam\
-e||'',out.avatar\
-_img||null):'';c\
-onst mdText=this\
-.escapeHtml(out.\
-text||'');const \
-timelineHtml=thi\
+er('user',inp.na\
+me||'',inp.avata\
+r_img||null):'';\
+const dateLabel=\
+inp.date_label?`\
+<div class=\x22msg-\
+date-separator${\
+block.extra && b\
+lock.extra.live_\
+input_fade ? ' i\
+nput-live-date' \
+: ''}\x22>${this.es\
+capeHtml(inp.dat\
+e_label)}</div>`\
+:'';const conten\
+t=(typeof Utils!\
+=='undefined'&&U\
+tils.renderMenti\
+onText)?Utils.re\
+nderMentionText(\
+inp.text||''):th\
+is.escapeHtml(in\
+p.text||'').repl\
+ace(/\x5cr?\x5cn/g,'<b\
+r>');const I=(th\
+is.cfg&&this.cfg\
+.ICONS)||{};cons\
+t L=(this.cfg&&t\
+his.cfg.LOCALE)|\
+|{};const copyIc\
+on=I.CODE_COPY||\
+'';const copyTit\
+le=L.COPY||'Copy\
+';const copyBtn=\
+`<a href=\x22empty:\
+${this.esc(id)}\x22\
+ class=\x22msg-copy\
+-btn\x22 data-id=\x22$\
+{this.esc(id)}\x22 \
+data-tip=\x22${this\
+.escapeHtml(copy\
+Title)}\x22 title=\x22\
+${this.escapeHtm\
+l(copyTitle)}\x22 a\
+ria-label=\x22${thi\
+s.escapeHtml(cop\
+yTitle)}\x22 role=\x22\
+button\x22><img src\
+=\x22${this.esc(cop\
+yIcon)}\x22 class=\x22\
+copy-img\x22 alt=\x22$\
+{this.escapeHtml\
+(copyTitle)}\x22 da\
+ta-id=\x22${this.es\
+c(id)}\x22></a>`;co\
+nst editBtn=`<a \
+href=\x22extra-edit\
+:${this.esc(id)}\
+\x22 class=\x22user-ed\
+it-btn\x22 data-id=\
+\x22${this.esc(id)}\
+\x22 title=\x22${this.\
+escapeHtml(inp.e\
+dit_title || 'Ed\
+it')}\x22 aria-labe\
+l=\x22${this.escape\
+Html(inp.edit_ti\
+tle || 'Edit')}\x22\
+ role=\x22button\x22><\
+img src=\x22${this.\
+esc(inp.edit_ico\
+n || '')}\x22 alt=\x22\
+\x22></a>`;return`$\
+{dateLabel}<div \
+class=\x22msg-user-\
+region${block.ex\
+tra && block.ext\
+ra.live_input_fa\
+de ? ' input-liv\
+e-arrival' : ''}\
+\x22>${this.artifac\
+ts.renderUserAtt\
+achments((block.\
+extra || {}).use\
+r_attachments)}<\
+div class=\x22msg-b\
+ox msg-user\x22 id=\
+\x22${msgId}\x22>${nam\
+eHeader}<div cla\
+ss=\x22msg\x22><p styl\
+e=\x22margin:0\x22>${c\
+ontent}</p></div\
+></div><div clas\
+s=\x22user-message-\
+actions\x22><time>$\
+{this.escapeHtml\
+(inp.time_label \
+|| '')}</time>${\
+copyBtn}${editBt\
+n}</div></div>`;\
+}\x0a_renderActions\
+(block){const ex\
+tra=block.extra|\
+|{};const action\
+s=extra.actions|\
+|[];if(!actions|\
+|!actions.length\
+)return'';const \
+parts=actions.ma\
+p((a)=>{const hr\
+ef=this.esc(a.hr\
+ef||'#');const t\
+itle=this.esc(a.\
+title||'');const\
+ icon=this.esc(a\
+.icon||'');const\
+ id=this.esc(a.i\
+d||block.id);ret\
+urn`<a href=\x22${h\
+ref}\x22 class=\x22act\
+ion-icon\x22 data-i\
+d=\x22${id}\x22 role=\x22\
+button\x22><span cl\
+ass=\x22cmd\x22><img s\
+rc=\x22${icon}\x22 cla\
+ss=\x22action-img\x22 \
+title=\x22${title}\x22\
+ alt=\x22${title}\x22 \
+data-id=\x22${id}\x22>\
+</span></a>`;});\
+return`<div clas\
+s=\x22action-icons\x22\
+ data-id=\x22${this\
+.esc(block.id)}\x22\
+>${parts.join(''\
+)}</div>`;}\x0a_ren\
+derBot(block){co\
+nst id=block.id;\
+const out=block.\
+output||{};const\
+ msgId=`msg-bot-\
+${id}`;const per\
+sonalize=!!(bloc\
+k&&block.extra&&\
+block.extra.pers\
+onalize===true);\
+const nameHeader\
+=personalize?thi\
+s._nameHeader('b\
+ot',out.name||''\
+,out.avatar_img|\
+|null):'';const \
+mdText=this.esca\
+peHtml(out.text|\
+|'');const timel\
+ineHtml=this.tim\
+eline.renderPart\
+ialTimeline(bloc\
+k);const agentNa\
+me=String(out.ag\
+ent_name_prefix|\
+|'').trim();cons\
+t agentPrefix=(!\
+timelineHtml&&md\
+Text&&agentName)\
+?`<span class='a\
+gent-name-prefix\
+'>${this.escapeH\
+tml(agentName)}<\
+/span>`:'';const\
+ mdBlock=timelin\
+eHtml?'':(mdText\
+?`${agentPrefix}\
+<div class='md-b\
+lock' md-block-m\
+arkdown='1'>${md\
+Text}</div>`:'')\
+;const collapsed\
+WorkflowHtml=tim\
+elineHtml?'':thi\
 s.timeline.rende\
-rPartialTimeline\
-(block);const ag\
-entName=String(o\
-ut.agent_name_pr\
-efix||'').trim()\
-;const agentPref\
-ix=(!timelineHtm\
-l&&mdText&&agent\
-Name)?`<span cla\
-ss='agent-name-p\
-refix'>${this.es\
-capeHtml(agentNa\
-me)}</span>`:'';\
-const mdBlock=ti\
-melineHtml?'':(m\
-dText?`${agentPr\
-efix}<div class=\
-'md-block' md-bl\
-ock-markdown='1'\
->${mdText}</div>\
-`:'');const coll\
-apsedWorkflowHtm\
-l=timelineHtml?'\
-':this.timeline.\
-renderCollapsedW\
-orkflow(block);c\
-onst primaryHtml\
-=timelineHtml||`\
-${collapsedWorkf\
-lowHtml}${mdBloc\
-k}`;const toolWr\
-ap=timelineHtml?\
-'':this.tools.re\
-nderToolOutputWr\
-apper(block);con\
-st extras=this.a\
-rtifacts.renderE\
-xtras(block);con\
-st actions=(bloc\
-k.extra&&block.e\
-xtra.footer_icon\
-s)?this._renderA\
-ctions(block):''\
-;const debug=(bl\
+rCollapsedWorkfl\
+ow(block);const \
+primaryHtml=time\
+lineHtml||`${col\
+lapsedWorkflowHt\
+ml}${mdBlock}`;c\
+onst toolWrap=ti\
+melineHtml?'':th\
+is.tools.renderT\
+oolOutputWrapper\
+(block);const ex\
+tras=this.artifa\
+cts.renderExtras\
+(block);const ac\
+tions=(block.ext\
+ra&&block.extra.\
+footer_icons)?th\
+is._renderAction\
+s(block):'';cons\
+t debug=(block.e\
+xtra&&block.extr\
+a.debug_html)?St\
+ring(block.extra\
+.debug_html):'';\
+const toolCalls=\
+Array.isArray(bl\
 ock.extra&&block\
-.extra.debug_htm\
-l)?String(block.\
-extra.debug_html\
-):'';const toolC\
-alls=Array.isArr\
-ay(block.extra&&\
+.extra.tool_call\
+s)?block.extra.t\
+ool_calls.filter\
+(Boolean):[];con\
+st hasToolCalls=\
+toolCalls.length\
+>0;const toolOnl\
+y=hasToolCalls&&\
+!mdText;const ch\
+ainContinuation=\
+!!(block.extra&&\
 block.extra.tool\
-_calls)?block.ex\
-tra.tool_calls.f\
-ilter(Boolean):[\
-];const hasToolC\
-alls=toolCalls.l\
-ength>0;const to\
-olOnly=hasToolCa\
-lls&&!mdText;con\
-st chainContinua\
-tion=!!(block.ex\
-tra&&block.extra\
-.tool_chain_cont\
-inuation===true)\
-;const toolChain\
-Attrs=hasToolCal\
-ls?` data-tool-o\
-nly='${toolOnly \
-? '1' : '0'}' da\
-ta-tool-chain-co\
-ntinuation='${ch\
-ainContinuation \
-? '1' : '0'}'`:'\
-';return(`<div c\
-lass='msg-box ms\
-g-bot' id='${msg\
-Id}'${toolChainA\
-ttrs}>`+`${nameH\
-eader}`+`<div cl\
-ass='msg'>`+`<di\
-v class='msg-tim\
-eline'>${primary\
-Html}${toolWrap}\
+_chain_continuat\
+ion===true);cons\
+t toolChainAttrs\
+=hasToolCalls?` \
+data-tool-only='\
+${toolOnly ? '1'\
+ : '0'}' data-to\
+ol-chain-continu\
+ation='${chainCo\
+ntinuation ? '1'\
+ : '0'}'`:'';ret\
+urn(`<div class=\
+'msg-box msg-bot\
+' id='${msgId}'$\
+{toolChainAttrs}\
+>`+`${nameHeader\
+}`+`<div class='\
+msg'>`+`<div cla\
+ss='msg-timeline\
+'>${primaryHtml}\
+${toolWrap}</div\
+>`+`<div class='\
+msg-tool-extra'>\
 </div>`+`<div cl\
-ass='msg-tool-ex\
-tra'></div>`+`<d\
-iv class='msg-ex\
-tra'>${extras}</\
-div>`+`${actions\
-}${debug}`+`</di\
-v>`+`</div>`);}}\
-;\x0a\x0a/* data/js/ap\
-p/tool.js */\x0acla\
-ss ToolOutput{co\
-nstructor(scroll\
-Mgr=null,{templa\
-tes=null,rendere\
-r=null,findStatu\
-sHost=()=>null}=\
-{}){this.groups=\
-new ToolGroups(t\
-his);this.scroll\
-Mgr=scrollMgr;th\
-is.templates=tem\
-plates;this.rend\
-erer=renderer;th\
-is.findStatusHos\
-t=findStatusHost\
-;this._viewportA\
-nchorSeq=0;this.\
-_viewportAnchorT\
-imer=0;}\x0areconci\
-le(parent,desire\
-d){const wanted=\
-JSON.parse(desir\
-ed.getAttribute(\
-'data-tool-keys'\
-)||'[]');const s\
-ources=Array.fro\
-m(parent.querySe\
-lectorAll('.tool\
--output[data-too\
-l-keys]')).filte\
-r(el=>(!wanted.l\
-ength&&el.id===d\
-esired.id)||JSON\
-.parse(el.getAtt\
-ribute('data-too\
-l-keys')||'[]').\
-some(key=>wanted\
-.includes(key)))\
-;const existing=\
-sources[0];if(!e\
-xisting)return d\
-esired.cloneNode\
-(true);const con\
-tent=this._conte\
-nt(existing);con\
-st expanded=sour\
-ces.some(el=>{co\
-nst body=this._c\
-ontent(el);retur\
-n body&&body.cla\
-ssList.contains(\
-'is-expanded');}\
-);const clone=de\
-sired.cloneNode(\
-true);for(const \
-pair of Array.fr\
-om(clone.querySe\
-lectorAll('[data\
--tool-key]'))){c\
-onst old=sources\
-.flatMap(source=\
->Array.from(sour\
-ce.querySelector\
-All('[data-tool-\
-key]'))).find(el\
-=>el.getAttribut\
+ass='msg-extra'>\
+${extras}</div>`\
++`${actions}${de\
+bug}`+`</div>`+`\
+</div>`);}};\x0a\x0a/*\
+ data/js/app/too\
+l.js */\x0aclass To\
+olOutput{constru\
+ctor(scrollMgr=n\
+ull,{templates=n\
+ull,renderer=nul\
+l,findStatusHost\
+=()=>null}={}){t\
+his.groups=new T\
+oolGroups(this);\
+this.scrollMgr=s\
+crollMgr;this.te\
+mplates=template\
+s;this.renderer=\
+renderer;this.fi\
+ndStatusHost=fin\
+dStatusHost;this\
+._viewportAnchor\
+Seq=0;this._view\
+portAnchorTimer=\
+0;}\x0areconcile(pa\
+rent,desired){co\
+nst wanted=JSON.\
+parse(desired.ge\
+tAttribute('data\
+-tool-keys')||'[\
+]');const source\
+s=Array.from(par\
+ent.querySelecto\
+rAll('.tool-outp\
+ut[data-tool-key\
+s]')).filter(el=\
+>(!wanted.length\
+&&el.id===desire\
+d.id)||JSON.pars\
+e(el.getAttribut\
 e('data-tool-key\
-')===pair.getAtt\
-ribute('data-too\
-l-key'));if(!old\
-)continue;for(co\
-nst selector of[\
-'.tool-output-re\
-quest-data','.to\
-ol-output-result\
--data']){const n\
-extData=pair.que\
-rySelector(selec\
-tor),oldData=old\
-.querySelector(s\
-elector);if(!nex\
-tData||!oldData)\
-continue;const r\
-aw=el=>{const pa\
-yload=el.querySe\
-lector('[data-to\
-ol-raw]');if(pay\
-load)return payl\
-oad.getAttribute\
-('data-tool-raw'\
-);const pending=\
-el.querySelector\
-('[md-block-mark\
-down]');if(pendi\
-ng)return pendin\
-g.textContent;co\
-nst code=el.quer\
-ySelector('pre c\
-ode');return cod\
-e?this._codeMark\
-down(code.textCo\
-ntent):'';};if(r\
-aw(nextData)===r\
-aw(oldData))next\
-Data.replaceWith\
-(oldData);}\x0acons\
-t oldItem=old.cl\
-osest('.tool-out\
-put-item'),nextI\
-tem=pair.closest\
+s')||'[]').some(\
+key=>wanted.incl\
+udes(key)));cons\
+t existing=sourc\
+es[0];if(!existi\
+ng)return desire\
+d.cloneNode(true\
+);const content=\
+this._content(ex\
+isting);const ex\
+panded=sources.s\
+ome(el=>{const b\
+ody=this._conten\
+t(el);return bod\
+y&&body.classLis\
+t.contains('is-e\
+xpanded');});con\
+st clone=desired\
+.cloneNode(true)\
+;for(const pair \
+of Array.from(cl\
+one.querySelecto\
+rAll('[data-tool\
+-key]'))){const \
+old=sources.flat\
+Map(source=>Arra\
+y.from(source.qu\
+erySelectorAll('\
+[data-tool-key]'\
+))).find(el=>el.\
+getAttribute('da\
+ta-tool-key')===\
+pair.getAttribut\
+e('data-tool-key\
+'));if(!old)cont\
+inue;for(const s\
+elector of['.too\
+l-output-request\
+-data','.tool-ou\
+tput-result-data\
+']){const nextDa\
+ta=pair.querySel\
+ector(selector),\
+oldData=old.quer\
+ySelector(select\
+or);if(!nextData\
+||!oldData)conti\
+nue;const raw=el\
+=>{const payload\
+=el.querySelecto\
+r('[data-tool-ra\
+w]');if(payload)\
+return payload.g\
+etAttribute('dat\
+a-tool-raw');con\
+st pending=el.qu\
+erySelector('[md\
+-block-markdown]\
+');if(pending)re\
+turn pending.tex\
+tContent;const c\
+ode=el.querySele\
+ctor('pre code')\
+;return code?thi\
+s._codeMarkdown(\
+code.textContent\
+):'';};if(raw(ne\
+xtData)===raw(ol\
+dData))nextData.\
+replaceWith(oldD\
+ata);}\x0aconst old\
+Item=old.closest\
 ('.tool-output-i\
-tem');if(nextIte\
-m&&((oldItem&&ol\
-dItem.querySelec\
-tor('[aria-expan\
-ded=\x22true\x22]'))||\
-(!oldItem&&expan\
-ded))){this._set\
-Expanded(nextIte\
-m.querySelector(\
-'.tool-group-con\
-tent'),true);nex\
-tItem.querySelec\
-tor('button').se\
-tAttribute('aria\
--expanded','true\
-');nextItem.quer\
-ySelector('.tool\
--output-arrow').\
-classList.add('t\
-oggle-expanded')\
-;}}\x0afor(const at\
-tr of Array.from\
-(existing.attrib\
-utes))existing.r\
-emoveAttribute(a\
-ttr.name);for(co\
-nst attr of Arra\
-y.from(clone.att\
-ributes))existin\
-g.setAttribute(a\
-ttr.name,attr.va\
-lue);const oldHe\
-ader=this.direct\
-Child(existing,'\
-.tool-output-tog\
-gle');const newH\
-eader=this.direc\
-tChild(clone,'.t\
-ool-output-toggl\
-e');if(oldHeader\
-&&newHeader){old\
-Header.onclick=n\
-ull;for(const at\
-tr of Array.from\
-(oldHeader.attri\
-butes))oldHeader\
-.removeAttribute\
-(attr.name);for(\
-const attr of Ar\
-ray.from(newHead\
-er.attributes))o\
-ldHeader.setAttr\
-ibute(attr.name,\
-attr.value);for(\
-const child of A\
-rray.from(newHea\
-der.children)){c\
-onst oldChild=Ar\
-ray.from(oldHead\
-er.children).fin\
-d(el=>el.classNa\
-me===child.class\
-Name);if(!oldChi\
-ld)continue;if(o\
-ldChild.textCont\
-ent!==child.text\
-Content)oldChild\
-.textContent=chi\
-ld.textContent;c\
-hild.replaceWith\
-(oldChild);}\x0aold\
-Header.replaceCh\
-ildren(...Array.\
-from(newHeader.c\
-hildNodes));newH\
-eader.replaceWit\
-h(oldHeader);}\x0ac\
-onst newContent=\
-this._content(cl\
-one);if(content&\
-&newContent){con\
-st body=this._co\
-ntentBody(conten\
-t);body.replaceC\
-hildren(...Array\
-.from(this._cont\
-entBody(newConte\
-nt).childNodes))\
-;newContent.repl\
-aceWith(content)\
-;}\x0aexisting.repl\
-aceChildren(...A\
-rray.from(clone.\
-childNodes));if(\
-expanded){this._\
-setExpanded(this\
-._content(existi\
-ng),true);existi\
-ng.querySelector\
-('button').setAt\
-tribute('aria-ex\
-panded','true');\
-existing.querySe\
-lector('.tool-ou\
-tput-arrow').cla\
-ssList.add('togg\
-le-expanded');}\x0a\
-for(const duplic\
-ate of sources.s\
-lice(1))duplicat\
-e.remove();retur\
-n existing;}\x0asyn\
-cLive(parentId,c\
-alls){const host\
-=this.findStatus\
-Host(parentId,fa\
-lse);if(!host||!\
-calls.length)ret\
-urn;const status\
-=Array.from(host\
-.timeline.queryS\
-electorAll('.wor\
-kflow-status')).\
-reverse().find(e\
-l=>el.dataset.st\
-atusKind==='tool\
-');if(!status)re\
-turn;const shell\
-=document.create\
-Element('div');s\
-hell.innerHTML=t\
-his.templates.to\
-ols.renderToolOu\
-tputWrapper({id:\
-`live-${parentId\
-}`,extra:{tool_c\
-alls:calls,tool_\
-output_visible:t\
-rue}});const des\
-ired=shell.first\
-ElementChild;des\
-ired.setAttribut\
-e('data-live-too\
-ls','1');desired\
-.classList.add('\
-tool-output-live\
-');const output=\
-this.reconcile(h\
-ost.timeline,des\
-ired);output.que\
-rySelector('butt\
-on').onclick=()=\
->this.toggle(`li\
-ve-${parentId}`)\
-;status.classLis\
-t.add('live-tool\
--status');if(!ou\
-tput.isConnected\
-)status.appendCh\
-ild(output);stat\
-us.style.display\
-=status.contains\
-(output)?'':'non\
-e';this.renderer\
-.renderPendingMa\
-rkdown(output);}\
-\x0adirectChild(par\
-ent,selector){if\
-(!parent||!paren\
-t.children)retur\
-n null;const chi\
-ldren=Array.from\
-(parent.children\
-);for(let i=0;i<\
-children.length;\
-i++){const child\
-=children[i];try\
-{if(child.matche\
-s(selector))retu\
-rn child;}catch(\
-_){}}\x0areturn nul\
-l;}\x0ashowLoader()\
-{return;}\x0ahideLo\
-ader(){const ele\
-ments=document.q\
-uerySelectorAll(\
-'.msg-bot');if(e\
-lements.length>0\
-)elements.forEac\
-h(el=>{const s=e\
-l.querySelector(\
-'.spinner');if(s\
-)s.style.display\
-='none';});}\x0abeg\
-in(){this.showLo\
-ader();}\x0aend(){t\
-his.hideLoader()\
-;}\x0aenable(){cons\
-t els=this._muta\
-bleOutputs();if(\
-els.length)els[e\
-ls.length-1].sty\
-le.display='bloc\
-k';}\x0adisable(){c\
-onst els=this._m\
-utableOutputs();\
-if(els.length)el\
-s[els.length-1].\
-style.display='n\
-one';}\x0aappend(co\
-ntent){this.hide\
-Loader();this.en\
-able();const els\
-=this._mutableOu\
-tputs();if(els.l\
-ength){const con\
-tentEl=this._con\
-tent(els[els.len\
-gth-1]);if(!cont\
-entEl)return;con\
-st results=conte\
-ntEl.querySelect\
-orAll('.tool-out\
-put-result-data'\
-);const resultEl\
-=results.length?\
-results[results.\
-length-1]:null;i\
-f(resultEl){cons\
-t next=this._res\
-ultRaw(resultEl)\
-+(content==null?\
-'':String(conten\
-t));this._render\
-StructuredResult\
-(resultEl,next);\
-}else{this._cont\
-entBody(contentE\
-l).insertAdjacen\
-tHTML('beforeend\
-',content==null?\
-'':String(conten\
-t));}}}\x0aupdate(c\
-ontent){this.hid\
-eLoader();this.e\
-nable();const el\
-s=this._mutableO\
-utputs();if(els.\
-length){const co\
-ntentEl=this._co\
-ntent(els[els.le\
-ngth-1]);if(!con\
-tentEl)return;co\
-nst results=cont\
-entEl.querySelec\
-torAll('.tool-ou\
-tput-result-data\
-');const resultE\
-l=results.length\
-?results[results\
-.length-1]:null;\
-if(resultEl){thi\
-s._renderStructu\
-redResult(result\
-El,content);}els\
-e{this._contentB\
-ody(contentEl).i\
-nnerHTML=content\
-==null?'':String\
-(content);}}}\x0acl\
-ear(){this.hideL\
-oader();const el\
-s=this._mutableO\
-utputs();if(els.\
-length){const co\
-ntentEl=this._co\
-ntent(els[els.le\
-ngth-1]);if(!con\
-tentEl)return;co\
-nst results=cont\
-entEl.querySelec\
-torAll('.tool-ou\
-tput-result-data\
-');const resultE\
-l=results.length\
-?results[results\
-.length-1]:null;\
-if(resultEl)this\
-._renderStructur\
-edResult(resultE\
-l,'');else this.\
-_contentBody(con\
-tentEl).replaceC\
-hildren();}}\x0atog\
-gleGroup(id){con\
-st groupEl=docum\
-ent.getElementBy\
-Id(String(id||''\
-));if(!groupEl)r\
-eturn;const cont\
-ent=this.directC\
-hild(groupEl,'.t\
-ool-group-conten\
-t');if(!content)\
-return;const hea\
-der=this.directC\
-hild(groupEl,'.t\
-ool-output-toggl\
-e.tool-group-tog\
-gle');const expa\
-nded=!content.cl\
-assList.contains\
-('is-expanded');\
-this._withViewpo\
-rtAnchor(header|\
-|groupEl,()=>{th\
-is._setExpanded(\
-content,expanded\
-);if(header)head\
-er.setAttribute(\
-'aria-expanded',\
-expanded?'true':\
-'false');const a\
-rrow=header?head\
-er.querySelector\
-('.tool-group-ar\
-row'):null;if(ar\
-row)arrow.classL\
-ist.toggle('togg\
-le-expanded',exp\
-anded);});}\x0atogg\
-le(id){let outpu\
-tEl=document.get\
-ElementById('too\
-l-output-'+id);i\
-f(!outputEl){con\
-st el=document.g\
-etElementById('m\
-sg-bot-'+id);if(\
-!el)return;outpu\
-tEl=el.querySele\
-ctor('.tool-outp\
-ut:not(.tool-out\
-put-group)');}\x0ai\
-f(!outputEl)retu\
-rn;const content\
-El=this._content\
-(outputEl);if(!c\
-ontentEl)return;\
-const headerEl=o\
-utputEl.querySel\
-ector('.tool-out\
-put-toggle');con\
-st expanded=!con\
-tentEl.classList\
-.contains('is-ex\
-panded');this._w\
-ithViewportAncho\
-r(headerEl||outp\
-utEl,()=>{this._\
-setExpanded(cont\
-entEl,expanded);\
-if(headerEl)head\
-erEl.setAttribut\
-e('aria-expanded\
-',expanded?'true\
-':'false');const\
- arrowEl=outputE\
-l.querySelector(\
-'.tool-output-ar\
-row')||outputEl.\
-querySelector('.\
-toggle-cmd-outpu\
-t img');if(arrow\
-El)arrowEl.class\
-List.toggle('tog\
-gle-expanded',ex\
-panded);});}\x0a_wi\
-thViewportAnchor\
-(anchorEl,mutate\
-){if(typeof muta\
-te!=='function')\
-return;const anc\
-hor=anchorEl&&an\
-chorEl.isConnect\
-ed?anchorEl:null\
-;const scroller=\
-(typeof Utils!==\
-'undefined'&&Uti\
-ls.SE)?Utils.SE:\
-(document.scroll\
-ingElement||docu\
-ment.documentEle\
-ment);const befo\
-reTop=anchor?anc\
-hor.getBoundingC\
-lientRect().top:\
-null;const scrol\
-lMgr=this.scroll\
-Mgr;if(scrollMgr\
-&&typeof scrollM\
-gr.suspendAutoFo\
-llow==='function\
-'){scrollMgr.sus\
-pendAutoFollow()\
-;}\x0aconst root=do\
-cument.documentE\
-lement;if(root&&\
-root.classList)r\
-oot.classList.ad\
-d('tool-viewport\
--anchor-lock');m\
-utate();const se\
-q=++this._viewpo\
-rtAnchorSeq;cons\
-t correct=()=>{i\
-f(seq!==this._vi\
-ewportAnchorSeq|\
-|!anchor||!ancho\
-r.isConnected||b\
-eforeTop==null||\
-!scroller)return\
-;const delta=anc\
-hor.getBoundingC\
-lientRect().top-\
-beforeTop;if(Mat\
-h.abs(delta)<=0.\
-5)return;const m\
-axTop=Math.max(0\
-,Number(scroller\
-.scrollHeight||0\
-)-Number(scrolle\
-r.clientHeight||\
-0));const target\
-=Math.max(0,Math\
-.min(maxTop,Numb\
-er(scroller.scro\
-llTop||0)+delta)\
-);if(scrollMgr&&\
-typeof scrollMgr\
-.markProgrammati\
-cScroll==='funct\
-ion'){scrollMgr.\
-markProgrammatic\
-Scroll(target);}\
-\x0atry{scroller.sc\
-rollTop=target;}\
-catch(_){}};try{\
-requestAnimation\
-Frame(correct);}\
-catch(_){correct\
-();}\x0aif(this._vi\
-ewportAnchorTime\
-r)clearTimeout(t\
-his._viewportAnc\
-horTimer);this._\
-viewportAnchorTi\
-mer=setTimeout((\
-)=>{if(seq!==thi\
-s._viewportAncho\
-rSeq)return;corr\
-ect();if(root&&r\
-oot.classList)ro\
-ot.classList.rem\
-ove('tool-viewpo\
-rt-anchor-lock')\
-;this._viewportA\
-nchorTimer=0;if(\
-scrollMgr&&typeo\
-f scrollMgr.sche\
-duleScrollFabUpd\
-ate==='function'\
-){scrollMgr.sche\
-duleScrollFabUpd\
-ate();}},280);}\x0a\
-_prepareCollapsi\
-ble(contentEl){i\
-f(!contentEl)ret\
-urn null;let inn\
-er=this.directCh\
-ild(contentEl,'.\
-tool-collapse-in\
-ner');let body=i\
-nner?this.direct\
-Child(inner,'.to\
-ol-collapse-body\
-'):null;if(!inne\
-r){inner=documen\
-t.createElement(\
-'div');inner.cla\
-ssName='tool-col\
-lapse-inner';bod\
-y=document.creat\
-eElement('div');\
-body.className='\
-tool-collapse-bo\
-dy';while(conten\
-tEl.firstChild)b\
-ody.appendChild(\
-contentEl.firstC\
-hild);inner.appe\
-ndChild(body);co\
-ntentEl.appendCh\
-ild(inner);}else\
- if(!body){body=\
-document.createE\
-lement('div');bo\
-dy.className='to\
-ol-collapse-body\
-';while(inner.fi\
-rstChild)body.ap\
-pendChild(inner.\
-firstChild);inne\
-r.appendChild(bo\
-dy);}\x0aif(content\
-El.style&&conten\
-tEl.style.displa\
-y==='none'){cont\
-entEl.style.remo\
-veProperty('disp\
-lay');void conte\
-ntEl.offsetHeigh\
-t;}\x0areturn body;\
-}\x0a_setExpanded(c\
-ontentEl,expande\
-d){if(!contentEl\
-)return;this._pr\
-epareCollapsible\
-(contentEl);cont\
-entEl.classList.\
-toggle('is-expan\
-ded',!!expanded)\
-;}\x0a_content(outp\
-utEl){if(!output\
-El)return null;r\
-eturn outputEl.q\
-uerySelector('.t\
-ool-output-conte\
-nt, .content');}\
-\x0a_contentBody(co\
-ntentEl){if(!con\
-tentEl)return nu\
-ll;const inner=t\
-his.directChild(\
-contentEl,'.tool\
--collapse-inner'\
-);return(inner&&\
-this.directChild\
-(inner,'.tool-co\
-llapse-body'))||\
-inner||contentEl\
-;}\x0a_mutableOutpu\
-ts(){const outpu\
-ts=Array.from(do\
-cument.querySele\
-ctorAll('.tool-o\
-utput'));return \
-outputs.filter((\
-el)=>{if(!el||!e\
-l.classList)retu\
-rn false;if(el.c\
-lassList.contain\
-s('agent-workflo\
-w-output'))retur\
-n false;if(el.cl\
-assList.contains\
-('tool-output-gr\
-oup'))return fal\
-se;try{if(el.clo\
-sest('.agent-wor\
-kflow-output'))r\
-eturn false;}cat\
-ch(_){}\x0areturn t\
-rue;});}\x0a_format\
-Payload(value){i\
-f(value==null)re\
-turn'';const raw\
-=String(value);c\
-onst trimmed=raw\
-.trim();if(!trim\
-med)return'';try\
-{return JSON.str\
-ingify(JSON.pars\
-e(trimmed),null,\
-2);}catch(_){ret\
-urn raw;}}\x0a_code\
-Markdown(value){\
-const text=this.\
-_formatPayload(v\
-alue);if(!text)r\
-eturn'';let maxT\
-icks=0;const run\
-s=text.match(/`+\
-/g);if(runs)runs\
-.forEach(run=>{m\
-axTicks=Math.max\
-(maxTicks,run.le\
-ngth);});const f\
-ence='`'.repeat(\
-Math.max(3,maxTi\
-cks+1));return`$\
-{fence}json\x5cn${t\
-ext}\x5cn${fence}`;\
-}\x0a_resultRaw(res\
-ultEl){if(!resul\
-tEl)return'';if(\
-Object.prototype\
-.hasOwnProperty.\
-call(resultEl,'_\
-toolRaw')){retur\
-n String(resultE\
-l._toolRaw||'');\
-}\x0aconst payload=\
-resultEl.querySe\
-lector('[data-to\
-ol-raw]');if(pay\
-load)return payl\
-oad.getAttribute\
-('data-tool-raw'\
-);const code=res\
-ultEl.querySelec\
-tor('.code-wrapp\
-er pre code');if\
-(code)return cod\
-e.textContent||'\
-';const pending=\
-resultEl.querySe\
-lector('[md-bloc\
-k-markdown]');if\
-(pending){const \
-src=pending.text\
-Content||'';cons\
-t match=src.matc\
-h(/^(`{3,})json[\
-^\x5cn]*\x5cn([\x5cs\x5cS]*?\
-)\x5cn\x5c1\x5cs*$/i);if(\
-match)return mat\
-ch[2];return src\
-;}\x0areturn result\
-El.textContent||\
-'';}\x0a_renderStru\
-cturedResult(res\
-ultEl,content){i\
-f(!resultEl)retu\
-rn;const envelop\
-e=content&&typeo\
-f content==='obj\
-ect'?content:nul\
-l;const raw=enve\
-lope?String(enve\
-lope.raw||''):(c\
-ontent==null?'':\
-String(content))\
-;const hasConten\
-t=raw.trim()!=='\
-';resultEl._tool\
-Raw=raw;const re\
-sponseSection=re\
-sultEl.closest('\
-.tool-output-res\
-ponse-section');\
-if(responseSecti\
-on)responseSecti\
-on.style.display\
-=hasContent?'':'\
-none';resultEl.r\
-eplaceChildren()\
-;if(!hasContent)\
-return;const res\
-ponseLabel=(type\
-of window!=='und\
-efined'&&window.\
-LOCALE_TOOL_RESP\
-ONSE)?String(win\
-dow.LOCALE_TOOL_\
-RESPONSE):'Outpu\
-t';if(this.templ\
-ates&&this.templ\
-ates.tools){resu\
-ltEl.innerHTML=t\
-his.templates.to\
-ols._renderToolC\
-ode(raw,response\
-Label,envelope&&\
-envelope.friendl\
-y);}else{const m\
-d=document.creat\
-eElement('div');\
-md.setAttribute(\
-'md-block-markdo\
-wn','1');md.setA\
-ttribute('data-c\
-ode-header',resp\
-onseLabel);md.te\
-xtContent=this._\
-codeMarkdown(raw\
-);resultEl.appen\
-dChild(md);}\x0atry\
-{const renderer=\
-this.renderer;if\
-(renderer&&typeo\
-f renderer.rende\
-rPendingMarkdown\
-==='function'){c\
-onst pending=ren\
-derer.renderPend\
-ingMarkdown(resu\
-ltEl);if(pending\
-&&typeof pending\
-.catch==='functi\
-on')pending.catc\
-h(()=>{});}}catc\
-h(_){}}};\x0a\x0a/* da\
-ta/js/app/ui.js \
-*/\x0aclass UIManag\
-er{updateCSS(sty\
-les){let style=d\
-ocument.getEleme\
-ntById('app-styl\
-e');if(!style){s\
-tyle=document.cr\
-eateElement('sty\
-le');style.id='a\
-pp-style';docume\
-nt.head.appendCh\
-ild(style);}\x0asty\
-le.textContent=s\
-tyles;}\x0aensureSt\
-ickyHeaderStyle(\
-){let style=docu\
-ment.getElementB\
-yId('code-sticky\
--style');if(styl\
-e)return;style=d\
-ocument.createEl\
-ement('style');s\
-tyle.id='code-st\
-icky-style';styl\
-e.textContent=['\
-html, body { scr\
-oll-behavior: au\
-to !important; o\
-verflow-anchor: \
-none !important;\
- }','#container,\
- #container * { \
-overflow-anchor:\
- none !important\
-; }','.code-wrap\
-per { position: \
-relative; }','.c\
-ode-wrapper .cod\
-e-header-wrapper\
- { position: sti\
-cky; top: var(--\
-code-header-stic\
-ky-top, -2px); z\
--index: 2; box-s\
-hadow: 0 1px 0 r\
-gba(0,0,0,.06); \
-}','.code-wrappe\
-r pre { overflow\
-: visible; margi\
-n-top: 0; }','.c\
-ode-wrapper pre \
-code { display: \
-block; white-spa\
-ce: pre; max-hei\
-ght: 100dvh; ove\
-rflow: auto;',' \
- overscroll-beha\
-vior: contain; -\
-webkit-overflow-\
-scrolling: touch\
-; overflow-ancho\
-r: none; scrollb\
-ar-gutter: stabl\
-e both-edges; sc\
-roll-behavior: a\
-uto; }','#_loade\
-r_.hidden { disp\
-lay: none !impor\
-tant; opacity: 0\
-; visibility: hi\
-dden !important;\
- pointer-events:\
- none !important\
-; }','#_loader_.\
-reserved { displ\
-ay: block !impor\
-tant; opacity: 0\
-; visibility: hi\
-dden !important;\
- pointer-events:\
- none !important\
-; }','#_loader_.\
-visible { displa\
-y: block; opacit\
-y: 1; visibility\
-: visible; point\
-er-events: auto;\
- }','.msg-box.ms\
-g-user .msg { po\
-sition: relative\
-; }','.msg-box.m\
-sg-user .msg > .\
-uc-content { dis\
-play: block; ove\
-rflow: visible; \
-}','.msg-box.msg\
--user .msg > .uc\
--content.uc-coll\
-apsed {','  max-\
-height: var(--us\
-er-msg-collapse-\
-max-h, 350px);',\
-'  overflow: hid\
-den;','  -webkit\
--mask-image: lin\
-ear-gradient(to \
-bottom, rgba(0,0\
-,0,1) calc(100% \
-- var(--uc-fade-\
-height, 64px)), \
-rgba(0,0,0,0) 10\
-0%);','  mask-im\
-age: linear-grad\
-ient(to bottom, \
-rgba(0,0,0,1) ca\
-lc(100% - var(--\
-uc-fade-height, \
-64px)), rgba(0,0\
-,0,0) 100%);',' \
- -webkit-mask-si\
-ze: 100% 100%;',\
-'  mask-size: 10\
-0% 100%;','  -we\
-bkit-mask-repeat\
-: no-repeat;',' \
- mask-repeat: no\
--repeat;','}','.\
-msg-box.msg-user\
- .msg > .uc-cont\
-ent.uc-expanded \
-{','  -webkit-ma\
-sk-image: none;'\
-,'  mask-image: \
-none;','}','.msg\
--box.msg-user .m\
-sg > .uc-toggle \
-{ display: none;\
- margin-top: 8px\
-; text-align: ce\
-nter; cursor: po\
-inter; user-sele\
-ct: none; }','.m\
-sg-box.msg-user \
-.msg > .uc-toggl\
-e.visible { disp\
-lay: block; }','\
-.msg-box.msg-use\
-r .msg > .uc-tog\
-gle img { width:\
- var(--uc-toggle\
--icon-size, 26px\
-); height: var(-\
--uc-toggle-icon-\
-size, 26px); opa\
-city: .8; }','.m\
-sg-box.msg-user \
-.msg > .uc-toggl\
-e:hover img { op\
-acity: 1; }','.c\
-ode-wrapper .cod\
-e-header-action.\
-code-header-copy\
-,','.code-wrappe\
-r .code-header-a\
-ction.code-heade\
-r-collapse { dis\
-play: inline-fle\
-x; align-items: \
-center; border-r\
-adius: 6px; padd\
-ing: 2px; line-h\
-eight: 0; border\
-: 1px solid tran\
-sparent; transit\
-ion: transform .\
-15s ease, backgr\
-ound-color .15s \
-ease, border-col\
-or .15s ease; }'\
-,'.code-wrapper \
-.code-header-act\
-ion.code-header-\
-copy:hover,','.c\
-ode-wrapper .cod\
-e-header-action.\
-code-header-coll\
-apse:hover { tra\
-nsform: scale(1.\
-06); border-colo\
-r: var(--copy-bt\
-n-border, rgba(0\
-,0,0,.08)); }','\
-.code-wrapper .c\
-ode-header-actio\
-n.copied { backg\
-round: var(--cop\
-y-btn-bg-copied,\
- rgba(150,150,15\
-0,.12)); border-\
-color: var(--cop\
-y-btn-border-cop\
-ied, rgba(150,15\
-0,150,.35)); ani\
-mation: msg-copy\
--pop .25s ease; \
-}','@keyframes m\
-sg-copy-pop { 0%\
-{ transform: sca\
-le(1); } 60%{ tr\
-ansform: scale(1\
-.1); } 100%{ tra\
-nsform: scale(1)\
-; } }'].join('\x5cn\
-');document.head\
-.appendChild(sty\
-le);}\x0atoggleExtr\
-aItems(button){i\
-f(!button)return\
-;const list=butt\
-on.closest?butto\
-n.closest('.extr\
-a-items-list'):n\
-ull;if(!list)ret\
-urn;const hidden\
-=list.querySelec\
-tor('.extra-item\
-s-hidden');if(!h\
-idden)return;con\
-st isHidden=hidd\
-en.style.display\
-==='none'||getCo\
-mputedStyle(hidd\
-en).display==='n\
-one';hidden.styl\
-e.display=isHidd\
-en?'block':'none\
-';button.setAttr\
+tem'),nextItem=p\
+air.closest('.to\
+ol-output-item')\
+;if(nextItem&&((\
+oldItem&&oldItem\
+.querySelector('\
+[aria-expanded=\x22\
+true\x22]'))||(!old\
+Item&&expanded))\
+){this._setExpan\
+ded(nextItem.que\
+rySelector('.too\
+l-group-content'\
+),true);nextItem\
+.querySelector('\
+button').setAttr\
 ibute('aria-expa\
-nded',isHidden?'\
-true':'false');c\
-onst arrow=butto\
-n.querySelector(\
-'.extra-items-to\
-ggle-arrow');if(\
-arrow)arrow.clas\
-sList.toggle('to\
-ggle-expanded',i\
-sHidden);const l\
-abel=button.quer\
-ySelector('.extr\
-a-items-toggle-l\
-abel');if(label)\
-{if(!button.data\
-set.collapsedLab\
-el){button.datas\
-et.collapsedLabe\
-l=label.textCont\
-ent||'';}\x0aconst \
-lessLabel=(typeo\
-f window!=='unde\
-fined'&&window.L\
-OCALE_LESS)?Stri\
-ng(window.LOCALE\
-_LESS):'Less';la\
-bel.textContent=\
-isHidden?lessLab\
-el:button.datase\
-t.collapsedLabel\
-;}\x0aconst expandT\
-itle=(typeof win\
-dow!=='undefined\
-'&&window.LOCALE\
-_EXPAND)?String(\
-window.LOCALE_EX\
-PAND):'Expand';c\
-onst collapseTit\
-le=(typeof windo\
-w!=='undefined'&\
-&window.LOCALE_C\
-OLLAPSE)?String(\
-window.LOCALE_CO\
-LLAPSE):'Collaps\
-e';button.setAtt\
-ribute('title',i\
-sHidden?collapse\
-Title:expandTitl\
-e);}\x0aenableEditI\
-cons(){document.\
-body&&document.b\
-ody.classList.ad\
-d('display-edit-\
-icons');}\x0adisabl\
-eEditIcons(){doc\
-ument.body&&docu\
-ment.body.classL\
-ist.remove('disp\
-lay-edit-icons')\
-;}\x0aenableTimesta\
-mp(){document.bo\
-dy&&document.bod\
-y.classList.add(\
-'display-timesta\
-mp');}\x0adisableTi\
-mestamp(){docume\
-nt.body&&documen\
-t.body.classList\
-.remove('display\
--timestamp');}\x0ae\
-nableBlocks(){do\
-cument.body&&doc\
-ument.body.class\
-List.add('displa\
-y-blocks');}\x0adis\
-ableBlocks(){doc\
-ument.body&&docu\
-ment.body.classL\
-ist.remove('disp\
-lay-blocks');}};\
-\x0a\x0a/* data/js/app\
-/user.js */\x0aclas\
-s UserCollapseMa\
-nager{constructo\
-r(cfg){this.cfg=\
-cfg||{};this.thr\
-eshold=Utils.g('\
-USER_MSG_COLLAPS\
-E_HEIGHT_PX',350\
-);this._processe\
-d=new Set();this\
-._remeasureTimer\
-=null;this._font\
-sReadyScheduled=\
-false;}\x0a_icons()\
-{const I=(this.c\
-fg&&this.cfg.ICO\
-NS)||{};return{e\
-xpand:I.EXPAND||\
-'',collapse:I.CO\
-LLAPSE||''};}\x0a_l\
-abels(){const L=\
-(this.cfg&&this.\
-cfg.LOCALE)||{};\
-return{expand:L.\
-EXPAND||'Expand'\
-,collapse:L.COLL\
-APSE||'Collapse'\
-};}\x0a_afterLayout\
-(fn){try{if(type\
-of runtime!=='un\
-defined'&&runtim\
-e.raf&&typeof ru\
-ntime.raf.schedu\
-le==='function')\
-{const key={t:'U\
-C:afterLayout',i\
-:Math.random()};\
-runtime.raf.sche\
-dule(key,()=>{tr\
-y{fn&&fn();}catc\
-h(_){}},'UserCol\
-lapse',0);return\
-;}}catch(_){}\x0atr\
-y{requestAnimati\
-onFrame(()=>{try\
-{fn&&fn();}catch\
-(_){}});}catch(_\
-){setTimeout(()=\
->{try{fn&&fn();}\
-catch(__){}},0);\
-}}\x0a_scrollToggle\
-IntoView(toggleE\
-l){if(!toggleEl|\
-|!toggleEl.isCon\
-nected)return;tr\
-y{if(runtime&&ru\
-ntime.scrollMgr)\
-{runtime.scrollM\
-gr.userInteracte\
-d=true;runtime.s\
-crollMgr.autoFol\
-low=false;}}catc\
-h(_){}\x0athis._aft\
-erLayout(()=>{tr\
-y{if(toggleEl.sc\
-rollIntoView){tr\
-y{toggleEl.scrol\
-lIntoView({block\
-:'nearest',inlin\
-e:'nearest',beha\
-vior:'instant'})\
-;}catch(_){toggl\
-eEl.scrollIntoVi\
-ew(false);}}}cat\
-ch(_){}});}\x0a_ens\
-ureStructure(msg\
-){if(!msg||!msg.\
-isConnected)retu\
-rn null;let cont\
-ent=msg.querySel\
-ector('.uc-conte\
-nt');if(!content\
-){content=docume\
-nt.createElement\
-('div');content.\
-className='uc-co\
-ntent';const fra\
-g=document.creat\
-eDocumentFragmen\
-t();while(msg.fi\
-rstChild)frag.ap\
-pendChild(msg.fi\
-rstChild);conten\
-t.appendChild(fr\
-ag);msg.appendCh\
-ild(content);}\x0al\
-et toggle=msg.qu\
-erySelector('.uc\
--toggle');if(!to\
-ggle){const icon\
-s=this._icons();\
-const labels=thi\
-s._labels();togg\
-le=document.crea\
-teElement('div')\
-;toggle.classNam\
-e='uc-toggle';to\
-ggle.tabIndex=0;\
-toggle.setAttrib\
-ute('role','butt\
-on');toggle.setA\
-ttribute('aria-e\
-xpanded','false'\
-);toggle.title=l\
-abels.expand;con\
-st img=document.\
-createElement('i\
-mg');img.classNa\
-me='uc-toggle-ic\
-on';img.alt=labe\
-ls.expand;img.sr\
-c=icons.expand;i\
-mg.width=26;img.\
-height=26;toggle\
-.appendChild(img\
-);toggle.addEven\
-tListener('click\
-',(ev)=>{ev.prev\
-entDefault();ev.\
-stopPropagation(\
-);this.toggleFro\
-mToggle(toggle);\
-});toggle.addEve\
-ntListener('keyd\
-own',(ev)=>{if(e\
-v.key==='Enter'|\
-|ev.key===' '){e\
-v.preventDefault\
-();ev.stopPropag\
-ation();this.tog\
-gleFromToggle(to\
-ggle);}},{passiv\
-e:false});msg.ap\
-pendChild(toggle\
-);}\x0athis._proces\
-sed.add(msg);msg\
-.dataset.ucInit=\
-'1';return{conte\
-nt,toggle};}\x0a_en\
-sureEllipsisEl(m\
-sg,contentEl){co\
-nst content=cont\
-entEl||(msg&&msg\
-.querySelector('\
-.uc-content'));i\
-f(!content)retur\
-n null;try{const\
- legacy=content.\
-querySelector('.\
-uc-ellipsis');if\
-(legacy&&legacy.\
-parentNode){lega\
-cy.parentNode.re\
-moveChild(legacy\
-);}}catch(_){}\x0ar\
-eturn null;}\x0a_sh\
-owEllipsis(msg,c\
-ontentEl){this._\
-ensureEllipsisEl\
-(msg,contentEl);\
-}\x0a_hideEllipsis(\
-msg){this._ensur\
-eEllipsisEl(msg,\
-null);}\x0a_schedul\
-eStableRemeasure\
-(){if(this._reme\
-asureTimer!==nul\
-l){try{clearTime\
-out(this._remeas\
-ureTimer);}catch\
-(_){}}\x0aconst rem\
-easure=()=>{this\
-._remeasureTimer\
-=null;this._afte\
-rLayout(()=>this\
-._afterLayout(()\
-=>this.remeasure\
-All()));};this._\
-remeasureTimer=s\
-etTimeout(remeas\
-ure,80);if(!this\
-._fontsReadySche\
-duled){this._fon\
-tsReadyScheduled\
-=true;try{if(doc\
-ument.fonts&&doc\
-ument.fonts.read\
-y&&typeof docume\
-nt.fonts.ready.t\
-hen==='function'\
-){document.fonts\
-.ready.then(()=>\
-{this._afterLayo\
-ut(()=>this.reme\
-asureAll());}).c\
-atch(()=>{});}}c\
-atch(_){}}}\x0aappl\
-y(root){const sc\
-ope=root||docume\
-nt;let list;if(s\
-cope.nodeType===\
-1)list=scope.que\
-rySelectorAll('.\
-msg-box.msg-user\
- .msg');else lis\
-t=document.query\
-SelectorAll('.ms\
-g-box.msg-user .\
-msg');if(!list||\
-!list.length)ret\
-urn;for(let i=0;\
-i<list.length;i+\
-+){const msg=lis\
-t[i];const st=th\
-is._ensureStruct\
-ure(msg);if(!st)\
-continue;this._u\
-pdate(msg,st.con\
-tent,st.toggle);\
-}\x0athis._schedule\
-StableRemeasure(\
-);}\x0a_update(msg,\
-contentEl,toggle\
-El){const c=cont\
-entEl||(msg&&msg\
-.querySelector('\
-.uc-content'));i\
-f(!msg||!c)retur\
-n;if(this.thresh\
-old===0||this.th\
-reshold==='0'){c\
-onst t=toggleEl|\
-|msg.querySelect\
-or('.uc-toggle')\
-;const labels=th\
-is._labels();c.c\
-lassList.remove(\
-'uc-collapsed');\
-c.classList.remo\
-ve('uc-expanded'\
-);msg.dataset.uc\
-State='expanded'\
-;this._hideEllip\
-sis(msg);if(t){t\
-.classList.remov\
-e('visible');t.s\
-etAttribute('ari\
-a-expanded','fal\
-se');t.title=lab\
-els.expand;const\
- img=t.querySele\
-ctor('img');if(i\
-mg){img.alt=labe\
-ls.expand;}}\x0aret\
-urn;}\x0ac.classLis\
-t.remove('uc-col\
-lapsed');c.class\
-List.remove('uc-\
-expanded');const\
- fullHeight=Math\
-.ceil(c.scrollHe\
-ight);const labe\
-ls=this._labels(\
-);const icons=th\
-is._icons();cons\
-t t=toggleEl||ms\
-g.querySelector(\
-'.uc-toggle');if\
-(fullHeight>this\
-.threshold){if(t\
-)t.classList.add\
-('visible');cons\
-t desired=msg.da\
-taset.ucState||'\
-collapsed';const\
- expand=(desired\
-==='expanded');i\
-f(expand){c.clas\
-sList.add('uc-ex\
-panded');this._h\
-ideEllipsis(msg)\
-;}else{c.classLi\
-st.add('uc-colla\
-psed');this._sho\
-wEllipsis(msg,c)\
-;}\x0aif(t){const i\
-mg=t.querySelect\
-or('img');if(img\
-){if(expand){img\
-.src=icons.colla\
-pse;img.alt=labe\
-ls.collapse;}els\
-e{img.src=icons.\
-expand;img.alt=l\
-abels.expand;}}\x0a\
-t.setAttribute('\
-aria-expanded',e\
-xpand?'true':'fa\
-lse');t.title=ex\
-pand?labels.coll\
-apse:labels.expa\
-nd;}}else{c.clas\
-sList.remove('uc\
--collapsed');c.c\
-lassList.remove(\
-'uc-expanded');m\
-sg.dataset.ucSta\
-te='expanded';th\
-is._hideEllipsis\
-(msg);if(t){t.cl\
-assList.remove('\
-visible');t.setA\
-ttribute('aria-e\
-xpanded','false'\
-);t.title=labels\
-.expand;}}}\x0atogg\
-leFromToggle(tog\
-gleEl){const msg\
-=toggleEl&&toggl\
-eEl.closest?togg\
-leEl.closest('.m\
-sg-box.msg-user \
-.msg'):null;if(!\
-msg)return;this.\
-toggle(msg);}\x0ato\
-ggle(msg){if(!ms\
-g||!msg.isConnec\
-ted)return;const\
- c=msg.querySele\
-ctor('.uc-conten\
-t');if(!c)return\
-;const t=msg.que\
-rySelector('.uc-\
-toggle');const l\
-abels=this._labe\
-ls();const icons\
-=this._icons();c\
-onst isCollapsed\
-=c.classList.con\
-tains('uc-collap\
-sed');if(isColla\
-psed){c.classLis\
-t.remove('uc-col\
-lapsed');c.class\
-List.add('uc-exp\
-anded');msg.data\
-set.ucState='exp\
-anded';this._hid\
-eEllipsis(msg);i\
-f(t){t.setAttrib\
-ute('aria-expand\
-ed','true');t.ti\
-tle=labels.colla\
-pse;const img=t.\
-querySelector('i\
-mg');if(img){img\
-.src=icons.colla\
-pse;img.alt=labe\
-ls.collapse;}}}e\
-lse{c.classList.\
-remove('uc-expan\
-ded');c.classLis\
-t.add('uc-collap\
-sed');msg.datase\
-t.ucState='colla\
-psed';this._show\
-Ellipsis(msg,c);\
-if(t){t.setAttri\
-bute('aria-expan\
-ded','false');t.\
-title=labels.exp\
-and;const img=t.\
-querySelector('i\
-mg');if(img){img\
-.src=icons.expan\
-d;img.alt=labels\
-.expand;}\x0athis._\
-scrollToggleInto\
-View(t);}}}\x0areme\
-asureAll(){const\
- arr=Array.from(\
-this._processed|\
-|[]);for(let i=0\
-;i<arr.length;i+\
-+){const msg=arr\
-[i];if(!msg||!ms\
-g.isConnected){t\
-his._processed.d\
-elete(msg);conti\
-nue;}\x0athis._upda\
-te(msg);}}};\x0a\x0a/*\
- data/js/app/uti\
-ls.js */\x0aclass U\
-tils{static g(na\
-me,dflt){return(\
-typeof window[na\
-me]!=='undefined\
-')?window[name]:\
-dflt;}\x0astatic no\
-w(){return(typeo\
-f performance!==\
-'undefined'&&per\
-formance.now)?pe\
-rformance.now():\
-Date.now();}\x0asta\
-tic escapeHtml(s\
-){const d=Utils.\
-_escDiv||(Utils.\
-_escDiv=document\
-.createElement('\
-div'));d.textCon\
-tent=String(s??'\
-');return d.inne\
-rHTML;}\x0astatic e\
-scapeHtmlAttr(s)\
-{return Utils.es\
-capeHtml(s).repl\
-ace(/\x22/g,'&quot;\
-').replace(/'/g,\
-'&#39;');}\x0astati\
-c decodeMentionV\
-alue(s){return S\
-tring(s??'').rep\
-lace(/&lt;/g,'<'\
-).replace(/&gt;/\
-g,'>').replace(/\
-&quot;/g,'\x22').re\
-place(/&#x27;|&#\
-39;/g,\x22'\x22).repla\
-ce(/&amp;/g,'&')\
-;}\x0astatic render\
-MentionText(s){c\
-onst raw=String(\
-s??'');const re=\
-/<(attachment|fi\
-le_context)>([\x5cs\
-\x5cS]*?)<\x5c/\x5c1>|<co\
-nversation\x5cb([^>\
-]*)>([\x5cs\x5cS]*?)<\x5c\
-/conversation>/g\
-i;let out='';let\
- last=0;let matc\
-h;while((match=r\
-e.exec(raw))!==n\
-ull){out+=Utils.\
-escapeHtml(raw.s\
-lice(last,match.\
-index));if(match\
-[1]){const kind=\
-String(match[1]|\
-|'').toLowerCase\
-();const value=U\
-tils.decodeMenti\
-onValue(match[2]\
-||'');let label=\
-value;if(kind===\
-'file_context'){\
-let normalized=v\
-alue.replace(/\x5c\x5c\
-/g,'/');const lo\
-wer=normalized.t\
-oLowerCase();con\
-st prefix='%work\
-dir%/data/';if(l\
-ower.startsWith(\
-prefix))normaliz\
-ed=normalized.sl\
-ice(prefix.lengt\
-h);else if(lower\
-==='%workdir%/da\
-ta')normalized='\
-data/';else if(l\
-ower.startsWith(\
-'data/'))normali\
-zed=normalized.s\
-lice(5);label=no\
-rmalized||value;\
-}\x0aconst cls=(kin\
-d==='attachment'\
-)?'mention-attac\
-hment':'mention-\
-file-context';ou\
-t+=`<span class=\
-\x22mention-anchor \
-${cls}\x22 title=\x22$\
-{Utils.escapeHtm\
-lAttr(value)}\x22>@\
-${Utils.escapeHt\
-ml(label)}</span\
->`;}else{const a\
-ttrs=String(matc\
-h[3]||'');const \
-idMatch=attrs.ma\
-tch(/\x5cbid\x5cs*=\x5cs*\
-([\x22'])(.*?)\x5c1/i)\
-;const titleMatc\
-h=attrs.match(/\x5c\
-btitle\x5cs*=\x5cs*([\x22\
-'])(.*?)\x5c1/i);co\
-nst id=Utils.dec\
-odeMentionValue(\
-idMatch?idMatch[\
-2]:'');const tit\
-le=Utils.decodeM\
-entionValue(titl\
-eMatch?titleMatc\
-h[2]:'');const l\
-abel=title||id;i\
-f(label){out+=`<\
-span class=\x22ment\
-ion-anchor menti\
-on-conversation\x22\
- title=\x22#${Utils\
-.escapeHtmlAttr(\
-id)}\x22>@${Utils.e\
-scapeHtml(label)\
-}</span>`;}else{\
-out+=Utils.escap\
-eHtml(match[0]);\
-}}\x0alast=re.lastI\
-ndex;}\x0aout+=Util\
-s.escapeHtml(raw\
-.slice(last));re\
-turn out.replace\
-(/\x5cr?\x5cn/g,'<br>'\
-);}\x0astatic count\
-Newlines(s){if(!\
-s)return 0;let c\
-=0,i=-1;while((i\
-=s.indexOf('\x5cn',\
-i+1))!==-1)c++;r\
-eturn c;}\x0astatic\
- reEscape(s){ret\
-urn String(s).re\
-place(/[.*+?^${}\
-()|[\x5c]\x5c\x5c]/g,'\x5c\x5c$\
-&');}\x0astatic idl\
-e(fn,timeout){if\
-('requestIdleCal\
-lback'in window)\
-return requestId\
-leCallback(fn,{t\
-imeout:timeout||\
-800});return set\
-Timeout(fn,50);}\
-\x0astatic cancelId\
-le(id){try{if('c\
-ancelIdleCallbac\
-k'in window)canc\
-elIdleCallback(i\
-d);else clearTim\
-eout(id);}catch(\
-_){}}\x0astatic get\
- SE(){return doc\
-ument.scrollingE\
-lement||document\
-.documentElement\
-;}\x0astatic utf8De\
-code(bytes){if(!\
-Utils._td)Utils.\
-_td=new TextDeco\
-der('utf-8');ret\
-urn Utils._td.de\
-code(bytes);}};\x0a\
-\x0a/* data/js/app/\
-runtime.js */\x0acl\
-ass Runtime{cons\
-tructor(){this.c\
-fg=new Config();\
-this.logger=new \
-Logger(this.cfg)\
-;this.dom=new DO\
-MRefs();this.cus\
-tomMarkup=new Cu\
-stomMarkup(this.\
-cfg,this.logger)\
-;this.raf=new Ra\
-fManager(this.cf\
-g);try{this.logg\
-er.bindRaf(this.\
-raf);}catch(_){}\
-\x0athis.async=new \
-AsyncRunner(this\
-.cfg,this.raf);t\
-his.renderer=new\
- MarkdownRendere\
-r(this.cfg,this.\
-customMarkup,thi\
-s.logger,this.as\
-ync,this.raf);th\
-is.math=new Math\
-Renderer(this.cf\
-g,this.raf,this.\
-async);this.code\
-Scroll=new CodeS\
-crollState(this.\
-cfg,this.raf);th\
-is.highlighter=n\
-ew Highlighter(t\
-his.cfg,this.cod\
-eScroll,this.raf\
-);this.scrollMgr\
-=new ScrollManag\
-er(this.cfg,this\
-.dom,this.raf);t\
-his.templates=ne\
-w NodeTemplateEn\
-gine(this.cfg,th\
-is.logger);this.\
-toolOutput=new T\
-oolOutput(this.s\
-crollMgr,{templa\
-tes:this.templat\
-es,renderer:this\
-.renderer,findSt\
-atusHost:(parent\
-Id,create)=>this\
-.workflows.workf\
-lowMessageHost(p\
-arentId,create)}\
-);this.loading=n\
-ew Loading(this.\
-dom);this.nodes=\
-new NodesManager\
-(this.dom,this.r\
-enderer,this.hig\
-hlighter,this.ma\
-th,this.toolOutp\
-ut,this.template\
-s);this.bridge=n\
-ew BridgeManager\
-(this.cfg,this.l\
-ogger);this.ui=n\
-ew UIManager();t\
-his.stream=new S\
-treamEngine(this\
-.cfg,this.dom,th\
-is.renderer,this\
-.math,this.highl\
-ighter,this.code\
-Scroll,this.scro\
-llMgr,this.raf,t\
-his.async,this.l\
-ogger);this.stre\
-amQ=new StreamQu\
-eue(this.cfg,thi\
-s.stream,this.sc\
-rollMgr,this.raf\
-);this.events=ne\
-w EventManager(t\
-his.cfg,this.dom\
-,this.scrollMgr,\
-this.highlighter\
-,this.codeScroll\
-,this.toolOutput\
-,this.bridge,()=\
->this.stream.cod\
-e.activeCode);tr\
-y{this.stream.fe\
-nces.setCustomFe\
-nceSpecs(this.cu\
-stomMarkup.getSo\
-urceFenceSpecs()\
-);}catch(_){}\x0ath\
-is.data=new Data\
-Receiver(this.cf\
-g,this.templates\
-,this.nodes,this\
-.scrollMgr);this\
-.tips=null;this.\
-streaming=new Ru\
-ntimeStreaming(t\
-his);this.workfl\
-ows=new RuntimeW\
-orkflows(this);t\
-his.partials=new\
- RuntimePartials\
-(this);this.time\
-line=new Runtime\
-Timeline(this);t\
-his.turns=new Ru\
-ntimeTurns(this)\
-;this.mutations=\
-new RuntimeMutat\
-ions(this);this.\
-messages=new Run\
-timeMessages(thi\
-s);this.view=new\
- RuntimeView(thi\
-s);this.renderer\
-.hooks.observeNe\
-wCode=(root,opts\
-)=>this.highligh\
-ter.observeNewCo\
-de(root,opts,thi\
-s.stream.code.ac\
-tiveCode);this.r\
-enderer.hooks.ob\
-serveMsgBoxes=(r\
-oot)=>this.highl\
-ighter.observeMs\
-gBoxes(root,(box\
-)=>{this.highlig\
-hter.observeNewC\
-ode(box,{deferLa\
-stIfStreaming:tr\
-ue,minLinesForLa\
-st:this.cfg.PROF\
-ILE_CODE.minLine\
-sForHL,minCharsF\
-orLast:this.cfg.\
-PROFILE_CODE.min\
-CharsForHL},this\
-.stream.code.act\
-iveCode);this.co\
-deScroll.initScr\
-ollableBlocks(bo\
-x);});this.rende\
-rer.hooks.schedu\
-leMathRender=(ro\
-ot)=>{const mm=g\
-etMathMode();if(\
-mm==='idle')this\
-.math.schedule(r\
-oot);else if(mm=\
-=='always')this.\
-math.schedule(ro\
-ot,0,true);};thi\
-s.renderer.hooks\
-.scanVisibleCode\
-s=(root)=>this.h\
-ighlighter.scanV\
-isibleCodesInRoo\
-t(root,this.stre\
-am.code.activeCo\
-de||null);this.r\
-enderer.hooks.co\
-deScrollInit=(ro\
-ot)=>this.codeSc\
-roll.initScrolla\
-bleBlocks(root);\
-}\x0ainit(){this.hi\
-ghlighter.initHL\
-JS();this.dom.in\
-it();this.ui.ens\
-ureStickyHeaderS\
-tyle();this.tips\
-=new TipsManager\
-(this.dom);this.\
-events.install()\
-;this.bridge.ini\
-tQWebChannel(thi\
-s.cfg.PID,(bridg\
-e)=>{const onChu\
-nk=(name,chunk,t\
-ype)=>this.strea\
-ming.onChunk(nam\
-e,chunk,type);co\
-nst onNode=(payl\
-oad)=>this.messa\
-ges.appendNode(p\
-ayload);const on\
-NodeReplace=(pay\
-load)=>this.mess\
-ages.replaceNode\
-s(payload);const\
- onNodeInput=(ht\
-ml)=>this.messag\
-es.appendToInput\
-(html);this.brid\
-ge.connect(onChu\
-nk,onNode,onNode\
-Replace,onNodeIn\
-put);try{this.lo\
-gger.bindBridge(\
-this.bridge.brid\
-ge||this.bridge)\
-;}catch(_){}});t\
-his.renderer.ini\
-t();try{const pe\
-ndingMarkdown=th\
+nded','true');ne\
+xtItem.querySele\
+ctor('.tool-outp\
+ut-arrow').class\
+List.add('toggle\
+-expanded');}}\x0af\
+or(const attr of\
+ Array.from(exis\
+ting.attributes)\
+)existing.remove\
+Attribute(attr.n\
+ame);for(const a\
+ttr of Array.fro\
+m(clone.attribut\
+es))existing.set\
+Attribute(attr.n\
+ame,attr.value);\
+const oldHeader=\
+this.directChild\
+(existing,'.tool\
+-output-toggle')\
+;const newHeader\
+=this.directChil\
+d(clone,'.tool-o\
+utput-toggle');i\
+f(oldHeader&&new\
+Header){oldHeade\
+r.onclick=null;f\
+or(const attr of\
+ Array.from(oldH\
+eader.attributes\
+))oldHeader.remo\
+veAttribute(attr\
+.name);for(const\
+ attr of Array.f\
+rom(newHeader.at\
+tributes))oldHea\
+der.setAttribute\
+(attr.name,attr.\
+value);for(const\
+ child of Array.\
+from(newHeader.c\
+hildren)){const \
+oldChild=Array.f\
+rom(oldHeader.ch\
+ildren).find(el=\
+>el.className===\
+child.className)\
+;if(!oldChild)co\
+ntinue;if(oldChi\
+ld.textContent!=\
+=child.textConte\
+nt)oldChild.text\
+Content=child.te\
+xtContent;child.\
+replaceWith(oldC\
+hild);}\x0aoldHeade\
+r.replaceChildre\
+n(...Array.from(\
+newHeader.childN\
+odes));newHeader\
+.replaceWith(old\
+Header);}\x0aconst \
+newContent=this.\
+_content(clone);\
+if(content&&newC\
+ontent){const bo\
+dy=this._content\
+Body(content);bo\
+dy.replaceChildr\
+en(...Array.from\
+(this._contentBo\
+dy(newContent).c\
+hildNodes));newC\
+ontent.replaceWi\
+th(content);}\x0aex\
+isting.replaceCh\
+ildren(...Array.\
+from(clone.child\
+Nodes));if(expan\
+ded){this._setEx\
+panded(this._con\
+tent(existing),t\
+rue);existing.qu\
+erySelector('but\
+ton').setAttribu\
+te('aria-expande\
+d','true');exist\
+ing.querySelecto\
+r('.tool-output-\
+arrow').classLis\
+t.add('toggle-ex\
+panded');}\x0afor(c\
+onst duplicate o\
+f sources.slice(\
+1))duplicate.rem\
+ove();return exi\
+sting;}\x0asyncLive\
+(parentId,calls)\
+{const host=this\
+.findStatusHost(\
+parentId,false);\
+if(!host||!calls\
+.length)return;c\
+onst status=Arra\
+y.from(host.time\
+line.querySelect\
+orAll('.workflow\
+-status')).rever\
+se().find(el=>el\
+.dataset.statusK\
+ind==='tool');if\
+(!status)return;\
+const shell=docu\
+ment.createEleme\
+nt('div');shell.\
+innerHTML=this.t\
+emplates.tools.r\
+enderToolOutputW\
+rapper({id:`live\
+-${parentId}`,ex\
+tra:{tool_calls:\
+calls,tool_outpu\
+t_visible:true}}\
+);const desired=\
+shell.firstEleme\
+ntChild;desired.\
+setAttribute('da\
+ta-live-tools','\
+1');desired.clas\
+sList.add('tool-\
+output-live');co\
+nst output=this.\
+reconcile(host.t\
+imeline,desired)\
+;output.querySel\
+ector('button').\
+onclick=()=>this\
+.toggle(`live-${\
+parentId}`);stat\
+us.classList.add\
+('live-tool-stat\
+us');if(!output.\
+isConnected)stat\
+us.appendChild(o\
+utput);status.st\
+yle.display=stat\
+us.contains(outp\
+ut)?'':'none';th\
 is.renderer.rend\
 erPendingMarkdow\
-n(document);cons\
-t virtualize=()=\
->{try{this.scrol\
-lMgr.virtualizat\
-ion.scheduleMess\
-ageVirtualizatio\
-nRefresh();}catc\
-h(_){}};if(pendi\
-ngMarkdown&&type\
-of pendingMarkdo\
-wn.then==='funct\
-ion')pendingMark\
-down.then(virtua\
-lize);else virtu\
-alize();}catch(_\
-){try{this.scrol\
-lMgr.virtualizat\
-ion.scheduleMess\
-ageVirtualizatio\
-nRefresh();}catc\
-h(__){}}\x0athis.hi\
-ghlighter.observ\
-eMsgBoxes(docume\
-nt,(box)=>{this.\
-highlighter.obse\
-rveNewCode(box,{\
-deferLastIfStrea\
-ming:true,minLin\
-esForLast:this.c\
-fg.PROFILE_CODE.\
-minLinesForHL,mi\
-nCharsForLast:th\
+n(output);}\x0adire\
+ctChild(parent,s\
+elector){if(!par\
+ent||!parent.chi\
+ldren)return nul\
+l;const children\
+=Array.from(pare\
+nt.children);for\
+(let i=0;i<child\
+ren.length;i++){\
+const child=chil\
+dren[i];try{if(c\
+hild.matches(sel\
+ector))return ch\
+ild;}catch(_){}}\
+\x0areturn null;}\x0as\
+howLoader(){retu\
+rn;}\x0ahideLoader(\
+){const elements\
+=document.queryS\
+electorAll('.msg\
+-bot');if(elemen\
+ts.length>0)elem\
+ents.forEach(el=\
+>{const s=el.que\
+rySelector('.spi\
+nner');if(s)s.st\
+yle.display='non\
+e';});}\x0abegin(){\
+this.showLoader(\
+);}\x0aend(){this.h\
+ideLoader();}\x0aen\
+able(){const els\
+=this._mutableOu\
+tputs();if(els.l\
+ength)els[els.le\
+ngth-1].style.di\
+splay='block';}\x0a\
+disable(){const \
+els=this._mutabl\
+eOutputs();if(el\
+s.length)els[els\
+.length-1].style\
+.display='none';\
+}\x0aappend(content\
+){this.hideLoade\
+r();this.enable(\
+);const els=this\
+._mutableOutputs\
+();if(els.length\
+){const contentE\
+l=this._content(\
+els[els.length-1\
+]);if(!contentEl\
+)return;const re\
+sults=contentEl.\
+querySelectorAll\
+('.tool-output-r\
+esult-data');con\
+st resultEl=resu\
+lts.length?resul\
+ts[results.lengt\
+h-1]:null;if(res\
+ultEl){const nex\
+t=this._resultRa\
+w(resultEl)+(con\
+tent==null?'':St\
+ring(content));t\
+his._renderStruc\
+turedResult(resu\
+ltEl,next);}else\
+{this._contentBo\
+dy(contentEl).in\
+sertAdjacentHTML\
+('beforeend',con\
+tent==null?'':St\
+ring(content));}\
+}}\x0aupdate(conten\
+t){this.hideLoad\
+er();this.enable\
+();const els=thi\
+s._mutableOutput\
+s();if(els.lengt\
+h){const content\
+El=this._content\
+(els[els.length-\
+1]);if(!contentE\
+l)return;const r\
+esults=contentEl\
+.querySelectorAl\
+l('.tool-output-\
+result-data');co\
+nst resultEl=res\
+ults.length?resu\
+lts[results.leng\
+th-1]:null;if(re\
+sultEl){this._re\
+nderStructuredRe\
+sult(resultEl,co\
+ntent);}else{thi\
+s._contentBody(c\
+ontentEl).innerH\
+TML=content==nul\
+l?'':String(cont\
+ent);}}}\x0aclear()\
+{this.hideLoader\
+();const els=thi\
+s._mutableOutput\
+s();if(els.lengt\
+h){const content\
+El=this._content\
+(els[els.length-\
+1]);if(!contentE\
+l)return;const r\
+esults=contentEl\
+.querySelectorAl\
+l('.tool-output-\
+result-data');co\
+nst resultEl=res\
+ults.length?resu\
+lts[results.leng\
+th-1]:null;if(re\
+sultEl)this._ren\
+derStructuredRes\
+ult(resultEl,'')\
+;else this._cont\
+entBody(contentE\
+l).replaceChildr\
+en();}}\x0atoggleGr\
+oup(id){const gr\
+oupEl=document.g\
+etElementById(St\
+ring(id||''));if\
+(!groupEl)return\
+;const content=t\
+his.directChild(\
+groupEl,'.tool-g\
+roup-content');i\
+f(!content)retur\
+n;const header=t\
+his.directChild(\
+groupEl,'.tool-o\
+utput-toggle.too\
+l-group-toggle')\
+;const expanded=\
+!content.classLi\
+st.contains('is-\
+expanded');this.\
+_withViewportAnc\
+hor(header||grou\
+pEl,()=>{this._s\
+etExpanded(conte\
+nt,expanded);if(\
+header)header.se\
+tAttribute('aria\
+-expanded',expan\
+ded?'true':'fals\
+e');const arrow=\
+header?header.qu\
+erySelector('.to\
+ol-group-arrow')\
+:null;if(arrow)a\
+rrow.classList.t\
+oggle('toggle-ex\
+panded',expanded\
+);});}\x0atoggle(id\
+){let outputEl=d\
+ocument.getEleme\
+ntById('tool-out\
+put-'+id);if(!ou\
+tputEl){const el\
+=document.getEle\
+mentById('msg-bo\
+t-'+id);if(!el)r\
+eturn;outputEl=e\
+l.querySelector(\
+'.tool-output:no\
+t(.tool-output-g\
+roup)');}\x0aif(!ou\
+tputEl)return;co\
+nst contentEl=th\
+is._content(outp\
+utEl);if(!conten\
+tEl)return;const\
+ headerEl=output\
+El.querySelector\
+('.tool-output-t\
+oggle');const ex\
+panded=!contentE\
+l.classList.cont\
+ains('is-expande\
+d');this._withVi\
+ewportAnchor(hea\
+derEl||outputEl,\
+()=>{this._setEx\
+panded(contentEl\
+,expanded);if(he\
+aderEl)headerEl.\
+setAttribute('ar\
+ia-expanded',exp\
+anded?'true':'fa\
+lse');const arro\
+wEl=outputEl.que\
+rySelector('.too\
+l-output-arrow')\
+||outputEl.query\
+Selector('.toggl\
+e-cmd-output img\
+');if(arrowEl)ar\
+rowEl.classList.\
+toggle('toggle-e\
+xpanded',expande\
+d);});}\x0a_withVie\
+wportAnchor(anch\
+orEl,mutate){if(\
+typeof mutate!==\
+'function')retur\
+n;const anchor=a\
+nchorEl&&anchorE\
+l.isConnected?an\
+chorEl:null;cons\
+t scroller=(type\
+of Utils!=='unde\
+fined'&&Utils.SE\
+)?Utils.SE:(docu\
+ment.scrollingEl\
+ement||document.\
+documentElement)\
+;const beforeTop\
+=anchor?anchor.g\
+etBoundingClient\
+Rect().top:null;\
+const scrollMgr=\
+this.scrollMgr;i\
+f(scrollMgr&&typ\
+eof scrollMgr.su\
+spendAutoFollow=\
+=='function'){sc\
+rollMgr.suspendA\
+utoFollow();}\x0aco\
+nst root=documen\
+t.documentElemen\
+t;if(root&&root.\
+classList)root.c\
+lassList.add('to\
+ol-viewport-anch\
+or-lock');mutate\
+();const seq=++t\
+his._viewportAnc\
+horSeq;const cor\
+rect=()=>{if(seq\
+!==this._viewpor\
+tAnchorSeq||!anc\
+hor||!anchor.isC\
+onnected||before\
+Top==null||!scro\
+ller)return;cons\
+t delta=anchor.g\
+etBoundingClient\
+Rect().top-befor\
+eTop;if(Math.abs\
+(delta)<=0.5)ret\
+urn;const maxTop\
+=Math.max(0,Numb\
+er(scroller.scro\
+llHeight||0)-Num\
+ber(scroller.cli\
+entHeight||0));c\
+onst target=Math\
+.max(0,Math.min(\
+maxTop,Number(sc\
+roller.scrollTop\
+||0)+delta));if(\
+scrollMgr&&typeo\
+f scrollMgr.mark\
+ProgrammaticScro\
+ll==='function')\
+{scrollMgr.markP\
+rogrammaticScrol\
+l(target);}\x0atry{\
+scroller.scrollT\
+op=target;}catch\
+(_){}};try{reque\
+stAnimationFrame\
+(correct);}catch\
+(_){correct();}\x0a\
+if(this._viewpor\
+tAnchorTimer)cle\
+arTimeout(this._\
+viewportAnchorTi\
+mer);this._viewp\
+ortAnchorTimer=s\
+etTimeout(()=>{i\
+f(seq!==this._vi\
+ewportAnchorSeq)\
+return;correct()\
+;if(root&&root.c\
+lassList)root.cl\
+assList.remove('\
+tool-viewport-an\
+chor-lock');this\
+._viewportAnchor\
+Timer=0;if(scrol\
+lMgr&&typeof scr\
+ollMgr.scheduleS\
+crollFabUpdate==\
+='function'){scr\
+ollMgr.scheduleS\
+crollFabUpdate()\
+;}},280);}\x0a_prep\
+areCollapsible(c\
+ontentEl){if(!co\
+ntentEl)return n\
+ull;let inner=th\
+is.directChild(c\
+ontentEl,'.tool-\
+collapse-inner')\
+;let body=inner?\
+this.directChild\
+(inner,'.tool-co\
+llapse-body'):nu\
+ll;if(!inner){in\
+ner=document.cre\
+ateElement('div'\
+);inner.classNam\
+e='tool-collapse\
+-inner';body=doc\
+ument.createElem\
+ent('div');body.\
+className='tool-\
+collapse-body';w\
+hile(contentEl.f\
+irstChild)body.a\
+ppendChild(conte\
+ntEl.firstChild)\
+;inner.appendChi\
+ld(body);content\
+El.appendChild(i\
+nner);}else if(!\
+body){body=docum\
+ent.createElemen\
+t('div');body.cl\
+assName='tool-co\
+llapse-body';whi\
+le(inner.firstCh\
+ild)body.appendC\
+hild(inner.first\
+Child);inner.app\
+endChild(body);}\
+\x0aif(contentEl.st\
+yle&&contentEl.s\
+tyle.display==='\
+none'){contentEl\
+.style.removePro\
+perty('display')\
+;void contentEl.\
+offsetHeight;}\x0ar\
+eturn body;}\x0a_se\
+tExpanded(conten\
+tEl,expanded){if\
+(!contentEl)retu\
+rn;this._prepare\
+Collapsible(cont\
+entEl);contentEl\
+.classList.toggl\
+e('is-expanded',\
+!!expanded);}\x0a_c\
+ontent(outputEl)\
+{if(!outputEl)re\
+turn null;return\
+ outputEl.queryS\
+elector('.tool-o\
+utput-content, .\
+content');}\x0a_con\
+tentBody(content\
+El){if(!contentE\
+l)return null;co\
+nst inner=this.d\
+irectChild(conte\
+ntEl,'.tool-coll\
+apse-inner');ret\
+urn(inner&&this.\
+directChild(inne\
+r,'.tool-collaps\
+e-body'))||inner\
+||contentEl;}\x0a_m\
+utableOutputs(){\
+const outputs=Ar\
+ray.from(documen\
+t.querySelectorA\
+ll('.tool-output\
+'));return outpu\
+ts.filter((el)=>\
+{if(!el||!el.cla\
+ssList)return fa\
+lse;if(el.classL\
+ist.contains('ag\
+ent-workflow-out\
+put'))return fal\
+se;if(el.classLi\
+st.contains('too\
+l-output-group')\
+)return false;tr\
+y{if(el.closest(\
+'.agent-workflow\
+-output'))return\
+ false;}catch(_)\
+{}\x0areturn true;}\
+);}\x0a_formatPaylo\
+ad(value){if(val\
+ue==null)return'\
+';const raw=Stri\
+ng(value);const \
+trimmed=raw.trim\
+();if(!trimmed)r\
+eturn'';try{retu\
+rn JSON.stringif\
+y(JSON.parse(tri\
+mmed),null,2);}c\
+atch(_){return r\
+aw;}}\x0a_codeMarkd\
+own(value){const\
+ text=this._form\
+atPayload(value)\
+;if(!text)return\
+'';let maxTicks=\
+0;const runs=tex\
+t.match(/`+/g);i\
+f(runs)runs.forE\
+ach(run=>{maxTic\
+ks=Math.max(maxT\
+icks,run.length)\
+;});const fence=\
+'`'.repeat(Math.\
+max(3,maxTicks+1\
+));return`${fenc\
+e}json\x5cn${text}\x5c\
+n${fence}`;}\x0a_re\
+sultRaw(resultEl\
+){if(!resultEl)r\
+eturn'';if(Objec\
+t.prototype.hasO\
+wnProperty.call(\
+resultEl,'_toolR\
+aw')){return Str\
+ing(resultEl._to\
+olRaw||'');}\x0acon\
+st payload=resul\
+tEl.querySelecto\
+r('[data-tool-ra\
+w]');if(payload)\
+return payload.g\
+etAttribute('dat\
+a-tool-raw');con\
+st code=resultEl\
+.querySelector('\
+.code-wrapper pr\
+e code');if(code\
+)return code.tex\
+tContent||'';con\
+st pending=resul\
+tEl.querySelecto\
+r('[md-block-mar\
+kdown]');if(pend\
+ing){const src=p\
+ending.textConte\
+nt||'';const mat\
+ch=src.match(/^(\
+`{3,})json[^\x5cn]*\
+\x5cn([\x5cs\x5cS]*?)\x5cn\x5c1\
+\x5cs*$/i);if(match\
+)return match[2]\
+;return src;}\x0are\
+turn resultEl.te\
+xtContent||'';}\x0a\
+_renderStructure\
+dResult(resultEl\
+,content){if(!re\
+sultEl)return;co\
+nst envelope=con\
+tent&&typeof con\
+tent==='object'?\
+content:null;con\
+st raw=envelope?\
+String(envelope.\
+raw||''):(conten\
+t==null?'':Strin\
+g(content));cons\
+t hasContent=raw\
+.trim()!=='';res\
+ultEl._toolRaw=r\
+aw;const respons\
+eSection=resultE\
+l.closest('.tool\
+-output-response\
+-section');if(re\
+sponseSection)re\
+sponseSection.st\
+yle.display=hasC\
+ontent?'':'none'\
+;resultEl.replac\
+eChildren();if(!\
+hasContent)retur\
+n;const response\
+Label=(typeof wi\
+ndow!=='undefine\
+d'&&window.LOCAL\
+E_TOOL_RESPONSE)\
+?String(window.L\
+OCALE_TOOL_RESPO\
+NSE):'Output';if\
+(this.templates&\
+&this.templates.\
+tools){resultEl.\
+innerHTML=this.t\
+emplates.tools._\
+renderToolCode(r\
+aw,responseLabel\
+,envelope&&envel\
+ope.friendly);}e\
+lse{const md=doc\
+ument.createElem\
+ent('div');md.se\
+tAttribute('md-b\
+lock-markdown','\
+1');md.setAttrib\
+ute('data-code-h\
+eader',responseL\
+abel);md.textCon\
+tent=this._codeM\
+arkdown(raw);res\
+ultEl.appendChil\
+d(md);}\x0atry{cons\
+t renderer=this.\
+renderer;if(rend\
+erer&&typeof ren\
+derer.renderPend\
+ingMarkdown==='f\
+unction'){const \
+pending=renderer\
+.renderPendingMa\
+rkdown(resultEl)\
+;if(pending&&typ\
+eof pending.catc\
+h==='function')p\
+ending.catch(()=\
+>{});}}catch(_){\
+}}};\x0a\x0a/* data/js\
+/app/ui.js */\x0acl\
+ass UIManager{up\
+dateCSS(styles){\
+let style=docume\
+nt.getElementByI\
+d('app-style');i\
+f(!style){style=\
+document.createE\
+lement('style');\
+style.id='app-st\
+yle';document.he\
+ad.appendChild(s\
+tyle);}\x0astyle.te\
+xtContent=styles\
+;}\x0aensureStickyH\
+eaderStyle(){let\
+ style=document.\
+getElementById('\
+code-sticky-styl\
+e');if(style)ret\
+urn;style=docume\
+nt.createElement\
+('style');style.\
+id='code-sticky-\
+style';style.tex\
+tContent=['html,\
+ body { scroll-b\
+ehavior: auto !i\
+mportant; overfl\
+ow-anchor: none \
+!important; }','\
+#container, #con\
+tainer * { overf\
+low-anchor: none\
+ !important; }',\
+'.code-wrapper {\
+ position: relat\
+ive; }','.code-w\
+rapper .code-hea\
+der-wrapper { po\
+sition: sticky; \
+top: var(--code-\
+header-sticky-to\
+p, -2px); z-inde\
+x: 2; box-shadow\
+: 0 1px 0 rgba(0\
+,0,0,.06); }','.\
+code-wrapper pre\
+ { overflow: vis\
+ible; margin-top\
+: 0; }','.code-w\
+rapper pre code \
+{ display: block\
+; white-space: p\
+re; max-height: \
+100dvh; overflow\
+: auto;','  over\
+scroll-behavior:\
+ contain; -webki\
+t-overflow-scrol\
+ling: touch; ove\
+rflow-anchor: no\
+ne; scrollbar-gu\
+tter: stable bot\
+h-edges; scroll-\
+behavior: auto; \
+}','#_loader_.hi\
+dden { display: \
+none !important;\
+ opacity: 0; vis\
+ibility: hidden \
+!important; poin\
+ter-events: none\
+ !important; }',\
+'#_loader_.reser\
+ved { display: b\
+lock !important;\
+ opacity: 0; vis\
+ibility: hidden \
+!important; poin\
+ter-events: none\
+ !important; }',\
+'#_loader_.visib\
+le { display: bl\
+ock; opacity: 1;\
+ visibility: vis\
+ible; pointer-ev\
+ents: auto; }','\
+.msg-box.msg-use\
+r .msg { positio\
+n: relative; }',\
+'.msg-box.msg-us\
+er .msg > .uc-co\
+ntent { display:\
+ block; overflow\
+: visible; }','.\
+msg-box.msg-user\
+ .msg > .uc-cont\
+ent.uc-collapsed\
+ {','  max-heigh\
+t: var(--user-ms\
+g-collapse-max-h\
+, 350px);','  ov\
+erflow: hidden;'\
+,'  -webkit-mask\
+-image: linear-g\
+radient(to botto\
+m, rgba(0,0,0,1)\
+ calc(100% - var\
+(--uc-fade-heigh\
+t, 64px)), rgba(\
+0,0,0,0) 100%);'\
+,'  mask-image: \
+linear-gradient(\
+to bottom, rgba(\
+0,0,0,1) calc(10\
+0% - var(--uc-fa\
+de-height, 64px)\
+), rgba(0,0,0,0)\
+ 100%);','  -web\
+kit-mask-size: 1\
+00% 100%;','  ma\
+sk-size: 100% 10\
+0%;','  -webkit-\
+mask-repeat: no-\
+repeat;','  mask\
+-repeat: no-repe\
+at;','}','.msg-b\
+ox.msg-user .msg\
+ > .uc-content.u\
+c-expanded {',' \
+ -webkit-mask-im\
+age: none;','  m\
+ask-image: none;\
+','}','.msg-box.\
+msg-user .msg > \
+.uc-toggle { dis\
+play: none; marg\
+in-top: 8px; tex\
+t-align: center;\
+ cursor: pointer\
+; user-select: n\
+one; }','.msg-bo\
+x.msg-user .msg \
+> .uc-toggle.vis\
+ible { display: \
+block; }','.msg-\
+box.msg-user .ms\
+g > .uc-toggle i\
+mg { width: var(\
+--uc-toggle-icon\
+-size, 26px); he\
+ight: var(--uc-t\
+oggle-icon-size,\
+ 26px); opacity:\
+ .8; }','.msg-bo\
+x.msg-user .msg \
+> .uc-toggle:hov\
+er img { opacity\
+: 1; }','.code-w\
+rapper .code-hea\
+der-action.code-\
+header-copy,','.\
+code-wrapper .co\
+de-header-action\
+.code-header-col\
+lapse { display:\
+ inline-flex; al\
+ign-items: cente\
+r; border-radius\
+: 6px; padding: \
+2px; line-height\
+: 0; border: 1px\
+ solid transpare\
+nt; transition: \
+transform .15s e\
+ase, background-\
+color .15s ease,\
+ border-color .1\
+5s ease; }','.co\
+de-wrapper .code\
+-header-action.c\
+ode-header-copy:\
+hover,','.code-w\
+rapper .code-hea\
+der-action.code-\
+header-collapse:\
+hover { transfor\
+m: scale(1.06); \
+border-color: va\
+r(--copy-btn-bor\
+der, rgba(0,0,0,\
+.08)); }','.code\
+-wrapper .code-h\
+eader-action.cop\
+ied { background\
+: var(--copy-btn\
+-bg-copied, rgba\
+(150,150,150,.12\
+)); border-color\
+: var(--copy-btn\
+-border-copied, \
+rgba(150,150,150\
+,.35)); animatio\
+n: msg-copy-pop \
+.25s ease; }','@\
+keyframes msg-co\
+py-pop { 0%{ tra\
+nsform: scale(1)\
+; } 60%{ transfo\
+rm: scale(1.1); \
+} 100%{ transfor\
+m: scale(1); } }\
+'].join('\x5cn');do\
+cument.head.appe\
+ndChild(style);}\
+\x0atoggleExtraItem\
+s(button){if(!bu\
+tton)return;cons\
+t list=button.cl\
+osest?button.clo\
+sest('.extra-ite\
+ms-list'):null;i\
+f(!list)return;c\
+onst hidden=list\
+.querySelector('\
+.extra-items-hid\
+den');if(!hidden\
+)return;const is\
+Hidden=hidden.st\
+yle.display==='n\
+one'||getCompute\
+dStyle(hidden).d\
+isplay==='none';\
+hidden.style.dis\
+play=isHidden?'b\
+lock':'none';but\
+ton.setAttribute\
+('aria-expanded'\
+,isHidden?'true'\
+:'false');const \
+arrow=button.que\
+rySelector('.ext\
+ra-items-toggle-\
+arrow');if(arrow\
+)arrow.classList\
+.toggle('toggle-\
+expanded',isHidd\
+en);const label=\
+button.querySele\
+ctor('.extra-ite\
+ms-toggle-label'\
+);if(label){if(!\
+button.dataset.c\
+ollapsedLabel){b\
+utton.dataset.co\
+llapsedLabel=lab\
+el.textContent||\
+'';}\x0aconst lessL\
+abel=(typeof win\
+dow!=='undefined\
+'&&window.LOCALE\
+_LESS)?String(wi\
+ndow.LOCALE_LESS\
+):'Less';label.t\
+extContent=isHid\
+den?lessLabel:bu\
+tton.dataset.col\
+lapsedLabel;}\x0aco\
+nst expandTitle=\
+(typeof window!=\
+='undefined'&&wi\
+ndow.LOCALE_EXPA\
+ND)?String(windo\
+w.LOCALE_EXPAND)\
+:'Expand';const \
+collapseTitle=(t\
+ypeof window!=='\
+undefined'&&wind\
+ow.LOCALE_COLLAP\
+SE)?String(windo\
+w.LOCALE_COLLAPS\
+E):'Collapse';bu\
+tton.setAttribut\
+e('title',isHidd\
+en?collapseTitle\
+:expandTitle);}\x0a\
+enableEditIcons(\
+){document.body&\
+&document.body.c\
+lassList.add('di\
+splay-edit-icons\
+');}\x0adisableEdit\
+Icons(){document\
+.body&&document.\
+body.classList.r\
+emove('display-e\
+dit-icons');}\x0aen\
+ableTimestamp(){\
+document.body&&d\
+ocument.body.cla\
+ssList.add('disp\
+lay-timestamp');\
+}\x0adisableTimesta\
+mp(){document.bo\
+dy&&document.bod\
+y.classList.remo\
+ve('display-time\
+stamp');}\x0aenable\
+Blocks(){documen\
+t.body&&document\
+.body.classList.\
+add('display-blo\
+cks');}\x0adisableB\
+locks(){document\
+.body&&document.\
+body.classList.r\
+emove('display-b\
+locks');}};\x0a\x0a/* \
+data/js/app/user\
+.js */\x0aclass Use\
+rCollapseManager\
+{constructor(cfg\
+){this.cfg=cfg||\
+{};this.threshol\
+d=Utils.g('USER_\
+MSG_COLLAPSE_HEI\
+GHT_PX',350);thi\
+s._processed=new\
+ Set();this._rem\
+easureTimer=null\
+;this._fontsRead\
+yScheduled=false\
+;}\x0a_icons(){cons\
+t I=(this.cfg&&t\
+his.cfg.ICONS)||\
+{};return{expand\
+:I.EXPAND||'',co\
+llapse:I.COLLAPS\
+E||''};}\x0a_labels\
+(){const L=(this\
+.cfg&&this.cfg.L\
+OCALE)||{};retur\
+n{expand:L.EXPAN\
+D||'Expand',coll\
+apse:L.COLLAPSE|\
+|'Collapse'};}\x0a_\
+afterLayout(fn){\
+try{if(typeof ru\
+ntime!=='undefin\
+ed'&&runtime.raf\
+&&typeof runtime\
+.raf.schedule===\
+'function'){cons\
+t key={t:'UC:aft\
+erLayout',i:Math\
+.random()};runti\
+me.raf.schedule(\
+key,()=>{try{fn&\
+&fn();}catch(_){\
+}},'UserCollapse\
+',0);return;}}ca\
+tch(_){}\x0atry{req\
+uestAnimationFra\
+me(()=>{try{fn&&\
+fn();}catch(_){}\
+});}catch(_){set\
+Timeout(()=>{try\
+{fn&&fn();}catch\
+(__){}},0);}}\x0a_s\
+crollToggleIntoV\
+iew(toggleEl){if\
+(!toggleEl||!tog\
+gleEl.isConnecte\
+d)return;try{if(\
+runtime&&runtime\
+.scrollMgr){runt\
+ime.scrollMgr.us\
+erInteracted=tru\
+e;runtime.scroll\
+Mgr.autoFollow=f\
+alse;}}catch(_){\
+}\x0athis._afterLay\
+out(()=>{try{if(\
+toggleEl.scrollI\
+ntoView){try{tog\
+gleEl.scrollInto\
+View({block:'nea\
+rest',inline:'ne\
+arest',behavior:\
+'instant'});}cat\
+ch(_){toggleEl.s\
+crollIntoView(fa\
+lse);}}}catch(_)\
+{}});}\x0a_ensureSt\
+ructure(msg){if(\
+!msg||!msg.isCon\
+nected)return nu\
+ll;let content=m\
+sg.querySelector\
+('.uc-content');\
+if(!content){con\
+tent=document.cr\
+eateElement('div\
+');content.class\
+Name='uc-content\
+';const frag=doc\
+ument.createDocu\
+mentFragment();w\
+hile(msg.firstCh\
+ild)frag.appendC\
+hild(msg.firstCh\
+ild);content.app\
+endChild(frag);m\
+sg.appendChild(c\
+ontent);}\x0alet to\
+ggle=msg.querySe\
+lector('.uc-togg\
+le');if(!toggle)\
+{const icons=thi\
+s._icons();const\
+ labels=this._la\
+bels();toggle=do\
+cument.createEle\
+ment('div');togg\
+le.className='uc\
+-toggle';toggle.\
+tabIndex=0;toggl\
+e.setAttribute('\
+role','button');\
+toggle.setAttrib\
+ute('aria-expand\
+ed','false');tog\
+gle.title=labels\
+.expand;const im\
+g=document.creat\
+eElement('img');\
+img.className='u\
+c-toggle-icon';i\
+mg.alt=labels.ex\
+pand;img.src=ico\
+ns.expand;img.wi\
+dth=26;img.heigh\
+t=26;toggle.appe\
+ndChild(img);tog\
+gle.addEventList\
+ener('click',(ev\
+)=>{ev.preventDe\
+fault();ev.stopP\
+ropagation();thi\
+s.toggleFromTogg\
+le(toggle);});to\
+ggle.addEventLis\
+tener('keydown',\
+(ev)=>{if(ev.key\
+==='Enter'||ev.k\
+ey===' '){ev.pre\
+ventDefault();ev\
+.stopPropagation\
+();this.toggleFr\
+omToggle(toggle)\
+;}},{passive:fal\
+se});msg.appendC\
+hild(toggle);}\x0at\
+his._processed.a\
+dd(msg);msg.data\
+set.ucInit='1';r\
+eturn{content,to\
+ggle};}\x0a_ensureE\
+llipsisEl(msg,co\
+ntentEl){const c\
+ontent=contentEl\
+||(msg&&msg.quer\
+ySelector('.uc-c\
+ontent'));if(!co\
+ntent)return nul\
+l;try{const lega\
+cy=content.query\
+Selector('.uc-el\
+lipsis');if(lega\
+cy&&legacy.paren\
+tNode){legacy.pa\
+rentNode.removeC\
+hild(legacy);}}c\
+atch(_){}\x0areturn\
+ null;}\x0a_showEll\
+ipsis(msg,conten\
+tEl){this._ensur\
+eEllipsisEl(msg,\
+contentEl);}\x0a_hi\
+deEllipsis(msg){\
+this._ensureElli\
+psisEl(msg,null)\
+;}\x0a_scheduleStab\
+leRemeasure(){if\
+(this._remeasure\
+Timer!==null){tr\
+y{clearTimeout(t\
+his._remeasureTi\
+mer);}catch(_){}\
+}\x0aconst remeasur\
+e=()=>{this._rem\
+easureTimer=null\
+;this._afterLayo\
+ut(()=>this._aft\
+erLayout(()=>thi\
+s.remeasureAll()\
+));};this._remea\
+sureTimer=setTim\
+eout(remeasure,8\
+0);if(!this._fon\
+tsReadyScheduled\
+){this._fontsRea\
+dyScheduled=true\
+;try{if(document\
+.fonts&&document\
+.fonts.ready&&ty\
+peof document.fo\
+nts.ready.then==\
+='function'){doc\
+ument.fonts.read\
+y.then(()=>{this\
+._afterLayout(()\
+=>this.remeasure\
+All());}).catch(\
+()=>{});}}catch(\
+_){}}}\x0aapply(roo\
+t){const scope=r\
+oot||document;le\
+t list;if(scope.\
+nodeType===1)lis\
+t=scope.querySel\
+ectorAll('.msg-b\
+ox.msg-user .msg\
+');else list=doc\
+ument.querySelec\
+torAll('.msg-box\
+.msg-user .msg')\
+;if(!list||!list\
+.length)return;f\
+or(let i=0;i<lis\
+t.length;i++){co\
+nst msg=list[i];\
+const st=this._e\
+nsureStructure(m\
+sg);if(!st)conti\
+nue;this._update\
+(msg,st.content,\
+st.toggle);}\x0athi\
+s._scheduleStabl\
+eRemeasure();}\x0a_\
+update(msg,conte\
+ntEl,toggleEl){c\
+onst c=contentEl\
+||(msg&&msg.quer\
+ySelector('.uc-c\
+ontent'));if(!ms\
+g||!c)return;if(\
+this.threshold==\
+=0||this.thresho\
+ld==='0'){const \
+t=toggleEl||msg.\
+querySelector('.\
+uc-toggle');cons\
+t labels=this._l\
+abels();c.classL\
+ist.remove('uc-c\
+ollapsed');c.cla\
+ssList.remove('u\
+c-expanded');msg\
+.dataset.ucState\
+='expanded';this\
+._hideEllipsis(m\
+sg);if(t){t.clas\
+sList.remove('vi\
+sible');t.setAtt\
+ribute('aria-exp\
+anded','false');\
+t.title=labels.e\
+xpand;const img=\
+t.querySelector(\
+'img');if(img){i\
+mg.alt=labels.ex\
+pand;}}\x0areturn;}\
+\x0ac.classList.rem\
+ove('uc-collapse\
+d');c.classList.\
+remove('uc-expan\
+ded');const full\
+Height=Math.ceil\
+(c.scrollHeight)\
+;const labels=th\
+is._labels();con\
+st icons=this._i\
+cons();const t=t\
+oggleEl||msg.que\
+rySelector('.uc-\
+toggle');if(full\
+Height>this.thre\
+shold){if(t)t.cl\
+assList.add('vis\
+ible');const des\
+ired=msg.dataset\
+.ucState||'colla\
+psed';const expa\
+nd=(desired==='e\
+xpanded');if(exp\
+and){c.classList\
+.add('uc-expande\
+d');this._hideEl\
+lipsis(msg);}els\
+e{c.classList.ad\
+d('uc-collapsed'\
+);this._showElli\
+psis(msg,c);}\x0aif\
+(t){const img=t.\
+querySelector('i\
+mg');if(img){if(\
+expand){img.src=\
+icons.collapse;i\
+mg.alt=labels.co\
+llapse;}else{img\
+.src=icons.expan\
+d;img.alt=labels\
+.expand;}}\x0at.set\
+Attribute('aria-\
+expanded',expand\
+?'true':'false')\
+;t.title=expand?\
+labels.collapse:\
+labels.expand;}}\
+else{c.classList\
+.remove('uc-coll\
+apsed');c.classL\
+ist.remove('uc-e\
+xpanded');msg.da\
+taset.ucState='e\
+xpanded';this._h\
+ideEllipsis(msg)\
+;if(t){t.classLi\
+st.remove('visib\
+le');t.setAttrib\
+ute('aria-expand\
+ed','false');t.t\
+itle=labels.expa\
+nd;}}}\x0atoggleFro\
+mToggle(toggleEl\
+){const msg=togg\
+leEl&&toggleEl.c\
+losest?toggleEl.\
+closest('.msg-bo\
+x.msg-user .msg'\
+):null;if(!msg)r\
+eturn;this.toggl\
+e(msg);}\x0atoggle(\
+msg){if(!msg||!m\
+sg.isConnected)r\
+eturn;const c=ms\
+g.querySelector(\
+'.uc-content');i\
+f(!c)return;cons\
+t t=msg.querySel\
+ector('.uc-toggl\
+e');const labels\
+=this._labels();\
+const icons=this\
+._icons();const \
+isCollapsed=c.cl\
+assList.contains\
+('uc-collapsed')\
+;if(isCollapsed)\
+{c.classList.rem\
+ove('uc-collapse\
+d');c.classList.\
+add('uc-expanded\
+');msg.dataset.u\
+cState='expanded\
+';this._hideElli\
+psis(msg);if(t){\
+t.setAttribute('\
+aria-expanded','\
+true');t.title=l\
+abels.collapse;c\
+onst img=t.query\
+Selector('img');\
+if(img){img.src=\
+icons.collapse;i\
+mg.alt=labels.co\
+llapse;}}}else{c\
+.classList.remov\
+e('uc-expanded')\
+;c.classList.add\
+('uc-collapsed')\
+;msg.dataset.ucS\
+tate='collapsed'\
+;this._showEllip\
+sis(msg,c);if(t)\
+{t.setAttribute(\
+'aria-expanded',\
+'false');t.title\
+=labels.expand;c\
+onst img=t.query\
+Selector('img');\
+if(img){img.src=\
+icons.expand;img\
+.alt=labels.expa\
+nd;}\x0athis._scrol\
+lToggleIntoView(\
+t);}}}\x0aremeasure\
+All(){const arr=\
+Array.from(this.\
+_processed||[]);\
+for(let i=0;i<ar\
+r.length;i++){co\
+nst msg=arr[i];i\
+f(!msg||!msg.isC\
+onnected){this._\
+processed.delete\
+(msg);continue;}\
+\x0athis._update(ms\
+g);}}};\x0a\x0a/* data\
+/js/app/utils.js\
+ */\x0aclass Utils{\
+static g(name,df\
+lt){return(typeo\
+f window[name]!=\
+='undefined')?wi\
+ndow[name]:dflt;\
+}\x0astatic now(){r\
+eturn(typeof per\
+formance!=='unde\
+fined'&&performa\
+nce.now)?perform\
+ance.now():Date.\
+now();}\x0astatic e\
+scapeHtml(s){con\
+st d=Utils._escD\
+iv||(Utils._escD\
+iv=document.crea\
+teElement('div')\
+);d.textContent=\
+String(s??'');re\
+turn d.innerHTML\
+;}\x0astatic escape\
+HtmlAttr(s){retu\
+rn Utils.escapeH\
+tml(s).replace(/\
+\x22/g,'&quot;').re\
+place(/'/g,'&#39\
+;');}\x0astatic dec\
+odeMentionValue(\
+s){return String\
+(s??'').replace(\
+/&lt;/g,'<').rep\
+lace(/&gt;/g,'>'\
+).replace(/&quot\
+;/g,'\x22').replace\
+(/&#x27;|&#39;/g\
+,\x22'\x22).replace(/&\
+amp;/g,'&');}\x0ast\
+atic renderMenti\
+onText(s){const \
+raw=String(s??''\
+);const re=/<(at\
+tachment|file_co\
+ntext)>([\x5cs\x5cS]*?\
+)<\x5c/\x5c1>|<convers\
+ation\x5cb([^>]*)>(\
+[\x5cs\x5cS]*?)<\x5c/conv\
+ersation>/gi;let\
+ out='';let last\
+=0;let match;whi\
+le((match=re.exe\
+c(raw))!==null){\
+out+=Utils.escap\
+eHtml(raw.slice(\
+last,match.index\
+));if(match[1]){\
+const kind=Strin\
+g(match[1]||'').\
+toLowerCase();co\
+nst value=Utils.\
+decodeMentionVal\
+ue(match[2]||'')\
+;let label=value\
+;if(kind==='file\
+_context'){let n\
+ormalized=value.\
+replace(/\x5c\x5c/g,'/\
+');const lower=n\
+ormalized.toLowe\
+rCase();const pr\
+efix='%workdir%/\
+data/';if(lower.\
+startsWith(prefi\
+x))normalized=no\
+rmalized.slice(p\
+refix.length);el\
+se if(lower==='%\
+workdir%/data')n\
+ormalized='data/\
+';else if(lower.\
+startsWith('data\
+/'))normalized=n\
+ormalized.slice(\
+5);label=normali\
+zed||value;}\x0acon\
+st cls=(kind==='\
+attachment')?'me\
+ntion-attachment\
+':'mention-file-\
+context';out+=`<\
+span class=\x22ment\
+ion-anchor ${cls\
+}\x22 title=\x22${Util\
+s.escapeHtmlAttr\
+(value)}\x22>@${Uti\
+ls.escapeHtml(la\
+bel)}</span>`;}e\
+lse{const attrs=\
+String(match[3]|\
+|'');const idMat\
+ch=attrs.match(/\
+\x5cbid\x5cs*=\x5cs*([\x22']\
+)(.*?)\x5c1/i);cons\
+t titleMatch=att\
+rs.match(/\x5cbtitl\
+e\x5cs*=\x5cs*([\x22'])(.\
+*?)\x5c1/i);const i\
+d=Utils.decodeMe\
+ntionValue(idMat\
+ch?idMatch[2]:''\
+);const title=Ut\
+ils.decodeMentio\
+nValue(titleMatc\
+h?titleMatch[2]:\
+'');const label=\
+title||id;if(lab\
+el){out+=`<span \
+class=\x22mention-a\
+nchor mention-co\
+nversation\x22 titl\
+e=\x22#${Utils.esca\
+peHtmlAttr(id)}\x22\
+>@${Utils.escape\
+Html(label)}</sp\
+an>`;}else{out+=\
+Utils.escapeHtml\
+(match[0]);}}\x0ala\
+st=re.lastIndex;\
+}\x0aout+=Utils.esc\
+apeHtml(raw.slic\
+e(last));return \
+out.replace(/\x5cr?\
+\x5cn/g,'<br>');}\x0as\
+tatic countNewli\
+nes(s){if(!s)ret\
+urn 0;let c=0,i=\
+-1;while((i=s.in\
+dexOf('\x5cn',i+1))\
+!==-1)c++;return\
+ c;}\x0astatic reEs\
+cape(s){return S\
+tring(s).replace\
+(/[.*+?^${}()|[\x5c\
+]\x5c\x5c]/g,'\x5c\x5c$&');}\
+\x0astatic idle(fn,\
+timeout){if('req\
+uestIdleCallback\
+'in window)retur\
+n requestIdleCal\
+lback(fn,{timeou\
+t:timeout||800})\
+;return setTimeo\
+ut(fn,50);}\x0astat\
+ic cancelIdle(id\
+){try{if('cancel\
+IdleCallback'in \
+window)cancelIdl\
+eCallback(id);el\
+se clearTimeout(\
+id);}catch(_){}}\
+\x0astatic get SE()\
+{return document\
+.scrollingElemen\
+t||document.docu\
+mentElement;}\x0ast\
+atic utf8Decode(\
+bytes){if(!Utils\
+._td)Utils._td=n\
+ew TextDecoder('\
+utf-8');return U\
+tils._td.decode(\
+bytes);}};\x0a\x0a/* d\
+ata/js/app/runti\
+me.js */\x0aclass R\
+untime{construct\
+or(){this.cfg=ne\
+w Config();this.\
+logger=new Logge\
+r(this.cfg);this\
+.dom=new DOMRefs\
+();this.customMa\
+rkup=new CustomM\
+arkup(this.cfg,t\
+his.logger);this\
+.raf=new RafMana\
+ger(this.cfg);tr\
+y{this.logger.bi\
+ndRaf(this.raf);\
+}catch(_){}\x0athis\
+.async=new Async\
+Runner(this.cfg,\
+this.raf);this.r\
+enderer=new Mark\
+downRenderer(thi\
+s.cfg,this.custo\
+mMarkup,this.log\
+ger,this.async,t\
+his.raf);this.ma\
+th=new MathRende\
+rer(this.cfg,thi\
+s.raf,this.async\
+);this.codeScrol\
+l=new CodeScroll\
+State(this.cfg,t\
+his.raf);this.hi\
+ghlighter=new Hi\
+ghlighter(this.c\
+fg,this.codeScro\
+ll,this.raf);thi\
+s.scrollMgr=new \
+ScrollManager(th\
+is.cfg,this.dom,\
+this.raf);this.t\
+emplates=new Nod\
+eTemplateEngine(\
+this.cfg,this.lo\
+gger);this.toolO\
+utput=new ToolOu\
+tput(this.scroll\
+Mgr,{templates:t\
+his.templates,re\
+nderer:this.rend\
+erer,findStatusH\
+ost:(parentId,cr\
+eate)=>this.work\
+flows.workflowMe\
+ssageHost(parent\
+Id,create)});thi\
+s.loading=new Lo\
+ading(this.dom);\
+this.nodes=new N\
+odesManager(this\
+.dom,this.render\
+er,this.highligh\
+ter,this.math,th\
+is.toolOutput,th\
+is.templates);th\
+is.bridge=new Br\
+idgeManager(this\
+.cfg,this.logger\
+);this.ui=new UI\
+Manager();this.s\
+tream=new Stream\
+Engine(this.cfg,\
+this.dom,this.re\
+nderer,this.math\
+,this.highlighte\
+r,this.codeScrol\
+l,this.scrollMgr\
+,this.raf,this.a\
+sync,this.logger\
+);this.streamQ=n\
+ew StreamQueue(t\
+his.cfg,this.str\
+eam,this.scrollM\
+gr,this.raf);thi\
+s.events=new Eve\
+ntManager(this.c\
+fg,this.dom,this\
+.scrollMgr,this.\
+highlighter,this\
+.codeScroll,this\
+.toolOutput,this\
+.bridge,()=>this\
+.stream.code.act\
+iveCode);try{thi\
+s.stream.fences.\
+setCustomFenceSp\
+ecs(this.customM\
+arkup.getSourceF\
+enceSpecs());}ca\
+tch(_){}\x0athis.da\
+ta=new DataRecei\
+ver(this.cfg,thi\
+s.templates,this\
+.nodes,this.scro\
+llMgr);this.tips\
+=null;this.strea\
+ming=new Runtime\
+Streaming(this);\
+this.workflows=n\
+ew RuntimeWorkfl\
+ows(this);this.p\
+artials=new Runt\
+imePartials(this\
+);this.timeline=\
+new RuntimeTimel\
+ine(this);this.t\
+urns=new Runtime\
+Turns(this);this\
+.mutations=new R\
+untimeMutations(\
+this);this.messa\
+ges=new RuntimeM\
+essages(this);th\
+is.view=new Runt\
+imeView(this);th\
+is.renderer.hook\
+s.observeNewCode\
+=(root,opts)=>th\
+is.highlighter.o\
+bserveNewCode(ro\
+ot,opts,this.str\
+eam.code.activeC\
+ode);this.render\
+er.hooks.observe\
+MsgBoxes=(root)=\
+>this.highlighte\
+r.observeMsgBoxe\
+s(root,(box)=>{t\
+his.highlighter.\
+observeNewCode(b\
+ox,{deferLastIfS\
+treaming:true,mi\
+nLinesForLast:th\
 is.cfg.PROFILE_C\
-ODE.minCharsForH\
-L},this.stream.c\
-ode.activeCode);\
+ODE.minLinesForH\
+L,minCharsForLas\
+t:this.cfg.PROFI\
+LE_CODE.minChars\
+ForHL},this.stre\
+am.code.activeCo\
+de);this.codeScr\
+oll.initScrollab\
+leBlocks(box);})\
+;this.renderer.h\
+ooks.scheduleMat\
+hRender=(root)=>\
+{const mm=getMat\
+hMode();if(mm===\
+'idle')this.math\
+.schedule(root);\
+else if(mm==='al\
+ways')this.math.\
+schedule(root,0,\
+true);};this.ren\
+derer.hooks.scan\
+VisibleCodes=(ro\
+ot)=>this.highli\
+ghter.scanVisibl\
+eCodesInRoot(roo\
+t,this.stream.co\
+de.activeCode||n\
+ull);this.render\
+er.hooks.codeScr\
+ollInit=(root)=>\
 this.codeScroll.\
 initScrollableBl\
-ocks(box);});thi\
-s.highlighter.ob\
-serveNewCode(doc\
-ument,{deferLast\
-IfStreaming:true\
-,minLinesForLast\
-:this.cfg.PROFIL\
-E_CODE.minLinesF\
-orHL,minCharsFor\
+ocks(root);}\x0aini\
+t(){this.highlig\
+hter.initHLJS();\
+this.dom.init();\
+this.ui.ensureSt\
+ickyHeaderStyle(\
+);this.tips=new \
+TipsManager(this\
+.dom);this.event\
+s.install();this\
+.bridge.initQWeb\
+Channel(this.cfg\
+.PID,(bridge)=>{\
+const onChunk=(n\
+ame,chunk,type)=\
+>this.streaming.\
+onChunk(name,chu\
+nk,type);const o\
+nNode=(payload)=\
+>this.messages.a\
+ppendNode(payloa\
+d);const onNodeR\
+eplace=(payload)\
+=>this.messages.\
+replaceNodes(pay\
+load);const onNo\
+deInput=(html)=>\
+this.messages.ap\
+pendToInput(html\
+);this.bridge.co\
+nnect(onChunk,on\
+Node,onNodeRepla\
+ce,onNodeInput);\
+try{this.logger.\
+bindBridge(this.\
+bridge.bridge||t\
+his.bridge);}cat\
+ch(_){}});this.r\
+enderer.init();t\
+ry{const pending\
+Markdown=this.re\
+nderer.renderPen\
+dingMarkdown(doc\
+ument);const vir\
+tualize=()=>{try\
+{this.scrollMgr.\
+virtualization.s\
+cheduleMessageVi\
+rtualizationRefr\
+esh();}catch(_){\
+}};if(pendingMar\
+kdown&&typeof pe\
+ndingMarkdown.th\
+en==='function')\
+pendingMarkdown.\
+then(virtualize)\
+;else virtualize\
+();}catch(_){try\
+{this.scrollMgr.\
+virtualization.s\
+cheduleMessageVi\
+rtualizationRefr\
+esh();}catch(__)\
+{}}\x0athis.highlig\
+hter.observeMsgB\
+oxes(document,(b\
+ox)=>{this.highl\
+ighter.observeNe\
+wCode(box,{defer\
+LastIfStreaming:\
+true,minLinesFor\
 Last:this.cfg.PR\
-OFILE_CODE.minCh\
-arsForHL},this.s\
-tream.code.activ\
-eCode);this.high\
-lighter.schedule\
-ScanVisibleCodes\
-(this.stream.cod\
-e.activeCode);th\
-is.tips.cycle();\
-this.scrollMgr.u\
-pdateScrollFab(t\
-rue);}\x0acleanup()\
-{this.tips.clean\
-up();try{this.br\
-idge.disconnect(\
-);}catch(_){}\x0ath\
-is.events.cleanu\
-p();this.highlig\
-hter.cleanup();t\
-his.math.cleanup\
-();this.streamQ.\
-clear();this.dom\
-.cleanup();}};\x0a\x0a\
-/* data/js/app/b\
-ootstrap.js */\x0aw\
-indow.__collapse\
-d_idx=window.__c\
-ollapsed_idx||[]\
-;const runtime=n\
-ew Runtime();doc\
-ument.addEventLi\
-stener('DOMConte\
-ntLoaded',()=>ru\
-ntime.init());Ob\
-ject.definePrope\
-rty(window,'SE',\
-{get(){return Ut\
-ils.SE;}});windo\
-w.beginStream=(c\
-hunk,preservePar\
-entId=null)=>run\
-time.streaming.b\
-eginStream(chunk\
-,preserveParentI\
-d);window.bindSt\
-reamOwner=(msgId\
-)=>runtime.strea\
-ming.bindStreamO\
-wner(msgId);wind\
-ow.endStream=()=\
->runtime.streami\
-ng.endStream();w\
-indow.applyStrea\
-m=(name,chunk)=>\
-runtime.streamin\
-g.applyStream(na\
-me,chunk);window\
-.appendStream=(n\
-ame,chunk)=>runt\
-ime.streaming.ap\
-pendStream(name,\
-chunk);window.ap\
-pendStreamTyped=\
-(type,name,chunk\
-)=>runtime.strea\
-ming.onChunk(nam\
-e,chunk,type);wi\
-ndow.nextStream=\
-()=>runtime.stre\
-aming.nextStream\
-();window.clearS\
-tream=()=>runtim\
-e.streaming.clea\
-rStream();window\
-.appendPartialSt\
-ream=(parentId,p\
-artId,chunk,begi\
-n,agentName)=>ru\
-ntime.partials.a\
-ppendPartialStre\
-am(parentId,part\
-Id,chunk,begin,a\
-gentName);window\
+OFILE_CODE.minLi\
+nesForHL,minChar\
+sForLast:this.cf\
+g.PROFILE_CODE.m\
+inCharsForHL},th\
+is.stream.code.a\
+ctiveCode);this.\
+codeScroll.initS\
+crollableBlocks(\
+box);});this.hig\
+hlighter.observe\
+NewCode(document\
+,{deferLastIfStr\
+eaming:true,minL\
+inesForLast:this\
+.cfg.PROFILE_COD\
+E.minLinesForHL,\
+minCharsForLast:\
+this.cfg.PROFILE\
+_CODE.minCharsFo\
+rHL},this.stream\
+.code.activeCode\
+);this.highlight\
+er.scheduleScanV\
+isibleCodes(this\
+.stream.code.act\
+iveCode);this.ti\
+ps.cycle();this.\
+scrollMgr.update\
+ScrollFab(true);\
+}\x0acleanup(){this\
+.tips.cleanup();\
+try{this.bridge.\
+disconnect();}ca\
+tch(_){}\x0athis.ev\
+ents.cleanup();t\
+his.highlighter.\
+cleanup();this.m\
+ath.cleanup();th\
+is.streamQ.clear\
+();this.dom.clea\
+nup();}};\x0a\x0a/* da\
+ta/js/app/bootst\
+rap.js */\x0awindow\
+.__collapsed_idx\
+=window.__collap\
+sed_idx||[];cons\
+t runtime=new Ru\
+ntime();document\
+.addEventListene\
+r('DOMContentLoa\
+ded',()=>runtime\
+.init());Object.\
+defineProperty(w\
+indow,'SE',{get(\
+){return Utils.S\
+E;}});window.beg\
+inStream=(chunk,\
+preserveParentId\
+=null)=>runtime.\
+streaming.beginS\
+tream(chunk,pres\
+erveParentId);wi\
+ndow.bindStreamO\
+wner=(msgId)=>ru\
+ntime.streaming.\
+bindStreamOwner(\
+msgId);window.en\
+dStream=()=>runt\
+ime.streaming.en\
+dStream();window\
+.applyStream=(na\
+me,chunk)=>runti\
+me.streaming.app\
+lyStream(name,ch\
+unk);window.appe\
+ndStream=(name,c\
+hunk)=>runtime.s\
+treaming.appendS\
+tream(name,chunk\
+);window.appendS\
+treamTyped=(type\
+,name,chunk)=>ru\
+ntime.streaming.\
+onChunk(name,chu\
+nk,type);window.\
+nextStream=()=>r\
+untime.streaming\
+.nextStream();wi\
+ndow.clearStream\
+=()=>runtime.str\
+eaming.clearStre\
+am();window.appe\
+ndPartialStream=\
+(parentId,partId\
+,chunk,begin,age\
+ntName)=>runtime\
+.partials.append\
+PartialStream(pa\
+rentId,partId,ch\
+unk,begin,agentN\
+ame);window.bind\
+WorkflowStream=(\
+parentId,nameHea\
+der,records,part\
+Id,agentName)=>r\
+untime.workflows\
 .bindWorkflowStr\
-eam=(parentId,na\
-meHeader,records\
-,partId,agentNam\
-e)=>runtime.work\
-flows.bindWorkfl\
-owStream(parentI\
-d,nameHeader,rec\
-ords,partId,agen\
-tName);window.se\
-tAgentStatus=(te\
-xt,parentId,stat\
-usId,owner)=>run\
-time.workflows.s\
-etAgentStatus(te\
-xt,parentId,stat\
-usId,owner);wind\
-ow.clearAgentSta\
-tus=(parentId)=>\
-runtime.workflow\
-s.clearAgentStat\
-us(parentId);win\
-dow.setToolStatu\
-s=(names,parentI\
-d,statusId)=>run\
-time.workflows.s\
-etToolStatus(nam\
-es,parentId,stat\
-usId);window.cle\
-arToolStatus=(pa\
-rentId,immediate\
-=true)=>runtime.\
-workflows.clearT\
-oolStatus(parent\
-Id,immediate);wi\
-ndow.freezeWorkf\
-lowStatus=(paren\
-tId,kind)=>runti\
-me.workflows.fre\
-ezeWorkflowStatu\
-s(parentId,kind)\
-;window.begin=(m\
-sgId='')=>runtim\
-e.turns.begin(ms\
-gId);window.end=\
-(msgId='')=>runt\
-ime.turns.end(ms\
-gId);window.appe\
-ndNode=(payload)\
-=>runtime.messag\
-es.appendNode(pa\
-yload);window.re\
-placeNodes=(payl\
-oad)=>runtime.me\
-ssages.replaceNo\
-des(payload);win\
-dow.appendToInpu\
-t=(html)=>runtim\
-e.messages.appen\
-dToInput(html);w\
-indow.clearNodes\
-=()=>runtime.mes\
-sages.clearNodes\
-();window.clearI\
-nput=()=>runtime\
-.messages.clearI\
-nput();window.cl\
-earOutput=()=>ru\
-ntime.messages.c\
-learOutput();win\
-dow.clearLive=()\
-=>runtime.messag\
-es.clearLive();w\
-indow.appendTool\
-Output=(c)=>runt\
-ime.toolOutput.a\
-ppend(c);window.\
-updateToolOutput\
-=(c)=>runtime.to\
-olOutput.update(\
-c);window.clearT\
-oolOutput=()=>ru\
-ntime.toolOutput\
-.clear();window.\
-beginToolOutput=\
-()=>runtime.view\
-.beginToolOutput\
-();window.endToo\
+eam(parentId,nam\
+eHeader,records,\
+partId,agentName\
+);window.setAgen\
+tStatus=(text,pa\
+rentId,statusId,\
+owner)=>runtime.\
+workflows.setAge\
+ntStatus(text,pa\
+rentId,statusId,\
+owner);window.cl\
+earAgentStatus=(\
+parentId)=>runti\
+me.workflows.cle\
+arAgentStatus(pa\
+rentId);window.s\
+etToolStatus=(na\
+mes,parentId,sta\
+tusId)=>runtime.\
+workflows.setToo\
+lStatus(names,pa\
+rentId,statusId)\
+;window.clearToo\
+lStatus=(parentI\
+d,immediate=true\
+)=>runtime.workf\
+lows.clearToolSt\
+atus(parentId,im\
+mediate);window.\
+freezeWorkflowSt\
+atus=(parentId,k\
+ind)=>runtime.wo\
+rkflows.freezeWo\
+rkflowStatus(par\
+entId,kind);wind\
+ow.begin=(msgId=\
+'')=>runtime.tur\
+ns.begin(msgId);\
+window.end=(msgI\
+d='')=>runtime.t\
+urns.end(msgId);\
+window.appendNod\
+e=(payload)=>run\
+time.messages.ap\
+pendNode(payload\
+);window.replace\
+Nodes=(payload)=\
+>runtime.message\
+s.replaceNodes(p\
+ayload);window.a\
+ppendToInput=(ht\
+ml)=>runtime.mes\
+sages.appendToIn\
+put(html);window\
+.clearNodes=()=>\
+runtime.messages\
+.clearNodes();wi\
+ndow.clearInput=\
+()=>runtime.mess\
+ages.clearInput(\
+);window.clearOu\
+tput=()=>runtime\
+.messages.clearO\
+utput();window.c\
+learLive=()=>run\
+time.messages.cl\
+earLive();window\
+.appendToolOutpu\
+t=(c)=>runtime.t\
+oolOutput.append\
+(c);window.updat\
+eToolOutput=(c)=\
+>runtime.toolOut\
+put.update(c);wi\
+ndow.clearToolOu\
+tput=()=>runtime\
+.toolOutput.clea\
+r();window.begin\
+ToolOutput=()=>r\
+untime.view.begi\
+nToolOutput();wi\
+ndow.endToolOutp\
+ut=()=>runtime.t\
+oolOutput.end();\
+window.enableToo\
 lOutput=()=>runt\
 ime.toolOutput.e\
-nd();window.enab\
-leToolOutput=()=\
->runtime.toolOut\
-put.enable();win\
-dow.disableToolO\
-utput=()=>runtim\
-e.toolOutput.dis\
-able();window.to\
-ggleToolOutput=(\
-id)=>runtime.too\
-lOutput.toggle(i\
-d);window.toggle\
-ToolGroup=(id)=>\
+nable();window.d\
+isableToolOutput\
+=()=>runtime.too\
+lOutput.disable(\
+);window.toggleT\
+oolOutput=(id)=>\
 runtime.toolOutp\
-ut.toggleGroup(i\
-d);window.toggle\
-ExtraItems=(butt\
-on)=>runtime.ui.\
-toggleExtraItems\
-(button);window.\
-appendExtra=(id,\
-c)=>runtime.node\
-s.appendExtra(id\
-,c,runtime.scrol\
-lMgr);window.rem\
-oveNode=(id)=>ru\
-ntime.nodes.remo\
-veNode(id,runtim\
+ut.toggle(id);wi\
+ndow.toggleToolG\
+roup=(id)=>runti\
+me.toolOutput.to\
+ggleGroup(id);wi\
+ndow.toggleExtra\
+Items=(button)=>\
+runtime.ui.toggl\
+eExtraItems(butt\
+on);window.appen\
+dExtra=(id,c)=>r\
+untime.nodes.app\
+endExtra(id,c,ru\
+ntime.scrollMgr)\
+;window.removeNo\
+de=(id)=>runtime\
+.nodes.removeNod\
+e(id,runtime.scr\
+ollMgr);window.r\
+emoveNodesFromId\
+=(id)=>runtime.n\
+odes.removeNodes\
+FromId(id,runtim\
 e.scrollMgr);win\
-dow.removeNodesF\
-romId=(id)=>runt\
-ime.nodes.remove\
-NodesFromId(id,r\
-untime.scrollMgr\
-);window.replace\
-Live=(c)=>runtim\
-e.messages.repla\
-ceLive(c);window\
-.updateFooter=(c\
-)=>runtime.view.\
-updateFooter(c);\
-window.enableEdi\
-tIcons=()=>runti\
-me.ui.enableEdit\
-Icons();window.d\
-isableEditIcons=\
-()=>runtime.ui.d\
-isableEditIcons(\
-);window.enableT\
-imestamp=()=>run\
-time.ui.enableTi\
-mestamp();window\
-.disableTimestam\
-p=()=>runtime.ui\
-.disableTimestam\
-p();window.enabl\
-eBlocks=()=>runt\
-ime.ui.enableBlo\
-cks();window.dis\
-ableBlocks=()=>r\
+dow.replaceLive=\
+(c)=>runtime.mes\
+sages.replaceLiv\
+e(c);window.upda\
+teFooter=(c)=>ru\
+ntime.view.updat\
+eFooter(c);windo\
+w.enableEditIcon\
+s=()=>runtime.ui\
+.enableEditIcons\
+();window.disabl\
+eEditIcons=()=>r\
 untime.ui.disabl\
-eBlocks();window\
-.updateCSS=(s)=>\
-runtime.ui.updat\
-eCSS(s);window.g\
-etScrollPosition\
-=()=>runtime.vie\
-w.getScrollPosit\
-ion();window.set\
-ScrollPosition=(\
-pos)=>runtime.vi\
-ew.setScrollPosi\
-tion(pos);window\
-.showLoading=(de\
-layMs=0,waitForI\
-nput=false)=>run\
-time.loading.sho\
-w(delayMs,waitFo\
-rInput);window.h\
-ideLoading=(rese\
-rveSpace=false)=\
->runtime.loading\
-.hide(reserveSpa\
-ce);window.resto\
-reCollapsedCode=\
-(root)=>runtime.\
-renderer.restore\
-CollapsedCode(ro\
-ot);window.scrol\
-lToTopUser=()=>r\
-untime.scrollMgr\
-.scrollToTopUser\
-();window.scroll\
-ToBottomUser=()=\
->runtime.scrollM\
-gr.scrollToBotto\
-mUser();window.s\
-howTips=()=>runt\
-ime.tips.show();\
-window.hideTips=\
-()=>runtime.tips\
-.hide();window.g\
-etCustomMarkupRu\
-les=()=>runtime.\
-customMarkup.get\
-Rules();window.s\
-etCustomMarkupRu\
-les=(rules)=>run\
-time.view.setCus\
-tomMarkupRules(r\
-ules);window.__p\
-ygpt_cleanup=()=\
->runtime.cleanup\
-();window.setAge\
-ntWorking=(paren\
-tId,data)=>runti\
-me.workflows.set\
-AgentWorking(par\
-entId,data);wind\
-ow.clearAgentWor\
-king=()=>runtime\
-.workflows.clear\
-AgentWorking();w\
-indow.syncLiveTo\
-ols=(parentId,ca\
-lls)=>runtime.to\
-olOutput.syncLiv\
-e(parentId,calls\
-);\x0a\
+eEditIcons();win\
+dow.enableTimest\
+amp=()=>runtime.\
+ui.enableTimesta\
+mp();window.disa\
+bleTimestamp=()=\
+>runtime.ui.disa\
+bleTimestamp();w\
+indow.enableBloc\
+ks=()=>runtime.u\
+i.enableBlocks()\
+;window.disableB\
+locks=()=>runtim\
+e.ui.disableBloc\
+ks();window.upda\
+teCSS=(s)=>runti\
+me.ui.updateCSS(\
+s);window.getScr\
+ollPosition=()=>\
+runtime.view.get\
+ScrollPosition()\
+;window.setScrol\
+lPosition=(pos)=\
+>runtime.view.se\
+tScrollPosition(\
+pos);window.show\
+Loading=(delayMs\
+=0,waitForInput=\
+false)=>runtime.\
+loading.show(del\
+ayMs,waitForInpu\
+t);window.hideLo\
+ading=(reserveSp\
+ace=false)=>runt\
+ime.loading.hide\
+(reserveSpace);w\
+indow.restoreCol\
+lapsedCode=(root\
+)=>runtime.rende\
+rer.restoreColla\
+psedCode(root);w\
+indow.scrollToTo\
+pUser=()=>runtim\
+e.scrollMgr.scro\
+llToTopUser();wi\
+ndow.scrollToBot\
+tomUser=()=>runt\
+ime.scrollMgr.sc\
+rollToBottomUser\
+();window.showTi\
+ps=()=>runtime.t\
+ips.show();windo\
+w.hideTips=()=>r\
+untime.tips.hide\
+();window.getCus\
+tomMarkupRules=(\
+)=>runtime.custo\
+mMarkup.getRules\
+();window.setCus\
+tomMarkupRules=(\
+rules)=>runtime.\
+view.setCustomMa\
+rkupRules(rules)\
+;window.__pygpt_\
+cleanup=()=>runt\
+ime.cleanup();wi\
+ndow.setAgentWor\
+king=(parentId,d\
+ata)=>runtime.wo\
+rkflows.setAgent\
+Working(parentId\
+,data);window.cl\
+earAgentWorking=\
+()=>runtime.work\
+flows.clearAgent\
+Working();window\
+.syncLiveTools=(\
+parentId,calls)=\
+>runtime.toolOut\
+put.syncLive(par\
+entId,calls);\x0a\
 "
 
 qt_resource_name = b"\
@@ -145423,18 +145439,18 @@ qt_resource_struct = b"\
 \x00\x00\x04\x92\x00\x00\x00\x00\x00\x01\x00\x13\x97\x07\
 \x00\x00\x01\xa4\x00\x00\x00\x00\x00\x01\x00\x11\xee\xa8\
 \x00\x00\x03,\x00\x00\x00\x00\x00\x01\x00\x12\xea\xd3\
-\x00\x00\x09\xf2\x00\x00\x00\x00\x00\x01\x00\x1d\xf3\xf5\
+\x00\x00\x09\xf2\x00\x00\x00\x00\x00\x01\x00\x1d\xf4\xce\
 \x00\x00\x05L\x00\x00\x00\x00\x00\x01\x00\x14\x1e0\
 \x00\x00\x04\x08\x00\x00\x00\x00\x00\x01\x00\x13]\xf0\
 \x00\x00\x02\x14\x00\x00\x00\x00\x00\x01\x00\x12\x12\xd0\
 \x00\x00\x05\xe8\x00\x00\x00\x00\x00\x01\x00\x14Z@\
 \x00\x00\x08\x8c\x00\x00\x00\x00\x00\x01\x00\x1a\xc6 \
-\x00\x00\x09\x5c\x00\x00\x00\x00\x00\x01\x00\x1d*\x9c\
+\x00\x00\x09\x5c\x00\x00\x00\x00\x00\x01\x00\x1d+u\
 \x00\x00\x00\xf4\x00\x00\x00\x00\x00\x01\x00\x10\xf8\x15\
 \x00\x00\x08\xac\x00\x00\x00\x00\x00\x01\x00\x1a\xe3\xe1\
-\x00\x00\x0aR\x00\x00\x00\x00\x00\x01\x00\x1eC\x14\
+\x00\x00\x0aR\x00\x00\x00\x00\x00\x01\x00\x1eC\xed\
 \x00\x00\x07\xf0\x00\x00\x00\x00\x00\x01\x00\x16\x06\xe5\
-\x00\x00\x0a\x9e\x00\x00\x00\x00\x00\x01\x00\x1eg3\
+\x00\x00\x0a\x9e\x00\x00\x00\x00\x00\x01\x00\x1eh\x0c\
 \x00\x00\x05\xa4\x00\x00\x00\x00\x00\x01\x00\x14?\x91\
 \x00\x00\x08J\x00\x00\x00\x00\x00\x01\x00\x1a\x83D\
 \x00\x00\x01\x0e\x00\x00\x00\x00\x00\x01\x00\x11\x150\
@@ -145454,14 +145470,14 @@ qt_resource_struct = b"\
 \x00\x00\x09>\x00\x00\x00\x00\x00\x01\x00\x1c\xf47\
 \x00\x00\x03\x98\x00\x00\x00\x00\x00\x01\x00\x13#\x92\
 \x00\x00\x06\xf8\x00\x00\x00\x00\x00\x01\x00\x156P\
-\x00\x00\x0a2\x00\x00\x00\x00\x00\x01\x00\x1e\x10$\
-\x00\x00\x09\x92\x00\x00\x00\x00\x00\x01\x00\x1dF\xf5\
+\x00\x00\x0a2\x00\x00\x00\x00\x00\x01\x00\x1e\x10\xfd\
+\x00\x00\x09\x92\x00\x00\x00\x00\x00\x01\x00\x1dG\xce\
 \x00\x00\x06\x0c\x00\x00\x00\x00\x00\x01\x00\x14z\x00\
 \x00\x00\x04R\x00\x00\x00\x00\x00\x01\x00\x13~\xb6\
 \x00\x00\x08\x10\x00\x00\x00\x00\x00\x01\x00\x16\x1d\xbf\
 \x00\x00\x01H\x00\x00\x00\x00\x00\x01\x00\x11)V\
 \x00\x00\x00\x8e\x00\x00\x00\x00\x00\x01\x00\x00Q\x15\
-\x00\x00\x09\xd6\x00\x00\x00\x00\x00\x01\x00\x1d\xa6a\
+\x00\x00\x09\xd6\x00\x00\x00\x00\x00\x01\x00\x1d\xa7:\
 \x00\x00\x09\x04\x00\x00\x00\x00\x00\x01\x00\x1c\xdbq\
 \x00\x00\x08.\x00\x00\x00\x00\x00\x01\x00\x1aV\xd8\
 \x00\x00\x06F\x00\x00\x00\x00\x00\x01\x00\x14\xa0\xa4\
@@ -145470,10 +145486,10 @@ qt_resource_struct = b"\
 \x00\x00\x03\xce\x00\x00\x00\x00\x00\x01\x00\x13L\xd6\
 \x00\x00\x05h\x00\x00\x00\x00\x00\x01\x00\x14<\x89\
 \x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x12R\xeb\
-\x00\x00\x09\xb2\x00\x00\x00\x00\x00\x01\x00\x1dg\xe6\
+\x00\x00\x09\xb2\x00\x00\x00\x00\x00\x01\x00\x1dh\xbf\
 \x00\x00\x076\x00\x00\x00\x00\x00\x01\x00\x15I[\
 \x00\x00\x03D\x00\x00\x00\x00\x00\x01\x00\x13\x04\xd9\
-\x00\x00\x0at\x00\x00\x00\x00\x00\x01\x00\x1eY\x99\
+\x00\x00\x0at\x00\x00\x00\x00\x00\x01\x00\x1eZr\
 \x00\x00\x00\xb4\x00\x00\x00\x00\x00\x01\x00\x10\xc4\xff\
 \x00\x00\x05\x12\x00\x00\x00\x00\x00\x01\x00\x14\x0eb\
 \x00\x00\x04\xd2\x00\x00\x00\x00\x00\x01\x00\x13\xbe\xc4\
