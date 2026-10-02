@@ -36,6 +36,9 @@ from .utils import \
     unpack_group
 
 
+from pygpt_net.item.render_attachment import attachment_records, attachment_paths
+
+
 class Storage:
     def __init__(self, window=None):
         """
@@ -55,11 +58,11 @@ class Storage:
 
     def _pack_ctx_images(self, item: CtxItem) -> str:
         """Pack ctx images while defensively excluding transport-only attachments."""
-        images = list(item.images or []) if isinstance(item.images, list) else item.images
+        images = attachment_paths(item.images)
         attachments = getattr(getattr(self.window, "core", None), "attachments", None)
         if isinstance(images, list) and attachments is not None and hasattr(attachments, "is_ctx_excluded_path"):
             images = [value for value in images if not attachments.is_ctx_excluded_path(value)]
-        return pack_item_value(images)
+        return pack_item_value(attachment_records(images))
 
     @staticmethod
     def _match_ctx_tool_history_response(call: dict, outputs: list, used: set):
@@ -1222,7 +1225,7 @@ class Storage:
             results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
             images_json=self._pack_ctx_images(item),
-            files_json=pack_item_value(item.files),
+            files_json=pack_item_value(attachment_records(item.files)),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
             extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),
@@ -1332,7 +1335,7 @@ class Storage:
             results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
             images_json=self._pack_ctx_images(item),
-            files_json=pack_item_value(item.files),
+            files_json=pack_item_value(attachment_records(item.files)),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
             extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),

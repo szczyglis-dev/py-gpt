@@ -11,6 +11,7 @@
 
 import os
 from typing import Optional, Dict, List, Union
+from pygpt_net.item.render_attachment import attachment_paths
 
 from google.genai.types import Part
 
@@ -104,7 +105,7 @@ class Vision:
         if len(images) > 0:
             visible = [path for id_, path in images.items() if id_ not in self.hidden_attachments]
             if visible:
-                ctx.images = self.window.core.filesystem.make_local_list(visible, ctx=ctx)
+                ctx.images = attachment_paths(self.window.core.filesystem.make_local_list(visible, ctx=ctx), 'user')
 
     def get_attachments(self) -> Dict[str, str]:
         """

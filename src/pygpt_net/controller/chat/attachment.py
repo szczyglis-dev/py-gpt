@@ -13,6 +13,7 @@ import copy
 import os
 import uuid
 from typing import List, Dict, Any, Union
+from pygpt_net.item.render_attachment import AttachmentPath
 
 from PySide6.QtCore import Slot, QObject
 
@@ -187,7 +188,9 @@ class Attachment(QObject):
             ctx.urls = []
         for path in files:
             if path not in ctx.files:
-                ctx.files.append(path)
+                ctx.files.append(AttachmentPath(path, 'user'))
+            else:
+                ctx.files[ctx.files.index(path)] = AttachmentPath(path, 'user')
         for url in urls:
             if url not in ctx.urls:
                 ctx.urls.append(url)

@@ -117,12 +117,14 @@ def test_agents_v2_runtime_persist_input_images_updates_main_ctx_once():
     runtime.inputs.persist_images()
 
     assert main.images == ["existing", "local:a", "local:b"]
+    assert main.images[1].type == main.images[2].type == "user"
     runtime.window.core.ctx.update_item.assert_called_once_with(main)
 
 
 def test_agents_v2_runtime_persist_input_images_does_not_write_when_unchanged():
     runtime = bare_runtime()
-    main = SimpleNamespace(images=["local:a"])
+    from pygpt_net.item.render_attachment import AttachmentPath
+    main = SimpleNamespace(images=[AttachmentPath("local:a", "user")])
     runtime.context.ctx = main
     runtime.inputs.image_paths = MagicMock(return_value=["/tmp/a.png"])
     runtime.window.core.filesystem.make_local_list.return_value = ["local:a"]

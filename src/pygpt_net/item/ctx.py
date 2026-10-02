@@ -21,6 +21,7 @@ from typing import Optional
 from dataclasses import dataclass, field
 from uuid import uuid4
 
+from .render_attachment import attachment_paths, attachment_records
 from .ctx_part import CtxItemPart
 from .ctx_part_task import CtxItemPartTask
 
@@ -632,8 +633,8 @@ class CtxItem:
             "external_id": self.external_id,
             "extra": self.extra,
             "extra_ctx": self.extra_ctx,
-            "files": self.files,
-            "files_before": self.files_before,
+            "files": attachment_records(self.files),
+            "files_before": attachment_records(self.files_before),
             "first": self.first,
             "force_call": self.force_call,
             "hidden": False,
@@ -641,8 +642,8 @@ class CtxItem:
             "hidden_output": self.hidden_output,
             "id": self.id,
             "idx": self.idx,
-            "images": self.images,
-            "images_before": self.images_before,
+            "images": attachment_records(self.images),
+            "images_before": attachment_records(self.images_before),
             "index_meta": self.index_meta,
             "input": self.input,
             "input_name": self.input_name,
@@ -729,16 +730,16 @@ class CtxItem:
         self.external_id = g("external_id", None)
         self.extra = g("extra", None)
         self.extra_ctx = g("extra_ctx", False)
-        self.files = g("files", [])
-        self.files_before = g("files_before", [])
+        self.files = attachment_paths(g("files", []))
+        self.files_before = attachment_paths(g("files_before", []))
         self.first = g("first", False)
         self.hidden = g("hidden", False)
         self.hidden_input = g("hidden_input", None)
         self.hidden_output = g("hidden_output", None)
         self.id = g("id", None)
         self.idx = g("idx", 0)
-        self.images = g("images", [])
-        self.images_before = g("images_before", [])
+        self.images = attachment_paths(g("images", []))
+        self.images_before = attachment_paths(g("images_before", []))
         self.index_meta = g("index_meta", {})
         self.input = g("input", None)
         self.input_name = g("input_name", None)

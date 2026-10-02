@@ -11,6 +11,7 @@
 
 import json
 import re
+from pygpt_net.item.render_attachment import attachment_paths
 
 from datetime import datetime, timedelta
 from typing import List, Tuple, Any, Dict
@@ -146,9 +147,9 @@ def unpack_item(
     item.doc_ids = unpack_item_value(row['docs_json'])
     item.external_id = row['external_id']
     item.extra = unpack_item_value(row['extra'])
-    item.files = unpack_item_value(row['files_json'])
+    item.files = attachment_paths(unpack_item_value(row['files_json']))
     item.id = unpack_var(row['id'], 'int')
-    item.images = unpack_item_value(row['images_json'])
+    item.images = attachment_paths(unpack_item_value(row['images_json']))
     item.input = row['input']
     item.input_name = row['input_name']
     item.input_timestamp = unpack_var(row['input_ts'], 'int')

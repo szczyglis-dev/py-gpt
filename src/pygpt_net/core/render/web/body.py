@@ -12,6 +12,7 @@
 import os
 from json import dumps as _json_dumps
 from random import shuffle as _shuffle
+from pygpt_net.item.render_attachment import attachment_type
 
 from typing import Optional, List, Dict, Tuple
 
@@ -708,6 +709,7 @@ class Body:
                         # does not treat a raw Windows path as a valid media URL.
                         "path": url,
                         "basename": basename,
+                        "type": attachment_type(img),
                         "ext": ext,
                         "is_video": is_video,
                         "webm_path": webm_path,
@@ -726,6 +728,7 @@ class Body:
                         "url": url,
                         "path": path,
                         "basename": os.path.basename(path) or path,
+                        "type": attachment_type(f),
                     }
                     n += 1
                 except Exception:

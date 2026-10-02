@@ -21,6 +21,7 @@ from .autonomy import AutonomousFunctionAgent as FunctionAgent, AutonomousReActA
 from llama_index.core.base.llms.types import ChatMessage, ImageBlock, MessageRole, TextBlock
 
 from pygpt_net.utils import is_image
+from pygpt_net.item.render_attachment import AttachmentPath
 
 from .utils import supports_function_calling
 
@@ -384,7 +385,10 @@ class RuntimeContext:
         changed = False
         for image in images:
             if image not in current:
-                current.append(image)
+                current.append(AttachmentPath(image, 'user'))
+                changed = True
+            elif getattr(current[current.index(image)], 'type', 'output') != 'user':
+                current[current.index(image)] = AttachmentPath(image, 'user')
                 changed = True
         if not changed:
             return
