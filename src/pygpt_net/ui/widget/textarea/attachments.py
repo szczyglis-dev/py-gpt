@@ -2,18 +2,21 @@
 import os
 from functools import partial
 
-from PySide6.QtCore import Qt, QRect, QFile, QSize, QEvent, Signal
-from PySide6.QtGui import QColor, QPainter, QPainterPath, QPixmap, QIcon, QImageReader
-from PySide6.QtWidgets import QWidget, QScrollArea, QHBoxLayout, QToolButton
+from PySide6.QtCore import Qt, QRect, QFile, QSize, QEvent, Signal, QMimeData
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPixmap, QIcon, QImageReader, QDrag
+from PySide6.QtWidgets import QWidget, QScrollArea, QHBoxLayout, QToolButton, QApplication
 
 
 class AttachmentTile(QWidget):
     SIDE = 104
+    MIME_TYPE = 'application/x-pygpt-composer-attachment'
 
     def __init__(self, window, item, remove, open_attachment, parent=None):
         super().__init__(parent)
         self.window = window
         self.open_attachment = open_attachment
+        self.attachment_key = None
+        self._drag_start = None
         self.setCursor(Qt.PointingHandCursor)
         self.name = item.name or os.path.basename(item.path or '')
         self.setFixedSize(self.SIDE, self.SIDE)
@@ -47,8 +50,34 @@ class AttachmentTile(QWidget):
         font.setPixelSize(10)
         self.setFont(font)
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._drag_start = event.position().toPoint()
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if (self._drag_start is not None and event.buttons() & Qt.LeftButton
+                and self.attachment_key is not None
+                and (event.position().toPoint() - self._drag_start).manhattanLength()
+                >= QApplication.startDragDistance()):
+            self._drag_start = None
+            drag = QDrag(self)
+            mime = QMimeData()
+            mime.setData(self.MIME_TYPE, str(self.attachment_key).encode('utf-8'))
+            drag.setMimeData(mime)
+            drag.setPixmap(self.grab())
+            drag.setHotSpot(event.position().toPoint())
+            drag.exec(Qt.MoveAction)
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton and self.rect().contains(event.position().toPoint()):
+        clicked = self._drag_start is not None
+        self._drag_start = None
+        if clicked and event.button() == Qt.LeftButton and self.rect().contains(event.position().toPoint()):
             self.open_attachment(not self.image.isNull())
             event.accept()
             return
@@ -108,6 +137,11 @@ class InputAttachments(QScrollArea):
         self.row.setSpacing(8)
         self.row.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         self.setWidget(self.content)
+        self.setAcceptDrops(True)
+        self.drop_marker = QWidget(self.content)
+        self.drop_marker.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.drop_marker.setStyleSheet('background: #55bb88; border-radius: 1px;')
+        self.drop_marker.hide()
         self.hide()
 
     def sync(self, items, mode):
@@ -125,10 +159,81 @@ class InputAttachments(QScrollArea):
             if widget:
                 widget.deleteLater()
         for key, item in visible:
-            self.row.addWidget(AttachmentTile(self.window, item, partial(self.remove_attachment, key), partial(self.open_attachment, key), self.content))
+            tile = AttachmentTile(self.window, item, partial(self.remove_attachment, key), partial(self.open_attachment, key), self.content)
+            tile.attachment_key = key
+            self.row.addWidget(tile)
         self.content.setMinimumWidth(max(0, len(visible) * (AttachmentTile.SIDE + self.row.spacing()) - self.row.spacing()))
         self.setVisible(bool(visible))
         self.heightChanged.emit(self.ROW_HEIGHT if visible else 0)
+
+    def _accept_reorder(self, event):
+        source = event.source()
+        return (isinstance(source, AttachmentTile) and source.parentWidget() is self.content
+                and event.mimeData().hasFormat(AttachmentTile.MIME_TYPE))
+
+    def _drop_index(self, position):
+        x = self.content.mapFrom(self.viewport(), position.toPoint()).x()
+        for index in range(self.row.count()):
+            if x < self.row.itemAt(index).widget().geometry().center().x():
+                return index
+        return self.row.count()
+
+    def dragEnterEvent(self, event):
+        if self._accept_reorder(event):
+            event.setDropAction(Qt.MoveAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if not self._accept_reorder(event):
+            event.ignore()
+            return
+        bar = self.horizontalScrollBar()
+        x = event.position().x()
+        if x < 24:
+            bar.setValue(bar.value() - 16)
+        elif x > self.viewport().width() - 24:
+            bar.setValue(bar.value() + 16)
+        index = self._drop_index(event.position())
+        marker_x = (self.row.itemAt(index).widget().x() if index < self.row.count()
+                    else self.row.itemAt(self.row.count() - 1).widget().geometry().right() - 1)
+        self.drop_marker.setGeometry(max(0, marker_x - 3), 0, 3, AttachmentTile.SIDE)
+        self.drop_marker.show()
+        self.drop_marker.raise_()
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
+
+    def dragLeaveEvent(self, event):
+        self.drop_marker.hide()
+        event.accept()
+
+    def dropEvent(self, event):
+        self.drop_marker.hide()
+        if not self._accept_reorder(event):
+            event.ignore()
+            return
+        self.move_attachment(event.source().attachment_key, self._drop_index(event.position()))
+        event.setDropAction(Qt.MoveAction)
+        event.accept()
+
+    def move_attachment(self, key, index):
+        items = self.window.core.attachments.get_all(self.mode)
+        visible = [item_key for item_key in items if item_key not in self.sent]
+        if key not in visible:
+            return
+        previous = visible.index(key)
+        visible.pop(previous)
+        visible.insert(max(0, min(len(visible), index - (previous < index))), key)
+        iterator = iter(visible)
+        order = [item_key if item_key in self.sent else next(iterator) for item_key in items]
+        if order == list(items):
+            return
+        reordered = {item_key: items[item_key] for item_key in order}
+        items.clear()
+        items.update(reordered)
+        self.window.core.attachments.save()
+        self.window.controller.attachment.update()
 
     def open_attachment(self, key, is_image):
         item = self.window.core.attachments.get_all(self.mode).get(key)

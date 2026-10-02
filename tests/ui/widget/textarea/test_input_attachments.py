@@ -17,6 +17,32 @@ def app():
     return QApplication.instance() or QApplication([])
 
 
+def test_reorder_updates_attachment_store_and_saves_without_moving_sent_items():
+    items = {key: AttachmentItem(path=f'/{key}.txt') for key in ('a', 'sent', 'b', 'c')}
+    save, refresh = MagicMock(), MagicMock()
+    strip = SimpleNamespace(mode='chat', sent={'sent'}, window=SimpleNamespace(
+        core=SimpleNamespace(attachments=SimpleNamespace(get_all=lambda mode: items, save=save)),
+        controller=SimpleNamespace(attachment=SimpleNamespace(update=refresh))))
+    InputAttachments.move_attachment(strip, 'c', 0)
+    assert list(items) == ['c', 'sent', 'a', 'b']
+    save.assert_called_once()
+    refresh.assert_called_once()
+    InputAttachments.move_attachment(strip, 'c', 3)
+    assert list(items) == ['a', 'sent', 'b', 'c']
+    InputAttachments.move_attachment(strip, 'sent', 0)
+    InputAttachments.move_attachment(strip, 'c', 3)
+    assert save.call_count == refresh.call_count == 2
+
+
+def test_drop_insertion_position_accounts_for_source_removal():
+    items = {key: AttachmentItem(path=f'/{key}.txt') for key in ('a', 'b', 'c')}
+    strip = SimpleNamespace(mode='chat', sent=set(), window=SimpleNamespace(
+        core=SimpleNamespace(attachments=SimpleNamespace(get_all=lambda mode: items, save=MagicMock())),
+        controller=SimpleNamespace(attachment=SimpleNamespace(update=MagicMock()))))
+    InputAttachments.move_attachment(strip, 'a', 2)
+    assert list(items) == ['b', 'a', 'c']
+
+
 def test_strip_restores_images_scrolls_and_hides_after_send(app, tmp_path):
     path = tmp_path / 'image.png'
     image = QImage(200, 100, QImage.Format_RGB32)
