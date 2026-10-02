@@ -63,6 +63,23 @@ class _ComputerRuntimeVerbose:
             pass
 
 
+class _ComputerStatus:
+    def __init__(self, runtime):
+        self.runtime = runtime
+
+    def show_tool(self, tool_name: str) -> bool:
+        return False
+
+    def emit(self, key: str, **kwargs):
+        self.runtime.verbose.log("STATUS", {"key": key, "args": kwargs})
+
+
+class _ComputerUsage:
+    def capture(self, response, actor_id="orchestrator") -> bool:
+        # Normal chat accounts usage in the surrounding bridge.
+        return False
+
+
 class ComputerRuntime:
     """Small runtime adapter for provider-native Computer Use outside Agents v2.
 
@@ -83,6 +100,9 @@ class ComputerRuntime:
         # for provider-native generated artifacts. This keeps Computer Use itself
         # shared while allowing the caller to own final artifact delivery.
         self.artifact_runtime = artifact_runtime
+        self.artifacts = getattr(artifact_runtime, "artifacts", None)
+        self.status = _ComputerStatus(self)
+        self.usage = _ComputerUsage()
 
     def __copy__(self):
         """Keep the live UI/runtime bridge shared when SDK objects are copied."""
@@ -114,45 +134,10 @@ class ComputerRuntime:
         except Exception:
             return False
 
-    def _show_tool_status(self, tool_name: str) -> bool:
-        """Return whether provider Computer Use should emit a raw tool status.
 
-        This lightweight runtime is used outside Agents v2, where there is no
-        dedicated per-tool status timeline. Provider adapters share the Agents v2
-        Computer Use implementation and still expect this hook to exist, so keep
-        the contract compatible while suppressing the Agents-v2-specific status row.
-        """
-        return False
 
-    def record_token_usage(self, response: Any, actor_id: str = "orchestrator") -> bool:
-        """Compatibility hook for provider adapters used outside Agents v2.
 
-        Normal Chat/LlamaIndex usage accounting is handled by the surrounding
-        bridge/runtime. The provider Computer Use continuation adapter calls this
-        hook opportunistically, so a no-op implementation keeps the shared runtime
-        contract complete without double-counting tokens.
-        """
-        return False
 
-    def emit_runtime_status(self, key: str, **kwargs) -> None:
-        # Agents v2 has a dedicated partial/status renderer. Legacy/regular modes
-        # do not, so keep this hook transient and diagnostic instead of persisting
-        # an Agents-v2-specific status block in the normal chat context.
-        self.verbose.log("STATUS", {"key": key, "args": kwargs})
-
-    def register_provider_image_base64(self, data: str, actor_id=None):
-        target = self.artifact_runtime
-        callback = getattr(target, "register_provider_image_base64", None)
-        if callable(callback):
-            return callback(data, actor_id=actor_id)
-        return None
-
-    def register_provider_container_files(self, files, actor_id=None):
-        target = self.artifact_runtime
-        callback = getattr(target, "register_provider_container_files", None)
-        if callable(callback):
-            return callback(files, actor_id=actor_id)
-        return []
 
 
 # Backward-compatible name used by older Chat with Files callers/plugins.
@@ -765,8 +750,8 @@ class AgentComputerBridge:
         if not commands:
             raise RuntimeError("Computer Use returned no executable action")
 
-        if runtime._show_tool_status(tool_label):
-            runtime.emit_runtime_status("status.agent_v2.tool", tool=tool_label)
+        if runtime.status.show_tool(tool_label):
+            runtime.status.emit("status.agent_v2.tool", tool=tool_label)
         runtime.verbose.log("COMPUTER USE ACTIONS", commands, actor="orchestrator")
 
         # Match OpenAI's known-good Agents v2 path: execute the canonical actions

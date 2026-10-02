@@ -1112,3 +1112,109 @@ def test_block_artifacts_hide_duplicates_without_modifying_context(renderer, fak
     assert first.images == ["/image.png"]
     assert first.files == ["/report.pdf"]
     assert first.urls == [" https://example.org "]
+
+
+def test_first_legacy_delta_refreshes_agent_label_after_stream_begin(renderer, fake_node):
+    from pygpt_net.item.ctx import CtxItemPart
+
+    ctx = CtxItem()
+    ctx.id = 42
+    ctx.mode = "agent_llama"
+    meta = CtxMeta()
+    part = CtxItemPart()
+    part.name = "Supervisor"
+    ctx.parts = [part]
+    renderer.state.pids[1] = PidData(1)
+    renderer.session.get_or_create_pid = MagicMock(return_value=1)
+    renderer.get_output_node = MagicMock(return_value=fake_node)
+    renderer.state.stream_session_ctx[1] = id(ctx)
+    renderer.streaming.stream_push = MagicMock()
+    renderer.streaming.append_chunk(meta, ctx, "Delegating", begin=True, part_key=part.uuid)
+    scripts = [c.args[0] for c in fake_node.page().runJavaScript.call_args_list]
+    assert any('bindWorkflowStream(' in s and 'Supervisor' in s and part.uuid in s for s in scripts)
+    assert not any('beginStream(' in s for s in scripts)
+    renderer.streaming.stream_push.assert_called_once()
+
+
+def test_legacy_tool_only_partial_keeps_worker_label(renderer, fake_window):
+    from pygpt_net.item.ctx_part import CtxItemPart
+    from pygpt_net.item.ctx_part_task import CtxItemPartTask
+
+    ctx = CtxItem()
+    ctx.id = 42
+    ctx.mode = "agent_llama"
+    part = CtxItemPart()
+    part.name = "Worker"
+    part.agent_id = "orchestrator"
+    task = CtxItemPartTask()
+    task.tool_call_id = "worker-read"
+    task.task_name = "read"
+    task.extra = {"tool_name": "read", "ui_ready": True, "ui_visible": True}
+    part.tasks = [task]
+    ctx.parts = [part]
+    fake_window.core.command.is_tool_hidden.return_value = False
+    from pygpt_net.core.render.web.helpers import Helpers
+    renderer.helpers = Helpers(fake_window)
+    timeline = renderer.timeline.build_partial_timeline(ctx, include_tool_calls=True)
+    tool_segment = next(s for s in timeline if s.get("tool_calls"))
+    assert tool_segment["agent_name_prefix"] == "Worker"
+    assert tool_segment["part_uuid"] == part.uuid
+
+
+def test_delayed_tool_status_is_anchored_to_worker_not_active_supervisor(renderer, fake_node):
+    from pygpt_net.item.ctx_part import CtxItemPart
+
+    ctx = CtxItem()
+    ctx.id = 42
+    ctx.mode = "agent_llama"
+    ctx.meta = CtxMeta()
+    worker = CtxItemPart()
+    worker.name = "Worker"
+    supervisor = CtxItemPart()
+    supervisor.name = "Supervisor"
+    supervisor.output = "Done."
+    ctx.parts = [worker, supervisor]
+    ctx.active_part = supervisor
+    renderer.state.pids[1] = PidData(1, item=ctx)
+    renderer.session.get_or_create_pid = MagicMock(return_value=1)
+    renderer.get_output_node = MagicMock(return_value=fake_node)
+    owner = {"part_uuid": worker.uuid, "agent_name": "Worker", "placement": "before"}
+    renderer.agents.agent_status(ctx.meta, ctx, "Using tool: read_file", owner=owner)
+    records = renderer.agents.workflow_status_records(ctx)
+    assert records[-1]["part_uuid"] == worker.uuid
+    assert records[-1]["placement"] == "before"
+    assert records[-1]["agent_name"] == "Worker"
+    renderer.helpers.pre_format_text = MagicMock(side_effect=lambda text, **kwargs: text)
+    timeline = renderer.timeline.build_partial_timeline(ctx, include_workflow_statuses=True)
+    status = next(s for s in timeline if s.get("status_text"))
+    assert status["agent_name_prefix"] == "Worker"
+    scripts = [c.args[0] for c in fake_node.page().runJavaScript.call_args_list]
+    assert any('setAgentStatus(' in s and worker.uuid in s and 'Worker' in s for s in scripts)
+
+
+def test_legacy_consecutive_status_and_prose_share_one_agent_heading(renderer):
+    from pygpt_net.item.ctx_part import CtxItemPart
+
+    ctx = CtxItem()
+    ctx.id = 42
+    ctx.mode = "agent_llama"
+    parts = []
+    for name, text in [("Supervisor", "Save the file."), ("Worker", ""),
+                       ("Worker", "Saved."), ("Supervisor", "Done.")]:
+        part = CtxItemPart()
+        part.name, part.output = name, text
+        parts.append(part)
+    ctx.parts = parts
+    renderer.helpers.pre_format_text = MagicMock(side_effect=lambda text, **kwargs: text)
+    renderer.agents.workflow_status_records = MagicMock(return_value=[{
+        "id": "save-status", "seq": 1, "kind": "agent", "text": "Using tool: save_file",
+        "part_uuid": parts[1].uuid, "placement": "before", "agent_name": "Worker",
+    }])
+    timeline = renderer.timeline.build_partial_timeline(ctx, include_workflow_statuses=True)
+    assert [s["agent_name_prefix"] for s in timeline if s.get("agent_name_prefix")] == [
+        "Supervisor", "Worker", "Supervisor",
+    ]
+    status_index = next(i for i, s in enumerate(timeline) if s.get("status_text"))
+    assert timeline[status_index]["agent_name_prefix"] == "Worker"
+    assert timeline[status_index + 1]["text"] == "Saved."
+    assert timeline[status_index + 1]["agent_name_prefix"] == ""

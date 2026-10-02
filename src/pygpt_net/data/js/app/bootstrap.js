@@ -21,7 +21,7 @@ window.nextStream = () => runtime.streaming.nextStream();
 window.clearStream = () => runtime.streaming.clearStream();
 window.appendPartialStream = (parentId, partId, chunk, begin, agentName) => runtime.partials.appendPartialStream(parentId, partId, chunk, begin, agentName);
 window.bindWorkflowStream = (parentId, nameHeader, records, partId, agentName) => runtime.workflows.bindWorkflowStream(parentId, nameHeader, records, partId, agentName);
-window.setAgentStatus = (text, parentId, statusId) => runtime.workflows.setAgentStatus(text, parentId, statusId);
+window.setAgentStatus = (text, parentId, statusId, owner) => runtime.workflows.setAgentStatus(text, parentId, statusId, owner);
 window.clearAgentStatus = (parentId) => runtime.workflows.clearAgentStatus(parentId);
 window.setToolStatus = (names, parentId, statusId) => runtime.workflows.setToolStatus(names, parentId, statusId);
 window.clearToolStatus = (parentId, immediate = true) => runtime.workflows.clearToolStatus(parentId, immediate);

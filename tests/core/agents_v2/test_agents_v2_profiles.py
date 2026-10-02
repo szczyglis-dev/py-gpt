@@ -33,7 +33,8 @@ def make_runtime(definition=None, step_by_step=False):
         ),
         strategy=get_agent_strategy(AgentMode.ORCHESTRATOR if definition else AgentMode.PRIMARY_AGENT),
     )
-    runtime._rag_prompt_context = MagicMock(return_value="")
+    runtime.inputs = SimpleNamespace()
+    runtime.inputs.rag_prompt = MagicMock(return_value="")
     return runtime
 
 
@@ -45,7 +46,7 @@ def test_agents_v2_profiles_custom_prompt_uses_single_system_prompt():
         "step_by_step_prompt": "Custom steps",
     }, step_by_step=True)
 
-    prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
+    prompt = RuntimePromptBuilder(runtime).main()
 
     assert prompt.startswith("Custom system\n\n<runtime_capabilities>")
     assert "Custom steps" not in prompt
@@ -61,7 +62,7 @@ def test_agents_v2_profiles_legacy_step_field_is_ignored():
         "step_by_step_prompt": "Custom steps",
     }, step_by_step=False)
 
-    prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
+    prompt = RuntimePromptBuilder(runtime).main()
 
     assert prompt.startswith("Custom system")
     assert "Custom steps" not in prompt
@@ -100,7 +101,7 @@ def test_agents_v2_profiles_prompt_mentions_memories_when_agents_directory_is_mi
     })
     runtime.agents_directory_exists = False
 
-    prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
+    prompt = RuntimePromptBuilder(runtime).main()
 
     assert "No `%workdir%/.agents/` directory exists" in prompt
     assert ".agents/memories/" in prompt
@@ -114,7 +115,7 @@ def test_agents_v2_profiles_prompt_mentions_project_agents_directory_when_presen
     })
     runtime.agents_directory_exists = True
 
-    prompt = RuntimePromptBuilder(runtime).main_agent_prompt()
+    prompt = RuntimePromptBuilder(runtime).main()
 
     assert "The active workdir contains `%workdir%/.agents/`" in prompt
     assert "agents.md" in prompt

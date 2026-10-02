@@ -679,7 +679,7 @@ class Response:
                 "part_key": current_part_key,
             }))
 
-    def agent_v2_status(self, context: BridgeContext, extra: Dict[str, Any], status: str):
+    def agent_v2_status(self, context: BridgeContext, extra: Dict[str, Any], status: str, owner=None):
         """Replace the transient Agents v2 status line without creating a new message."""
         ctx = context.ctx
         value = str(status or "")
@@ -693,7 +693,7 @@ class Response:
         if self.window.controller.kernel.stopped():
             value = ""
         name = RenderEvent.AGENT_STATUS if value else RenderEvent.AGENT_STATUS_CLEAR
-        self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": value}))
+        self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": value, **({"owner": owner} if owner else {})}))
 
     def agent_v2_tool_exec(self, context: BridgeContext, extra: Dict[str, Any], request):
         """Dispatch an Agents v2 plugin command without blocking Qt.

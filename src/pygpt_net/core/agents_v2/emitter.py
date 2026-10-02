@@ -34,6 +34,7 @@ class RuntimeEmitter:
         self._finished = False
         self.text = ""
         self.status_text = ""
+        self._status_owner = None
         self._pending_part_uuid = None
         self._last_emitted_part_uuid = None
         self.final_started = False
@@ -313,8 +314,8 @@ class RuntimeEmitter:
         if drop_pending:
             self._pending_status = None
 
-    def _emit_status_now(self, value: str, source: str, hold_for: float = 0.0):
-        if value == self.status_text:
+    def _emit_status_now(self, value: str, source: str, hold_for: float = 0.0, owner=None):
+        if value == self.status_text and owner == self._status_owner:
             # Repeated aggregate refreshes do not need another Qt/JS event, but
             # they may renew the requested UI hold window.
             if value and hold_for > 0:
@@ -324,11 +325,13 @@ class RuntimeEmitter:
                 )
             return
         self.status_text = value
+        self._status_owner = owner
         self.begin()
         self._emit(
             KernelEvent.AGENT_V2_STATUS,
             status=value,
             source=source,
+            **({"owner": owner} if owner else {}),
         )
         if value and hold_for > 0:
             self._status_hold_until = time.monotonic() + float(hold_for)
@@ -347,8 +350,8 @@ class RuntimeEmitter:
         self._pending_status = None
         self._status_hold_until = 0.0
         if pending is not None:
-            value, source, hold_for = pending
-            self._emit_status_now(value, source, hold_for)
+            value, source, hold_for, owner = pending
+            self._emit_status_now(value, source, hold_for, owner)
 
     def _schedule_status_hold_flush(self):
         if self._status_hold_handle is not None:
@@ -367,14 +370,15 @@ class RuntimeEmitter:
             self._pending_status = None
             self._status_hold_until = 0.0
             if pending is not None:
-                value, source, hold_for = pending
-                self._emit_status_now(value, source, hold_for)
+                value, source, hold_for, owner = pending
+                self._emit_status_now(value, source, hold_for, owner)
 
     def status(
             self,
             text: Optional[str],
             source: str = "orchestrator",
             hold_for: float = 0.0,
+            owner: Optional[dict] = None,
     ):
         if self._finished:
             return
@@ -398,13 +402,13 @@ class RuntimeEmitter:
         if self._status_hold_until > now:
             # Coalesce rapid status churn while the current row is guaranteed to
             # remain visible. Only the newest pending value matters for the UI.
-            self._pending_status = (value, source, max(0.0, float(hold_for or 0.0)))
+            self._pending_status = (value, source, max(0.0, float(hold_for or 0.0)), owner)
             self._schedule_status_hold_flush()
             return
 
         # The hold expired before its timer ran; the newest incoming status wins.
         self._cancel_status_hold(drop_pending=True)
-        self._emit_status_now(value, source, max(0.0, float(hold_for or 0.0)))
+        self._emit_status_now(value, source, max(0.0, float(hold_for or 0.0)), owner)
 
     def clear_status(self):
         self.status("")

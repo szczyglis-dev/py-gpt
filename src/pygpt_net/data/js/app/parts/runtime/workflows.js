@@ -72,7 +72,23 @@ class RuntimeWorkflows {
 			container.insertBefore(prefix, beforeNode || container.firstChild || null);
 		}
 		prefix.textContent = name;
+		const timeline = container.closest ? container.closest('.msg-timeline') : null;
+		this.groupAgentNames(timeline || container);
 		return prefix;
+	};
+
+	groupAgentNames = (timeline) => {
+		if (!timeline) return;
+		let previous = '';
+		for (const prefix of timeline.querySelectorAll('.agent-name-prefix')) {
+			const name = String(prefix.textContent || '').trim();
+			const duplicate = !!name && name === previous;
+			// Keep the node so reconciliation/removal of earlier segments can
+			// reveal the group's new first heading without recreating streamed text.
+			prefix.hidden = duplicate;
+			prefix.style.display = duplicate ? 'none' : '';
+			if (name) previous = name;
+		}
 	};
 
 	// ========================================
@@ -132,7 +148,7 @@ class RuntimeWorkflows {
 			if (!label) continue;
 			this._setWorkflowStatus(
 				value, sid, kind, label, !!record.active,
-				{ moveExisting: false }
+				{ moveExisting: false, owner: { part_uuid: record.part_uuid, agent_name: record.agent_name } }
 			);
 			if (kind === 'tool' && Array.isArray(record.live_tool_calls)) {
 				this.runtime.toolOutput.syncLive(value, record.live_tool_calls);
@@ -185,7 +201,7 @@ class RuntimeWorkflows {
 		this._agentWorking = null;
 	};
 
-	setAgentStatus = (text, parentId = null, statusId = null) => {
+	setAgentStatus = (text, parentId = null, statusId = null, owner = null) => {
 		const value = String(text || '').trim();
 		if (this.finalActive) {
 			this.freezeWorkflowStatus(parentId);
@@ -199,7 +215,7 @@ class RuntimeWorkflows {
 		// One global chronological sequence: a new event freezes whatever was
 		// active and is appended after the previous text/tool/status segment.
 		this.freezeWorkflowStatus(parentId);
-		this._setWorkflowStatus(parentId, statusId, 'agent', value, true);
+		this._setWorkflowStatus(parentId, statusId, 'agent', value, true, { owner });
 		this.runtime.scrollMgr.scheduleScroll(true);
 	};
 
@@ -398,6 +414,13 @@ class RuntimeWorkflows {
 			// exactly the same DOM position for the whole consecutive tool round.
 			const host = this.workflowMessageHost(parentId, false);
 			if (host) this._placeWorkflowStatus(host, status);
+		}
+		if (opts.owner && opts.owner.agent_name) {
+			const part = status.closest('.msg-part-status');
+			if (part) {
+				part.dataset.statusOwnerPartId = String(opts.owner.part_uuid || '');
+				this.setAgentNamePrefix(part, String(opts.owner.agent_name), status);
+			}
 		}
 		status.dataset.statusKind = String(kind || 'agent');
 		if (statusId) status.dataset.workflowStatusId = String(statusId);

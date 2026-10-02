@@ -355,7 +355,7 @@ class ContextManager:
         # Context compaction is an internal maintenance pass. Never expose
         # provider-native web/computer/search tools to this auxiliary LLM; a
         # summary operation must stay side-effect free and deterministic.
-        summary_llm = runtime.get_llm(
+        summary_llm = runtime.inputs.llm(
             stream=False,
             actor_id=f"{actor_id}:context-memory",
             allow_remote_tools=False,
@@ -396,7 +396,7 @@ class ContextManager:
             memory.single_message_ratio = max(0.25, min(0.70, target / max(1.0, float(threshold))))
         except Exception:
             pass
-        runtime.verbose_log("CONTEXT MEMORY CREATED", {
+        runtime.verbose.log("CONTEXT MEMORY CREATED", {
             "actor": actor_id,
             "persistent": bool(persistent),
             "available_input_limit": available_limit,

@@ -252,7 +252,7 @@ class Render:
         elif name == RenderEvent.LIVE_CLEAR:
             self.clear_live(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.AGENT_STATUS:
-            self.agent_status(data.get("meta"), data.get("ctx"), data.get("status", ""))
+            self.agent_status(data.get("meta"), data.get("ctx"), data.get("status", ""), owner=data.get("owner"))
         elif name == RenderEvent.AGENT_STATUS_CLEAR:
             self.agent_status_clear(data.get("meta"), data.get("ctx"))
         else:
@@ -316,9 +316,12 @@ class Render:
         self.instance().clear_live(meta, ctx)
         self.update()
 
-    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str) -> None:
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str, owner=None) -> None:
         """Set/replace the one transient Agents v2 status line."""
-        self.instance().agent_status(meta, ctx, status)
+        if owner:
+            self.instance().agent_status(meta, ctx, status, owner=owner)
+        else:
+            self.instance().agent_status(meta, ctx, status)
 
     def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem) -> None:
         """Clear the transient Agents v2 status line."""

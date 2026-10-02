@@ -759,7 +759,7 @@ class Ctx:
         extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
         return extra.get("provider_history") is not False
 
-    def _part_max_tool_round(self, part: Optional[CtxItemPart]) -> int:
+    def part_max_tool_round(self, part: Optional[CtxItemPart]) -> int:
         if part is None:
             return 0
         rounds = [
@@ -984,7 +984,7 @@ class Ctx:
         # round. All sibling calls from that response share the same round, while
         # later tool-only continuations stay in this same CtxItemPart and receive
         # the next round number.
-        next_tool_round = self._part_max_tool_round(part) + 1
+        next_tool_round = self.part_max_tool_round(part) + 1
         new_round_used = False
         tasks = []
         for index, call in enumerate(tool_calls or []):
@@ -1249,7 +1249,7 @@ class Ctx:
         part = current_part
         if has_text:
             if (self._part_has_text(current_part)
-                    or self._part_max_tool_round(current_part) > 0):
+                    or self.part_max_tool_round(current_part) > 0):
                 part = self.begin_part(
                     parent,
                     name=continuation.output_name,
@@ -1264,7 +1264,7 @@ class Ctx:
             # A newly allocated text partial has no preceding tool rounds. For
             # legacy/reused empty parts retain ordering metadata so old contexts
             # can still be projected correctly after reload.
-            part.extra.setdefault("text_after_tool_round", self._part_max_tool_round(part))
+            part.extra.setdefault("text_after_tool_round", self.part_max_tool_round(part))
             part.output = visible_output
             if continuation.output_name:
                 part.name = continuation.output_name

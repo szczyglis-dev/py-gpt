@@ -9,19 +9,17 @@ from pygpt_net.core.agents_v2.timeline import RuntimeTimeline
 
 def make_runtime(parts=None):
     runtime = SimpleNamespace(
-        _primary_stream_current="",
-        _primary_stream_completed=[],
-        _primary_tool_activity_seen=False,
-        _provider_tool_activity_seen=set(),
-        _actor_needs_new_part={"orchestrator": False},
         context=SimpleNamespace(ctx=SimpleNamespace(parts=list(parts or []))),
-        workers={},
         emitter=SimpleNamespace(mark_block_boundary=MagicMock()),
         verbose=SimpleNamespace(log=MagicMock()),
-        _show_tool_status=MagicMock(return_value=False),
-        emit_runtime_status=MagicMock(),
-        emit_worker_status=MagicMock(),
+        status=SimpleNamespace(
+            show_tool=MagicMock(return_value=False),
+            emit=MagicMock(),
+            worker=MagicMock(),
+        ),
+        workers=SimpleNamespace(states={}),
     )
+    runtime.timeline = RuntimeTimeline(runtime)
     return runtime
 
 
@@ -31,16 +29,15 @@ def part(output, agent_id="orchestrator", extra=None):
 
 def test_provider_tool_activity_closes_primary_segment_and_arms_next_partial():
     runtime = make_runtime()
-    runtime._primary_stream_current = "progress before tool"
-    timeline = RuntimeTimeline(runtime)
-    runtime._close_primary_stream_segment = timeline._close_primary_stream_segment
+    runtime.timeline.stream_current = "progress before tool"
+    timeline = runtime.timeline
 
-    timeline.note_provider_tool_activity("web_search", call_id="call-1")
+    timeline.note_tool_activity("web_search", call_id="call-1")
 
-    assert runtime._primary_tool_activity_seen is True
-    assert runtime._primary_stream_completed == ["progress before tool"]
-    assert runtime._primary_stream_current == ""
-    assert runtime._actor_needs_new_part["orchestrator"] is True
+    assert runtime.timeline.primary_tool_activity_seen is True
+    assert runtime.timeline.stream_completed == ["progress before tool"]
+    assert runtime.timeline.stream_current == ""
+    assert runtime.timeline.needs_new_part["orchestrator"] is True
     runtime.emitter.mark_block_boundary.assert_called_once_with()
 
 
@@ -51,31 +48,26 @@ def test_primary_prose_outputs_ignore_worker_and_non_provider_history_rows():
         part("hidden", extra={"provider_history": False}),
         part("second"),
     ])
-    timeline = RuntimeTimeline(runtime)
+    timeline = runtime.timeline
 
-    assert timeline._primary_prose_outputs() == ["first", "second"]
+    assert timeline._prose_outputs() == ["first", "second"]
 
 
 def test_strip_primary_prose_prefix_removes_only_exact_chronological_prefixes():
     runtime = make_runtime([part("planning"), part("checked data")])
-    timeline = RuntimeTimeline(runtime)
-    runtime._primary_prose_outputs = timeline._primary_prose_outputs
+    timeline = runtime.timeline
 
-    assert timeline._strip_primary_prose_prefix(
+    assert timeline._strip_prose_prefix(
         "planning\n\nchecked data\n\nfinal answer"
     ) == "final answer"
-    assert timeline._strip_primary_prose_prefix("different final") == "different final"
-    assert timeline._strip_primary_prose_prefix("planning") == "planning"
+    assert timeline._strip_prose_prefix("different final") == "different final"
+    assert timeline._strip_prose_prefix("planning") == "planning"
 
 
 def test_resolve_primary_final_output_prefers_current_stream_after_last_tool_boundary():
     runtime = make_runtime([part("persisted fallback")])
-    runtime._primary_stream_current = " final streamed "
-    timeline = RuntimeTimeline(runtime)
-    runtime.primary_stream_final_output = timeline.primary_stream_final_output
-    runtime.last_orchestrator_output = timeline.last_orchestrator_output
-    runtime.primary_response_boundary_pending = timeline.primary_response_boundary_pending
-    runtime._primary_prose_outputs = timeline._primary_prose_outputs
-    runtime._strip_primary_prose_prefix = timeline._strip_primary_prose_prefix
+    runtime.timeline.stream_current = " final streamed "
+    timeline = runtime.timeline
+    runtime.timeline._strip_prose_prefix = timeline._strip_prose_prefix
 
-    assert timeline.resolve_primary_final_output("terminal aggregate") == "final streamed"
+    assert timeline.resolve_final("terminal aggregate") == "final streamed"

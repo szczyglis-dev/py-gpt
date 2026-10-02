@@ -69,6 +69,7 @@ def dummy_context():
         system_prompt="dummy system prompt",
         preset=MagicMock(),
         mode="agent_llama",
+        is_expert_call=False,
     )
 
 # Fixture for signals
@@ -143,12 +144,12 @@ def test_agent_workflow(dummy_window, dummy_context, dummy_signals, monkeypatch)
     dummy_window.core.agents.provider.get.return_value = prov
 
     session = MagicMock()
-    monkeypatch.setattr("pygpt_net.core.agents.runner.LlamaSession", MagicMock(return_value=session))
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.LlamaSession", MagicMock(return_value=session))
     agent_tools = MagicMock()
-    monkeypatch.setattr("pygpt_net.core.agents.runner.Tools", MagicMock(return_value=agent_tools))
-    monkeypatch.setattr("pygpt_net.core.agents.runner.ComputerRuntime", MagicMock(return_value=MagicMock()))
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.Tools", MagicMock(return_value=agent_tools))
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.ComputerRuntime", MagicMock(return_value=MagicMock()))
     bridge = MagicMock()
-    monkeypatch.setattr("pygpt_net.core.agents.runner.AgentWorkflowBridge", MagicMock(return_value=bridge))
+    monkeypatch.setattr("pygpt_net.core.agents.execution.AgentWorkflowBridge", MagicMock(return_value=bridge))
 
     runner = Runner(dummy_window)
 
@@ -176,3 +177,58 @@ def test_agent_openai(dummy_window, dummy_context, dummy_signals):
     runner.openai_workflow.run = fake_openai_run
     result = runner.call(dummy_context, extra={"agent_provider": "openai"}, signals=dummy_signals)
     assert result is True
+
+def test_quick_call_preserves_explicit_tools_history_and_index_when_commands_disabled(
+        dummy_window, dummy_context, dummy_signals, monkeypatch):
+    from pygpt_net.core.agents.preparation import AgentPreparation
+    provider = dummy_provider(AGENT_MODE_WORKFLOW)
+    dummy_window.core.agents.provider.get.return_value = provider
+    dummy_window.core.agents.provider.has.return_value = True
+    dummy_window.core.command.is_cmd.return_value = False
+    dummy_context.preset.idx = "preset-index"
+    session = MagicMock()
+    tools = MagicMock()
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.LlamaSession", lambda *args, **kwargs: session)
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.Tools", lambda *args, **kwargs: tools)
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.ComputerRuntime", lambda *args, **kwargs: object())
+    history = []
+    explicit_tools = [object()]
+    prepared = AgentPreparation(dummy_window, ["react"], "ADDITIONAL CONTEXT:").prepare(
+        dummy_context, {"agent_idx": "explicit-index", "agent_tools": explicit_tools,
+                        "agent_history": history}, dummy_signals, "workflow", False, once=True)
+    assert prepared.agent_kwargs["tools"] is explicit_tools
+    assert prepared.history is history
+    assert prepared.agent_kwargs["plugin_tools"] == {}
+    assert dummy_context.ctx.extra["agent_output"] is True
+    tools.set_idx.assert_called_once_with("explicit-index")
+    tools.prepare.assert_not_called()
+    dummy_window.core.agents.memory.prepare.assert_not_called()
+    dummy_window.core.idx.chat.query_retrieval.assert_not_called()
+    assert not hasattr(dummy_context.ctx, "agents_v2_system_prompt")
+
+
+def test_regular_call_uses_preset_index_and_persists_composed_prompt(
+        dummy_window, dummy_context, dummy_signals, monkeypatch):
+    from pygpt_net.core.agents.preparation import AgentPreparation
+    provider = dummy_provider(AGENT_MODE_WORKFLOW)
+    dummy_window.core.agents.provider.get.return_value = provider
+    dummy_window.core.agents.provider.has.return_value = True
+    dummy_window.core.command.is_cmd.return_value = False
+    dummy_context.preset.idx = "preset-index"
+    dummy_window.core.idx.chat.query_retrieval.return_value = "retrieved context"
+    tools = MagicMock()
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.LlamaSession", lambda *args, **kwargs: MagicMock())
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.Tools", lambda *args, **kwargs: tools)
+    monkeypatch.setattr("pygpt_net.core.agents.preparation.ComputerRuntime", lambda *args, **kwargs: object())
+    extra = {"agent_idx": "explicit-index"}
+    prepared = AgentPreparation(dummy_window, ["react"], "ADDITIONAL CONTEXT:").prepare(
+        dummy_context, extra, dummy_signals, "workflow", False)
+    assert extra["agent_idx"] == "preset-index"
+    tools.set_idx.assert_called_once_with("preset-index")
+    assert "retrieved context" in prepared.prompt
+    assert "retrieved context" in dummy_context.ctx.hidden_input
+    assert dummy_context.ctx.agents_v2_system_prompt.startswith("dummy system prompt")
+    assert prepared.agent_kwargs["system_prompt_extra"] == prepared.agent_kwargs["system_prompt"]
+    for name in ("tools", "function_tools", "plugin_tools", "plugin_specs"):
+        assert prepared.agent_kwargs[name] == []
+    assert prepared.agent_kwargs["retriever_tool"] is tools.get_retriever_tool.return_value

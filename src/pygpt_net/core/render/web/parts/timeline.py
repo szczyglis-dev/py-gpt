@@ -135,7 +135,8 @@ class Timeline:
                 "text": md_text,
                 "tool_calls": tool_calls,
                 "agent_name_prefix": (
-                    self.renderer.agents.legacy_agent_name_prefix(ctx, part=part) if text else ""
+                    self.renderer.agents.legacy_agent_name_prefix(ctx, part=part)
+                    if text or (tool_calls and not str(getattr(part, "output", "") or "").strip()) else ""
                 ),
             })
 
@@ -151,6 +152,7 @@ class Timeline:
                 "status_id": str(record.get("id") or ""),
                 "status_kind": str(record.get("kind") or "agent"),
                 "status_text": str(record.get("text") or ""),
+                "agent_name_prefix": str(record.get("agent_name") or ""),
                 "status_tool_names": list(record.get("tool_names") or []),
                 "status_active": bool(record.get("active")),
                 "status_live_tool_calls": list(record.get("live_tool_calls") or []) if include_tool_calls else [],
@@ -309,4 +311,13 @@ class Timeline:
             anchor_part = parts[-1] if parts else None
             append_segment(anchor_part, text=str(final_output_text))
 
-        return self.renderer.tools.group_adjacent_calls(timeline)
+        timeline = self.renderer.tools.group_adjacent_calls(timeline)
+        # Tool/status/prose boundaries do not start a new actor group.
+        previous_agent = ""
+        for segment in timeline:
+            name = str(segment.get("agent_name_prefix") or "").strip()
+            if name:
+                if name == previous_agent:
+                    segment["agent_name_prefix"] = ""
+                previous_agent = name
+        return timeline

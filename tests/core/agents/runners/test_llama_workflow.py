@@ -172,7 +172,7 @@ def test_plugin_results_wait_for_reply_and_use_private_contexts():
     # it to the final agent response. Files are exported only through the
     # explicit delivery-files path.
     assert all(c.files == ['file.txt'] for c in tool_contexts)
-    assert session.artifacts['files'] == []
+    assert session.artifacts.values['files'] == []
     assert ctx.files == []
 
 
@@ -530,3 +530,59 @@ def test_legacy_chat_policy_delivers_text_to_renderer_before_workflow_finishes()
         assert session.context.stream is False  # generic chat lifecycle stays disabled
 
     asyncio.run(run())
+
+
+@pytest.mark.parametrize("named_tool", [False, True])
+def test_worker_tool_before_first_prose_owns_its_partial(named_tool):
+    window, ctx, signals, session = setup()
+
+    async def run():
+        await session.event(stream("Delegating.", "Supervisor"))
+        tool = call("worker-read", path="notes.txt")
+        if named_tool:
+            tool = tool.model_copy(update={"current_agent_name": "Worker"})
+        else:
+            await session.event(StepEvent(name="worker", meta={"agent_name": "Worker"}))
+        await session.event(tool)
+        await session.event(result("worker-read", "notes"))
+        await session.event(stream("Checked.", "Worker"))
+        await session.finish("Checked.")
+
+    asyncio.run(run())
+    deliver(window, signals)
+    supervisor = next(p for p in ctx.parts if p.name == "Supervisor")
+    worker = next(p for p in ctx.parts if p.tasks)
+    assert supervisor.tasks == []
+    assert worker.name == "Worker"
+    assert worker.tasks[0].tool_output == "notes"
+    assert worker.tasks[0].agent_id == "orchestrator"
+
+
+def test_forwarded_child_tools_keep_display_actor_without_text():
+    parent = MagicMock()
+    child = Handler(values=[call("x"), result("x", "done")])
+    asyncio.run(forward_handler(child, parent, lambda: False, name="Worker"))
+    assert [c.args[0].current_agent_name for c in parent.write_event_to_stream.call_args_list] == ["Worker", "Worker"]
+
+
+def test_tool_status_carries_worker_owner_even_when_ui_is_delayed():
+    window, ctx, signals, session = setup()
+
+    async def run():
+        await session.event(stream("Delegating.", "Supervisor"))
+        await session.event(StepEvent(name="worker", meta={"agent_name": "Worker"}))
+        await session.event(call("worker-read"))
+        await session.event(result("worker-read", "notes"))
+        await session.event(stream("Checked.", "Worker"))
+        await session.event(stream("Done.", "Supervisor"))
+        await session.finish("Done.")
+
+    asyncio.run(run())
+    tool_status = next(e for e in events(signals)
+                      if e.name == KernelEvent.AGENT_V2_STATUS and e.data.get("owner"))
+    owner = tool_status.data["owner"]
+    tool_part = next(p for p in ctx.parts if p.tasks)
+    assert ctx.get_active_part().name == "Supervisor"
+    assert owner == {"part_uuid": tool_part.uuid, "agent_name": "Worker", "placement": "before"}
+    Response(window).agent_v2_status(session.context, {}, tool_status.data["status"], owner=owner)
+    assert window.dispatch.call_args.args[0].data["owner"] == owner

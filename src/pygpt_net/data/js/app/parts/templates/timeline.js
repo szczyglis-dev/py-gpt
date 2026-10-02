@@ -91,6 +91,7 @@ class NodeTimelineTemplate {
 					const skind = this.templates.escapeHtml(statusKind || 'agent');
 					parts.push(
 						`<div class='msg-part msg-part-status' data-status-part='1'>` +
+						(segment.agent_name_prefix ? `<span class='agent-name-prefix'>${this.templates.escapeHtml(segment.agent_name_prefix)}</span>` : '') +
 						`<div class='agents-v2-status workflow-status${activeClass}${liveHtml ? ' live-tool-status' : ''}' ` +
 						`data-workflow-status-id='${sid}' data-status-kind='${skind}'>` +
 						`<span class='agents-v2-status__text'>${this.templates.escapeHtml(label)}</span>${liveHtml}` +
@@ -117,7 +118,7 @@ class NodeTimelineTemplate {
 
 			const mdText = this.templates.escapeHtml(segment.text || '');
 			const agentName = String(segment.agent_name_prefix || '').trim();
-			const agentPrefix = (mdText && agentName)
+			const agentPrefix = (agentName && (mdText || (Array.isArray(segment.tool_calls) && segment.tool_calls.length)))
 				? `<span class='agent-name-prefix'>${this.templates.escapeHtml(agentName)}</span>`
 				: '';
 			const mdBlock = mdText ? `<div class='md-block' md-block-markdown='1'>${mdText}</div>` : '';

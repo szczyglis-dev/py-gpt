@@ -353,8 +353,8 @@ class Renderer(BaseRenderer):
     def agent_v2_final_begin(self, meta: CtxMeta, ctx: CtxItem):
         return self.agents.agent_v2_final_begin(meta, ctx)
 
-    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
-        return self.agents.agent_status(meta, ctx, status)
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str, owner=None):
+        return self.agents.agent_status(meta, ctx, status, owner=owner)
 
     def agent_status_clear(self, meta: CtxMeta, ctx: CtxItem):
         return self.agents.agent_status_clear(meta, ctx)

@@ -280,7 +280,7 @@ class Agents:
     # Status
     # ========================================
 
-    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str):
+    def agent_status(self, meta: CtxMeta, ctx: CtxItem, status: str, owner=None):
         """Append a live agent status inside the current durable turn."""
         value_text = str(status or "").strip()
         if not value_text:
@@ -291,7 +291,7 @@ class Agents:
             resolved_ctx = ctx
         self.update_agent_working(meta, resolved_ctx)
         status_id = self.workflow_status_add(
-            meta, resolved_ctx, kind="agent", text=value_text,
+            meta, resolved_ctx, kind="agent", text=value_text, owner=owner,
         )
         try:
             value = json.dumps(value_text, ensure_ascii=False)
@@ -301,7 +301,7 @@ class Agents:
             sid = json.dumps(str(status_id or ""), ensure_ascii=False)
             self.renderer.get_output_node(meta).page().runJavaScript(
                 "if (typeof window.setAgentStatus !== 'undefined') "
-                f"window.setAgentStatus({value}, {parent_id}, {sid});"
+                f"window.setAgentStatus({value}, {parent_id}, {sid}, {json.dumps(owner, ensure_ascii=False)});"
             )
         except Exception:
             pass
@@ -373,6 +373,7 @@ class Agents:
             text: str = "",
             tool_names: Optional[list] = None,
             aggregate: bool = False,
+            owner: Optional[dict] = None,
     ) -> Optional[str]:
         """Append one UI-only workflow event in strict display order.
 
@@ -389,6 +390,8 @@ class Agents:
         names = [str(name) for name in (tool_names or []) if str(name)]
         value = str(text or "")
         part = ctx.get_active_part() if hasattr(ctx, "get_active_part") else None
+        if owner and owner.get("part_uuid"):
+            part = next((p for p in ctx.parts if str(p.uuid) == str(owner["part_uuid"])), None)
         part_uuid = str(getattr(part, "uuid", "") or "") or None
         if part is None:
             placement = "head"
@@ -396,6 +399,9 @@ class Agents:
             has_payload = bool(str(getattr(part, "output", None) or "").strip()) \
                 or bool(getattr(part, "tasks", None))
             placement = "after" if has_payload else "before"
+
+        if owner and owner.get("placement") in {"before", "after"}:
+            placement = owner["placement"]
 
         current_bucket = ("part", part_uuid) if part_uuid else ("head", "")
 
@@ -461,6 +467,7 @@ class Agents:
             "id": status_id,
             "live_id": live_id,
             "kind": str(kind or "agent"),
+            "agent_name": str((owner or {}).get("agent_name") or ""),
             "text": value,
             "tool_names": names,
             "part_uuid": part_uuid,

@@ -27,6 +27,37 @@ class AutonomousAgentMixin(BaseModel):
     _tool_activity_seen: bool = PrivateAttr(default=False)
     _iteration_limit_reached: bool = PrivateAttr(default=False)
 
+    @property
+    def iteration_limit_reached(self) -> bool:
+        return self._iteration_limit_reached
+
+    @property
+    def stalled(self) -> bool:
+        return self._stalled
+
+    @property
+    def completion_outcome(self) -> str:
+        return self._completion_outcome
+
+    @property
+    def completion_requested(self) -> bool:
+        return self._completion_requested
+
+    def configure_completion(self, tool: str, *, check=None, direct_check=None, direct_reset=None):
+        """Configure the completion gate and tool-free first-response policy."""
+        self._completion_tool = tool
+        self._completion_check = check
+        self._allow_direct_completion = True
+        self._direct_completion_check = direct_check
+        self._direct_completion_reset = direct_reset
+
+    def request_completion(self, outcome: str):
+        self._completion_outcome = outcome
+        self._completion_requested = True
+
+    def set_message_receiver(self, callback):
+        self._receive_messages = callback
+
     def run(self, *args, **kwargs):
         self._last_checkpoint = ""
         self._repeated_checkpoints = 0

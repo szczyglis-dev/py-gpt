@@ -70,7 +70,9 @@ async def forward_handler(handler, ctx, stopped, *, name=None, text_filter=None,
                     "delta": delta, "current_agent_name": name or event.current_agent_name,
                 }))
         elif isinstance(event, (ToolCall, ToolCallResult)):
-            ctx.write_event_to_stream(event)
+            ctx.write_event_to_stream(event.model_copy(update={
+                "current_agent_name": name or getattr(event, "current_agent_name", None),
+            }))
         # The parent owns fallback prose; AgentOutput may contain routing JSON.
 
     result = await consume_handler(handler, forward, stopped)

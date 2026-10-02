@@ -125,7 +125,7 @@ class AgentOpenAIResponses(OpenAIResponses):
         runtime = self._pygpt_runtime
         if runtime is not None:
             try:
-                runtime.record_token_usage(raw, actor_id=self._pygpt_actor_id)
+                runtime.usage.capture(raw, actor_id=self._pygpt_actor_id)
             except Exception:
                 # Usage accounting is observational and must never break a request.
                 pass
@@ -200,7 +200,7 @@ class AgentOpenAIResponses(OpenAIResponses):
             if not tool_name or not key or key in self._pygpt_remote_call_keys:
                 continue
             self._pygpt_remote_call_keys.add(key)
-            callback = getattr(runtime, "note_provider_tool_activity", None)
+            callback = getattr(getattr(runtime, "timeline", None), "note_tool_activity", None)
             if callable(callback):
                 callback(
                     tool_name,
@@ -257,7 +257,7 @@ class AgentOpenAIResponses(OpenAIResponses):
                     )
                     key = f"image_generation:{item_id}"
                     if key not in self._pygpt_remote_artifact_keys:
-                        callback = getattr(runtime, "register_provider_image_base64", None)
+                        callback = getattr(getattr(runtime, "artifacts", None), "register_image", None)
                         if callable(callback):
                             registered = callback(data, actor_id=self._pygpt_actor_id)
                             if registered:
@@ -271,7 +271,7 @@ class AgentOpenAIResponses(OpenAIResponses):
                 container_files.append(ref)
 
         if container_files:
-            callback = getattr(runtime, "register_provider_container_files", None)
+            callback = getattr(getattr(runtime, "artifacts", None), "register_container_files", None)
             if callable(callback):
                 downloaded = callback(container_files, actor_id=self._pygpt_actor_id)
                 if downloaded:
@@ -404,8 +404,8 @@ class AgentOpenAIResponses(OpenAIResponses):
 
         acknowledgements = await self._computer_safety(call)
         actions = computer_api.get_actions(call)
-        if runtime._show_tool_status("computer_use"):
-            runtime.emit_runtime_status("status.agent_v2.tool", tool="computer_use")
+        if runtime.status.show_tool("computer_use"):
+            runtime.status.emit("status.agent_v2.tool", tool="computer_use")
         runtime.verbose.log("COMPUTER USE CALL", {
             "call_id": call_id,
             "id": response_item_id,

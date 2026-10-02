@@ -164,3 +164,14 @@ def test_agents_v2_emitter_append_streamed_splits_large_post_tool_delta_when_str
     assert len(append_events) > 1
     assert "".join(event.data["chunk"] for event in append_events) == "one two three four five"
     assert all(event.data["part_uuid"] == "part-1" for event in append_events)
+
+
+def test_identical_tool_statuses_from_different_actors_are_not_deduplicated():
+    emitter, signals = make_emitter()
+    first = {"part_uuid": "supervisor-part", "agent_name": "Supervisor", "placement": "before"}
+    second = {"part_uuid": "worker-part", "agent_name": "Worker", "placement": "before"}
+    emitter.status("Using tool: read_file", owner=first)
+    emitter.status("Using tool: read_file", owner=second)
+    emitter.status("Using tool: read_file", owner=second)
+    statuses = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_STATUS]
+    assert [e.data["owner"] for e in statuses] == [first, second]

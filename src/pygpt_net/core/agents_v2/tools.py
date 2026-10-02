@@ -72,7 +72,7 @@ class WorkerToolFactory:
         ))
 
         if self.runtime.is_swarm_mode:
-            tools.extend(self.runtime.worker_api.communication_tools(worker.id))
+            tools.extend(self.runtime.workers.communication.tools(worker.id))
 
         rag = self._rag_tool()
         if rag is not None:
@@ -161,7 +161,7 @@ class WorkerToolFactory:
         self.runtime.verbose.log("REPORT STATUS CALL", {"status": status}, actor=getattr(worker, "id", "worker"))
         worker.progress = text
         if text:
-            self.runtime.emit_worker_status(worker, text)
+            self.runtime.status.worker(worker, text)
         return "Status updated."
 
     @staticmethod
@@ -394,8 +394,8 @@ class WorkerToolFactory:
 
                         cmd = {"cmd": tool_name, "params": call_args}
                         self.runtime.verbose.log("LOCAL TOOL REQUEST", cmd, actor=actor_id)
-                        if self.runtime._show_tool_status(tool_name):
-                            self.runtime.emit_runtime_status(
+                        if self.runtime.status.show_tool(tool_name):
+                            self.runtime.status.emit(
                                 "status.agent_v2.tool",
                                 worker=worker if getattr(worker, "id", "") != "orchestrator" else None,
                                 tool=tool_name,
@@ -405,7 +405,7 @@ class WorkerToolFactory:
                         async with self.runtime.local_tool_lock:
                             # Persist the call in the exact order in which it reaches
                             # the serialized plugin dispatcher, with normalized params.
-                            display_call_id = self.runtime.record_local_plugin_tool_call(
+                            display_call_id = self.runtime.tool_history.record_local_call(
                                 tool_name, call_args, actor=actor_id
                             )
                             # Only command dispatch touches the Qt thread. Long-running plugin
@@ -421,7 +421,7 @@ class WorkerToolFactory:
                                 # Keep failed executions inspectable as a completed
                                 # request/response pair, then preserve the original
                                 # exception semantics for the agent workflow.
-                                self.runtime.record_local_plugin_tool_result(
+                                self.runtime.tool_history.record_local_result(
                                     display_call_id,
                                     tool_name,
                                     {"error": str(exc)},
@@ -445,7 +445,7 @@ class WorkerToolFactory:
                                 self._strip_private_artifact_markers(response)
                                 if runtime_attachments or delivery_files else response
                             )
-                            self.runtime.record_local_plugin_tool_result(
+                            self.runtime.tool_history.record_local_result(
                                 display_call_id,
                                 tool_name,
                                 display_response,
@@ -458,9 +458,9 @@ class WorkerToolFactory:
                             "ctx_results": getattr(tool_ctx, "results", None),
                             "ctx_extra": getattr(tool_ctx, "extra", None),
                         }, actor=actor_id)
-                        self.runtime.collect_artifacts(tool_ctx, worker)
+                        self.runtime.artifacts.collect(tool_ctx, worker)
                         if delivery_files:
-                            self.runtime.register_delivery_files(delivery_files, worker)
+                            self.runtime.artifacts.register_files(delivery_files, worker)
                         # `reply` is a legacy chat-loop flag. It is useful while a plugin
                         # builds its response, but must not survive on a reusable actor ctx.
                         tool_ctx.reply = False
@@ -471,7 +471,7 @@ class WorkerToolFactory:
                     fn.__name__ = tool_name
                     return fn
 
-                self.runtime.register_local_plugin_tool(name)
+                self.runtime.tool_history.register_plugin(name)
                 metadata = SchemaToolMetadata(name, description, schema)
                 out.append(FunctionTool(async_fn=make_async_fn(name, schema), metadata=metadata))
             except Exception as exc:

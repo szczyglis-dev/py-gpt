@@ -39,7 +39,7 @@ class AgentDelegateBridge:
     def _json(payload: Any) -> str:
         return json.dumps(payload, ensure_ascii=False, default=str)
 
-    async def delegate_task(
+    async def delegate(
             self,
             task: str,
             name: str = "Specialist",
@@ -68,7 +68,7 @@ class AgentDelegateBridge:
 
         worker_id: Optional[str] = None
         state = None
-        self.runtime.verbose_log("DELEGATE TASK REQUEST", {
+        self.runtime.verbose.log("DELEGATE TASK REQUEST", {
             "name": name,
             "instruction": instruction,
             "language": language,
@@ -76,7 +76,7 @@ class AgentDelegateBridge:
             "task": task,
         })
         try:
-            created_raw = await self.runtime.create_worker(
+            created_raw = await self.runtime.workers.create(
                 name=name,
                 instruction=instruction,
                 language=language,
@@ -94,7 +94,7 @@ class AgentDelegateBridge:
             if not worker_id:
                 return self._json({"error": "Worker runtime did not return an agent id."})
 
-            started_raw = await self.runtime.start_worker(worker_id, task)
+            started_raw = await self.runtime.workers.start(worker_id, task)
             try:
                 started = json.loads(started_raw) if isinstance(started_raw, str) else started_raw
             except Exception:
@@ -102,7 +102,7 @@ class AgentDelegateBridge:
             if isinstance(started, dict) and started.get("error"):
                 return self._json(started)
 
-            state = self.runtime.workers.get(worker_id)
+            state = self.runtime.workers.states.get(worker_id)
             if state is None:
                 return self._json({"error": "Worker disappeared before execution started."})
 
@@ -120,26 +120,26 @@ class AgentDelegateBridge:
                 "error": str(state.error or ""),
                 "artifacts": state.public_dict().get("artifacts", {}),
             }
-            self.runtime.verbose_log("DELEGATE TASK RESULT", payload, actor=worker_id)
+            self.runtime.verbose.log("DELEGATE TASK RESULT", payload, actor=worker_id)
             return self._json(payload)
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            self.runtime.verbose_log("DELEGATE TASK ERROR", {"error": str(exc)}, actor=worker_id or "orchestrator")
+            self.runtime.verbose.log("DELEGATE TASK ERROR", {"error": str(exc)}, actor=worker_id or "orchestrator")
             try:
                 self.runtime.window.core.debug.log(exc)
             except Exception:
                 pass
             return self._json({"error": str(exc)})
         finally:
-            if worker_id and worker_id in self.runtime.workers:
+            if worker_id and worker_id in self.runtime.workers.states:
                 try:
-                    await self.runtime.remove_worker(worker_id)
+                    await self.runtime.workers.remove(worker_id)
                 except asyncio.CancelledError:
                     # Cancellation should still make a best-effort cleanup.  The
                     # outer runtime cleanup is the final safety net.
                     try:
-                        state = self.runtime.workers.get(worker_id)
+                        state = self.runtime.workers.states.get(worker_id)
                         if state is not None and state.task is not None and not state.task.done():
                             state.stop_requested = True
                             state.task.cancel()

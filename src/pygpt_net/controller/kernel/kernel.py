@@ -373,7 +373,7 @@ class Kernel:
                 event.data.get("part_uuid"),
             )
         elif name == KernelEvent.AGENT_V2_STATUS:
-            return resp.agent_v2_status(context, extra, event.data.get("status", ""))
+            return resp.agent_v2_status(context, extra, event.data.get("status", ""), owner=event.data.get("owner"))
         elif name == KernelEvent.AGENT_V2_TOOL_EXEC:
             return resp.agent_v2_tool_exec(context, extra, event.data.get("request"))
         elif name == KernelEvent.AGENT_V2_END:

@@ -109,8 +109,10 @@ class RuntimeContext:
 
     def __init__(self, runtime):
         self.runtime = runtime
+        # Preserve each actor adapter for metadata and final artifact draining.
+        self.actor_llms = {}
 
-    def has_rag_index(self) -> bool:
+    def has_index(self) -> bool:
         """Return True when the selected preset/runtime index can be queried."""
         if not self.runtime.index_id:
             return False
@@ -120,19 +122,19 @@ class RuntimeContext:
             self.runtime.window.core.debug.log(exc)
             return False
 
-    def prefetch_rag_context(self, query: str) -> str:
+    def prefetch(self, query: str) -> str:
         """Retrieve initial RAG context using the same helper as Chat with Files/legacy Agents."""
         self.runtime.rag_context_text = ""
-        self.runtime.verbose_log("RAG PREFETCH REQUEST", {"query": query, "index_id": self.runtime.index_id})
-        if not self.runtime.has_rag_index():
-            self.runtime.verbose_log("RAG PREFETCH SKIP", "No valid RAG index selected.")
+        self.runtime.verbose.log("RAG PREFETCH REQUEST", {"query": query, "index_id": self.runtime.index_id})
+        if not self.has_index():
+            self.runtime.verbose.log("RAG PREFETCH SKIP", "No valid RAG index selected.")
             return ""
         if not self.runtime.window.core.config.get("agent.idx.auto_retrieve", True):
-            self.runtime.verbose_log("RAG PREFETCH SKIP", "Automatic RAG retrieval is disabled.")
+            self.runtime.verbose.log("RAG PREFETCH SKIP", "Automatic RAG retrieval is disabled.")
             return ""
         value = str(query or "").strip()
         if not value:
-            self.runtime.verbose_log("RAG PREFETCH SKIP", "Empty RAG query.")
+            self.runtime.verbose.log("RAG PREFETCH SKIP", "Empty RAG query.")
             return ""
         try:
             result = self.runtime.window.core.idx.chat.query_retrieval(
@@ -142,15 +144,15 @@ class RuntimeContext:
             )
             if result:
                 self.runtime.rag_context_text = str(result).strip()
-            self.runtime.verbose_text("RAG PREFETCH RESULT", self.runtime.rag_context_text)
+            self.runtime.verbose.text("RAG PREFETCH RESULT", self.runtime.rag_context_text)
         except Exception as exc:
             self.runtime.window.core.debug.log(exc)
-            self.runtime.verbose_log("RAG PREFETCH ERROR", exc)
+            self.runtime.verbose.log("RAG PREFETCH ERROR", exc)
         return self.runtime.rag_context_text
 
-    def _rag_prompt_context(self) -> str:
+    def rag_prompt(self) -> str:
         """Build prompt guidance shared by the selected main agent and all workers."""
-        if not self.runtime.has_rag_index():
+        if not self.has_index():
             return ""
         parts = [
             "<rag_access>",
@@ -171,7 +173,7 @@ class RuntimeContext:
             ])
         return "\n".join(parts)
 
-    def _build_runtime_system_context(self) -> str:
+    def system_context(self) -> str:
         """Build dynamic Files I/O guidance directly from the live plugin.
 
         Runtime filesystem details must never be persisted in CtxItem.extra. The
@@ -200,7 +202,7 @@ class RuntimeContext:
             self.runtime.window.core.debug.log(exc)
             return ""
 
-    def get_llm(
+    def llm(
             self,
             stream: bool = False,
             actor_id: str = "orchestrator",
@@ -234,7 +236,7 @@ class RuntimeContext:
         if callable(actor_binder):
             actor_binder(actor_id)
         actor_id = str(actor_id or "orchestrator")
-        self.runtime._actor_llms[actor_id] = llm
+        self.actor_llms[actor_id] = llm
         self.runtime.verbose.log("LLM CREATED", {
             "stream": stream,
             "actor_id": actor_id,
@@ -243,7 +245,7 @@ class RuntimeContext:
         })
         return llm
 
-    def build_agent(self, name: str, description: str, llm, system_prompt: str, tools):
+    def agent(self, name: str, description: str, llm, system_prompt: str, tools):
         """Prefer native tool calling and retain ReAct as a compatibility fallback."""
         system_prompt = self.runtime.window.core.security.append_prompt_injection_guard(
             system_prompt, ensure_last=True
@@ -271,8 +273,7 @@ class RuntimeContext:
                 """Finish this assignment: outcome completed, blocked, or needs_input; evidence describes verification or blocker."""
                 if outcome not in {"completed", "blocked", "needs_input"} or not evidence.strip():
                     return "Provide outcome completed/blocked/needs_input and non-empty verification evidence or blocker."
-                agent._completion_outcome = outcome
-                agent._completion_requested = True
+                agent.request_completion(outcome)
                 return "Completion accepted. Now return the final result, evidence and any limitations as normal text."
             tools.append(FunctionTool.from_defaults(async_fn=task_complete, name="task_complete"))
         system_prompt += (
@@ -326,28 +327,24 @@ class RuntimeContext:
             path=f"llama_index.core.agent.workflow.{cls.__name__}",
         )
         agent = cls(**kwargs)
-        agent._completion_tool = completion_tool
         # Every Agents v2 agent run may finish on its first tool-free response.
         # Once local or provider-native tool activity occurs, the normal runtime
         # completion gate remains mandatory for the rest of that run.
         actor_id = "orchestrator" if is_main else next(
-            (key for key, value in self.runtime._actor_llms.items() if value is llm),
+            (key for key, value in self.actor_llms.items() if value is llm),
             str(name),
         )
-        agent._allow_direct_completion = True
-        agent._direct_completion_reset = (
-            lambda actor_id=actor_id: self.runtime.reset_actor_provider_tool_activity(actor_id)
-        )
-        agent._direct_completion_check = (
-            lambda actor_id=actor_id: not self.runtime.actor_provider_tool_activity_seen(actor_id)
+        agent.configure_completion(
+            completion_tool,
+            check=(lambda: self.runtime.workflow.final_requested) if managed else None,
+            direct_reset=lambda: self.runtime.timeline.reset_tool_activity(actor_id),
+            direct_check=lambda: not self.runtime.timeline.has_tool_activity(actor_id),
         )
         if is_main and self.runtime.is_swarm_mode:
-            agent._receive_messages = lambda: self.runtime.worker_api.receive_messages("orchestrator")
-        if managed:
-            agent._completion_check = lambda: self.runtime.workflow_final_requested
+            agent.set_message_receiver(lambda: self.runtime.workers.communication.receive("orchestrator"))
         return agent
 
-    def _memory_token_limit(self) -> int:
+    def memory_limit(self) -> int:
         model_ctx = int(getattr(self.runtime.model, "ctx", 0) or 0)
         limit = int(model_ctx * 0.75) if model_ctx > 0 else 40000
         configured = int(self.runtime.window.core.config.get("max_total_tokens") or 0)
@@ -355,7 +352,7 @@ class RuntimeContext:
             limit = min(limit, configured)
         return max(2048, min(limit, 128000))
 
-    def _input_image_paths(self) -> List[str]:
+    def image_paths(self) -> List[str]:
         """Return unique local image attachments accepted by the selected model."""
         if self.runtime.model is None or not self.runtime.model.is_image_input():
             return []
@@ -369,12 +366,12 @@ class RuntimeContext:
             paths.append(path)
         return paths
 
-    def _persist_input_images(self):
+    def persist_images(self):
         """Store Agents v2 native image inputs on the main conversation CtxItem."""
         ctx = getattr(self.runtime.context, "ctx", None)
         if ctx is None:
             return
-        paths = self.runtime._input_image_paths()
+        paths = self.image_paths()
         if not paths:
             return
         try:
@@ -397,18 +394,18 @@ class RuntimeContext:
         except Exception as exc:
             self.runtime.window.core.debug.log(exc)
 
-    def build_user_message(self, text: str) -> ChatMessage:
+    def message(self, text: str) -> ChatMessage:
         """Build the same turn input for orchestrator/workers, including native image blocks when supported."""
         value = str(text or "")
         if self.runtime.model is None or not self.runtime.model.is_image_input():
             return ChatMessage(role=MessageRole.USER, content=value)
 
         blocks = [TextBlock(text=value)]
-        for path in self.runtime._input_image_paths():
+        for path in self.image_paths():
             blocks.append(ImageBlock(path=path))
         return ChatMessage(role=MessageRole.USER, blocks=blocks)
 
-    def _build_shared_context(self) -> str:
+    def shared_context(self) -> str:
         parts: List[str] = []
         ctx = self.runtime.context.ctx
         if ctx is not None and ctx.hidden_input:

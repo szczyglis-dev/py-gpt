@@ -106,7 +106,7 @@ class AgentAnthropic(Anthropic):
         runtime = self._pygpt_runtime
         if runtime is not None and self._usage_response_complete(response):
             try:
-                runtime.record_token_usage(response, actor_id=self._pygpt_actor_id)
+                runtime.usage.capture(response, actor_id=self._pygpt_actor_id)
             except Exception:
                 pass
         try:

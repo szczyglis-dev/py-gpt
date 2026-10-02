@@ -325,6 +325,22 @@ class Streaming:
         if not text_chunk:
             return
 
+        if not begin_stream_here and part_key:
+            # STREAM_BEGIN can precede the runtime's first named partial.
+            # Refresh its identity when the UUID-bearing delta arrives, without
+            # resetting the stream or replaying workflow statuses.
+            agent_name = self.renderer.agents.legacy_agent_name_prefix(ctx, part_key=part_key)
+            if agent_name:
+                node = self.renderer.get_output_node(meta)
+                if node is not None:
+                    node.page().runJavaScript(
+                        "if (typeof window.bindWorkflowStream !== 'undefined') "
+                        f"bindWorkflowStream({json.dumps(str(ctx.id or ''), ensure_ascii=False)},"
+                        f"{json.dumps(pctx.header or '', ensure_ascii=False)},[],"
+                        f"{json.dumps(str(part_key), ensure_ascii=False)},"
+                        f"{json.dumps(agent_name, ensure_ascii=False)});"
+                    )
+
         self.stream_push(pid, pctx.header or "", str(text_chunk))
 
     def stream_push(self, pid: int, header: str, chunk: str):

@@ -80,6 +80,7 @@ class RuntimeTimeline {
 			}
 		} catch (_) {}
 
+		this.runtime.workflows.groupAgentNames(timeline);
 		if (inlineInserted && followInlineInsert) {
 			try {
 				// Reassert FOLLOW synchronously after the DOM insertion. This is not a

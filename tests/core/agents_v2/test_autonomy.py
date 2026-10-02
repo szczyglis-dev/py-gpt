@@ -114,11 +114,13 @@ def test_completion_tool_validates_evidence_and_records_blocker():
             model=None,
             verbose=MagicMock(),
             window=window,
-            _actor_llms={},
-            reset_actor_provider_tool_activity=MagicMock(),
-            actor_provider_tool_activity_seen=MagicMock(return_value=False),
+            timeline=SimpleNamespace(
+                reset_tool_activity=MagicMock(),
+                has_tool_activity=MagicMock(return_value=False),
+            ),
+            inputs=SimpleNamespace(actor_llms={}),
         )
-        agent = RuntimeContext(runtime).build_agent("Primary Agent", "Main", ToolLLM(), "System", [])
+        agent = RuntimeContext(runtime).agent("Primary Agent", "Main", ToolLLM(), "System", [])
         tool = next(t for t in agent.tools if t.metadata.name == "task_complete")
         await tool.acall(outcome="completed", evidence="")
         assert not agent._completion_requested

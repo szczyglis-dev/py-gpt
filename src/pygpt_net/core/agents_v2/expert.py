@@ -22,6 +22,8 @@ from pygpt_net.core.types import MODE_EXPERT, TOOL_EXPERT_CALL_NAME
 
 from .emitter import RuntimeEmitter
 from .runtime import AgentsV2Runtime
+from .status import RuntimeStatus
+from .tool_history import RuntimeToolHistory
 from .utils import result_text
 
 
@@ -53,31 +55,40 @@ class _ExpertEmitter(RuntimeEmitter):
         pass
 
 
+class _ExpertStatus(RuntimeStatus):
+    def emit(self, key: str, worker=None, **kwargs):
+        pass
+
+    def worker(self, worker, text: str):
+        pass
+
+
+class _ExpertHistory(RuntimeToolHistory):
+    """Expert turns own their hidden history, without main-agent partials."""
+
+    def record_local_call(self, name, args, actor="orchestrator"):
+        return self.new_id()
+
+    def record_local_result(self, call_id, name, result, actor="orchestrator"):
+        pass
+
+    def record_call(self, event, actor="orchestrator"):
+        pass
+
+    def record_result(self, event, actor="orchestrator"):
+        pass
+
+    def export(self):
+        pass
+
+
 class _ExpertRuntime(AgentsV2Runtime):
-    """Headless Agents v2 runtime used as the execution backend for Experts."""
+    """Use the regular runtime with headless status and history components."""
 
-    def emit_runtime_status(self, key: str, worker=None, **kwargs):
-        pass
-
-    def emit_worker_status(self, worker, text: str):
-        pass
-
-    def record_local_plugin_tool_call(self, name, args, actor: str = "orchestrator"):
-        # Expert tool history is already represented by the expert's hidden CtxItem
-        # turn. Do not create Agents-v2 partial/task rows inside that hidden memory.
-        return self._new_tool_call_id()
-
-    def record_local_plugin_tool_result(self, call_id, name, result, actor: str = "orchestrator"):
-        pass
-
-    def record_tool_call(self, event, actor: str = "orchestrator"):
-        pass
-
-    def record_tool_result(self, event, actor: str = "orchestrator"):
-        pass
-
-    def export_tool_calls_to_main_ctx(self):
-        pass
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.status = _ExpertStatus(self)
+        self.tool_history = _ExpertHistory(self)
 
 
 class ExpertAgentBridge:
@@ -151,9 +162,9 @@ class ExpertAgentBridge:
             emitter,
         )
         runtime.return_tool_calls_to_main_ctx = False
-        runtime.prefetch_rag_context(instruction)
+        runtime.inputs.prefetch(instruction)
 
-        llm = runtime.get_llm(stream=False, actor_id="orchestrator")
+        llm = runtime.inputs.llm(stream=False, actor_id="orchestrator")
         tools = runtime.tool_factory.build_orchestrator(
             runtime.primary_actor,
             exclude={TOOL_EXPERT_CALL_NAME},
@@ -161,18 +172,18 @@ class ExpertAgentBridge:
         preset = context.preset
         name = str(getattr(preset, "name", "") or "Expert")
         description = str(getattr(preset, "description", "") or "Expert agent")
-        agent = runtime.build_agent(
+        agent = runtime.inputs.agent(
             name=name,
             description=description,
             llm=llm,
-            system_prompt=runtime.compose_agent_system_prompt(
+            system_prompt=runtime.prompts.compose(
                 additional_system_prompt=str(context.system_prompt or ""),
             ),
             tools=tools,
         )
 
         try:
-            expert_input = runtime.build_user_message(instruction)
+            expert_input = runtime.inputs.message(instruction)
             expert_history = self._history(context, instruction)
             run_kwargs = {
                 "user_msg": expert_input,
@@ -192,7 +203,7 @@ class ExpertAgentBridge:
             )
             handler = agent.run(**run_kwargs)
             result = await handler
-            runtime.collect_llm_artifacts(
+            runtime.artifacts.collect_from_llm(
                 getattr(agent, "llm", None) or llm,
                 response=result,
                 actor_id="orchestrator",
@@ -207,4 +218,4 @@ class ExpertAgentBridge:
             )
             return output
         finally:
-            await runtime.cleanup()
+            await runtime.workers.cleanup()
