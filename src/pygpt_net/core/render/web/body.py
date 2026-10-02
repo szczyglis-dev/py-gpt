@@ -21,6 +21,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
 
 from .syntax_highlight import SyntaxHighlight
+from .scripts import development_script_tags
 
 import pygpt_net.js_rc
 import pygpt_net.css_rc
@@ -85,30 +86,8 @@ class Body:
                     """
 
     _HTML_P6_DEV = """
-                </script>     
-                <script type="text/javascript" src="qrc:///js/app-async.js"></script>       
-                <script type="text/javascript" src="qrc:///js/app-bridge.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-common.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-config.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-custom.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-data.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-dom.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-events.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-highlight.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-logger.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-markdown.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-math.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-nodes.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-raf.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-scroll.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-stream.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-queue.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-template.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-tool.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-ui.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-user.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-utils.js"></script>
-                <script type="text/javascript" src="qrc:///js/app-runtime.js"></script>
+                </script>
+""" + development_script_tags() + """
             </head>
             <body """
 

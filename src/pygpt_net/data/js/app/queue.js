@@ -33,13 +33,13 @@ class StreamQueue {
 	}
 
 	// Return number of pending entries not yet processed.
-	_qCount() {
+	count() {
 		return Math.max(0, this.q.length - this.rd);
 	}
 
 	// Compact adjacent queue entries with the same name by concatenating parts.
 	_compactContiguousSameName() {
-		const n = this._qCount();
+		const n = this.count();
 		if (n < 2) return;
 
 		const out = [];
@@ -92,7 +92,7 @@ class StreamQueue {
 	// Maybe shrink the queue array by slicing off processed prefix.
 	_maybeCompact() {
 		if (this.rd === 0) return;
-		const n = this._qCount();
+		const n = this.count();
 		if (n === 0) {
 			this.q = [];
 			this.rd = 0;
@@ -127,7 +127,7 @@ class StreamQueue {
 		const name = name_header;
 
 		// Coalesce with the last entry if it has the same name.
-		const hasPending = this._qCount() > 0;
+		const hasPending = this.count() > 0;
 		const tail = hasPending ? this.q[this.q.length - 1] : null;
 
 		if (tail && tail.name === name) {
@@ -142,7 +142,7 @@ class StreamQueue {
 		}
 
 		// Apply emergency coalescing when queue grows too large.
-		const cnt = this._qCount();
+		const cnt = this.count();
 		if (cnt > (this.cfg.STREAM.EMERGENCY_COALESCE_LEN | 0)) this._compactContiguousSameName();
 		else if (cnt > (this.cfg.STREAM.QUEUE_MAX_ITEMS | 0)) this._compactContiguousSameName();
 
@@ -155,10 +155,10 @@ class StreamQueue {
 
 		// Adaptive mode increases per-frame quota when backlog grows.
 		const adaptive = (this.cfg.STREAM.COALESCE_MODE === 'adaptive');
-		const coalesceAggressive = adaptive && (this._qCount() >= (this.cfg.STREAM.EMERGENCY_COALESCE_LEN | 0));
+		const coalesceAggressive = adaptive && (this.count() >= (this.cfg.STREAM.EMERGENCY_COALESCE_LEN | 0));
 		const basePerFrame = this.cfg.STREAM.MAX_PER_FRAME | 0;
 		const perFrame = adaptive ?
-			Math.min(basePerFrame + Math.floor(this._qCount() / 20), basePerFrame * 4) :
+			Math.min(basePerFrame + Math.floor(this.count() / 20), basePerFrame * 4) :
 			basePerFrame;
 
 		const start = Utils.now();
@@ -230,12 +230,12 @@ class StreamQueue {
 		this._maybeCompact();
 
 		// If there is more work, schedule another drain.
-		if (this._qCount() > 0) this._scheduleDrain();
+		if (this.count() > 0) this._scheduleDrain();
 	}
 
 	// Nudge the queue to keep draining (useful if external events pause RAF).
 	kick() {
-		if (this._qCount() || this.drainScheduled) this._scheduleDrain();
+		if (this.count() || this.drainScheduled) this._scheduleDrain();
 	}
 
 	// Drop all queued entries and cancel scheduled tasks.

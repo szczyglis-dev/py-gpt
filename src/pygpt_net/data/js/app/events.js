@@ -5,7 +5,7 @@
 class EventManager {
 
 	// Initializes the event manager.
-	constructor(cfg, dom, scrollMgr, highlighter, codeScroll, toolOutput, bridge) {
+	constructor(cfg, dom, scrollMgr, highlighter, codeScroll, toolOutput, bridge, getActiveCode = () => null) {
 		this.cfg = cfg;
 		this.dom = dom;
 		this.scrollMgr = scrollMgr;
@@ -13,6 +13,7 @@ class EventManager {
 		this.codeScroll = codeScroll;
 		this.toolOutput = toolOutput;
 		this.bridge = bridge;
+		this.getActiveCode = getActiveCode;
 		this.handlers = {
 			wheel: null,
 			scroll: null,
@@ -236,7 +237,7 @@ class EventManager {
 
 		this.handlers.keydown = (event) => {
 			if (event.ctrlKey && event.key === 'f') {
-				window.location.href = 'bridge://open_find:' + runtime.cfg.PID;
+				window.location.href = 'bridge://open_find:' + this.cfg.PID;
 				event.preventDefault();
 			}
 			if (event.key === 'Escape') {
@@ -255,9 +256,9 @@ class EventManager {
 			if (!editable && !event.ctrlKey && !event.metaKey && !event.altKey) {
 				const key = String(event.key || '');
 				if (key === 'ArrowUp' || key === 'PageUp' || key === 'Home' || (key === ' ' && event.shiftKey)) {
-					runtime.scrollMgr.noteUserScroll(-1);
+					this.scrollMgr.noteUserScroll(-1);
 				} else if (key === 'ArrowDown' || key === 'PageDown' || key === 'End' || key === ' ') {
-					runtime.scrollMgr.noteUserScroll(1);
+					this.scrollMgr.noteUserScroll(1);
 				}
 			}
 		};
@@ -271,7 +272,7 @@ class EventManager {
 		// Observe the actual chat container size. FOLLOW corrections happen in a
 		// ResizeObserver callback (after layout, before paint), so stream/extra
 		// growth never needs to chase scrollHeight on the next animation frame.
-		runtime.scrollMgr.installContentObserver(container);
+		this.scrollMgr.installContentObserver(container);
 
 		const addClassToMsg = (id, className) => {
 			const el = document.getElementById('msg-bot-' + id);
@@ -374,15 +375,15 @@ class EventManager {
 			// Upward intent disables FOLLOW immediately, before the browser applies the
 			// wheel delta. Downward intent in MANUAL mode can only re-arm FOLLOW after
 			// the user personally reaches the bottom.
-			runtime.scrollMgr.noteUserScroll(ev.deltaY);
-			this.highlighter.scheduleScanVisibleCodes(runtime.stream.activeCode);
+			this.scrollMgr.noteUserScroll(ev.deltaY);
+			this.highlighter.scheduleScanVisibleCodes(this.getActiveCode());
 		};
 		document.addEventListener('wheel', this.handlers.wheel, { passive: true });
 
 		// Pointer tracking delays MANUAL -> FOLLOW until a scrollbar/touch drag has
 		// finished, preventing the stream from taking the viewport mid-gesture.
-		this.handlers.pointerdown = () => { runtime.scrollMgr.setPointerScrollActive(true); };
-		this.handlers.pointerup = () => { runtime.scrollMgr.setPointerScrollActive(false); };
+		this.handlers.pointerdown = () => { this.scrollMgr.setPointerScrollActive(true); };
+		this.handlers.pointerup = () => { this.scrollMgr.setPointerScrollActive(false); };
 		document.addEventListener('pointerdown', this.handlers.pointerdown, { passive: true });
 		document.addEventListener('pointerup', this.handlers.pointerup, { passive: true });
 		document.addEventListener('pointercancel', this.handlers.pointerup, { passive: true });
@@ -390,19 +391,19 @@ class EventManager {
 		this.handlers.scroll = () => {
 			const el = Utils.SE;
 			const top = el.scrollTop;
-			const last = runtime.scrollMgr.lastScrollTop;
-			const programmatic = runtime.scrollMgr.isProgrammaticScroll(top);
+			const last = this.scrollMgr.lastScrollTop;
+			const programmatic = this.scrollMgr.isProgrammaticScroll(top);
 
 			// Filter our own scrolls, then let ScrollManager distinguish pointer
 			// input from layout-driven scrollTop clamping (e.g. hiding the loader).
 			if (!programmatic && Math.abs(top - last) > 0.5) {
-				runtime.scrollMgr.noteObservedUserScroll(top - last);
+				this.scrollMgr.noteObservedUserScroll(top - last);
 			}
 
-			runtime.scrollMgr.lastScrollTop = top;
-			const action = runtime.scrollMgr.computeFabAction();
-			if (action !== runtime.scrollMgr.currentFabAction) runtime.scrollMgr.updateScrollFab(false, action, true);
-			this.highlighter.scheduleScanVisibleCodes(runtime.stream.activeCode);
+			this.scrollMgr.lastScrollTop = top;
+			const action = this.scrollMgr.computeFabAction();
+			if (action !== this.scrollMgr.currentFabAction) this.scrollMgr.updateScrollFab(false, action, true);
+			this.highlighter.scheduleScanVisibleCodes(this.getActiveCode());
 		};
 		window.addEventListener('scroll', this.handlers.scroll, { passive: true });
 
@@ -411,18 +412,18 @@ class EventManager {
 			this.handlers.fabClick = (ev) => {
 				ev.preventDefault();
 				ev.stopPropagation();
-				const action = runtime.scrollMgr.computeFabAction();
-				if (action === 'up') runtime.scrollMgr.scrollToTopUser();
-				else if (action === 'down') runtime.scrollMgr.scrollToBottomUser();
-				runtime.scrollMgr.fabFreezeUntil = Utils.now() + this.cfg.FAB.TOGGLE_DEBOUNCE_MS;
-				runtime.scrollMgr.updateScrollFab(true);
+				const action = this.scrollMgr.computeFabAction();
+				if (action === 'up') this.scrollMgr.scrollToTopUser();
+				else if (action === 'down') this.scrollMgr.scrollToBottomUser();
+				this.scrollMgr.fabFreezeUntil = Utils.now() + this.cfg.FAB.TOGGLE_DEBOUNCE_MS;
+				this.scrollMgr.updateScrollFab(true);
 			};
 			fab.addEventListener('click', this.handlers.fabClick, { passive: false });
 		}
 
 		this.handlers.resize = () => {
-			runtime.scrollMgr.scheduleScrollFabUpdate();
-			this.highlighter.scheduleScanVisibleCodes(runtime.stream.activeCode);
+			this.scrollMgr.scheduleScrollFabUpdate();
+			this.highlighter.scheduleScanVisibleCodes(this.getActiveCode());
 		};
 		window.addEventListener('resize', this.handlers.resize, { passive: true });
 
@@ -434,8 +435,8 @@ class EventManager {
 		const container = this.dom.get('container');
 		const inputArea = this.dom.get('_append_input_');
 
-		try { runtime.scrollMgr.disconnectContentObserver(); } catch (_) {}
-		try { runtime.scrollMgr.disconnectMessageVirtualization(); } catch (_) {}
+		try { this.scrollMgr.disconnectContentObserver(); } catch (_) {}
+		try { this.scrollMgr.virtualization.disconnectMessageVirtualization(); } catch (_) {}
 
 		if (this.handlers.wheel) document.removeEventListener('wheel', this.handlers.wheel);
 		if (this.handlers.scroll) window.removeEventListener('scroll', this.handlers.scroll);

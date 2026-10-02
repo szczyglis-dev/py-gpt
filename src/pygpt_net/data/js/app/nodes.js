@@ -12,7 +12,7 @@ class NodesManager {
 		this.math = math;
 		this.toolOutput = toolOutput || null;
 		// User message collapse manager
-		this._userCollapse = new UserCollapseManager(this.renderer.cfg);
+		this.userCollapse = new UserCollapseManager(this.renderer.cfg);
 	}
 
 	// Check if HTML contains only user messages without any markdown or code features.
@@ -33,7 +33,7 @@ class NodesManager {
 	}
 
 	// Convert user markdown placeholders into plain text nodes.
-	_materializeUserMdAsPlainText(scopeEl) {
+	materializeUserMdAsPlainText(scopeEl) {
 		try {
 			const nodes = scopeEl.querySelectorAll('.msg-box.msg-user [data-md64], .msg-box.msg-user [md-block-markdown]');
 			nodes.forEach(el => {
@@ -65,7 +65,7 @@ class NodesManager {
 	}
 
 	// Ensure user copy icon exists inside each user message (.msg) under root.
-	_ensureUserCopyIcons(root) {
+	ensureUserCopyIcons(root) {
 		try {
 			const scope = root || document;
 			const cfg = (this.renderer && this.renderer.cfg) || {};
@@ -182,22 +182,22 @@ class NodesManager {
 
 		// Apply collapse to any user messages in input area (now or later).
 		try {
-			this._userCollapse.apply(el);
+			this.userCollapse.apply(el);
 		} catch (_) {}
 
 		// Ensure copy icons exist (inject or reposition outside uc-content).
 		try {
-			this._ensureUserCopyIcons(el);
+			this.ensureUserCopyIcons(el);
 		} catch (_) {}
 	}
 
 	// Group consecutive tool-only messages after DOM insertion. The grouping engine
 	// uses explicit continuation metadata, so a reload and real-time append follow
 	// exactly the same path.
-	_refreshToolGroups(root) {
+	refreshToolGroups(root) {
 		try {
-			if (this.toolOutput && typeof this.toolOutput.groupConsecutive === 'function') {
-				this.toolOutput.groupConsecutive(root);
+			if (this.toolOutput && typeof this.toolOutput.groups.groupConsecutive === 'function') {
+				this.toolOutput.groups.groupConsecutive(root);
 			}
 		} catch (_) {}
 	}
@@ -216,24 +216,24 @@ class NodesManager {
 		const userOnly = this._isUserOnlyContent(content);
 		if (userOnly) {
 			el.insertAdjacentHTML('beforeend', content);
-			this._materializeUserMdAsPlainText(el);
+			this.materializeUserMdAsPlainText(el);
 			// Collapse before scrolling to ensure final height is used for scroll computations.
 			try {
-				this._userCollapse.apply(el);
+				this.userCollapse.apply(el);
 			} catch (_) {}
 			// Ensure copy icons exist for user messages.
 			try {
-				this._ensureUserCopyIcons(el);
+				this.ensureUserCopyIcons(el);
 			} catch (_) {}
 
 			scrollMgr.scrollToBottom(false);
 			scrollMgr.scheduleScrollFabUpdate();
-			scrollMgr.scheduleMessageVirtualizationRefresh();
+			scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 			return;
 		}
 
 		el.insertAdjacentHTML('beforeend', content);
-		this._refreshToolGroups(el);
+		this.refreshToolGroups(el);
 
 		try {
 			// Defer post-processing (highlight/math/collapse) and perform scroll AFTER collapse.
@@ -251,18 +251,18 @@ class NodesManager {
 
 				// Collapse user messages now that DOM is materialized (ensures correct height).
 				try {
-					this._userCollapse.apply(el);
+					this.userCollapse.apply(el);
 				} catch (_) {}
 
 				// Ensure copy icons exist for user messages.
 				try {
-					this._ensureUserCopyIcons(el);
+					this.ensureUserCopyIcons(el);
 				} catch (_) {}
 
 				// Only now scroll to bottom and update FAB – uses post-collapse heights.
 				scrollMgr.scrollToBottom(false);
 				scrollMgr.scheduleScrollFabUpdate();
-				scrollMgr.scheduleMessageVirtualizationRefresh();
+				scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 			};
 
 			if (maybePromise && typeof maybePromise.then === 'function') {
@@ -274,7 +274,7 @@ class NodesManager {
 			// In case of error, do a conservative scroll to keep UX responsive.
 			scrollMgr.scrollToBottom(false);
 			scrollMgr.scheduleScrollFabUpdate();
-			scrollMgr.scheduleMessageVirtualizationRefresh();
+			scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 		}
 	}
 
@@ -292,24 +292,24 @@ class NodesManager {
 		const userOnly = this._isUserOnlyContent(content);
 		if (userOnly) {
 			el.insertAdjacentHTML('beforeend', content);
-			this._materializeUserMdAsPlainText(el);
+			this.materializeUserMdAsPlainText(el);
 			// Collapse before scrolling to ensure final height is used for scroll computations.
 			try {
-				this._userCollapse.apply(el);
+				this.userCollapse.apply(el);
 			} catch (_) {}
 			// Ensure copy icons exist for user messages.
 			try {
-				this._ensureUserCopyIcons(el);
+				this.ensureUserCopyIcons(el);
 			} catch (_) {}
 
 			scrollMgr.scrollToBottom(false, true);
 			scrollMgr.scheduleScrollFabUpdate();
-			scrollMgr.scheduleMessageVirtualizationRefresh();
+			scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 			return;
 		}
 
 		el.insertAdjacentHTML('beforeend', content);
-		this._refreshToolGroups(el);
+		this.refreshToolGroups(el);
 
 		try {
 			// Defer KaTeX schedule to post-Markdown to avoid races and collapse before scroll.
@@ -324,18 +324,18 @@ class NodesManager {
 
 				// Collapse after materialization to compute final heights correctly.
 				try {
-					this._userCollapse.apply(el);
+					this.userCollapse.apply(el);
 				} catch (_) {}
 
 				// Ensure copy icons exist for user messages.
 				try {
-					this._ensureUserCopyIcons(el);
+					this.ensureUserCopyIcons(el);
 				} catch (_) {}
 
 				// Now scroll and update FAB using the collapsed layout.
 				scrollMgr.scrollToBottom(false, true);
 				scrollMgr.scheduleScrollFabUpdate();
-				scrollMgr.scheduleMessageVirtualizationRefresh();
+				scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 			};
 
 			if (maybePromise && typeof maybePromise.then === 'function') {
@@ -346,7 +346,7 @@ class NodesManager {
 		} catch (_) {
 			scrollMgr.scrollToBottom(false, true);
 			scrollMgr.scheduleScrollFabUpdate();
-			scrollMgr.scheduleMessageVirtualizationRefresh();
+			scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 		}
 	}
 
@@ -360,7 +360,7 @@ class NodesManager {
 		// A delayed extra may target a history row that is currently virtualized.
 		// Materialize it first, mutate/render, then re-measure before it can return
 		// to the virtual pool.
-		try { scrollMgr.beginMessageMutation(el); } catch (_) {}
+		try { scrollMgr.virtualization.beginMessageMutation(el); } catch (_) {}
 		extra.insertAdjacentHTML('beforeend', content);
 
 		// Extras live below the streaming timeline. If FOLLOW owns the viewport,
@@ -372,7 +372,7 @@ class NodesManager {
 			const maybePromise = this.renderer.renderPendingMarkdown(extra);
 
 			const post = () => {
-				const activeCode = (typeof runtime !== 'undefined' && runtime.stream) ? runtime.stream.activeCode : null;
+				const activeCode = (typeof runtime !== 'undefined' && runtime.stream) ? runtime.stream.code.activeCode : null;
 
 				// Attach observers after Markdown produced the nodes
 				try {
@@ -381,7 +381,7 @@ class NodesManager {
 						minLinesForLast: this.renderer.cfg.PROFILE_CODE.minLinesForHL,
 						minCharsForLast: this.renderer.cfg.PROFILE_CODE.minCharsForHL
 					}, activeCode);
-					this.highlighter.observeMsgBoxes(extra, (box) => this._onBox(box));
+					this.highlighter.observeMsgBoxes(extra, (box) => this.processBox(box));
 				} catch (_) {}
 
 				// KaTeX: honor stream mode; in finalize-only force immediate schedule
@@ -392,7 +392,7 @@ class NodesManager {
 				} catch (_) {}
 
 				// Markdown conversion can change line wrapping/height after insertion.
-				try { scrollMgr.endMessageMutation(el); } catch (_) {}
+				try { scrollMgr.virtualization.endMessageMutation(el); } catch (_) {}
 				try { scrollMgr.syncBottomNowIfFollowing(); } catch (_) {}
 			};
 
@@ -402,15 +402,15 @@ class NodesManager {
 				post();
 			}
 		} catch (_) {
-			try { scrollMgr.endMessageMutation(el); } catch (__) {}
+			try { scrollMgr.virtualization.endMessageMutation(el); } catch (__) {}
 		}
 
 		scrollMgr.scheduleScroll(true);
 	}
 
 	// When a new message box appears, hook up code/highlight handlers.
-	_onBox(box) {
-		const activeCode = (typeof runtime !== 'undefined' && runtime.stream) ? runtime.stream.activeCode : null;
+	processBox(box) {
+		const activeCode = (typeof runtime !== 'undefined' && runtime.stream) ? runtime.stream.code.activeCode : null;
 		this.highlighter.observeNewCode(box, {
 			deferLastIfStreaming: true,
 			minLinesForLast: this.renderer.cfg.PROFILE_CODE.minLinesForHL,
@@ -430,7 +430,7 @@ class NodesManager {
 		try {
 			this.renderer.renderPendingMarkdown();
 		} catch (_) {}
-		scrollMgr.scheduleMessageVirtualizationRefresh();
+		scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 		scrollMgr.scheduleScroll(true);
 	}
 
@@ -449,7 +449,7 @@ class NodesManager {
 		try {
 			this.renderer.renderPendingMarkdown(container);
 		} catch (_) {}
-		scrollMgr.scheduleMessageVirtualizationRefresh();
+		scrollMgr.virtualization.scheduleMessageVirtualizationRefresh();
 		scrollMgr.scheduleScroll(true);
 	}
 }
