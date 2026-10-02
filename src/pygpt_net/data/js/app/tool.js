@@ -45,6 +45,8 @@ class ToolOutput {
 				const nextData = pair.querySelector(selector), oldData = old.querySelector(selector);
 				if (!nextData || !oldData) continue;
 				const raw = el => {
+					const payload = el.querySelector('[data-tool-raw]');
+					if (payload) return payload.getAttribute('data-tool-raw');
 					const pending = el.querySelector('[md-block-markdown]');
 					if (pending) return pending.textContent;
 					const code = el.querySelector('pre code');
@@ -437,6 +439,8 @@ class ToolOutput {
 			return String(resultEl._toolRaw || '');
 		}
 
+		const payload = resultEl.querySelector('[data-tool-raw]');
+		if (payload) return payload.getAttribute('data-tool-raw');
 		const code = resultEl.querySelector('.code-wrapper pre code');
 		if (code) return code.textContent || '';
 
@@ -456,7 +460,8 @@ class ToolOutput {
 	// so live tool updates can replace it repeatedly.
 	_renderStructuredResult(resultEl, content) {
 		if (!resultEl) return;
-		const raw = content == null ? '' : String(content);
+		const envelope = content && typeof content === 'object' ? content : null;
+		const raw = envelope ? String(envelope.raw || '') : (content == null ? '' : String(content));
 		const hasContent = raw.trim() !== '';
 		resultEl._toolRaw = raw;
 
@@ -466,15 +471,17 @@ class ToolOutput {
 		resultEl.replaceChildren();
 		if (!hasContent) return;
 
-		const md = document.createElement('div');
-		md.className = 'tool-output-markdown';
-		md.setAttribute('md-block-markdown', '1');
 		const responseLabel = (typeof window !== 'undefined' && window.LOCALE_TOOL_RESPONSE)
-			? String(window.LOCALE_TOOL_RESPONSE)
-			: 'Output';
-		md.setAttribute('data-code-header', responseLabel);
-		md.textContent = this._codeMarkdown(raw);
-		resultEl.appendChild(md);
+			? String(window.LOCALE_TOOL_RESPONSE) : 'Output';
+		if (this.templates && this.templates.tools) {
+			resultEl.innerHTML = this.templates.tools._renderToolCode(raw, responseLabel, envelope && envelope.friendly);
+		} else {
+			const md = document.createElement('div');
+			md.setAttribute('md-block-markdown', '1');
+			md.setAttribute('data-code-header', responseLabel);
+			md.textContent = this._codeMarkdown(raw);
+			resultEl.appendChild(md);
+		}
 
 		try {
 			const renderer = this.renderer;

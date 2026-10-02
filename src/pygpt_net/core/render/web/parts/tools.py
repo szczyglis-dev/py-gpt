@@ -13,6 +13,8 @@
 
 import json
 from typing import Optional
+
+from ..tool_display import project
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
 
@@ -212,7 +214,7 @@ class Tools:
             display_content = self.renderer.helpers.format_cmd_data(content, indent=True)
             self.renderer.get_output_node(meta).page().runJavaScript(
                 f"""if (typeof window.updateToolOutput !== 'undefined') updateToolOutput({self.renderer.to_json(
-                    self.renderer.sanitize_html(display_content)
+                    {"raw": self.renderer.sanitize_html(display_content), "friendly": project(display_content, window=self.renderer.window)}
                 )});"""
             )
         except Exception:
@@ -260,6 +262,7 @@ class Tools:
 
         return {
             "tool_result": tool_result_display,
+            "tool_result_friendly": project(tool_result_display, tool_calls[0].get("name", "") if len(tool_calls) == 1 else "", window=self.renderer.window),
             "tool_output": tool_output,
             "tool_output_visible": tool_output_visible,
             "tool_extra_html": tool_extra_html,

@@ -872,6 +872,8 @@ class Body:
             f'window.LOCALE_TOOL_MORE={_json_dumps(t_tool_more)};'
             f'window.LOCALE_TOOL_REQUEST={_json_dumps(t_tool_request)};'
             f'window.LOCALE_TOOL_RESPONSE={_json_dumps(t_tool_response)};'
+            f'window.LOCALE_TOOL_VIEW_PLAIN={_json_dumps(trans("ctx.tool.view.plain"))};'
+            f'window.LOCALE_TOOL_VIEW_RAW={_json_dumps(trans("ctx.tool.view.raw"))};'
         )
 
         syntax_style = cfg_get("render.code_syntax") or "default"

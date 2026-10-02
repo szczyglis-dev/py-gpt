@@ -1038,3 +1038,26 @@ html.tool-viewport-anchor-lock {{
 @media (prefers-reduced-motion: reduce) {{
   .tool-output-live > .tool-output-toggle span {{ animation: none; }}
 }}
+
+/* Joined tool input/output blocks; independent from assistant code styling. */
+.tool-output-pair .tool-output-section + .tool-output-section {{ margin-top: 0; }}
+.tool-output-pair .code-wrapper {{ margin: 0; border-radius: 0; }}
+.tool-output-pair .code-header-wrapper {{ border-radius: 0; }}
+.tool-output-pair .tool-output-result-data .code-header-wrapper {{
+  border-top: 1px solid var(--tool-output-separator-color, #9c9c9c);
+  box-shadow: none;
+}}
+.tool-output-pair .tool-output-data {{ margin-top: 0; }}
+.tool-output-pair .tool-output-request-data > .code-wrapper:first-child,
+.tool-output-pair .tool-output-request-data > .tool-payload > div > .code-wrapper:first-child {{ border-radius: 10px 10px 0 0; overflow: hidden; }}
+.tool-output-pair .tool-output-result-data > .code-wrapper:last-child,
+.tool-output-pair .tool-output-result-data > .tool-payload > div > .code-wrapper:last-child {{ border-radius: 0 0 10px 10px; overflow: hidden; }}
+.tool-output-pair .code-wrapper pre code {{ border-radius: 0; }}
+.tool-output-pair .code-wrapper pre {{ margin: 0; border-radius: 0; }}
+.tool-output-pair .code-wrapper pre code {{ max-height: 300px; overflow: auto; }}
+.tool-output-pair + .tool-output-pair {{ margin-top: 12px; }}
+.tool-view-raw {{ display: none; }}
+html[data-tool-view="raw"] .tool-view-raw {{ display: block; }}
+html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
+.code-header-tool-view {{ display: inline-block; vertical-align: middle; background: transparent; color: #9c9c9c; border: 0; cursor: pointer; padding: 2px 6px; font: bold 16px monospace; border-radius: 6px; }}
+.code-header-tool-view:hover {{ background: rgba(150,150,150,.15); }}

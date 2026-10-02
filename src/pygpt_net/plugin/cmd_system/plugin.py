@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 11:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import platform
@@ -19,6 +19,7 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.sandbox import BuiltinSandboxPreparer, parse_builtin_packages
 
 from .config import Config
+from .render import Render
 from .docker import Docker
 from .execution import ExecutionManager
 from .output import Output
@@ -29,6 +30,7 @@ from .sandbox import SandboxMode
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
+        self.render = Render(self)
         self.id = "cmd_system"
         self.is_common_plugin = True
         self.name = "System"

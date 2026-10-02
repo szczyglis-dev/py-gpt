@@ -98,7 +98,8 @@ def test_ipython_sys_exec_host_uses_host_security_and_shell(mock_window):
         stdin=subprocess.DEVNULL,
     )
     assert result["request"] == request
-    assert result["result"] == "hello\n"
+    assert result["result"] is True
+    assert result["stdout"] == "hello\n"
     assert "SYS OUTPUT" in result["context"]
 
 
@@ -106,7 +107,7 @@ def test_ipython_sys_exec_sandbox_uses_ipython_container(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.set_option_value("sandbox", "docker")
     backend = plugin.get_execution_backend()
-    plugin.ipython_docker.execute_system = MagicMock(return_value=b"sandbox\n")
+    plugin.ipython_docker.execute_system = MagicMock(return_value=(b"sandbox\n", b"warning\n"))
     item = {"cmd": "ipython_sys_exec", "params": {"command": "pwd"}}
     request = {"cmd": "ipython_sys_exec", "command": "pwd"}
 
@@ -116,9 +117,10 @@ def test_ipython_sys_exec_sandbox_uses_ipython_container(mock_window):
     mock_window.core.security.ensure_command.assert_called_once_with(
         "pwd", sandbox=True, os_id="linux"
     )
-    plugin.ipython_docker.execute_system.assert_called_once_with("pwd", ctx=ctx)
+    plugin.ipython_docker.execute_system.assert_called_once_with("pwd", ctx=ctx, demux=True)
     assert result["request"] == request
-    assert result["result"] == "sandbox\n"
+    assert result["stdout"] == "sandbox\n"
+    assert result["stderr"] == "warning\n"
     assert "SYS OUTPUT" in result["context"]
 
 

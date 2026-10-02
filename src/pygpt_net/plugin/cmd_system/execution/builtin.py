@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 12:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import platform
 import threading
 
 from pygpt_net.core.sandbox import BuiltinSandboxRuntime
+
+from pygpt_net.plugin.base.execution import execution_response
 
 from .base import ExecutionBackend
 from ..sandbox import SandboxMode
@@ -59,12 +61,9 @@ class BuiltinBackend(ExecutionBackend):
 
     def _preparing_response(self, request: dict) -> dict:
         self.plugin.builtin_preparer.prepare(self.runtime)
-        return {
-            "request": request,
-            "result": self.PREPARING_MESSAGE,
-            "context": self.PREPARING_MESSAGE,
-            "builtin_sandbox_preparing": True,
-        }
+        response = execution_response(request, stdout=self.PREPARING_MESSAGE, context=self.PREPARING_MESSAGE)
+        response['builtin_sandbox_preparing'] = True
+        return response
 
     def sys_exec(self, ctx, item: dict, request: dict) -> dict:
         if self._must_defer():
@@ -76,19 +75,20 @@ class BuiltinBackend(ExecutionBackend):
         runner.log(f"Executing system command: {command}", prefix=self.log_prefix)
         runner.log(f"Running command: {command}", prefix=self.log_prefix)
         runner.send_interpreter_output_begin("stdout")
+        process_output = None
         try:
-            stdout, stderr = self.runtime.run_shell(command, ctx=ctx)
+            process_output = self.runtime.run_shell(command, ctx=ctx)
+            stdout, stderr = process_output
         except Exception as exc:
             runner.error(exc)
             stdout = None
             stderr = str(exc).encode("utf-8")
         result = runner.handle_result(stdout, stderr)
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def get_runtime_workdir(self, ctx=None) -> str:
         return self.runtime.get_data_dir(ctx=ctx)

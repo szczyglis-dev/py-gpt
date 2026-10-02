@@ -63,7 +63,7 @@ class NodeToolsTemplate {
 			}
 			const names = displayNames.map((name) => this.templates.escapeHtml(name));
 			toolNamesAttr = this.templates.escapeHtml(JSON.stringify(rawNames));
-			const resultCode = this._renderToolCode(toolResult, responseLabel);
+			const resultCode = this._renderToolCode(toolResult, responseLabel, extra.tool_result_friendly);
 
 			const arrowHtml = `<img src='${this.templates.esc(expIcon)}' class='tool-output-arrow' width='25' height='25' alt=''>`;
 			const titleLabel = groupedInMessage && typeof window !== 'undefined' && window.LOCALE_TOOLS
@@ -78,9 +78,9 @@ class NodeToolsTemplate {
 
 			if (hasPerCallResponses) {
 				const renderPair = (call) => {
-					const requestCode = this._renderToolCode(call && call.request, requestLabel);
+					const requestCode = this._renderToolCode(call && call.request, requestLabel, call.request_friendly, true);
 					const hasResponse = !!call && Object.prototype.hasOwnProperty.call(call, 'response');
-					const responseCode = hasResponse ? this._renderToolCode(call.response, responseLabel) : '';
+					const responseCode = hasResponse ? this._renderToolCode(call.response, responseLabel, call.response_friendly) : '';
 					const responseDisplay = hasResponse ? '' : 'display:none';
 					return (
 						`<div class='tool-output-pair' data-tool-key='${this.templates.escapeHtml(String(call.call_id || call.request || ""))}'>` +
@@ -118,16 +118,16 @@ class NodeToolsTemplate {
 				// Legacy/single-turn tool rendering keeps its existing common response
 				// section, including incremental ToolOutput.update() behavior.
 				const requests = toolCalls
-					.map((call) => this._renderToolCode(call.request, requestLabel))
+					.map((call) => this._renderToolCode(call.request, requestLabel, call.request_friendly, true))
 					.join('');
 				const responseDisplay = resultCode ? '' : 'display:none';
 				contentHtml =
-					`<div class='tool-output-section'>` +
+					`<div class='tool-output-pair'><div class='tool-output-section'>` +
 					`<div class='tool-output-data tool-output-request-data'>${requests}</div>` +
 					`</div>` +
 					`<div class='tool-output-section tool-output-response-section' style='${responseDisplay}'>` +
 					`<div class='tool-output-data tool-output-result-data'>${resultCode}</div>` +
-					`</div>`;
+					`</div></div>`;
 			}
 
 		}
@@ -194,14 +194,60 @@ class NodeToolsTemplate {
 	}
 
 	// Emit a normal Markdown placeholder so the standard renderer creates the
-	// same code wrapper/highlighting/copy UI as code fenced in assistant text.
-	_renderToolCode(value, headerLabel = '') {
-		const md = this._toolCodeMarkdown(value);
-		if (!md) return '';
-		const headerAttr = headerLabel
-			? ` data-code-header='${this.templates.escapeHtml(headerLabel)}'`
-			: '';
-		return `<div class='tool-output-markdown' md-block-markdown='1'${headerAttr}>${this.templates.escapeHtml(md)}</div>`;
+	// same code wrapper/copy UI as code fenced in assistant text, without highlighting.
+	_renderToolCode(value, headerLabel = '', friendly = null, showToggle = false) {
+		const rawMd = this._toolCodeMarkdown(value);
+		if (!rawMd) return '';
+		const esc = text => this.templates.escapeHtml(String(text));
+		const placeholder = (md, label, toggle = false) =>
+			`<div class='tool-output-markdown' md-block-markdown='1' data-tool-code='1' data-tool-toggle='${toggle ? '1' : '0'}' data-code-header='${esc(label)}'>${esc(md)}</div>`;
+		if (!Array.isArray(friendly) || !friendly.length) return placeholder(rawMd, headerLabel, showToggle);
+		const readable = friendly.map((part, index) => {
+			const text = String(part.text == null ? '' : part.text);
+			const runs = text.match(/`+/g) || [];
+			const fence = '`'.repeat(Math.max(3, ...runs.map(run => run.length + 1)));
+			return placeholder(`${fence}${part.language || 'text'}\n${text}\n${fence}`, part.label || headerLabel, showToggle && index === 0);
+		}).join('');
+		return `<div class='tool-payload' data-tool-raw='${esc(this._formatToolPayload(value))}'>` +
+			`<div class='tool-view-raw'>${placeholder(rawMd, headerLabel, showToggle)}</div>` +
+			`<div class='tool-view-friendly'>${readable}</div></div>`;
 	}
 
+}
+
+// One preference for all tool blocks in this WebView, retained across reloads.
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+	window.applyToolPayloadView = (mode, button = null) => {
+		const mutate = () => {
+			document.documentElement.dataset.toolView = mode;
+			try { sessionStorage.setItem('pygpt.toolView', mode); } catch (_) {}
+			document.querySelectorAll('.code-header-tool-view').forEach(control => {
+				control.setAttribute('aria-pressed', String(mode === 'raw'));
+				control.title = mode === 'raw'
+					? Utils.g('LOCALE_TOOL_VIEW_PLAIN', 'Plain text')
+					: Utils.g('LOCALE_TOOL_VIEW_RAW', 'Raw JSON');
+				control.setAttribute('aria-label', control.title);
+			});
+		};
+		if (document.documentElement.dataset.toolView === mode) { mutate(); return; }
+		// Both variants change visibility, so anchor their shared, persistent input
+		// container rather than the clicked button, which is about to be hidden.
+		let anchor = button && button.closest('.tool-output-request-data');
+		if (!anchor) {
+			anchor = Array.from(document.querySelectorAll('.tool-output-request-data')).find(el => {
+				const rect = el.getBoundingClientRect();
+				return rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+			});
+		}
+		if (typeof runtime !== 'undefined' && runtime.toolOutput) {
+			runtime.toolOutput._withViewportAnchor(anchor, mutate);
+		} else mutate();
+	};
+	window.toggleToolPayloadView = button => {
+		const mode = document.documentElement.dataset.toolView === 'raw' ? 'friendly' : 'raw';
+		window.applyToolPayloadView(mode, button);
+		if (window.toolPayloadBridge && window.toolPayloadBridge.set_tool_view) window.toolPayloadBridge.set_tool_view(mode);
+	};
+	try { document.documentElement.dataset.toolView = sessionStorage.getItem('pygpt.toolView') || 'friendly'; }
+	catch (_) { document.documentElement.dataset.toolView = 'friendly'; }
 }

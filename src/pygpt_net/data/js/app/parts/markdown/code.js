@@ -190,6 +190,8 @@ class MarkdownCodeRules {
 		const rendererRef = this.renderer;
 		const cfg = this.renderer.cfg;
 		const raw = token.content || '';
+		const toolCode = !!(env && env.__toolCode);
+		const highlightAttrs = toolCode ? ' data-highlighted="yes"' : '';
 		const rid = String(this._codeIndex + '');
 
 		const res = this._resolveLanguageAndContent(token.info || '', raw, rid);
@@ -216,10 +218,14 @@ class MarkdownCodeRules {
 		const idxLocal = this._codeIndex++;
 
 		let actions = '';
-		if (langClass === 'html') {
+		if (!(env && env.__toolCode) && langClass === 'html') {
 			actions += `<a href="empty:${idxLocal}" class="code-header-action code-header-preview"><img src="${cfg.ICONS.CODE_PREVIEW}" class="action-img" data-id="${idxLocal}"><span>${Utils.escapeHtml(cfg.LOCALE.PREVIEW)}</span></a>`;
-		} else if (langClass === 'python' && headerLabel !== 'output') {
+		} else if (!(env && env.__toolCode) && langClass === 'python' && headerLabel !== 'output') {
 			actions += `<a href="empty:${idxLocal}" class="code-header-action code-header-run"><img src="${cfg.ICONS.CODE_RUN}" class="action-img" data-id="${idxLocal}"><span>${Utils.escapeHtml(cfg.LOCALE.RUN)}</span></a>`;
+		}
+		if (env && env.__toolToggle) {
+			const rawView = document.documentElement.dataset.toolView === 'raw';
+			actions += `<button type="button" class="code-header-tool-view" onclick="toggleToolPayloadView(this);" title="${Utils.escapeHtml(rawView ? cfg.LOCALE.TOOL_VIEW_PLAIN : cfg.LOCALE.TOOL_VIEW_RAW)}" aria-label="${Utils.escapeHtml(rawView ? cfg.LOCALE.TOOL_VIEW_PLAIN : cfg.LOCALE.TOOL_VIEW_RAW)}" aria-pressed="${rawView}">&lt;&gt;</button>`;
 		}
 		actions += `<a href="empty:${idxLocal}" class="code-header-action code-header-collapse" title="${Utils.escapeHtml(cfg.LOCALE.COLLAPSE)}"><img src="${cfg.ICONS.CODE_MENU}" class="action-img" data-id="${idxLocal}"></a>`;
                 actions += `<a href="empty:${idxLocal}" class="code-header-action code-header-copy" title="${Utils.escapeHtml(cfg.LOCALE.COPY)}"><img src="${cfg.ICONS.CODE_COPY}" class="action-img" data-id="${idxLocal}"></a>`;
@@ -242,7 +248,7 @@ class MarkdownCodeRules {
 				` data-locale-collapse="${Utils.escapeHtml(cfg.LOCALE.COLLAPSE)}" data-locale-expand="${Utils.escapeHtml(cfg.LOCALE.EXPAND)}"` +
 				` data-locale-copy="${Utils.escapeHtml(cfg.LOCALE.COPY)}" data-locale-copied="${Utils.escapeHtml(cfg.LOCALE.COPIED)}" data-style="${Utils.escapeHtml(cfg.CODE_STYLE)}">` +
 				`<p class="code-header-wrapper"><span><span class="code-header-lang">${Utils.escapeHtml(headerLabel)}   </span>${actions}</span></p>` +
-				`<pre><code class="language-${Utils.escapeHtml(langClass)} hljs" data-code-id="${String(codeId)}"></code></pre>` +
+				`<pre><code class="language-${Utils.escapeHtml(langClass)} hljs${toolCode ? ' no-highlight' : ''}"${highlightAttrs} data-code-id="${String(codeId)}"></code></pre>` +
 				`</div>`
 			);
 		}
@@ -261,7 +267,7 @@ class MarkdownCodeRules {
 			` data-locale-collapse="${Utils.escapeHtml(cfg.LOCALE.COLLAPSE)}" data-locale-expand="${Utils.escapeHtml(cfg.LOCALE.EXPAND)}"` +
 			` data-locale-copy="${Utils.escapeHtml(cfg.LOCALE.COPY)}" data-locale-copied="${Utils.escapeHtml(cfg.LOCALE.COPIED)}" data-style="${Utils.escapeHtml(cfg.CODE_STYLE)}">` +
 			`<p class="code-header-wrapper"><span><span class="code-header-lang">${Utils.escapeHtml(headerLabel)}   </span>${actions}</span></p>` +
-			`<pre><code class="language-${Utils.escapeHtml(langClass)} hljs">${Utils.escapeHtml(content)}</code></pre>` +
+			`<pre><code class="language-${Utils.escapeHtml(langClass)} hljs${toolCode ? ' no-highlight' : ''}"${highlightAttrs}>${Utils.escapeHtml(content)}</code></pre>` +
 			`</div>`
 		);
 	}

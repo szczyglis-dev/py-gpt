@@ -301,7 +301,9 @@ class MarkdownRenderer {
 				let html = '';
 				const env = {
 					__box: msgBox,
-					__codeHeaderLabel: el.getAttribute('data-code-header') || ''
+					__codeHeaderLabel: el.getAttribute('data-code-header') || '',
+					__toolCode: el.getAttribute('data-tool-code') === '1',
+					__toolToggle: el.getAttribute('data-tool-toggle') === '1'
 				};
 				try {
 					let src = md;

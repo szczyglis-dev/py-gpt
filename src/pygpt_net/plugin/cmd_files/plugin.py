@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.01 00:45:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os
@@ -17,12 +17,14 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_V2
 
 from .config import Config
+from .render import Render
 from .output import Output
 
 
 class Plugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super(Plugin, self).__init__(*args, **kwargs)
+        self.render = Render(self)
         self.id = "cmd_files"
         self.is_common_plugin = True
         self.name = "Files I/O"

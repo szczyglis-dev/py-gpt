@@ -6,11 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 11:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, Signal
 
+from pygpt_net.plugin.base.execution import output_text, execution_response
+from .render import Render
 from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
 
 
@@ -163,6 +165,11 @@ class Worker(BaseWorker):
         extra = self.prepare_extra(item, result)
         return self.make_response(item, result, extra=extra)
 
+    def make_response(self, item, result, extra=None):
+        if item.get('cmd') in Render.tools and isinstance(result, str):
+            result = execution_response(self.from_request(item), stderr=result)
+        return super().make_response(item, result, extra=extra)
+
     def prepare_extra(self, item: dict, result: dict) -> dict:
         """
         Prepare extra data for response
@@ -192,7 +199,7 @@ class Worker(BaseWorker):
         if isinstance(result, dict) and "result" in result:
             extra["code"]["output"] = {}
             extra["code"]["output"]["lang"] = lang
-            extra["code"]["output"]["content"] = str(result["result"])
+            extra["code"]["output"]["content"] = output_text(result)
         if isinstance(result, dict) and "context" in result:
             extra["context"] = str(result["context"])
         return extra

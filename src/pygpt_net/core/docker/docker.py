@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.04 14:55:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Tuple
+from pygpt_net.core.process_output import ProcessOutput
+
 import os
 import platform
 import io
@@ -454,7 +456,7 @@ class Docker:
             "pygpt.data_mount": "/mnt/data",
         }
 
-    def execute(self, cmd: str, ctx=None) -> Optional[bytes]:
+    def execute(self, cmd: str, ctx=None, demux: bool = False) -> Optional[bytes]:
         """
         Execute command in Docker container.
 
@@ -475,15 +477,18 @@ class Docker:
             result = container.exec_run(
                 cmd,
                 stdout=True,
+                **({"demux": True} if demux else {}),
                 stderr=True,
                 workdir="/mnt/data",
             )
+            if demux:
+                return ProcessOutput(*(result.output or (b"", b"")), return_code=result.exit_code)
             tmp = result.output.decode("utf-8")
             response = tmp.encode("utf-8")
         except Exception as e:
             self.log(f"Error running container: {e}")
             response = str(e).encode("utf-8")
-        return response
+        return (b"", response) if demux else response
 
     def get_local_data_dir(self, ctx=None) -> str:
         """

@@ -6,12 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.07 05:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import json
 import re
 import html
+
+from .tool_display import enrich
 
 class Helpers:
 
@@ -106,10 +108,10 @@ class Helpers:
                 pass
             if self.is_tool_hidden(name):
                 continue
-            calls.append({
+            calls.append(enrich({
                 "name": name or "tool",
                 "request": request,
-            })
+            }, self.window))
         return calls
 
     def extract_extra_tool_calls(self, tool_calls) -> list:
@@ -163,7 +165,7 @@ class Helpers:
                         separators=(",", ":"),
                         default=str,
                     )
-            calls.append(item)
+            calls.append(enrich(item, self.window))
         return calls
 
     def strip_tool_calls(self, text: str) -> str:

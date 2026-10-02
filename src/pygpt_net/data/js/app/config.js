@@ -88,6 +88,8 @@ class Config {
 
 		// Localized UI strings.
 		this.LOCALE = {
+			TOOL_VIEW_PLAIN: Utils.g('LOCALE_TOOL_VIEW_PLAIN', 'Plain text'),
+			TOOL_VIEW_RAW: Utils.g('LOCALE_TOOL_VIEW_RAW', 'Raw JSON'),
 			PREVIEW: Utils.g('LOCALE_PREVIEW', 'Preview'),
 			RUN: Utils.g('LOCALE_RUN', 'Run'),
 			COLLAPSE: Utils.g('LOCALE_COLLAPSE', 'Collapse'),

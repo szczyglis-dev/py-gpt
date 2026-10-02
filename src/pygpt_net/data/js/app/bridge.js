@@ -55,6 +55,10 @@ class BridgeManager {
 		try {
 			new QWebChannel(qt.webChannelTransport, (channel) => {
 				this.bridge = channel.objects.bridge;
+				window.toolPayloadBridge = this.bridge;
+				const applyToolView = mode => window.applyToolPayloadView(mode);
+				if (this.bridge.toolViewChanged) this.bridge.toolViewChanged.connect(applyToolView);
+				if (this.bridge.get_tool_view) this.bridge.get_tool_view(applyToolView);
 				try {
 					this.logger.bindBridge(this.bridge);
 				} catch (_) {}

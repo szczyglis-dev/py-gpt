@@ -6,11 +6,14 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 18:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os.path
 import subprocess
+from pygpt_net.core.process_output import ProcessOutput
+
+from pygpt_net.plugin.base.execution import execution_response
 
 from .base import ExecutionBackend
 from ..sandbox import SandboxMode
@@ -37,8 +40,10 @@ class HostBackend(ExecutionBackend):
 
         process = subprocess.Popen(command, **kwargs)
         if has_input:
-            return process.communicate(input=input_data)
-        return process.communicate()
+            stdout, stderr = process.communicate(input=input_data)
+        else:
+            stdout, stderr = process.communicate()
+        return ProcessOutput(stdout, stderr, process.returncode)
 
     def _run_system_command(self, ctx, command: str, request: dict, label: str) -> dict:
         runner = self.runner
@@ -46,25 +51,26 @@ class HostBackend(ExecutionBackend):
         runner.log("Executing {} system command: {}".format(label, command), category="exec")
         runner.log("Running command: {}".format(command), category="exec")
         runner.send_interpreter_input(command)
+        process_output = None
         try:
             runner.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
+            process_output = self._communicate_subprocess(
                 command,
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
+            stdout, stderr = process_output
         except Exception as e:
             runner.error(e)
             stdout = None
             stderr = str(e).encode("utf-8")
         result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def python_exec_file(self, ctx, item: dict, request: dict) -> dict | None:
         runner = self.runner
@@ -73,33 +79,31 @@ class HostBackend(ExecutionBackend):
         self.plugin.window.core.security.ensure_read(path, sandbox=False, ctx=ctx)
 
         if not os.path.isfile(path):
-            return {
-                "request": request,
-                "result": "File not found",
-            }
+            return execution_response(request, stderr="File not found")
 
         cmd = self.plugin.get_option_value("python_cmd_tpl").format(filename=path)
         self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
         runner.log("Running command: {}".format(cmd))
+        process_output = None
         try:
             runner.send_interpreter_output_begin("stdout")
-            stdout, stderr = self._communicate_subprocess(
+            process_output = self._communicate_subprocess(
                 cmd,
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
+            stdout, stderr = process_output
         except Exception as e:
             runner.error(e)
             stdout = None
             stderr = str(e).encode("utf-8")
         result = runner.handle_result(stdout, stderr)
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def python_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         runner = self.runner
@@ -130,14 +134,16 @@ class HostBackend(ExecutionBackend):
             cmd = self.plugin.get_option_value("python_cmd_tpl").format(filename=host_path)
             self.plugin.window.core.security.ensure_command(cmd, sandbox=False)
             runner.log("Running command: {}".format(cmd))
+            process_output = None
             try:
                 runner.send_interpreter_output_begin("stdout")
-                stdout, stderr = self._communicate_subprocess(
+                process_output = self._communicate_subprocess(
                     cmd,
                     shell=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
+                stdout, stderr = process_output
             except Exception as e:
                 runner.error(e)
                 stdout = None
@@ -145,11 +151,10 @@ class HostBackend(ExecutionBackend):
             result = runner.handle_result(stdout, stderr)
             runner.send_interpreter_output_end("stdout")
 
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def ipython_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         return self._run_system_command(

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 18:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import locale
@@ -14,6 +14,7 @@ import os.path
 import re
 import threading
 
+from pygpt_net.plugin.base.execution import execution_response
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.item.ctx import CtxItem
 
@@ -286,6 +287,7 @@ class Runner:
         self.append_input(data, ctx=ctx)
         self.send_interpreter_input(data)  # send input to interpreter tool
 
+        streams = {}
         # run code in IPython interpreter
         msg = "Executing Python code: {}".format(item["params"]['code'])
         self.log(msg, sandbox=sandbox)
@@ -298,17 +300,22 @@ class Runner:
                 ctx=ctx,
                 auto_init=auto_init,  # auto initialize after error
             )
+            streams = dict(getattr(backend.get_ipython_interpreter()._signals_local, "streams", {}))
             result = self.handle_result_ipython(ctx, result)
             self.log("Python Code Executed.", sandbox=sandbox)
         except Exception as e:
             self.error(e)
             result = str(e)
+            streams = {"stderr": result}
         self.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
-        }
+        if not any(streams.values()) and result:
+            streams['stdout'] = str(result)
+        return execution_response(
+            request,
+            streams.get('stdout', ''),
+            streams.get('stderr', ''),
+            context="IPYTHON OUTPUT:\n--------------------------------\n" + self.parse_result(result, ctx=ctx),
+        )
 
     def ipython_kernel_restart(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         """

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 import base64
 import mimetypes
 import os
 import shutil
+import weakref
 from urllib.parse import unquote, unquote_to_bytes, urlparse
 
 from PySide6 import QtCore
@@ -963,15 +964,32 @@ class CustomWebEnginePage(QWebEnginePage):
 class Bridge(QObject):
     """Bridge between Python and JavaScript"""
 
+    _tool_view = "friendly"
+    _instances = weakref.WeakSet()
+
     def __init__(self, window, parent=None):
         super(Bridge, self).__init__(parent)
         self.window = window
+        self._instances.add(self)
 
     chunk = Signal(str, str, str)  # name, chunk, type
     node = Signal(str)  # JSON payload
     nodeReplace = Signal(str)  # JSON payload
     nodeInput = Signal(str)  # raw text
     readyChanged = Signal(bool)
+    toolViewChanged = Signal(str)
+
+    @Slot(result=str)
+    def get_tool_view(self):
+        return Bridge._tool_view
+
+    @Slot(str)
+    def set_tool_view(self, mode):
+        if mode not in ("raw", "friendly"):
+            return
+        Bridge._tool_view = mode
+        for bridge in list(Bridge._instances):
+            bridge.toolViewChanged.emit(mode)
 
     @Slot(int)
     def js_ready(self, pid: int):
@@ -1006,6 +1024,7 @@ class Bridge(QObject):
             except Exception:
                 pass
 
+        Bridge._instances.discard(self)
         # delete the bridge object
         self.deleteLater()
 

@@ -84,6 +84,76 @@ TEST = r"""
     clearNodes();
     clearInput(); clearOutput(); clearLive();
     expect(!document.querySelector('#_nodes_ .msg-box'),'clear history');
+
+    const raw = JSON.stringify({cmd:'read_file',result:[{path:'one.txt',content:'<script>unsafe</script>\n```'},{path:'two.txt',content:'second'}]});
+    const friendly = [{label:'one.txt',text:'<script>unsafe</script>\n```',language:'text'},{label:'two.txt',text:'second',language:'text'}];
+    appendNode(JSON.stringify(node(20,'',{tool_calls:[{call_id:'read',name:'read_file',request:'{"cmd":"read_file","params":{"path":["one.txt","two.txt"]}}',response:raw,response_friendly:friendly}]})));
+    await settle();
+    const tool = document.querySelector('#tool-output-20');
+    expect(tool, 'friendly tool missing');
+    const readable = tool.querySelector('.tool-view-friendly');
+    expect(readable.querySelectorAll('.code-wrapper').length === 2, 'multiple files not separated');
+    expect(readable.querySelector('.code-header-lang').textContent.trim() === 'one.txt', 'filename header lost');
+    expect(readable.querySelector('pre code').textContent.includes('<script>unsafe</script>'), 'literal content lost');
+    expect(!readable.querySelector('script'), 'tool text interpreted as HTML');
+    expect(!readable.querySelector('.code-header-run'), 'tool payload acquired execute action');
+    expect(!tool.querySelector('.tool-output-result-data .code-header-tool-view'),'output switch duplicated');
+    const viewButton = tool.querySelector('.tool-output-request-data .code-header-tool-view');
+    expect(viewButton && viewButton.nextElementSibling.classList.contains('code-header-collapse'), 'view action order');
+    expect(viewButton.title === 'Surowy JSON', 'initial tooltip not translated');
+    viewButton.click();
+    expect(viewButton.title === 'Zwykły tekst', 'plain text tooltip not translated');
+    expect(viewButton.getAttribute('aria-label') === 'Zwykły tekst', 'view action label not translated');
+    expect(document.documentElement.dataset.toolView === 'raw', 'raw switch failed');
+    expect(sessionStorage.getItem('pygpt.toolView') === 'raw', 'preference not saved');
+    viewButton.click();
+    expect(document.documentElement.dataset.toolView === 'friendly', 'friendly switch failed');
+    const payload = tool.querySelector('.tool-payload');
+    expect(JSON.parse(payload.getAttribute('data-tool-raw')).result.length === 2, 'raw response lost');
+
+    for (const [id,language,code] of [[21,'python','print(1)'],[22,'bash','echo hi'],[23,'text','plain text']]) {
+        appendNode(JSON.stringify(node(id,'',{tool_calls:[{call_id:'code-'+id,name:'example',request:'{"params":{}}',
+            request_friendly:[{text:code,label:language,language}]}]})));
+        await settle();
+        const block = document.querySelector('#tool-output-'+id);
+        expect(block.querySelector('.tool-view-friendly .code-header-lang').textContent.trim()===language,'native input header '+language);
+        const expected = language==='text' ? 'plaintext' : language;
+        expect(block.querySelector('.tool-view-friendly code').className.includes(expected),'native highlighting '+language);
+        expect(block.querySelector('.tool-view-raw .code-header-lang').textContent.trim()==='Input','raw input header changed');
+    }
+
+    document.querySelectorAll('.tool-output-data pre code').forEach(code => {
+        expect(code.classList.contains('no-highlight'), 'tool payload permits syntax highlighting');
+        expect(code.getAttribute('data-highlighted') === 'yes', 'tool payload enters highlight queue');
+        expect(!code.querySelector('span[class*="hljs-"]'), 'tool payload contains syntax colors');
+    });
+
+    // Changing every tool above the clicked input must preserve its viewport position.
+    const fixture = document.createElement('div');
+    fixture.innerHTML = `<style>
+        .tool-view-raw {display:none}
+        html[data-tool-view="raw"] .tool-view-raw {display:block}
+        html[data-tool-view="raw"] .tool-view-friendly {display:none}
+    </style><div class="tool-view-friendly" style="height:900px"></div>
+    <div class="tool-view-raw" style="height:1600px"></div>
+    <div class="tool-output-request-data"><button onclick="toggleToolPayloadView(this)">&lt;&gt;</button></div>
+    <div style="height:2000px"></div>`;
+    document.body.appendChild(fixture);
+    runtime.scrollMgr.suspendAutoFollow();
+    const input = fixture.querySelector('.tool-output-request-data');
+    const switcher = input.querySelector('button');
+    Utils.SE.scrollTop += input.getBoundingClientRect().top - 180;
+    await settle();
+    for (let i=0; i<2; i++) {
+        const before = input.getBoundingClientRect().top;
+        switcher.click();
+        await new Promise(resolve => setTimeout(resolve, 350));
+        expect(Math.abs(input.getBoundingClientRect().top-before)<2, 'tool view switch moved viewport');
+    }
+    fixture.remove();
+
+    clearNodes();
+
     __pygpt_cleanup();
     return 'OK';
 })().then(result => window.__testResult=result).catch(error => window.__testResult=error.stack);
@@ -105,7 +175,7 @@ def html(production):
     files = ['app.min.js'] if production else [
         'app-' + name.replace('/', '-') for name in json.loads((APP / 'manifest.json').read_text())
     ]
-    scripts = '\n'.join(f'<script src="qrc:///js/{name}"></script>' for name in vendors + files)
+    scripts = '<script>window.LOCALE_TOOL_VIEW_PLAIN="Zwykły tekst";window.LOCALE_TOOL_VIEW_RAW="Surowy JSON";</script>' + '\n'.join(f'<script src="qrc:///js/{name}"></script>' for name in vendors + files)
     return '<!doctype html><html><head>' + scripts + '</head><body><div id="container">' + ''.join(
         f'<div id="{name}"></div>' for name in [
             '_nodes_', '_append_input_', '_append_output_before_', '_append_output_',
@@ -154,6 +224,6 @@ def check():
 
 
 page.loadFinished.connect(loaded)
-QTimer.singleShot(20000, lambda: application.exit(2))
+QTimer.singleShot(45000, lambda: (print("FAIL: WebView timeout", page.errors), application.exit(2)))
 start_next()
 raise SystemExit(application.exec())

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 17:30:00
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import threading
+from pygpt_net.core.process_output import ProcessOutput
 from typing import Callable, Optional, Sequence
 
 from .packages import (
@@ -658,7 +659,8 @@ class BuiltinSandboxRuntime:
 
         job = self.attach_process_job(process)
         try:
-            return process.communicate()
+            stdout, stderr = process.communicate()
+            return ProcessOutput(stdout, stderr, process.returncode)
         finally:
             self.close_process_job(job)
 

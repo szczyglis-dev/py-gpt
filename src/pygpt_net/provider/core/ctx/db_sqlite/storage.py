@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 14:35:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -18,6 +18,7 @@ from typing import Dict, Optional, Tuple, List
 
 from sqlalchemy import text
 
+from pygpt_net.plugin.base.execution import output_text
 from pygpt_net.utils import get_tz_offset
 from pygpt_net.core.types import CTX_TOOL_HISTORY_EXTRA_KEY, should_persist_ctx_partials
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
@@ -158,7 +159,9 @@ class Storage:
                     used_outputs.add(response_index)
                     response = copy.deepcopy(matched)
             completed = bool(entry.get("completed") or response is not None)
-            if isinstance(response, dict) and "result" in response:
+            if isinstance(response, dict) and ("stdout" in response or "stderr" in response):
+                output = output_text(response)
+            elif isinstance(response, dict) and "result" in response:
                 output = response.get("result")
             else:
                 output = response

@@ -182,3 +182,20 @@ def test_build_image_passes_uid_gid_and_logs_streams(monkeypatch):
     assert kwargs["buildargs"] == {"PYGPT_UID": "111", "PYGPT_GID": "222"}
     assert kwargs["custom_context"] is True and kwargs["rm"] is True
     assert docker.log.call_args_list[-1].args == ("step 1",)
+
+
+def test_execute_demux_keeps_streams_and_real_exit_status():
+    plugin, _ = make_plugin()
+    docker = Docker(plugin)
+    container = MagicMock()
+    container.exec_run.return_value = SimpleNamespace(output=(b'out', b'err'), exit_code=6)
+    client = MagicMock()
+    client.containers.get.return_value = container
+    docker.get_docker_client = MagicMock(return_value=client)
+    docker.get_container_name = MagicMock(return_value='test')
+    docker.is_image = MagicMock(return_value=True)
+    docker.create_container = MagicMock()
+    output = docker.execute('command', demux=True)
+    assert tuple(output) == (b'out', b'err')
+    assert output.return_code == 6
+    assert container.exec_run.call_args.kwargs['demux'] is True

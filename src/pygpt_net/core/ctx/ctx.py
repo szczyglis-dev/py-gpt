@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 14:35:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,6 +17,7 @@ from typing import Optional, Tuple, List, Dict
 
 from packaging.version import Version
 
+from pygpt_net.plugin.base.execution import output_text
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
@@ -1149,7 +1150,8 @@ class Ctx:
                 task = fallback.pop(0)
             if task is None:
                 continue
-            result = response.get("result") if isinstance(response, dict) and "result" in response else response
+            result = (output_text(response) if isinstance(response, dict) and ("stdout" in response or "stderr" in response)
+                      else response.get("result") if isinstance(response, dict) and "result" in response else response)
             provider = ""
             try:
                 model_item = self.window.core.models.get(item.model) if getattr(item, "model", None) else None

@@ -6,12 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 11:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os.path
 import re
 import subprocess
+from pygpt_net.core.process_output import ProcessOutput
 import json
 import os
 import platform
@@ -66,8 +67,10 @@ class Runner:
 
         process = subprocess.Popen(command, **kwargs)
         if has_input:
-            return process.communicate(input=input_data)
-        return process.communicate()
+            stdout, stderr = process.communicate(input=input_data)
+        else:
+            stdout, stderr = process.communicate()
+        return ProcessOutput(stdout, stderr, process.returncode)
 
     def send_interpreter_output_begin(self, type: str):
         """Begin an output block in the Python interpreter window."""

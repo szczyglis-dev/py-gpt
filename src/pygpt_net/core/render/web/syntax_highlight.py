@@ -6,10 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.05 23:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os
+import re
 
 
 class SyntaxHighlight:
@@ -44,7 +45,17 @@ class SyntaxHighlight:
         path = os.path.join(self.window.core.config.get_app_path(), "data", "js", "highlight", "styles",
                             f"{style}.min.css")
         with open(path, "r") as f:
-            return f.read()
+            css = f.read()
+        # Output headers share the code theme's background, including custom themes.
+        backgrounds = []
+        for rule in re.finditer(r"(?<![\w-])\.hljs\s*\{([^}]+)\}", css):
+            backgrounds.extend(
+                declaration.strip() for declaration in rule.group(1).split(";")
+                if declaration.strip().split(":", 1)[0].strip().startswith("background")
+            )
+        if backgrounds:
+            css += "\n.tool-output-pair .tool-output-result-data .code-header-wrapper {" + ";".join(backgrounds) + ";}"
+        return css
 
     def get_styles(self) -> list:
         """

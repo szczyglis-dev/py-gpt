@@ -56,8 +56,8 @@ def test_docker_backend_executes_in_isolated_runtime(mock_window):
     runner, plugin = make_runner(mock_window)
     backend = DockerBackend(plugin)
     plugin.get_execution_backend.return_value = backend
-    plugin.docker.execute.return_value = b"ok"
-    runner.handle_result_sandbox = MagicMock(return_value="OK")
+    plugin.docker.execute.return_value = (b"ok", b"")
+    runner.handle_result = MagicMock(return_value="OK")
     runner.parse_result = MagicMock(return_value="PARSED")
     ctx = CtxItem()
     item = {"cmd": "sys_exec", "params": {"command": "echo x"}}
@@ -69,9 +69,11 @@ def test_docker_backend_executes_in_isolated_runtime(mock_window):
     mock_window.core.security.ensure_command.assert_called_once_with(
         "echo x", sandbox=True, os_id="linux"
     )
-    plugin.docker.execute.assert_called_once_with("echo x", ctx=ctx)
-    runner.handle_result_sandbox.assert_called_once_with(b"ok", prefix="[DOCKER]")
-    assert result["result"] == "OK"
+    plugin.docker.execute.assert_called_once_with("echo x", ctx=ctx, demux=True)
+    runner.handle_result.assert_called_once_with(b"ok", b"")
+    assert result["stdout"] == "ok"
+    assert result["stderr"] == ""
+    assert result["result"] is True
     assert result["context"].endswith("PARSED")
 
 
@@ -80,7 +82,7 @@ def test_docker_backend_converts_execution_exception_to_output(mock_window):
     backend = DockerBackend(plugin)
     plugin.get_execution_backend.return_value = backend
     plugin.docker.execute.side_effect = RuntimeError("boom")
-    runner.handle_result_sandbox = MagicMock(return_value="boom")
+    runner.handle_result = MagicMock(return_value="boom")
     runner.parse_result = MagicMock(return_value="boom")
 
     result = backend.sys_exec(
@@ -89,8 +91,9 @@ def test_docker_backend_converts_execution_exception_to_output(mock_window):
         {"cmd": "sys_exec"},
     )
 
-    runner.handle_result_sandbox.assert_called_once_with(b"boom", prefix="[DOCKER]")
-    assert result["result"] == "boom"
+    runner.handle_result.assert_called_once_with(b"", b"boom")
+    assert result["stderr"] == "boom"
+    assert result["result"] is False
 
 
 def test_host_backend_mocks_subprocess_and_security(mock_window):
@@ -112,7 +115,7 @@ def test_host_backend_mocks_subprocess_and_security(mock_window):
 
     mock_window.core.security.ensure_command.assert_called_once_with("echo x", sandbox=False)
     runner._communicate_subprocess.assert_called_once()
-    assert result["result"] == "OUT"
+    assert result["result"] is True
     assert result["context"].endswith("PARSED")
 
 
@@ -124,17 +127,17 @@ def test_docker_backend_uses_docker_without_host_subprocess(mock_window):
     runner.send_interpreter_output_begin = MagicMock()
     runner.send_interpreter_output_end = MagicMock()
     runner._communicate_subprocess = MagicMock()
-    runner.handle_result_sandbox = MagicMock(return_value="OUT")
+    runner.handle_result = MagicMock(return_value="OUT")
     runner.parse_result = MagicMock(return_value="PARSED")
     runner.log = MagicMock()
-    plugin.docker.execute.return_value = b"out"
+    plugin.docker.execute.return_value = (b"out", b"")
     ctx = CtxItem()
 
     result = backend.sys_exec(
         ctx, {"params": {"command": "echo x"}}, {"cmd": "sys_exec"}
     )
 
-    plugin.docker.execute.assert_called_once_with("echo x", ctx=ctx)
+    plugin.docker.execute.assert_called_once_with("echo x", ctx=ctx, demux=True)
     runner._communicate_subprocess.assert_not_called()
     assert result["context"].endswith("PARSED")
 

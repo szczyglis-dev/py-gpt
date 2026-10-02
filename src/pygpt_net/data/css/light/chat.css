@@ -197,3 +197,9 @@ code {{
 .tips p {{
   color: #6e6e6e;
 }}
+
+/* Tool input RAW / human-friendly switch. */
+:root {{ --tool-output-separator-color: #9c9c9c; }}
+.code-header-tool-view {{ color: #9c9c9c; }}
+.code-header-tool-view:hover {{ color: #666666; background: rgba(0,0,0,.06); }}
+.code-header-tool-view:focus-visible {{ outline: 1px solid #9c9c9c; outline-offset: 2px; }}

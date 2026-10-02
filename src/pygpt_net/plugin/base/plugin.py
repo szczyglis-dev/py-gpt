@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 19:30:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -41,7 +41,7 @@ class BasePlugin(QObject, LocaleDomain):
         "urls": None,
         "use": None,
     }
-    _ALLOW_OUTPUT_KEYS = ("request", "result", "context")
+    _ALLOW_OUTPUT_KEYS = ("request", "result", "context", "stdout", "stderr", "return_code")
     _IGNORE_EXTRA_KEYS = ("request", "context")
 
     def __init__(self, *args, **kwargs):
@@ -57,6 +57,7 @@ class BasePlugin(QObject, LocaleDomain):
         self.options = {}
         self.initial_options = {}
         self.allowed_cmds = []
+        self.render = None
         self.tabs = {}
         self.parent = None
         self.enabled = False
@@ -65,6 +66,18 @@ class BasePlugin(QObject, LocaleDomain):
         self.order = 0
         self._option_locale_domain = None
         self.tab_locale_domains = {}
+
+    def get_tool_render_rules(self) -> Dict[str, Any]:
+        """Return optional per-tool input/output presentation rules.
+
+        Plugins statically import Render and assign self.render = Render(self).
+        Each direction maps to {parser: callable, language: optional str}.
+        Parsers receive (value, tool_name, direction) and return text blocks
+        [{text, label, language}], or None to use RAW. A configured input
+        language also becomes the friendly header. Override to supply rules
+        directly or adjust them using the plugin's options.
+        """
+        return self.render.get_rules() if self.render is not None else {}
 
     def setup(self) -> Dict[str, Any]:
         """
@@ -498,11 +511,18 @@ class BasePlugin(QObject, LocaleDomain):
         :param ctx: context (CtxItem)
         :return: response dict
         """
+        result = response.get("result")
+        execution = isinstance(result, dict) and ("stdout" in result or "stderr" in result)
         clean_response = {k: v for k, v in response.items() if k in self._ALLOW_OUTPUT_KEYS or k.startswith("agent_")}
+        if execution:
+            clean_response.pop("context", None)
+            clean_response["result"] = {k: v for k, v in result.items() if k != "context"}
         ctx.results.append(clean_response)
         ctx.reply = True
 
         extras = {k: v for k, v in response.items() if k not in self._IGNORE_EXTRA_KEYS}
+        if execution:
+            extras["result"] = clean_response["result"]
         # Runtime attachments are transport metadata for the immediate next model
         # request. Do not persist local paths inside the durable tool transcript.
         extras.pop("agent_runtime_attachments", None)
@@ -525,6 +545,9 @@ class BasePlugin(QObject, LocaleDomain):
             if "tool_output" not in ctx.extra:
                 ctx.extra["tool_output"] = []
             ctx.extra["tool_output"].append(extras)
+
+        if execution:
+            return response
 
         if "context" in response:
             cfg = self.window.core.config

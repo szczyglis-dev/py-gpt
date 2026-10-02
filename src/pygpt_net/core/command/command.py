@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 21:05:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -760,7 +760,11 @@ class Command:
             for response in responses:
                 req = response.get("request")
                 if isinstance(req, dict) and "cmd" in req:
-                    last_by_name[req["cmd"]] = response.get("result")
+                    if "stdout" in response or "stderr" in response:
+                        last_by_name[req["cmd"]] = {k: v for k, v in response.items()
+                                                   if k in ("result", "stdout", "stderr", "return_code")}
+                    else:
+                        last_by_name[req["cmd"]] = response.get("result")
             for tool_call in ctx.tool_calls:
                 name = tool_call["function"]["name"]
                 if name in last_by_name:
