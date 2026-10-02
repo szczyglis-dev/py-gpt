@@ -191,6 +191,11 @@ class Input:
 
         context = BridgeContext()
         context.prompt = text
+        input_node = self.window.ui.nodes.get("input")
+        strip = getattr(input_node, "attachment_strip", None)
+        if strip is not None:
+            strip.mark_sent()
+
         self.window.dispatch(KernelEvent(KernelEvent.INPUT_USER, {
             'context': context,
             'extra': {

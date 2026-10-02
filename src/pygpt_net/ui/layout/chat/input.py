@@ -266,7 +266,7 @@ class Input:
 
         self.window.ui.tabs['input'] = InputTabs(self.window)
         tabs = self.window.ui.tabs['input']
-        tabs.setMinimumHeight(self.min_height_input_tab)
+        tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
         tabs.addTab(input, '')
         tabs.addTab(files, '')
         tabs.addTab(files_uploaded, '')
@@ -323,6 +323,7 @@ class Input:
         :return: QWidget
         """
         self.window.ui.nodes['input'] = ChatInput(self.window)
+        self.window.ui.nodes['input'].install_attachment_strip()
         self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
 
         widget = QWidget()
@@ -843,7 +844,7 @@ class Input:
             # Lower the files-tab constraint before restoring. Calling this on
             # the next event-loop turn is important: QTabWidget/QSplitter can
             # otherwise still use the previous page's cached minimum height.
-            tabs.setMinimumHeight(self.min_height_input_tab)
+            tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
             tabs.updateGeometry()
 
             composer = self.window.ui.nodes.get('input.container')
@@ -890,6 +891,21 @@ class Input:
             # Geometry restoration must never break tab switching.
             return
 
+    def set_attachment_min_height(self, height):
+        """Propagate the attachment band through the manually positioned composer."""
+        widgets = [self.window.ui.tabs.get('input'),
+                   self.window.ui.nodes.get('input.container'),
+                   self.window.ui.nodes.get('input.root')]
+        if height and not getattr(self, '_attachment_minimums', None):
+            self._attachment_minimums = [(widget, widget.minimumHeight(),
+                                         max(widget.minimumHeight(), widget.minimumSizeHint().height()))
+                                        for widget in widgets if widget is not None]
+        for widget, original, base in getattr(self, '_attachment_minimums', []):
+            widget.setMinimumHeight(base + height if height else original)
+            widget.updateGeometry()
+        if not height:
+            self._attachment_minimums = []
+
     def update_min_height(self, _index=None):
         """Resize files tabs temporarily and restore Input to its exact prior height."""
         tabs = self.window.ui.tabs['input']
@@ -908,7 +924,7 @@ class Input:
             # files tab, restore the *live* splitter sizes captured immediately
             # before that files tab was opened, rather than a historical/cache
             # value that may not reflect a user's latest manual resize.
-            tabs.setMinimumHeight(self.min_height_input_tab)
+            tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
             tabs.updateGeometry()
 
             composer = nodes.get('input.container')
