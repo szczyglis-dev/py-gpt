@@ -116,11 +116,6 @@ class Tray:
         tray_menu['scheduled'] = action
         tray_menu['scheduled'].triggered.connect(self.open_scheduled_tasks)
 
-        action = QAction(trans("menu.info.updates"), w)
-        action.setIcon(QIcon(":/icons/public_filled.svg"))
-        tray_menu['update'] = action
-        tray_menu['update'].triggered.connect(self.check_updates)
-
         action = QAction(trans("menu.tray.notepad"), w)
         action.setIcon(QIcon(":/icons/paste.svg"))
         tray_menu['open_notepad'] = action
@@ -158,7 +153,6 @@ class Tray:
         menu.addAction(tray_menu['scheduled'])
         menu.addAction(tray_menu['open_notepad'])
         menu.addMenu(tray_menu['screenshot_menu'])
-        menu.addAction(tray_menu['update'])
         menu.addAction(tray_menu['exit'])
         menu.aboutToShow.connect(self.refresh_recent_contexts)
         # Populate dynamic entries before QSystemTrayIcon sees the menu for the
