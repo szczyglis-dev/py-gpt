@@ -210,3 +210,23 @@ def test_agents_v2_shared_tool_persistence_still_refreshes_status():
     assert runtime.tool_history.persist_result('file content', 'orchestrator', 'read_file', call_id)
     assert runtime.status.refresh_tools.call_count == 2
     runtime.status.refresh_tools.assert_called_with('orchestrator')
+
+
+def test_hidden_computer_call_notifies_ui_without_persisting_tools():
+    runtime, main = make_runtime()
+    runtime.emitter = MagicMock()
+    result = runtime.tool_history.persist_call('mouse_click', {'x': 10, 'y': 20}, 'orchestrator')
+    assert result
+    runtime.emitter.computer_use.assert_called_once_with(True)
+    runtime.window.core.ctx.record_tool_calls.assert_not_called()
+    assert main.parts[0].tasks == []
+
+
+def test_hidden_worker_computer_call_signals_global_badge_without_renderer():
+    runtime, _ = make_runtime()
+    runtime.visible = False
+    runtime.emitter = MagicMock()
+    runtime.tool_history.persist_call('mouse_click', {'x': 1, 'y': 2}, 'w01')
+    runtime.window.computer_use_badge.active_changed.emit.assert_called_once_with(True)
+    runtime.emitter.computer_use.assert_not_called()
+    runtime.window.core.ctx.record_tool_calls.assert_not_called()

@@ -17,6 +17,7 @@ from typing import Any, ClassVar, Sequence
 from llama_index.core.base.llms.types import ChatMessage, ChatResponse
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.llms.openai import OpenAIResponses
+from llama_index.llms.openai.utils import to_openai_responses_message_dict
 
 from pygpt_net.provider.llms.computer import (
     AgentComputerBridge,
@@ -34,7 +35,7 @@ class AgentOpenAIResponses(OpenAIResponses):
     so without this bridge a ``computer_call`` is parsed but never executed.
     """
 
-    MAX_COMPUTER_TURNS: ClassVar[int] = 1000
+    MAX_COMPUTER_TURNS: ClassVar[int] = 100000
 
     _pygpt_urls: list[str] = PrivateAttr(default_factory=list)
     _pygpt_runtime: Any = PrivateAttr(default=None)
@@ -289,8 +290,68 @@ class AgentOpenAIResponses(OpenAIResponses):
         except Exception:
             pass
 
+    def _serialize_messages(self, messages, model_kwargs):
+        items = []
+        for message in messages:
+            originals = message.additional_kwargs.get("responses_output")
+            if originals is not None:
+                stored = message.additional_kwargs.get("responses_stored", False)
+                items.extend(self._history_input_item(item, stored) for item in originals)
+                continue
+            converted = to_openai_responses_message_dict(
+                message, model="o3-mini",
+                store=model_kwargs.get("store"))
+            # Use the item converter directly: the batch converter assumes a
+            # lone item has a role, which function_call_output does not have.
+            if isinstance(converted, str):
+                converted = [{"role": message.role.value, "content": converted}]
+            elif isinstance(converted, dict):
+                converted = [converted]
+            for item in converted:
+                if isinstance(item, dict) and item.get("role") == "assistant":
+                    phase = message.additional_kwargs.get("phase")
+                    if phase in ("commentary", "final_answer"):
+                        item["phase"] = phase
+                items.append(self._history_input_item(item, False))
+        return items
+
+    @staticmethod
+    def _history_input_item(item, stored):
+        """Serialize history as input, never as an unfiltered SDK output dump."""
+        if stored and item.get("id"):
+            return {"type": "item_reference", "id": item["id"]}
+
+        def without_nulls(value):
+            if isinstance(value, dict):
+                return {key: without_nulls(val) for key, val in value.items() if val is not None}
+            if isinstance(value, list):
+                return [without_nulls(val) for val in value]
+            return value
+
+        result = without_nulls(item)
+        # Reasoning status is response lifecycle metadata, not reasoning input.
+        # Keep encrypted_content, summary, and ID together for stateless replay.
+        if result.get("type") == "reasoning":
+            result = {key: value for key, value in result.items()
+                      if key in ("type", "id", "summary", "content", "encrypted_content")}
+        return result
+
     def _prepare_response(self, response: ChatResponse) -> ChatResponse:
         raw = getattr(response, "raw", None)
+        output = self._get(self._raw_response(raw), "output", []) or []
+        if output:
+            response.message.additional_kwargs["responses_output"] = [
+                self._safe_dump(item) for item in output]
+            response.message.additional_kwargs["responses_stored"] = bool(
+                self._get_model_kwargs().get("store"))
+        messages = [self._safe_dump(item) for item in output
+                    if self._get(item, "type") == "message"
+                    and self._get(item, "role", "assistant") == "assistant"]
+        if messages:
+            response.message.additional_kwargs["responses_messages"] = messages
+            phase = self._get(messages[-1], "phase")
+            if phase in ("commentary", "final_answer"):
+                response.message.additional_kwargs["phase"] = phase
         self._capture_response_urls(response)
         self._capture_provider_tool_boundary(response)
         self._capture_provider_artifacts(response)
@@ -488,16 +549,22 @@ class AgentOpenAIResponses(OpenAIResponses):
         The continuation rule is intentionally narrow: submit another Responses
         request only when we have actually executed a ``computer_call`` and have
         a ``computer_call_output`` screenshot to return.  An assistant/message
-        response with no computer call is already the result of that tool round
-        and must be returned to FunctionAgent as-is.  In particular, never issue
-        an extra empty-input continuation for ``phase=commentary``; doing so can
-        make the model start a new Computer Use action after it has already
-        reported success.
+        final-answer response without actions ends the loop. A commentary-only
+        response continues with the same previous_response_id and no fabricated
+        user instruction; the API retains the original assignment and state.
         """
         current = response
+        history = list(response.message.additional_kwargs.get("responses_output", []))
         for turn in range(self.MAX_COMPUTER_TURNS):
             calls = self._computer_calls(current)
-            if not calls:
+            phase = current.message.additional_kwargs.get("phase")
+            output = self._get(self._raw_response(current.raw), "output", []) or []
+            if not calls and any(self._get(item, "type") in ("function_call", "custom_tool_call")
+                                 for item in output):
+                # Local tools belong to AgentWorkflow; it must supply their
+                # outputs before another provider request can be submitted.
+                return current
+            if not calls and phase != "commentary":
                 return current
 
             previous_response_id = self._response_id(current)
@@ -564,10 +631,15 @@ class AgentOpenAIResponses(OpenAIResponses):
                     output=raw,
                     model=getattr(self, "model", None),
                 )
+            if raw.status != "completed":
+                raise RuntimeError(f"Computer Use response stopped with status: {raw.status}")
             parsed = self._parse_response_output(raw.output)
             parsed.raw = raw
             parsed.additional_kwargs["usage"] = getattr(raw, "usage", None)
             current = self._prepare_response(parsed)
+            history.extend(api_outputs)
+            history.extend(current.message.additional_kwargs.get("responses_output", []))
+            current.message.additional_kwargs["responses_output"] = list(history)
 
         raise RuntimeError(
             f"Computer Use exceeded the safety limit of {self.MAX_COMPUTER_TURNS} continuation turns"
@@ -620,46 +692,51 @@ class AgentOpenAIResponses(OpenAIResponses):
 
         return gen()
 
-    async def _achat(
-            self,
-            messages: Sequence[ChatMessage],
-            **kwargs: Any,
-    ) -> ChatResponse:
-        response = await super()._achat(messages, **kwargs)
+    async def _achat(self, messages: Sequence[ChatMessage], **kwargs: Any) -> ChatResponse:
+        model_kwargs = self._get_model_kwargs(**kwargs)
+        raw = await self._aclient.responses.create(
+            input=self._serialize_messages(messages, model_kwargs), stream=False, **model_kwargs)
+        if raw.status != "completed":
+            raise RuntimeError(f"Responses stopped with status: {raw.status}")
+        response = self._parse_response_output(raw.output)
+        response.raw = raw
+        response.additional_kwargs["usage"] = getattr(raw, "usage", None)
         response = self._prepare_response(response)
         if self._computer_enabled() and self._computer_calls(response):
             response = await self._continue_computer_chain(response, dict(kwargs))
         return response
 
-    async def _astream_chat(
-            self,
-            messages: Sequence[ChatMessage],
-            **kwargs: Any,
-    ):
-        stream = await super()._astream_chat(messages, **kwargs)
+    async def _astream_chat(self, messages: Sequence[ChatMessage], **kwargs: Any):
+        model_kwargs = self._get_model_kwargs(**kwargs)
+        stream = await self._aclient.responses.create(
+            input=self._serialize_messages(messages, model_kwargs), stream=True, **model_kwargs)
 
         async def gen():
-            last_response = None
-            async for response in stream:
-                prepared = self._prepare_response(response)
-                last_response = prepared
-                yield prepared
-
-            # Upstream streaming currently exposes hosted Computer Use calls
-            # inconsistently across versions. The final response.completed raw
-            # payload still contains the computer_call, so inspect it after the
-            # stream and continue locally when needed.
-            if (
-                    last_response is not None
-                    and self._computer_enabled()
-                    and self._computer_calls(last_response)
-            ):
-                final_response = await self._continue_computer_chain(last_response, dict(kwargs))
-                if not getattr(final_response, "delta", None):
-                    try:
-                        final_response.delta = str(final_response.message.content or "")
-                    except Exception:
-                        pass
-                yield final_response
+            text = ""
+            completed = False
+            async for event in stream:
+                event_type = self._get(event, "type")
+                if event_type == "response.output_text.delta":
+                    delta = self._get(event, "delta", "") or ""
+                    text += delta
+                    yield self._prepare_response(ChatResponse(
+                        message=ChatMessage(role="assistant", content=text), delta=delta, raw=event))
+                elif event_type == "response.completed":
+                    completed = True
+                    raw = self._get(event, "response")
+                    response = self._parse_response_output(raw.output)
+                    response.raw = raw
+                    response.additional_kwargs["usage"] = getattr(raw, "usage", None)
+                    response = self._prepare_response(response)
+                    if self._computer_enabled() and self._computer_calls(response):
+                        response = await self._continue_computer_chain(response, dict(kwargs))
+                        response.delta = str(response.message.content or "")
+                    else:
+                        response.delta = ""
+                    yield response
+                elif event_type in ("response.failed", "response.incomplete", "error"):
+                    raise RuntimeError(f"Responses stream failed: {self._safe_dump(event)}")
+            if not completed:
+                raise RuntimeError("Responses stream ended without response.completed")
 
         return gen()

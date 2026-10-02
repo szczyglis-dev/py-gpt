@@ -300,6 +300,12 @@ class RuntimeMutations {
 		const nodes = this.runtime.dom.get('_nodes_');
 		const before = this.runtime.dom.get('_append_output_before_');
 		const streamContainer = this.runtime.dom.getStreamContainer();
+		// The last deltas may still be waiting for animation-frame delivery.
+		// Materialize them before deciding whether a live node can be promoted;
+		// otherwise we render a durable copy and the pending frame adds a second one.
+		if (String(this.runtime.dom._streamOwnerHint || '') === id) {
+			this.runtime.streaming.flushStreamQueueNow();
+		}
 		let liveBox = null;
 		try { liveBox = streamContainer && streamContainer.querySelector('.msg-box.msg-bot'); } catch (_) {}
 		const ownsLive = !!(liveBox && this.runtime.turns.streamBoxOwner(liveBox) === id);

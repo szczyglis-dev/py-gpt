@@ -134,9 +134,20 @@ class RuntimeEmitter:
         except RuntimeError:
             self._flush_stream()
 
+    def computer_use(self, active=True):
+        """Emit a UI-only computer-use indicator, outside durable agent progress."""
+        if bool(active) == getattr(self, "_computer_use_active", False):
+            return
+        self._computer_use_active = bool(active)
+        if active:
+            self.begin()
+        self._emit(KernelEvent.AGENT_V2_STATUS, status="",
+                   owner={"computer_use": True, "active": bool(active)})
+
     def append(self, text: Optional[str], part_uuid: Optional[str] = None):
         if self._finished or not text:
             return
+        self.computer_use(False)
         self.begin()
         value_part_uuid = str(part_uuid) if part_uuid else None
         if (self._pending_chunk and self._pending_part_uuid
@@ -414,6 +425,7 @@ class RuntimeEmitter:
         self._emit_status_now(value, source, max(0.0, float(hold_for or 0.0)), owner)
 
     def clear_status(self):
+        self.computer_use(False)
         self.status("")
 
     def show_loading(self):
@@ -426,7 +438,7 @@ class RuntimeEmitter:
         """
         if self._finished or self.final_started or self.signals is None:
             return
-        self.clear_status()
+        self.status("")
         data = {"id": "chat"}
         ctx = getattr(self.context, "ctx", None)
         meta = getattr(ctx, "meta", None)

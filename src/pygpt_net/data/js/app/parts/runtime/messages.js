@@ -41,6 +41,7 @@ class RuntimeMessages {
 		this.runtime.dom.clearOutput();
 		this.runtime.dom.clearNodes();
 		this.runtime.data.replace(payload);
+
 	};
 
 	// ========================================

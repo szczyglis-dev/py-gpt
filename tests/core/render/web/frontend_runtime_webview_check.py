@@ -47,6 +47,15 @@ TEST = r"""
     await settle();
     expect(document.querySelectorAll('#msg-bot-2').length===1,'duplicate durable turn');
     expect(document.querySelector('#_nodes_ #msg-bot-2'),'turn not promoted to history');
+    // Finalization can precede the first animation-frame drain of a short reply.
+    begin('queued-final');
+    beginStream(false,'queued-final');
+    appendStream('', 'Short final answer');
+    mutate('finalize_output',node('queued-final','Short final answer'));
+    await settle();
+    expect(document.querySelectorAll('#msg-bot-queued-final').length===1,'queued final duplicated');
+    expect(!document.querySelector('#_append_output_ .msg-box.msg-bot'),'late stream copy survived finalization');
+    expect(document.querySelector('#_nodes_ #msg-bot-queued-final')?.textContent.includes('Short final answer'),'queued final text lost');
     appendPartialStream('2','part-1','Extra **answer**',true,'Agent');
     await settle();
     expect(document.querySelector('#msg-bot-2 [data-live-part] strong')?.textContent==='answer','partial markdown');

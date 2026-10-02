@@ -237,6 +237,7 @@ class RuntimeWorkflows {
 		this.runtime.stream.reasoning.hideReasoningForToolCall(root);
 	};
 
+
 	setToolStatus = (names, parentId = null, statusId = null) => {
 		const values = Array.isArray(names) ? names.filter(Boolean).map(v => String(v)) : [];
 		if (values.length) this.hideReasoningForToolCall(parentId);

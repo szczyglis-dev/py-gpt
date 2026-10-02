@@ -1218,3 +1218,21 @@ def test_legacy_consecutive_status_and_prose_share_one_agent_heading(renderer):
     assert timeline[status_index]["agent_name_prefix"] == "Worker"
     assert timeline[status_index + 1]["text"] == "Saved."
     assert timeline[status_index + 1]["agent_name_prefix"] == ""
+
+
+def test_computer_use_only_emits_special_runtime_status(renderer, fake_window, monkeypatch):
+    meta = DummyCtxMeta()
+    ctx = DummyCtxItem()
+    renderer.agents.workflow_status_key = MagicMock(return_value=((1, '1'), 1, ctx))
+    renderer.agents.workflow_status_add = MagicMock()
+    renderer.tools.tool_output_snapshot = MagicMock()
+    renderer.get_output_node = MagicMock()
+    javascript = renderer.get_output_node.return_value.page.return_value.runJavaScript
+    monkeypatch.setattr('pygpt_net.core.render.web.parts.tools.trans', lambda key: 'Using computer... Press ESC to stop.')
+    renderer.tool_output_begin(meta, ['mouse_click'], ctx)
+    renderer.tool_output_begin(meta, ['keyboard_type'], ctx)
+    assert javascript.call_count == 2
+    assert all('setComputerUseStatus(' in call.args[0] for call in javascript.call_args_list)
+    assert all('Press ESC' in call.args[0] for call in javascript.call_args_list)
+    renderer.agents.workflow_status_add.assert_not_called()
+    renderer.tools.tool_output_snapshot.assert_not_called()

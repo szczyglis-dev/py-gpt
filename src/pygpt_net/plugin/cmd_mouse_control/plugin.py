@@ -182,6 +182,8 @@ class Plugin(BasePlugin):
         if not is_cmd:
             return
 
+        self._show_computer_badge()
+
         # set state: busy
         self.cmd_prepare(ctx, my_commands)
 
@@ -199,6 +201,14 @@ class Plugin(BasePlugin):
         except Exception as e:
             self.error(e)
 
+    def _show_computer_badge(self):
+        # Native computer actions call handle_call directly, bypassing tool
+        # rendering and the normal plugin command dispatcher. Queue UI updates
+        # through the badge signal because this path also runs in agent threads.
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.active_changed.emit(True)
+
     def handle_call(self, item: dict):
         """
         Handle call command
@@ -207,6 +217,7 @@ class Plugin(BasePlugin):
         :param item: command item to execute
         :return:
         """
+        self._show_computer_badge()
         item["params"]["no_screenshot"] = True  # do not take screenshot for single command call
         worker = self.get_worker()
         worker.from_defaults(self)

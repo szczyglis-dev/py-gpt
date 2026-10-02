@@ -750,6 +750,13 @@ class AgentComputerBridge:
         if not commands:
             raise RuntimeError("Computer Use returned no executable action")
 
+        # Hosted computer actions execute a private worker directly, bypassing
+        # plugin cmd/handle_call and Agents v2 ToolCall persistence. Notify the
+        # application indicator here, once per batch, on its queued Qt signal.
+        badge = getattr(runtime.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.active_changed.emit(True)
+
         if runtime.status.show_tool(tool_label):
             runtime.status.emit("status.agent_v2.tool", tool=tool_label)
         runtime.verbose.log("COMPUTER USE ACTIONS", commands, actor="orchestrator")

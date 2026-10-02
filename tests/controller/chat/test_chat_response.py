@@ -334,3 +334,24 @@ def test_failed_logs_handles_and_unlocks_and_dispatches_error():
     assert window.dispatch.called
     ev = window.dispatch.call_args[0][0]
     assert isinstance(ev, KernelEvent)
+
+def test_agent_plugin_computer_status_uses_main_turn_not_private_worker():
+    from threading import Event
+    from pygpt_net.item.ctx import CtxItem
+    window = make_window()
+    window.controller.plugins = MagicMock()
+    window.controller.plugins.apply_cmds_all.return_value = 'OK'
+    main = CtxItem()
+    main.meta = SimpleNamespace(id=42)
+    worker = CtxItem()
+    worker.hidden = True
+    request = {'ctx': worker, 'cmds': [{'cmd': 'mouse_click', 'params': {'x': 1, 'y': 2}}], 'done': Event()}
+    response = Response(window)
+    response.agent_v2_tool_exec(SimpleNamespace(ctx=main), {}, request)
+    events = [call.args[0] for call in window.dispatch.call_args_list]
+    status = next(event for event in events if event.name == RenderEvent.TOOL_BEGIN)
+    assert status.data['ctx'] is main
+    assert status.data['meta'] is main.meta
+    assert status.data['tool_names'] == ['mouse_click']
+    assert request['done'].is_set()
+    assert 'error' not in request

@@ -59,6 +59,9 @@ class Render:
         name = event.name
         data = event.data or {}
 
+        if name in (RenderEvent.STATE_IDLE, RenderEvent.STATE_ERROR):
+            self.stop_computer_use()
+
         if name in self._STATE_EVENTS:
             meta = data.get("meta") or self.window.core.ctx.get_current_meta()
             self.on_state_changed(
@@ -103,6 +106,8 @@ class Render:
         if name == RenderEvent.STREAM_BEGIN:
             self.stream_begin(data.get("meta"), data.get("ctx"))
         elif name == RenderEvent.STREAM_APPEND:
+            if data.get("chunk"):
+                self.stop_computer_use()
             if data.get("partial", False):
                 self.instance().append_part_chunk(
                     data.get("meta"),
@@ -397,6 +402,7 @@ class Render:
         :param meta: context meta
         :param ctx: context item
         """
+        self.stop_computer_use()
         self.instance().stream_end(meta, ctx)
         self.update()
 
@@ -812,8 +818,22 @@ class Render:
             immediate: bool = False,
     ) -> None:
         """Retire a tool-waiting status; optionally remove its DOM row immediately."""
+        # Agent part reconciliation is not a computer-control boundary.
+        # Explicit emitter cleanup/finalization still passes immediate=True.
+        if immediate or not CtxItem.uses_agent_timeline(ctx):
+            self.set_computer_use(False)
         self.instance().tool_output_clear(meta, ctx, immediate=immediate)
         self.update()
+
+    def stop_computer_use(self) -> None:
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.stop()
+
+    def set_computer_use(self, active: bool) -> None:
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.set_active(active)
 
     def tool_output_begin(
             self,
@@ -822,6 +842,10 @@ class Render:
             ctx: Optional[CtxItem] = None,
     ) -> None:
         """Begin a chronological tool waiting status inside the current turn."""
+        from pygpt_net.core.types.tools import MOUSE_KEYBOARD_TOOL_NAMES
+        if any(name in MOUSE_KEYBOARD_TOOL_NAMES for name in tool_names or []):
+            self.set_computer_use(not self.window.controller.kernel.stopped())
+            return
         # A queued TOOL_BEGIN can arrive just after STOP/ESC. Never resurrect a
         # waiting status once the kernel has been halted.
         if self.window.controller.kernel.stopped():

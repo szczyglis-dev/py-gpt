@@ -329,6 +329,9 @@ class WindowChrome(QObject):
         y = max(0, (self.menu_bar.height() - self.BUTTON_HEIGHT) // 2 + self.PROFILE_TOP_OFFSET)
         self.profile_label.setGeometry(x, y, width, self.BUTTON_HEIGHT)
         self.profile_label.raise_()
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.reposition()
 
     def _make_button(
         self,

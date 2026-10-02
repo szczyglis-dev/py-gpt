@@ -88,7 +88,7 @@ class AutonomousAgentMixin(BaseModel):
         self._iteration_limit_reached = iterations + 1 >= limit
         complete = self._completion_requested
         if self._completion_check is not None:
-            complete = self._completion_check()
+            complete = bool(complete or self._completion_check())
         direct_complete = False
         if (
                 self._allow_direct_completion
@@ -101,7 +101,11 @@ class AutonomousAgentMixin(BaseModel):
                 if self._direct_completion_check is not None
                 else True
             )
-        complete = bool(complete or direct_complete)
+        # Responses API identifies the actual final answer explicitly. Local
+        # completion gates still apply to providers without phase metadata.
+        phase = ev.response.additional_kwargs.get("phase")
+        provider_final = self._completion_tool == "task_complete" and phase == "final_answer"
+        complete = bool(complete or direct_complete or provider_final)
         if complete and not ev.tool_calls and not ev.retry_messages and self._iteration_limit_reached:
             # The already generated, approved final response needs no further
             # model work. Let upstream persist it instead of generating a second
@@ -133,6 +137,11 @@ class AutonomousAgentMixin(BaseModel):
             memory = await ctx.store.get("memory")
             await self.finalize(ctx, ev, memory)
             await ctx.store.set("num_iterations", iterations + 1)
+            if phase == "commentary":
+                # This is a provider-labelled intermediate assistant item, not
+                # a new assignment. Replay its preserved phase and existing
+                # results without injecting a synthetic user instruction.
+                return AgentInput(input=await memory.aget(), current_agent_name=self.name)
             await memory.aput(ChatMessage(role="user", content=(
                 "Runtime continuation: the preceding response is a checkpoint, not completion. "
                 "Continue the assigned work, inspect results, fix problems and verify the outcome. "

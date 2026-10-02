@@ -15,6 +15,7 @@ import json
 from typing import Any, Dict, Optional
 
 from pygpt_net.core.types import PERSIST_HIDDEN_TOOL_CALLS
+from pygpt_net.core.types.tools import MOUSE_KEYBOARD_TOOL_NAMES
 
 from .utils import (
     json_safe_tool_result,
@@ -59,6 +60,13 @@ class RuntimeToolHistory:
             raw={"name": name, "arguments": args, "call_id": value},
             extra={"agents_v2": True, "hidden": hidden},
         )
+        if name in MOUSE_KEYBOARD_TOOL_NAMES:
+            # Workers may suppress renderer events; the global badge must not.
+            badge = getattr(self.runtime.window, "computer_use_badge", None)
+            if badge is not None:
+                badge.active_changed.emit(True)
+            if getattr(self.runtime, "visible", True):
+                self.runtime.emitter.computer_use(True)
         if hidden and not PERSIST_HIDDEN_TOOL_CALLS:
             return value
         part = self.runtime.timeline.part(actor, create=True)

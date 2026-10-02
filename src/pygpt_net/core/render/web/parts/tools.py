@@ -16,6 +16,8 @@ from typing import Optional
 
 from ..tool_display import project
 from pygpt_net.core.types import agent as agent_policy
+from pygpt_net.core.types.tools import MOUSE_KEYBOARD_TOOL_NAMES
+from pygpt_net.utils import trans
 
 from pygpt_net.item.ctx import CtxItem, CtxMeta
 
@@ -47,6 +49,8 @@ class Tools:
     ):
         """Show an animated tool row inside the chronological message body."""
         _key, _pid, working_ctx = self.renderer.agents.workflow_status_key(meta, ctx)
+        if any(name in MOUSE_KEYBOARD_TOOL_NAMES for name in tool_names or []):
+            return
         if CtxItem.uses_agent_timeline(working_ctx) and not agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED:
             return
         if tool_names:

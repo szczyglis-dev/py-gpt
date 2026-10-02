@@ -233,3 +233,23 @@ def test_approved_final_at_limit_does_not_generate_another_response():
         assert await ctx.store.get("max_iterations") == 2
         assert await ctx.store.get("num_iterations") == 2
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize('phase, expected', [('commentary',AgentInput),('final_answer',StopEvent)])
+def test_provider_phase_controls_continuation_without_synthetic_assignment(phase, expected):
+    async def scenario():
+        agent=AutonomousFunctionAgent(llm=ToolLLM())
+        agent.configure_completion('task_complete',direct_check=lambda:False)
+        ctx=SimpleNamespace(store=Store(),write_event_to_stream=MagicMock())
+        memory=InlineMemory.from_defaults(token_limit=4096)
+        await memory.aput(ChatMessage(role='user',content='Open Blender and save the result'))
+        await ctx.store.set('memory',memory)
+        event=AgentOutput(response=ChatMessage(role='assistant',content='Checking' if phase=='commentary' else 'Done',
+                            additional_kwargs={'phase':phase}),tool_calls=[],current_agent_name=agent.name)
+        await ctx.store.set(agent.scratchpad_key,[event.response])
+        result=await agent.parse_agent_output(ctx,event)
+        assert isinstance(result,expected)
+        assert not any('Runtime continuation' in (item.content or '') for item in await memory.aget())
+        if phase=='commentary':
+            assert result.input[-1].additional_kwargs['phase']=='commentary'
+    asyncio.run(scenario())

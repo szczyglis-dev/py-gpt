@@ -427,6 +427,9 @@ class Response:
         if self._is_stale_autonomous_ctx(ctx):
             self.window.core.debug.info("[agent] Dropping stale provider failure from an older autonomous run.")
             return
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.stop_requested.emit()
         if ctx is not None:
             if not isinstance(ctx.extra, dict):
                 ctx.extra = {}
@@ -502,7 +505,7 @@ class Response:
             renderer.discard_part_streams(ctx.meta)
         # Clear transient statuses, then synchronize every completed partial/tool
         # inside the same durable CtxItem before the final partial starts.
-        self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx}))
+        self.window.dispatch(RenderEvent(RenderEvent.TOOL_CLEAR, {"meta": ctx.meta, "ctx": ctx, "immediate": True}))
         self.window.dispatch(RenderEvent(RenderEvent.SYNC_OUTPUT, {
             "meta": ctx.meta, "ctx": ctx, "reason": "agent_v2_final_begin",
         }))
@@ -692,6 +695,15 @@ class Response:
         # Once halted, only allow cleanup events so stale rows cannot reappear.
         if self.window.controller.kernel.stopped():
             value = ""
+        if owner and owner.get("computer_use"):
+            active = bool(owner.get("active")) and not self.window.controller.kernel.stopped()
+            if key in self._agent_v2_finalizing:
+                active = False
+            self.window.dispatch(RenderEvent(
+                RenderEvent.TOOL_BEGIN if active else RenderEvent.TOOL_CLEAR,
+                {"meta": ctx.meta, "ctx": ctx, "tool_names": ["mouse_click"], "immediate": True},
+            ))
+            return
         name = RenderEvent.AGENT_STATUS if value else RenderEvent.AGENT_STATUS_CLEAR
         self.window.dispatch(RenderEvent(name, {"meta": ctx.meta, "ctx": ctx, "status": value, **({"owner": owner} if owner else {})}))
 
@@ -718,9 +730,20 @@ class Response:
                     done.set()
                 return
 
+            from pygpt_net.core.types.tools import MOUSE_KEYBOARD_TOOL_NAMES
+            commands = request.get("cmds") or []
+            computer_names = [cmd.get("cmd") for cmd in commands
+                              if cmd.get("cmd") in MOUSE_KEYBOARD_TOOL_NAMES]
+            if computer_names:
+                # Every agent's local plugin call crosses this Qt-thread boundary,
+                # including workers/experts whose normal statuses are suppressed.
+                self.window.dispatch(RenderEvent(RenderEvent.TOOL_BEGIN, {
+                    "meta": context.ctx.meta, "ctx": context.ctx, "tool_names": computer_names,
+                }))
+
             response = self.window.controller.plugins.apply_cmds_all(
                 ctx,
-                request.get("cmds") or [],
+                commands,
             )
 
             # Synchronous/lightweight plugins may already have produced a reply.
@@ -785,6 +808,9 @@ class Response:
             artifacts: Dict[str, Any] = None,
     ):
         """Finalize Agents v2, then expose staged artifacts with the completed final response."""
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.stop_requested.emit()
         ctx = context.ctx
         core_ctx = self.window.core.ctx
         self.agent_v2_status(context, extra, "")

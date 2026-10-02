@@ -126,6 +126,9 @@ class MainWindow(QMainWindow, QtStyleTools):
             self.window_chrome = WindowChrome(self)
             self.window_chrome.setup()
 
+        from pygpt_net.ui.widget.computer_use_badge import ComputerUseBadge
+        self.computer_use_badge = ComputerUseBadge(self)
+
         # global shortcuts
         self.shortcuts = []
         self._esc_shortcut = None  # keep a direct handle to temporarily disable during rerouting

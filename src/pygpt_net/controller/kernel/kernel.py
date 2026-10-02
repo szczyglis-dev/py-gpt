@@ -411,6 +411,9 @@ class Kernel:
         :param exit: If True, exit the application after stopping.
         """
         self.halt = True
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.stop()
         w = self.window
         w.controller.chat.common.stop(exit=exit)
         w.controller.audio.stop_audio()
@@ -461,6 +464,12 @@ class Kernel:
             tray.set_icon(self.STATE_ERROR)
             if is_main:
                 w.dispatch(RenderEvent(RenderEvent.STATE_ERROR, render_data))
+
+        if name in (KernelEvent.STATE_IDLE, KernelEvent.STATE_ERROR):
+            badge = getattr(w, "computer_use_badge", None)
+            if badge is not None:
+                # State updates may originate outside the GUI thread.
+                badge.stop_requested.emit()
 
         msg = event.data.get("msg", None)
         if msg is not None:
