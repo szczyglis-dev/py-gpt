@@ -67,6 +67,10 @@ Canonical Add-on types are:
      - ``addons/vector_stores/<id>``
      - ``BaseStore``
      - Persistent/index storage backends used by RAG/indexing.
+   * - ``file_preview``
+     - ``addons/file_previews/<id>``
+     - ``BaseFilePreview``
+     - Inline Files preview widgets for declared file extensions.
    * - ``loader``
      - ``addons/loaders/<id>``
      - ``BaseLoader``
@@ -2409,6 +2413,71 @@ PyGPT loads locale files directly from every installed ``addons/locale/<id>`` pa
 Treat locale Add-ons as data packages: do not include Python startup logic just to register translations. If an extension also needs executable behavior, package that behavior as the appropriate runtime Add-on type instead of hiding code in a locale package.
 
 When overriding existing keys, test both initial application startup and a runtime language switch where applicable. A restart is still the safest installation/update validation path.
+
+Files preview providers (v2.8.38+)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``file_preview`` Add-on type installs into
+``addons/file_previews/<id>`` and derives from
+``pygpt_net.provider.file_preview.BaseFilePreview``. It supplies a desktop Qt
+widget for an inline Files preview, independently of indexing/data loaders.
+The built-in image, media and text/code previews remain available. Markdown
+(``.md`` and ``.markdown``) has a built-in rendered, read-only preview, with
+relative images/links resolved from the document directory.
+Use Ctrl + mouse wheel to zoom. Links use light blue in dark themes and dark
+blue in light themes. The context menu offers **Edit source** and **Back to
+preview**; returning from modified source offers save, discard or cancel.
+
+A minimal provider is::
+
+   from PySide6.QtCore import Qt
+   from PySide6.QtWidgets import QLabel
+   from pygpt_net.provider.file_preview import BaseFilePreview
+
+   class Preview(BaseFilePreview):
+       id = "example_preview"
+       name = "Example preview"
+       extensions = ("example",)
+
+       def create_widget(self, path, parent):
+           with open(path, encoding="utf-8") as stream:
+               text = stream.read()
+           widget = QLabel(parent)
+           widget.setTextFormat(Qt.PlainText)
+           widget.setText(text)
+           return widget
+
+The package manifest contains ``"type": "file_preview"`` and
+``"entrypoint": "preview.py:Preview"``. See the runnable JSON tree package in
+``examples/addons/file_previews/example_file_preview``.
+
+Provider contract:
+
+* ``id`` is a nonempty, unique provider ID; ``name`` is its human-readable name.
+* ``extensions`` declares case-insensitive suffixes, with or without a leading
+  dot. Override ``accepts(path) -> bool`` for content-based detection; keep this
+  method fast because it runs while selecting files.
+* ``attach_window(window)`` attaches the application; ``self.window`` is available
+  inside the provider. The default implementation does this automatically.
+* ``create_widget(path, parent) -> QWidget`` receives an absolute path and the
+  Files panel, on the GUI thread. Return a fresh widget per call. Files owns,
+  reparents and deletes it. Multiple Files tabs can use the same provider, so
+  keep per-preview state on the widget rather than on the provider.
+* ``release_widget(widget)`` is an optional cleanup hook called before the
+  preview is replaced or the panel is deleted. Stop timers/media and release external resources here;
+  do not delete the widget yourself.
+* Exceptions show an error with an external-open action. Normal file actions
+  remain on the preview panel (open externally, open folder, save as).
+* Add-on providers take precedence over built-ins. Later registrations take
+  precedence over earlier providers for overlapping extensions.
+
+For direct development registration use ``run(file_previews=[Preview()])`` or
+``launcher.add_file_preview(Preview())``. The window-scoped registry is
+``window.core.file_previews``: ``register(provider)``, ``unregister(provider_id)``
+and ``resolve(path)``. Every Files tab consults it on file selection, including
+already-created tabs. Removing a registration affects future selections; an
+existing preview remains usable until replaced. Installed runtime Add-ons are
+loaded at application startup, so restart after installing/updating a package.
 
 Using a custom launcher instead of an installed Add-on
 ------------------------------------------------------

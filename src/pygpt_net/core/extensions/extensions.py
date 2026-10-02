@@ -71,6 +71,7 @@ class Extensions:
         "llm": "llms",
         "vector_store": "vector_stores",
         "loader": "loaders",
+        "file_preview": "file_previews",
         "audio_input": "audio_input",
         "audio_output": "audio_output",
         "web": "web",
@@ -89,6 +90,7 @@ class Extensions:
         "data_loader": "loader",
         "data_loaders": "loader",
         "loaders": "loader",
+        "file_previews": "file_preview",
         "audio_in": "audio_input",
         "input_provider": "audio_input",
         "input_providers": "audio_input",
@@ -110,6 +112,7 @@ class Extensions:
         "llm": "add_llm",
         "vector_store": "add_vector_store",
         "loader": "add_loader",
+        "file_preview": "add_file_preview",
         "audio_input": "add_audio_input",
         "audio_output": "add_audio_output",
         "web": "add_web",
@@ -873,6 +876,7 @@ class Extensions:
         from pygpt_net.provider.audio_output.base import BaseProvider as BaseAudioOutput
         from pygpt_net.provider.llms.base import BaseLLM
         from pygpt_net.provider.loaders.base import BaseLoader
+        from pygpt_net.provider.file_preview import BaseFilePreview
         from pygpt_net.provider.vector_stores.base import BaseStore
         from pygpt_net.provider.web.base import BaseProvider as BaseWeb
         from pygpt_net.tools import BaseTool
@@ -882,6 +886,7 @@ class Extensions:
             "llm": BaseLLM,
             "vector_store": BaseStore,
             "loader": BaseLoader,
+            "file_preview": BaseFilePreview,
             "audio_input": BaseAudioInput,
             "audio_output": BaseAudioOutput,
             "web": BaseWeb,

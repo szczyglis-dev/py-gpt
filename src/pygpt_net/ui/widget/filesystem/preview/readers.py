@@ -45,9 +45,16 @@ class TextReader:
         return text, encoding
 
 
+class MarkdownReader:
+    kind = 'markdown'
+
+    def accepts(self, path):
+        return Path(path).suffix.lower() in {'.md', '.markdown'}
+
+
 class ReaderRegistry:
     def __init__(self):
-        self.readers = [ImageReader(), MediaReader(), TextReader()]
+        self.readers = [ImageReader(), MediaReader(), MarkdownReader(), TextReader()]
 
     def register(self, reader):
         self.readers.insert(0, reader)

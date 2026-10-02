@@ -252,6 +252,10 @@ class Launcher:
         if self.debug:
             print("Loaded vector store: {} ({})".format(store.id, store.__class__.__name__))
 
+    def add_file_preview(self, provider):
+        """Register a BaseFilePreview provider for all Files tabs."""
+        self.window.add_file_preview(provider)
+
     def add_loader(self, loader: BaseLoader):
         """
         Register data loader

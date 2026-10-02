@@ -116,9 +116,9 @@ body {
     min-height: 100vh;
     background-color: #f5f5f5;
     background-image:
-        linear-gradient(rgba(0, 0, 0, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.055) 1px, transparent 1px);
-    background-size: 24px 24px;
+        linear-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.55) 1px, transparent 1px);
+    background-size: 18px 18px;
 }
 </style>
 </head>
@@ -139,9 +139,9 @@ body {
     min-height: 100vh;
     background-color: #1b1c1f;
     background-image:
-        linear-gradient(#2a2c30 1px, transparent 1px),
-        linear-gradient(90deg, #2a2c30 1px, transparent 1px);
-    background-size: 24px 24px;
+        linear-gradient(#16171a 1px, transparent 1px),
+        linear-gradient(90deg, #16171a 1px, transparent 1px);
+    background-size: 18px 18px;
 }
 </style>
 </head>

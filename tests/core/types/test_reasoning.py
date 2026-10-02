@@ -34,7 +34,7 @@ def test_model_efforts_require_opt_in_and_use_exact_bundled_capabilities():
 def test_custom_opted_in_model_falls_back_to_provider_vocabulary():
     model = SimpleNamespace(reasoning_effort=True, provider="x_ai", id="custom-grok")
 
-    assert get_model_efforts(model) == ["none", "low", "medium", "high"]
+    assert get_model_efforts(model) == ["none", "low", "medium", "high", "xhigh"]
 
 
 def test_google_thinking_kwargs_maps_gemini_25_to_budgets_and_newer_models_to_levels():
@@ -68,3 +68,10 @@ def test_choose_effort_keeps_valid_value_and_uses_nearest_lower_on_tie():
 
 def test_choose_effort_falls_back_to_first_value_if_list_contains_only_unknown_levels():
     assert choose_effort("high", ["custom-a", "custom-b"]) == "custom-a"
+
+
+def test_new_models_expose_only_supported_reasoning_efforts():
+    sol = SimpleNamespace(reasoning_effort=True, provider="openai", id="gpt-6.1-sol")
+    grok = SimpleNamespace(reasoning_effort=True, provider="x_ai", id="grok-4.7")
+    assert get_model_efforts(sol) == ["low", "medium", "high", "xhigh", "max"]
+    assert get_model_efforts(grok) == ["low", "medium", "high", "xhigh"]

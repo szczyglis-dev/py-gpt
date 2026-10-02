@@ -13,10 +13,11 @@ import os
 
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QIcon, QTextCursor
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QPlainTextEdit, QVBoxLayout
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QPlainTextEdit, QVBoxLayout, QFrame
 
 from pygpt_net.core.text.editor import TextEditor
 from pygpt_net.utils import trans
+from pygpt_net.ui.widget.textarea.zoom import local_font, zoom_text
 
 
 class TextPreview(TextEditor):
@@ -33,6 +34,8 @@ class TextPreview(TextEditor):
             tabs=True,
         )
         self.setObjectName('filesPreviewText')
+        self.setFrameShape(QFrame.NoFrame)
+        self.setStyleSheet(self.styleSheet() + '\nQPlainTextEdit { border: none; }')
         self.annotation_timer = QTimer(self)
         self.annotation_timer.setInterval(150)
         self.annotation_timer.timeout.connect(self.refresh_annotations)
@@ -43,6 +46,21 @@ class TextPreview(TextEditor):
         self.update_gutter()
         self.highlight_line()
 
+
+    def restore_zoom(self):
+        super().restore_zoom()
+        if self.window is not None:
+            size = self.window.core.config.get('filesystem.preview.text.font_size', 0)
+            if isinstance(size, (int, float)) and size > 0:
+                self.value = max(self.min_font_size, min(self.max_font_size, size))
+                local_font(self, self.value)
+                self._update_tab_stop()
+
+    def on_zoom_changed(self, value):
+        if self.window is not None:
+            zoom_text(self, self.window, value, key='filesystem.preview.text.font_size')
+            self._update_tab_stop()
+            self.update_gutter()
 
     def set_baseline_content(self, text=None):
         """Set the current text as the clean baseline used for dirty-state checks."""

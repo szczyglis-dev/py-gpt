@@ -122,6 +122,12 @@ class Patch:
                     data["model.group_providers"] = True
                     updated = True
 
+            if old < parse_version("2.8.38"):
+                for key in ("filesystem.preview.markdown.font_size", "filesystem.preview.text.font_size"):
+                    if key not in data:
+                        data[key] = 0  # Use the default font until the first zoom gesture.
+                        updated = True
+
         # update file
         migrated = False
         if updated:

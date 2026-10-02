@@ -191,6 +191,10 @@ class MainWindow(QMainWindow, QtStyleTools):
         """
         self.core.idx.storage.register(store.id, store)
 
+    def add_file_preview(self, provider):
+        """Register a widget provider for Files previews."""
+        self.core.file_previews.register(provider)
+
     def add_loader(self, loader):
         """
         Add a data loader to the app

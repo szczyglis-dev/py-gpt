@@ -9,6 +9,7 @@ The examples are deliberately small, but they now execute real code instead of o
 - `llms/example_llm` - offline LlamaIndex `MockLLM` plus `MockEmbedding`.
 - `vector_stores/example_vector_store` - persistent local LlamaIndex vector store.
 - `loaders/example_loader` - reads `.example` key/value files into `Document` objects.
+- `file_previews/example_file_preview` — a `file_preview` add-on with a JSON tree widget; see its README for the public API.
 - `audio_input/example_audio_input` - inspects a WAV file and returns a text transcription-like result.
 - `audio_output/example_audio_output` - creates a playable WAV tone with `prepare_output_path()`.
 - `web/example_web` - performs a real MediaWiki OpenSearch request and returns result URLs.

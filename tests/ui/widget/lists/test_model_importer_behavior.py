@@ -90,3 +90,14 @@ def test_model_importer_update_lists_delegates_both_collections():
     ModelImporter.update_lists(widget, {"a": 1}, {"b": 2})
     widget.update_available.assert_called_once_with({"a": 1})
     widget.update_current.assert_called_once_with({"b": 2})
+
+
+def test_copy_uses_model_id_without_display_suffixes(qapp):
+    from PySide6.QtGui import QStandardItemModel
+    from PySide6.QtWidgets import QApplication
+    model = QStandardItemModel(1, 1)
+    index = model.index(0, 0)
+    model.setData(index, 'actual-id (Friendly name) *')
+    model.setData(index, 'actual-id', QtCore.Qt.ToolTipRole)
+    ImporterList._action_copy(SimpleNamespace(), index)
+    assert QApplication.clipboard().text() == 'actual-id'

@@ -32,6 +32,7 @@ from .core.debug import Debug
 from .core.dispatcher import Dispatcher
 from .core.experts import Experts
 from .core.extensions import Extensions
+from .core.file_preview import FilePreviews
 from .core.idx import Idx
 from .core.installer import Installer
 from .core.filesystem import Filesystem
@@ -91,6 +92,7 @@ class Core:
         self.dispatcher = Dispatcher(window)
         self.experts = Experts(window)
         self.extensions = Extensions(window)
+        self.file_previews = FilePreviews(window)
         self.packages = RuntimePackages(window)
         self.filesystem = Filesystem(window)
         self.idx = Idx(window)

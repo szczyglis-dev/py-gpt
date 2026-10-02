@@ -211,6 +211,8 @@
   "download.dir": "download",
   "extensions.registry.url": "https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json",
   "files.columns.swap": false,
+  "filesystem.preview.markdown.font_size": 0,
+  "filesystem.preview.text.font_size": 0,
   "filesystem.text_editor.tabs.indent_spaces": true,
   "filesystem.text_editor.tabs.width": 4,
   "filesystem.text_editor.word_wrap": false,

@@ -267,7 +267,8 @@ def test_zoom_uses_shared_config_and_ctrl_wheel(app, tmp_path):
     event.angleDelta.return_value = QPoint(0, 120)
     panel.viewer.wheelEvent(event)
     assert panel.viewer.value == 17
-    assert values['font_size'] == 17
+    assert values['filesystem.preview.text.font_size'] == 17
+    assert values['font_size'] == 16
     window.core.config.save.assert_not_called()
     wait(300)
     window.core.config.save.assert_called_once()

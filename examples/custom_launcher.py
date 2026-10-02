@@ -16,6 +16,7 @@ from examples.addons.audio_input.example_audio_input.provider import ExampleAudi
 from examples.addons.audio_output.example_audio_output.provider import ExampleAudioOutput
 from examples.addons.llms.example_llm.provider import ExampleLLM
 from examples.addons.loaders.example_loader.loader import ExampleLoader
+from examples.addons.file_previews.example_file_preview.preview import ExampleFilePreview
 from examples.addons.plugins.example_plugin.plugin import ExamplePlugin
 from examples.addons.tools.example_tool.tool import ExampleTool
 from examples.addons.vector_stores.example_vector_store.provider import ExampleVectorStore
@@ -28,6 +29,7 @@ if __name__ == "__main__":
         llms=[ExampleLLM()],
         vector_stores=[ExampleVectorStore()],
         loaders=[ExampleLoader()],
+        file_previews=[ExampleFilePreview()],
         audio_input=[ExampleAudioInput()],
         audio_output=[ExampleAudioOutput()],
         web=[ExampleWeb()],

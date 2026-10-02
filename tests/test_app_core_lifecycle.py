@@ -36,6 +36,7 @@ _COMPONENTS = {
     "experts": ("pygpt_net.core.experts", "Experts"),
     "extensions": ("pygpt_net.core.extensions", "Extensions"),
     "filesystem": ("pygpt_net.core.filesystem", "Filesystem"),
+    "file_previews": ("pygpt_net.core.file_preview", "FilePreviews"),
     "idx": ("pygpt_net.core.idx", "Idx"),
     "image": ("pygpt_net.core.image", "Image"),
     "installer": ("pygpt_net.core.installer", "Installer"),
