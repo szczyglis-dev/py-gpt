@@ -153,6 +153,7 @@ body.theme-light {
 .agent-card.agent-role-orchestrator { border-color: color-mix(in srgb, var(--wf-accent) 30%, var(--wf-card-border)); }
 .agent-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
@@ -160,8 +161,27 @@ body.theme-light {
     padding: 5px 8px 5px 10px;
     border-bottom: 1px solid var(--wf-card-border);
 }
-.agent-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.agent-name { font-weight: 700; color: var(--wf-text); }
+.agent-title {
+    display: flex;
+    flex: 1 1 220px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.agent-name {
+    flex: 1 0 110px;
+    min-width: 0;
+    max-width: 100%;
+    font-weight: 700;
+    color: var(--wf-text);
+}
+.agent-title > .agent-id,
+.agent-title > .agent-status,
+.agent-title > .agent-elapsed,
+.agent-header > .agent-details-button { flex-shrink: 0; }
 .agent-id {
     color: var(--wf-muted);
     font-size: 8px;

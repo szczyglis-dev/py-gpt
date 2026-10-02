@@ -36,7 +36,8 @@ class ComputerUseBadge(QLabel):
     def set_active(self, active):
         # Every dispatch path (native providers, plugins and agent workers) shares
         # this guard. Queued activation after ESC must never resurrect the frame.
-        if self.window.core.config.get('computer_use.sandbox', False) or (
+        if (not self.window.core.config.get('security.computer.show_warning', True)
+                or self.window.core.config.get('computer_use.sandbox', False)) or (
                 active and self.window.controller.kernel.stopped()):
             self.stop()
             return

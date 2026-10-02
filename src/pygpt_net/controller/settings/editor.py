@@ -147,6 +147,11 @@ class Editor:
 
         self.window.core.config.save()
 
+        if not self.window.core.config.get("security.computer.show_warning", True):
+            badge = getattr(self.window, "computer_use_badge", None)
+            if badge is not None:
+                badge.stop()
+
         # Runtime OpenAI-compatible providers are created/removed immediately,
         # without restarting the application.
         if (self.before_config.get('api_custom_providers', [])
