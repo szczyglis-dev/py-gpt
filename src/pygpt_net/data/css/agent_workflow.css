@@ -6,6 +6,7 @@ html, body {
     min-height: 100%;
 }
 body.agent-workflow {
+    font-size: 0.8rem;
     box-sizing: border-box;
     padding: 12px 14px 18px 10px;
     overflow-wrap: anywhere;
@@ -163,21 +164,21 @@ body.theme-light {
 .agent-name { font-weight: 700; color: var(--wf-text); }
 .agent-id {
     color: var(--wf-muted);
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 400;
     opacity: .82;
     white-space: nowrap;
 }
 .agent-elapsed {
     color: var(--wf-muted);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
     font-variant-numeric: tabular-nums;
     opacity: .72;
     white-space: nowrap;
 }
 .agent-status, .tool-state {
-    font-size: 11px;
+    font-size: 9px;
     line-height: 18px;
     padding: 0 7px;
     border-radius: 10px;
@@ -197,7 +198,7 @@ body.theme-light {
     border-radius: 7px;
     padding: 3px 8px;
     font: inherit;
-    font-size: 11px;
+    font-size: 9px;
     cursor: pointer;
     white-space: nowrap;
 }
@@ -212,7 +213,7 @@ body.theme-light {
 .detail-row + .detail-row { margin-top: 9px; }
 .detail-label {
     color: var(--wf-muted);
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .025em;
@@ -230,7 +231,7 @@ body.theme-light {
     background: transparent;
     color: var(--wf-text);
     font-family: 'Monaspace Neon', monospace !important;
-    font-size: 12px;
+    font-size: 10px;
     tab-size: 4;
     line-height: 1.45;
 }
@@ -265,12 +266,12 @@ body.theme-light {
 .turn {
     min-width: 22px;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 9px;
     color: var(--wf-accent);
 }
 .time {
     color: var(--wf-muted);
-    font-size: 11px;
+    font-size: 9px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
@@ -331,7 +332,7 @@ body.theme-light {
     width: 13px;
     flex: 0 0 13px;
     color: var(--wf-muted);
-    font-size: 11px;
+    font-size: 9px;
     line-height: 1;
 }
 .agent-card.agent-collapsed > .agent-details,

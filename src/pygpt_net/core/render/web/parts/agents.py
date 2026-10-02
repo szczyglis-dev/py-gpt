@@ -583,7 +583,8 @@ class Agents:
                 "id": "progress-" + str(part.uuid), "kind": "agent",
                 "part_uuid": str(part.uuid), "placement": "after", "seq": index,
                 "text": label, "active": False,
-                "hierarchy": ({"calls": calls, "workers": list(workers.values()) if swarm else []}
+                "hierarchy": ({"calls": calls, "workers": list(workers.values()) if swarm else [],
+                               "group_tools": agent_policy.AGENTS_V2_GROUP_TOOL_CALLS}
                               if agent_policy.AGENTS_V2_TOOL_CALLS_ENABLED else None),
             })
         return records

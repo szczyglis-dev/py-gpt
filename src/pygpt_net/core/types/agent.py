@@ -21,3 +21,6 @@ AGENT_TYPE_OPENAI = "agent.type.openai"  # OpenAI Agent
 # Agents v2 expandable tool history. False keeps semantic status labels only:
 # no per-call UI refreshes, WebView tool payloads, or history tool rendering.
 AGENTS_V2_TOOL_CALLS_ENABLED = True
+
+# Group consecutive calls inside each Agents v2 partial, live and in history.
+AGENTS_V2_GROUP_TOOL_CALLS = True

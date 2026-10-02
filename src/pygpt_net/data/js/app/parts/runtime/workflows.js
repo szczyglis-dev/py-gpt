@@ -438,11 +438,8 @@ class RuntimeWorkflows {
             shell.innerHTML = this.runtime.templates.tools.renderProgress(labelText, opts.owner.hierarchy, statusId);
             // Reconcile tool blocks so input/output expansion and DOM identity survive status churn.
             for (const output of Array.from(shell.querySelectorAll('.tool-output[id]'))) {
-                const previous = Array.from(status.querySelectorAll('.tool-output[id]')).find(node => node.id === output.id);
-                if (previous) {
-                    const updated = this.runtime.toolOutput.reconcile(status, output);
-                    output.replaceWith(updated);
-                }
+                const updated = this.runtime.toolOutput.reconcile(status, output);
+                output.replaceWith(updated);
             }
             for (const detail of Array.from(shell.querySelectorAll('details')).reverse()) {
                 const previous = Array.from(status.querySelectorAll('details')).find(node => node.dataset.progressKey === detail.dataset.progressKey);

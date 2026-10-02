@@ -24,7 +24,7 @@ runtime.toolOutput = new ToolOutput(null, {templates:runtime.templates, renderer
 runtime.workflows = new RuntimeWorkflows(runtime);
 runtime.workflows.workflowMessageHost = () => ({timeline});
 window.toggleToolOutput = id => runtime.toolOutput.toggle(id);
-const hierarchy = {calls:[{call_id:'a', name:'read_file', request:'{}'}],workers:[{id:'w1',name:'Worker',status:'running',text:'Reading',calls:[{call_id:'b',name:'search',request:'{}'}]}]};
+const hierarchy = {group_tools:true,calls:[{call_id:'a', name:'read_file', request:'{}'}],workers:[{id:'w1',name:'Worker',status:'running',text:'Reading',calls:[{call_id:'b',name:'search',request:'{}'}]}]};
 runtime.workflows.setAgentStatus('Working','7','progress-p1',{hierarchy});
 const status=timeline.querySelector('.workflow-status');
 const outer=status.querySelector('details'); outer.open=true;
@@ -38,10 +38,10 @@ if(outer!==status.querySelector('details') || !outer.open) throw Error('outer ex
 if(worker!==status.querySelector('.progress-worker') || !worker.open) throw Error('worker expansion lost');
 if(tool!==status.querySelector('.tool-output[id]') || tool.querySelector('button').getAttribute('aria-expanded')!=='true') throw Error('tool expansion lost');
 if(!tool.textContent.includes('done')) throw Error('missing output');
-if(status.querySelectorAll('.tool-output[id]').length!==3) throw Error('missing tools');
+if(status.querySelectorAll('.tool-output[id]').length!==2) throw Error('missing tools');
 const history=runtime.templates.tools.renderProgress('Checking',hierarchy,'progress-p1');
 const replay=document.createElement('div'); replay.innerHTML=history;
-if(replay.querySelectorAll('.tool-output[id]').length!==3 || !replay.querySelector('.progress-worker')) throw Error('history hierarchy lost');
+if(replay.querySelectorAll('.tool-output[id]').length!==2 || !replay.querySelector('.progress-worker')) throw Error('history hierarchy lost');
 'OK';
 '''
 def loaded(ok):

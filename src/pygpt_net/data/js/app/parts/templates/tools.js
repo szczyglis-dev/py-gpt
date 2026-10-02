@@ -16,7 +16,9 @@ class NodeToolsTemplate {
 	renderProgress(label, hierarchy, id) {
         const esc = value => this.templates.escapeHtml(String(value || ''));
         const arrow = `<img src='${this.templates.esc(window.ICON_EXPAND || '')}' class='tool-output-arrow' width='25' height='25' alt=''>`;
-        const tools = (calls, prefix) => (calls || []).map(call =>
+        const tools = (calls, prefix) => hierarchy.group_tools && (calls || []).length > 1
+            ? this.renderToolOutputWrapper({id: `${prefix}-group`, extra: {tool_calls: calls, tool_output_visible: true}})
+            : (calls || []).map(call =>
             this.renderToolOutputWrapper({id: `${prefix}-${call.call_id}`, extra: {tool_calls: [call], tool_output_visible: true}})
         ).join('');
         const workers = (hierarchy.workers || []).map(worker =>
