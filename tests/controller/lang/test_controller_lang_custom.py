@@ -35,7 +35,6 @@ def test_lang_custom_apply_updates_capture_tooltip_and_delegates_subcontrollers(
     with patch("pygpt_net.controller.lang.custom.trans", side_effect=lambda key: f"tr:{key}"):
         Custom(window).apply()
 
-    window.controller.painter.common.retranslate_draw_modes.assert_called_once_with()
     window.ui.nodes["video.preview"].video.setToolTip.assert_called_once_with("tr:vision.capture.label")
     window.controller.attachment.update_tab.assert_called_once_with("chat")
     window.controller.assistant.files.update_tab.assert_called_once_with()
@@ -49,7 +48,7 @@ def test_lang_custom_apply_updates_capture_tooltip_and_delegates_subcontrollers(
 
 def test_lang_custom_apply_uses_auto_capture_tooltip_and_tolerates_missing_painter_helper():
     window = _window(profile_mode="edit", auto_capture=True)
-    window.controller.painter.common.retranslate_draw_modes.side_effect = AttributeError("missing")
+    window.tools.get("painter").settings.retranslate_draw_modes.side_effect = AttributeError("missing")
 
     with patch("pygpt_net.controller.lang.custom.trans", side_effect=lambda key: f"tr:{key}"):
         Custom(window).apply()

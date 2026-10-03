@@ -277,12 +277,6 @@ class Custom:
         except (AttributeError, KeyError, RuntimeError):
             pass
 
-        # painter drawing modes (combo + RMB submenu)
-        try:
-            self.window.controller.painter.common.retranslate_draw_modes()
-        except (AttributeError, KeyError):
-            pass
-
         # camera capture
         if not self.window.core.config.get('vision.capture.auto'):
             self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.label"))

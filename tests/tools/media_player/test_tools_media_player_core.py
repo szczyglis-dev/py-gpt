@@ -18,7 +18,7 @@ def _tool():
     player = MagicMock()
     window = SimpleNamespace(
         core=SimpleNamespace(config=config, filesystem=filesystem),
-        controller=SimpleNamespace(painter=SimpleNamespace(common=MagicMock())),
+        tools=MagicMock(),
         ui=SimpleNamespace(dialogs=MagicMock()),
         video_player=player,
     )
@@ -102,7 +102,7 @@ def test_media_player_play_open_file_and_open():
 
 def test_media_player_grab_frame_uses_deterministic_timestamp():
     tool = _tool()
-    tool.window.controller.painter.common.get_capture_dir.return_value = "/captures"
+    tool.window.tools.get("painter").storage.directory.return_value = "/captures"
     with patch("pygpt_net.tools.media_player.tool.datetime.datetime", _FixedDateTime):
         path = tool.grab_frame()
     assert path.endswith("/captures/cap-2026-09-06_23-45-07.png")

@@ -178,6 +178,8 @@ class Tabs:
         :param tool_id: Tool ID
         :return: Tab
         """
+        if type == Tab.TAB_TOOL_PAINTER:
+            type, tool_id = Tab.TAB_TOOL, "painter"
         existing = self._get_existing_single_instance_tool(type, tool_id)
         if existing is not None:
             return existing
@@ -203,8 +205,6 @@ class Tabs:
             self.add_notepad(tab)
         elif type == Tab.TAB_FILES:
             self.add_tool_explorer(tab)
-        elif type == Tab.TAB_TOOL_PAINTER:
-            self.add_tool_painter(tab)
         elif type == Tab.TAB_TOOL_CALENDAR:
             self.add_tool_calendar(tab)
         elif type == Tab.TAB_TOOL:
@@ -282,6 +282,8 @@ class Tabs:
 
         :param data: Tab data
         """
+        if data.get("type") == Tab.TAB_TOOL_PAINTER:
+            data = dict(data, type=Tab.TAB_TOOL, tool_id="painter")
         if data.get('type') == Tab.TAB_TOOL and data.get('tool_id'):
             tool = self.window.tools.get(data['tool_id'])
             if tool is not None and not tool.can_open_tab():
@@ -338,11 +340,6 @@ class Tabs:
                 self.add_tool_explorer(tab)
             except Exception as e:
                 print("Error restoring explorer tab:", e)
-        elif tab.type == Tab.TAB_TOOL_PAINTER:  # painter
-            try:
-                self.add_tool_painter(tab)
-            except Exception as e:
-                print("Error restoring painter tab:", e)
         elif tab.type == Tab.TAB_TOOL_CALENDAR:  # calendar
             try:
                 self.add_tool_calendar(tab)
@@ -396,7 +393,7 @@ class Tabs:
 
             if tab.type in (Tab.TAB_CHAT, Tab.TAB_NOTEPAD, Tab.TAB_TOOL):
                 tab.cleanup()  # unload refs from memory
-                # IMPORTANT: leave refs to painter and calendar to keep only one instance of each
+                # Calendar retains its legacy singleton frontend.
 
         except Exception as e:
             print(f"Error unloading tab {pid}: {e}")
@@ -803,25 +800,6 @@ class Tabs:
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
 
-    def add_tool_painter(self, tab: Tab):
-        """
-        Add painter tab
-
-        :param tab: Tab instance
-        """
-        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
-        tabs = column.get_tabs()
-        tab.parent = column
-        tab.child = self.window.ui.chat.output.painter.setup()
-        tab.child.append(self.window.ui.painter)
-        self._sync_tooltip_with_title(tab)
-        tab.idx = self.insert_tab(tabs, tab)
-        if hasattr(tab.child, "setOwner"):
-            tab.child.setOwner(tab)
-        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
-        if tab.tooltip is not None:
-            tabs.setTabToolTip(tab.idx, tab.tooltip)
-
     def add_tool_calendar(self, tab: Tab):
         """
         Add calendar tab
@@ -855,7 +833,8 @@ class Tabs:
         if widget is None:
             raise Exception("Tool widget not found: {}".format(tab.tool_id))
         tab.icon = tool.tab_icon
-        tab.title = trans(tool.tab_title)
+        if not tab.custom_name:
+            tab.title = trans(tool.tab_title)
         tab.parent = column
         tab.child = self.from_widget(widget)
         self._sync_tooltip_with_title(tab)
@@ -961,7 +940,7 @@ class Tabs:
             "uuid": uuid.uuid4(),
             "pid": 3,
             "idx": 3,
-            "type": Tab.TAB_TOOL_PAINTER,
+            "type": Tab.TAB_TOOL,
             "data_id": None,
             "title": "Painter",
             "tooltip": "Painter",
@@ -1027,7 +1006,7 @@ class Tabs:
 
         # check for required tabs
         tmp_pid = -1  # tmp PID only for loading
-        required = [Tab.TAB_CHAT, Tab.TAB_FILES, Tab.TAB_TOOL_CALENDAR, Tab.TAB_TOOL_PAINTER]
+        required = [Tab.TAB_CHAT, Tab.TAB_FILES, Tab.TAB_TOOL_CALENDAR]
         for type in required:
             found = False
             for pid in data:

@@ -13,21 +13,21 @@ from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QComboBox, QScrollArea, QLabel, QSizePolicy
 from PySide6.QtCore import QSize, Qt
 
-from pygpt_net.ui.widget.draw.painter import PainterWidget
-from pygpt_net.ui.widget.draw.modes import DRAW_MODE_TRANSLATION_KEYS, DRAW_MODE_ICONS
+from pygpt_net.tools.painter.ui.canvas import PainterWidget
+from pygpt_net.tools.painter.core.modes import DRAW_MODE_TRANSLATION_KEYS, DRAW_MODE_ICONS
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.option.combo import NoScrollCombo
 from pygpt_net.utils import trans
 
 
-class Painter:
-    def __init__(self, window=None):
+class PainterLayout:
+    def __init__(self, tool):
         """
         Painter UI
 
         :param window: Window instance
         """
-        self.window = window
+        self.tool = tool
         self._initialized = False
 
     def init(self):
@@ -36,12 +36,11 @@ class Painter:
 
         :return: QWidget
         """
-        ui = self.window.ui
-        nodes = ui.nodes
-        common = self.window.controller.painter.common
+        nodes = self.tool.nodes
+        common = self.tool.settings
 
-        if getattr(ui, 'painter', None) is None:
-            ui.painter = PainterWidget(self.window)
+        if self.tool.canvas is None:
+            self.tool.canvas = PainterWidget(self.tool)
 
         key = 'painter.select.draw.mode'
         if nodes.get(key) is None:
@@ -68,13 +67,13 @@ class Painter:
         if nodes.get(key) is None:
             rb = QRadioButton(trans('painter.mode.paint'))
             rb.setChecked(True)
-            rb.toggled.connect(self.window.controller.painter.common.set_brush_mode)
+            rb.toggled.connect(self.tool.settings.set_brush_mode)
             nodes[key] = rb
 
         key = 'painter.btn.erase'
         if nodes.get(key) is None:
             rb = QRadioButton(trans('painter.mode.erase'))
-            rb.toggled.connect(self.window.controller.painter.common.set_erase_mode)
+            rb.toggled.connect(self.tool.settings.set_erase_mode)
             nodes[key] = rb
 
         key = 'painter.select.brush.size'
@@ -122,9 +121,9 @@ class Painter:
 
                 # Preferred preset steps from widget; fallback to defaults
                 steps = []
-                if hasattr(ui.painter, 'get_zoom_steps_percent'):
+                if self.tool.canvas is not None:
                     try:
-                        steps = ui.painter.get_zoom_steps_percent()
+                        steps = self.tool.canvas.viewport.steps()
                     except Exception:
                         steps = []
                 if not steps:
@@ -133,7 +132,7 @@ class Painter:
                 cb.addItems([f"{p}%" for p in steps])
 
                 # User -> widget
-                cb.currentTextChanged.connect(ui.painter.on_zoom_combo_changed)
+                cb.currentTextChanged.connect(self.tool.canvas.viewport.on_zoom_changed)
 
                 # Widget -> combo (also covers CTRL+wheel and programmatic changes)
                 def _sync_zoom_combo_from_widget(z):
@@ -163,8 +162,8 @@ class Painter:
 
                 # Keep reference to prevent GC of the inner function
                 cb._sync_zoom_combo_from_widget = _sync_zoom_combo_from_widget
-                if hasattr(ui.painter, 'zoomChanged'):
-                    ui.painter.zoomChanged.connect(cb._sync_zoom_combo_from_widget)
+                if hasattr(self.tool.canvas, 'zoomChanged'):
+                    self.tool.canvas.zoomChanged.connect(cb._sync_zoom_combo_from_widget)
 
                 # Initial label; actual value will be set by load_zoom below
                 cb.setCurrentText("100%")
@@ -179,18 +178,22 @@ class Painter:
 
         self._initialized = True
 
-    def setup(self) -> QWidget:
-        """
-        Setup painter
+    @property
+    def window(self):
+        return self.tool.window
 
-        :return: QWidget
-        """
+    def build(self):
         self.init()
-        body = self.window.core.tabs.from_layout(self.setup_painter())
-        # from_layout resets margins; apply the painter's spacing afterwards.
+        body = PainterTab(self.tool)
+        body.setLayout(self.setup_painter())
         body.layout().setContentsMargins(15, 0, 15, 0)
-        self.window.ui.painter.bind_clipboard_shortcuts(body, self.window.ui.painter_scroll)
-        body.append(self.window.ui.painter)
+        self.tool.canvas.bind_clipboard_shortcuts(body, self.tool.scroll_area)
+        for key, translation in {
+            'painter.btn.brush': 'painter.mode.paint',
+            'painter.btn.erase': 'painter.mode.erase',
+            'tip.output.tab.draw': 'tip.output.tab.draw',
+        }.items():
+            self.tool.add_lang_mapping(self.tool.nodes[key], translation)
         return body
 
     def setup_painter(self) -> QVBoxLayout:
@@ -199,8 +202,7 @@ class Painter:
 
         :return: QVBoxLayout
         """
-        ui = self.window.ui
-        nodes = ui.nodes
+        nodes = self.tool.nodes
 
         top = QHBoxLayout()
         top.addWidget(nodes['painter.btn.brush'])
@@ -214,25 +216,25 @@ class Painter:
         top.addWidget(nodes['painter.select.zoom'])
         top.addStretch(1)
 
-        if getattr(ui, 'painter_scroll', None) is None:
-            ui.painter_scroll = QScrollArea()
-            ui.painter_scroll.setWidget(ui.painter)
+        if self.tool.scroll_area is None:
+            self.tool.scroll_area = QScrollArea()
+            self.tool.scroll_area.setWidget(self.tool.canvas)
             # Must be False to allow content widget to grow/shrink with zoom and show scrollbars
-            ui.painter_scroll.setWidgetResizable(False)
+            self.tool.scroll_area.setWidgetResizable(False)
         else:
-            if ui.painter_scroll.widget() is not ui.painter:
-                ui.painter_scroll.setWidget(ui.painter)
-            ui.painter_scroll.setWidgetResizable(False)
+            if self.tool.scroll_area.widget() is not self.tool.canvas:
+                self.tool.scroll_area.setWidget(self.tool.canvas)
+            self.tool.scroll_area.setWidgetResizable(False)
 
         # The zoomed canvas must not determine the containing tab's size.
         # Keep both scrollbars inside the space allocated to the viewport.
-        ui.painter_scroll.setMinimumSize(0, 0)
-        ui.painter_scroll.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        ui.painter_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        ui.painter_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.tool.scroll_area.setMinimumSize(0, 0)
+        self.tool.scroll_area.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.tool.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.tool.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         # At high zoom the proportional thumb can become only a few pixels
         # tall. Give it a usable minimum size without changing theme colors.
-        ui.painter_scroll.setStyleSheet("""
+        self.tool.scroll_area.setStyleSheet("""
             QScrollBar::handle:vertical { min-height: 32px; }
             QScrollBar::handle:horizontal { min-width: 32px; }
         """)
@@ -243,8 +245,33 @@ class Painter:
 
         layout = QVBoxLayout()
         layout.addLayout(top)
-        layout.addWidget(ui.painter_scroll, 1)
+        layout.addWidget(self.tool.scroll_area, 1)
         layout.addWidget(nodes['tip.output.tab.draw'])
         layout.setContentsMargins(0, 0, 0, 0)
 
         return layout
+
+
+class PainterTab(QWidget):
+    """A single drawing frontend managed through the normal tool tab API."""
+    def __init__(self, tool):
+        super().__init__()
+        self.tool = tool
+        self.tab = None
+
+    def set_tab(self, tab):
+        self.tab = tab
+        self.tool.canvas.set_tab(tab)
+
+    def on_delete(self):
+        if self.tool.frontend is not self:
+            return
+        self.tool.storage.save()
+        self.tool.unregister_surface(self.tool)
+        self.tool.canvas.viewport.stop_autoscroll()
+        self.tool.canvas.cancel_active_drawing()
+        self.tool.canvas.text.cancel(self.tool.canvas)
+        self.tool.canvas = None
+        self.tool.scroll_area = None
+        self.tool.frontend = None
+        self.tool.nodes.clear()

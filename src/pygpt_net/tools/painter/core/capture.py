@@ -9,10 +9,8 @@
 # Updated Date: 2026.09.24 17:30:00                  #
 # ================================================== #
 
-from __future__ import annotations
 
 import datetime
-import math
 import os
 from typing import Optional, Union, TYPE_CHECKING
 
@@ -33,13 +31,17 @@ class Capture:
     # coordinates match the point that will actually be clicked.
     CURSOR_HOTSPOT = (17, 11)
 
-    def __init__(self, window=None):
+    def __init__(self, tool):
         """
         Painter capture controller
 
         :param window: Window instance
         """
-        self.window = window
+        self.tool = tool
+
+    @property
+    def window(self):
+        return self.tool.window
 
     def camera(self, show_flash: bool = True):
         """Get image from camera and put it on the Painter canvas."""
@@ -52,7 +54,7 @@ class Capture:
         height, width, channel = frame.shape
         bytes = 3 * width
         image = QImage(frame.data, width, height, bytes, QImage.Format_RGB888)
-        self.window.ui.painter.set_image(image)
+        self.tool.ensure_canvas().document.set_image(image)
         if show_flash:
             self.window.ui.tray.show_capture_flash()
         return True
@@ -154,7 +156,7 @@ class Capture:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
-            path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+            path = os.path.join(self.tool.storage.directory(), name + '.png')
 
             # capture screenshot
             import mss
@@ -172,7 +174,7 @@ class Capture:
             self.attach(name, path, 'screenshot', silent=silent, append_to_ctx=append_to_ctx)
 
             if not silent:
-                self.window.controller.painter.open(path)
+                self.tool.ensure_canvas().document.open(path)
                 # show last capture time in status
                 dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
                 event = KernelEvent(KernelEvent.STATUS, {
@@ -220,7 +222,7 @@ class Capture:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
-            path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+            path = os.path.join(self.tool.storage.directory(), name + '.png')
 
             import mss
             import mss.tools
@@ -258,7 +260,7 @@ class Capture:
             self.attach(name, path, 'screenshot', silent=silent)
 
             if not silent:
-                self.window.controller.painter.open(path)
+                self.tool.ensure_canvas().document.open(path)
                 dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
                 event = KernelEvent(KernelEvent.STATUS, {
                     'status': trans("painter.capture.manual.captured.success") + ' ' + dt_info,
@@ -302,7 +304,7 @@ class Capture:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
-            path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+            path = os.path.join(self.tool.storage.directory(), name + '.png')
 
             # capture screenshot from page
             if page:
@@ -333,7 +335,7 @@ class Capture:
             self.attach(name, path, 'screenshot', silent=silent, append_to_ctx=append_to_ctx)
 
             if not silent:
-                self.window.controller.painter.open(path)
+                self.tool.ensure_canvas().document.open(path)
                 # show last capture time in status
                 dt_info = now.strftime("%Y-%m-%d %H:%M:%S")
                 event = KernelEvent(KernelEvent.STATUS, {
@@ -355,18 +357,16 @@ class Capture:
         :return: Saved PNG path, or None on failure
         """
         try:
-            painter = getattr(self.window.ui, "painter", None)
+            painter = self.tool.canvas
             if painter is None:
                 return None
 
             # Painter keeps a composited export cache separate from the live
             # drawing/base layers. Make sure the exported image includes the
             # latest strokes regardless of the current zoom/display size.
-            ensure = getattr(painter, "_ensure_composited_image", None)
-            if callable(ensure):
-                ensure()
+            painter.document.compose()
 
-            image = getattr(painter, "image", None)
+            image = painter.document.image
             if image is None or image.isNull():
                 return None
 
@@ -402,10 +402,11 @@ class Capture:
             now = datetime.datetime.now()
             dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
-            path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+            path = os.path.join(self.tool.storage.directory(), name + '.png')
 
             # capture
-            self.window.ui.painter.image.save(path)
+            self.tool.ensure_canvas().document.compose()
+            self.tool.canvas.document.image.save(path)
             self.attach(name, path)
             self.window.controller.tabs.switch_to_last_chat()
             self.window.controller.chat.common.focus_input()

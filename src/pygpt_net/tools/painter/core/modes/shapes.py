@@ -31,13 +31,13 @@ class ShapeDrawMode(BaseDrawMode):
             return
         self.current = QPoint(point)
         if self.has_geometry():
-            widget._ensure_layers()
-            painter = QPainter(widget.drawingLayer)
+            widget.document.ensure_layers()
+            painter = QPainter(widget.document.drawing)
             painter.setRenderHint(QPainter.Antialiasing, True)
             painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
             self.draw_shape(widget, painter)
             painter.end()
-            widget._mark_composite_dirty()
+            widget.document.mark_composite_dirty()
             widget._commit_draw_transaction()
         else:
             widget._cancel_draw_transaction()

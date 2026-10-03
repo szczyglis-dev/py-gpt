@@ -29,7 +29,7 @@ def dummy_window():
     scr.size.return_value = size
     win.app.primaryScreen.return_value = scr
     win.controller.attachment.clear_silent = MagicMock()
-    win.controller.painter.capture.screenshot = MagicMock(return_value="dummy_path")
+    win.tools.get("painter").capture.screenshot = MagicMock(return_value="dummy_path")
     return win
 
 @pytest.fixture
@@ -66,7 +66,7 @@ def test_screenshot(tmp_path, dummy_window):
     dummy_data = b"test_image"
     screenshot_file = tmp_path / "screenshot.png"
     screenshot_file.write_bytes(dummy_data)
-    dummy_window.controller.painter.capture.screenshot.return_value = str(screenshot_file)
+    dummy_window.tools.get("painter").capture.screenshot.return_value = str(screenshot_file)
     result = comp.screenshot()
     expected = base64.b64encode(dummy_data).decode("utf-8")
     assert result == expected

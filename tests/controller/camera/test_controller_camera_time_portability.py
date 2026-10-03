@@ -40,7 +40,7 @@ def _camera():
 
 def test_camera_capture_frame_uses_fixed_clock_and_mocks_cv2_boundary():
     camera = _camera()
-    camera.window.controller.painter.capture.camera = MagicMock()
+    camera.window.tools.get("painter").capture.camera = MagicMock()
     fake_cv2 = SimpleNamespace(IMWRITE_JPEG_QUALITY=1, imwrite=MagicMock())
     expected_name = "cap-2025-01-02_03-04-05"
     expected_path = os.path.join("/capture", expected_name + ".jpg")
@@ -52,7 +52,7 @@ def test_camera_capture_frame_uses_fixed_clock_and_mocks_cv2_boundary():
 
     assert result is True
     fake_cv2.imwrite.assert_called_once_with(expected_path, "rgb-frame", [1, 91])
-    camera.window.controller.painter.capture.camera.assert_called_once_with(show_flash=False)
+    camera.window.tools.get("painter").capture.camera.assert_called_once_with(show_flash=False)
     camera.window.core.attachments.new.assert_called_once()
     args = camera.window.core.attachments.new.call_args.args
     assert args[0] == "chat"

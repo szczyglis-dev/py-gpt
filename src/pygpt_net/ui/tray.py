@@ -354,7 +354,7 @@ class Tray:
 
     def make_screenshot(self):
         """Make a full-screen screenshot and show a short capture flash."""
-        path = self.window.controller.painter.capture.screenshot()
+        path = self.window.tools.get("painter").capture.screenshot()
         if path:
             self.show_capture_flash(0)
         self.window.restore()
@@ -400,7 +400,7 @@ class Tray:
 
     def _capture_region_screenshot(self, region, screen_geometry, screen_index: int = 0):
         """Perform the deferred region capture and restore the application."""
-        path = self.window.controller.painter.capture.screenshot_region(
+        path = self.window.tools.get("painter").capture.screenshot_region(
             region,
             screen_geometry,
             screen_index=screen_index,

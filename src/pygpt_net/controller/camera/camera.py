@@ -210,7 +210,7 @@ class Camera(QObject):
                 int(self.window.core.config.get('vision.capture.quality'))
             ]
             frame = self.get_current_frame()
-            self.window.controller.painter.capture.camera(show_flash=False)  # capture to draw
+            self.window.tools.get("painter").capture.camera(show_flash=False)  # capture to draw
 
             cv2.imwrite(path, frame, compression_params)
             mode = self.window.core.config.get('mode')
@@ -620,7 +620,7 @@ class Camera(QObject):
 
         :return: True if capture is allowed
         """
-        if self.window.controller.painter.is_active():
+        if self.window.tools.get("painter").is_active():
             return True
         if self.window.controller.ui.vision.has_vision():
             return True

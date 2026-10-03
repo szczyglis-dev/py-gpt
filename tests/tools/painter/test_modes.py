@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 from PySide6.QtCore import QPoint
 from PySide6.QtGui import QColor
 
-from pygpt_net.ui.widget.draw.modes import (
+from pygpt_net.tools.painter.core.modes import (
     ArrowDrawMode,
     CircleDrawMode,
     DrawMode,
@@ -53,13 +53,13 @@ def test_free_draw_lifecycle():
     widget._mode = 'brush'
     widget.brushSize = 5
     widget._pen = MagicMock()
-    widget.drawingLayer = MagicMock()
+    widget.document.drawing = MagicMock()
     widget._dirty_canvas_rect_for_point.return_value = MagicMock()
     widget._dirty_canvas_rect_for_segment.return_value = MagicMock()
-    widget._from_canvas_rect.side_effect = lambda value: value
+    widget.viewport.from_canvas_rect.side_effect = lambda value: value
 
     qt_painter = MagicMock()
-    with patch('pygpt_net.ui.widget.draw.modes.free.QPainter', return_value=qt_painter):
+    with patch('pygpt_net.tools.painter.core.modes.free.QPainter', return_value=qt_painter):
         mode = FreeDrawMode()
         mode.begin(widget, QPoint(10, 10))
         mode.update(widget, QPoint(20, 20))
@@ -75,7 +75,7 @@ def test_free_draw_lifecycle():
 def test_shape_release_commits_only_after_mouse_release():
     """Test shape preview does not touch layer until release, then commits once."""
     widget = MagicMock()
-    widget.drawingLayer = MagicMock()
+    widget.document.drawing = MagicMock()
     widget.brushSize = 3
     widget.brushColor = QColor('red')
     fake_painter = MagicMock()
@@ -85,11 +85,11 @@ def test_shape_release_commits_only_after_mouse_release():
     mode.update(widget, QPoint(50, 50))
     widget._commit_draw_transaction.assert_not_called()
 
-    with patch('pygpt_net.ui.widget.draw.modes.shapes.QPainter', return_value=fake_painter):
+    with patch('pygpt_net.tools.painter.core.modes.shapes.QPainter', return_value=fake_painter):
         mode.release(widget, QPoint(60, 60))
 
     fake_painter.drawLine.assert_called_once()
-    widget._mark_composite_dirty.assert_called_once()
+    widget.document.mark_composite_dirty.assert_called_once()
     widget._commit_draw_transaction.assert_called_once()
     widget._cancel_draw_transaction.assert_not_called()
     assert mode.active is False
@@ -164,13 +164,13 @@ def test_free_draw_setup_painter_uses_erase_composition_and_transparent_pen():
     widget = MagicMock()
     widget._mode = "erase"
     widget.brushSize = 7
-    widget.drawingLayer = MagicMock()
+    widget.document.drawing = MagicMock()
     painter = MagicMock()
-    with patch("pygpt_net.ui.widget.draw.modes.free.QPainter", return_value=painter) as painter_cls, \
-         patch("pygpt_net.ui.widget.draw.modes.free.QPen", return_value="ERASER_PEN") as pen_cls:
+    with patch("pygpt_net.tools.painter.core.modes.free.QPainter", return_value=painter) as painter_cls, \
+         patch("pygpt_net.tools.painter.core.modes.free.QPen", return_value="ERASER_PEN") as pen_cls:
         result = FreeDrawMode()._setup_painter(widget)
     assert result is painter
-    painter_cls.assert_called_once_with(widget.drawingLayer)
+    painter_cls.assert_called_once_with(widget.document.drawing)
     painter.setCompositionMode.assert_called_once_with(painter_cls.CompositionMode_Clear)
     painter.setPen.assert_called_once_with("ERASER_PEN")
     assert pen_cls.call_args.args[1] == 7
@@ -180,9 +180,9 @@ def test_free_draw_setup_painter_uses_existing_pen_for_brush():
     widget = MagicMock()
     widget._mode = "brush"
     widget._pen = MagicMock()
-    widget.drawingLayer = MagicMock()
+    widget.document.drawing = MagicMock()
     painter = MagicMock()
-    with patch("pygpt_net.ui.widget.draw.modes.free.QPainter", return_value=painter) as painter_cls:
+    with patch("pygpt_net.tools.painter.core.modes.free.QPainter", return_value=painter) as painter_cls:
         FreeDrawMode()._setup_painter(widget)
     painter.setCompositionMode.assert_called_once_with(painter_cls.CompositionMode_SourceOver)
     painter.setPen.assert_called_once_with(widget._pen)
@@ -221,7 +221,7 @@ def test_arrow_zero_length_does_not_draw():
     painter = MagicMock()
     point = SimpleNamespace(x=lambda: 5.0, y=lambda: 5.0)
     mode = ArrowDrawMode(); mode.start = point; mode.current = point
-    with patch("pygpt_net.ui.widget.draw.modes.shapes.QPointF", side_effect=lambda value: value):
+    with patch("pygpt_net.tools.painter.core.modes.shapes.QPointF", side_effect=lambda value: value):
         mode.draw_shape(widget, painter)
     painter.drawLine.assert_not_called()
     painter.drawPolygon.assert_not_called()

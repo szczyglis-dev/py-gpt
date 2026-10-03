@@ -7,9 +7,10 @@ from pygpt_net.ui.tray import Tray
 def _tray():
     window = SimpleNamespace(
         restore=MagicMock(),
+        tools=MagicMock(),
         controller=SimpleNamespace(
             tabs=MagicMock(), ctx=MagicMock(), notepad=MagicMock(), plugins=MagicMock(), launcher=MagicMock(),
-            painter=SimpleNamespace(capture=MagicMock()), chat=SimpleNamespace(common=MagicMock()),
+            chat=SimpleNamespace(common=MagicMock()),
         ),
         ui=SimpleNamespace(tray_menu={}),
     )
@@ -42,7 +43,7 @@ def test_tray_commands_restore_then_delegate():
 
 def test_fullscreen_screenshot_flashes_only_on_success():
     tray = _tray()
-    tray.window.controller.painter.capture.screenshot.return_value = "/tmp/a.png"
+    tray.window.tools.get("painter").capture.screenshot.return_value = "/tmp/a.png"
     Tray.make_screenshot(tray)
     tray.show_capture_flash.assert_called_once_with(0)
     tray.window.restore.assert_called_once_with()
@@ -68,10 +69,10 @@ def test_region_capture_is_deferred():
 
 def test_capture_region_restores_and_focuses_input():
     tray = _tray()
-    tray.window.controller.painter.capture.screenshot_region.return_value = "/tmp/crop.png"
+    tray.window.tools.get("painter").capture.screenshot_region.return_value = "/tmp/crop.png"
     region, geometry = object(), object()
     Tray._capture_region_screenshot(tray, region, geometry, 3)
-    tray.window.controller.painter.capture.screenshot_region.assert_called_once_with(
+    tray.window.tools.get("painter").capture.screenshot_region.assert_called_once_with(
         region, geometry, screen_index=3,
     )
     tray.show_capture_flash.assert_called_once_with(3)

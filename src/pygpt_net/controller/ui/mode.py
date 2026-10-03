@@ -378,7 +378,7 @@ class Mode:
         if ctrl.ui.vision.has_vision():
             return True
 
-        if ctrl.painter.is_active():
+        if self.window.tools.get("painter").is_active():
             return True
 
         value = False

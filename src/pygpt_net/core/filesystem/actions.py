@@ -219,7 +219,7 @@ class Actions:
                 parent,
             )
             action.triggered.connect(
-                lambda: self.window.controller.painter.open_external(path),
+                lambda: self.window.tools.get("painter").open(path),
             )
             actions.append(action)
         return actions

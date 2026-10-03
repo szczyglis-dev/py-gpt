@@ -229,8 +229,9 @@ def test_video_player_toggle_play_pause_pauses_playing_or_delegates_play():
 def test_video_player_use_frame_as_attachment_or_image():
     player_tool = MagicMock()
     player_tool.grab_frame.return_value = "/tmp/frame.png"
-    tools = MagicMock(); tools.get.return_value = player_tool
+    tools = MagicMock()
     files = MagicMock(); painter = MagicMock()
+    tools.get.side_effect = lambda key: painter if key == "painter" else player_tool
     widget = SimpleNamespace(
         window=SimpleNamespace(
             tools=tools,
@@ -241,7 +242,7 @@ def test_video_player_use_frame_as_attachment_or_image():
     VideoPlayerWidget.use_as_attachment(widget)
     files.use_attachment.assert_called_once_with("/tmp/frame.png")
     VideoPlayerWidget.use_as_image(widget)
-    painter.open_external.assert_called_once_with("/tmp/frame.png")
+    painter.open.assert_called_once_with("/tmp/frame.png")
 
 
 def test_video_player_toggle_fullscreen_switches_dialog_state():

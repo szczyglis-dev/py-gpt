@@ -168,11 +168,13 @@ def test_on_tab_changed_dispatches_type_specific_actions(tabs_env, monkeypatch):
     assert window.controller.notepad.opened_once is True
     window.controller.notepad.on_open.assert_called_with(0, 0)
 
-    painter = tabs_env.make_tab(pid=21, idx=0, column_idx=0, type=Tab.TAB_TOOL_PAINTER)
+    painter = tabs_env.make_tab(pid=21, idx=0, column_idx=0, type=Tab.TAB_TOOL)
+    painter.tool_id = "painter"
+    window.tools = MagicMock()
     tabs_env.install(painter)
     window.core.config.get.side_effect = lambda key, default=None: True if key == "vision.capture.enabled" else tabs_env.config_values.get(key, default)
     handler.on_tab_changed(0, 0)
-    window.controller.camera.enable_capture.assert_called_once_with()
+    window.tools.get("painter").on_selected.assert_called_once_with(painter)
 
     calendar = tabs_env.make_tab(pid=22, idx=0, column_idx=0, type=Tab.TAB_TOOL_CALENDAR)
     tabs_env.install(calendar)

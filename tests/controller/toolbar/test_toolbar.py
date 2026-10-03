@@ -7,6 +7,7 @@ import pytest
 from PySide6.QtWidgets import QApplication, QMainWindow, QSplitter, QWidget, QPushButton
 
 from pygpt_net.controller.toolbar import Toolbar
+from pygpt_net.core.tabs.tab import Tab
 
 
 @pytest.fixture
@@ -77,7 +78,7 @@ def test_toolbox_toggle_animates_and_hides_splitter_handle(qapp, monkeypatch, to
     window.close()
 
 
-@pytest.mark.parametrize('action, tab_type', [('files', 2), ('notepad', 1), ('painter', 3)])
+@pytest.mark.parametrize('action, tab_type', [('files', 2), ('notepad', 1), ('painter', Tab.TAB_TOOL)])
 @pytest.mark.parametrize('split, selected_type, collapse', [
     (True, None, False), (False, 2, False), (True, 0, False),
     (True, 'same', True),
@@ -86,7 +87,7 @@ def test_tool_buttons_collapse_only_the_selected_visible_right_tool(action, tab_
                                                                     split, selected_type, collapse):
     tabs = MagicMock()
     selected = tab_type if selected_type == 'same' else selected_type
-    tabs.get_current_by_column.return_value = (SimpleNamespace(type=selected)
+    tabs.get_current_by_column.return_value = (SimpleNamespace(type=selected, tool_id="painter" if action == "painter" else None)
                                                if selected is not None else None)
     tabs.is_split_screen_enabled.return_value = split
     window = SimpleNamespace(controller=SimpleNamespace(tabs=tabs))
@@ -95,5 +96,5 @@ def test_tool_buttons_collapse_only_the_selected_visible_right_tool(action, tab_
         tabs.disable_split_screen.assert_called_once_with()
         tabs.open_or_activate.assert_not_called()
     else:
-        tabs.open_or_activate.assert_called_once_with(tab_type)
+        tabs.open_or_activate.assert_called_once_with(tab_type, "painter") if action == "painter" else tabs.open_or_activate.assert_called_once_with(tab_type)
         tabs.disable_split_screen.assert_not_called()

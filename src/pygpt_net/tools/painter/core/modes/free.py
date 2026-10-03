@@ -21,7 +21,7 @@ class FreeDrawMode(BaseDrawMode):
     mode = DrawMode.FREE
 
     def _setup_painter(self, widget) -> QPainter:
-        painter = QPainter(widget.drawingLayer)
+        painter = QPainter(widget.document.drawing)
         painter.setRenderHint(QPainter.Antialiasing, True)
         if widget._mode == "erase":
             painter.setCompositionMode(QPainter.CompositionMode_Clear)
@@ -33,26 +33,26 @@ class FreeDrawMode(BaseDrawMode):
 
     def begin(self, widget, point: QPoint):
         super().begin(widget, point)
-        widget._ensure_layers()
+        widget.document.ensure_layers()
         painter = self._setup_painter(widget)
         painter.drawPoint(point)
         painter.end()
-        widget._mark_composite_dirty()
+        widget.document.mark_composite_dirty()
         dirty = widget._dirty_canvas_rect_for_point(point, widget.brushSize)
-        widget.update(widget._from_canvas_rect(dirty))
+        widget.update(widget.viewport.from_canvas_rect(dirty))
 
     def update(self, widget, point: QPoint):
         if not self.active:
             return
-        widget._ensure_layers()
+        widget.document.ensure_layers()
         previous = QPoint(self.current)
         self.current = QPoint(point)
         painter = self._setup_painter(widget)
         painter.drawLine(previous, self.current)
         painter.end()
-        widget._mark_composite_dirty()
+        widget.document.mark_composite_dirty()
         dirty = widget._dirty_canvas_rect_for_segment(previous, self.current, widget.brushSize)
-        widget.update(widget._from_canvas_rect(dirty))
+        widget.update(widget.viewport.from_canvas_rect(dirty))
 
     def release(self, widget, point: QPoint):
         if not self.active:

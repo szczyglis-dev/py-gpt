@@ -18,19 +18,19 @@ class Toolbar:
         return self.toggle_tool(Tab.TAB_FILES)
 
     def painter(self):
-        return self.toggle_tool(Tab.TAB_TOOL_PAINTER)
+        return self.toggle_tool(Tab.TAB_TOOL, "painter")
 
     def notepad(self):
         return self.toggle_tool(Tab.TAB_NOTEPAD)
 
-    def toggle_tool(self, tab_type):
+    def toggle_tool(self, tab_type, tool_id=None):
         """Collapse a tool already selected on the right; otherwise reveal it."""
         tabs = self.window.controller.tabs
         current = tabs.get_current_by_column(1)
-        if tabs.is_split_screen_enabled() and current is not None and current.type == tab_type:
+        if tabs.is_split_screen_enabled() and current is not None and current.type == tab_type and (tool_id is None or current.tool_id == tool_id):
             tabs.disable_split_screen()
             return current
-        return tabs.open_or_activate(tab_type)
+        return tabs.open_or_activate(tab_type, tool_id) if tool_id else tabs.open_or_activate(tab_type)
 
     def toggle_toolbox(self, checked=False):
         """Slide the toolbox in/out, preserving the conversation list width."""

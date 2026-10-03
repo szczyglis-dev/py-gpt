@@ -390,6 +390,7 @@ def run(**kwargs):
         from pygpt_net.tools.audio_transcriber import AudioTranscriber as AudioTranscriberTool
         from pygpt_net.tools.code_interpreter import CodeInterpreter as CodeInterpreterTool
         from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
+        from pygpt_net.tools.painter import Painter as PainterTool
         from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
         from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
         from pygpt_net.tools.translator import Translator as TranslatorTool
@@ -593,6 +594,7 @@ def run(**kwargs):
 
         # register base tools
         launcher.add_tool(IndexerTool())
+        launcher.add_tool(PainterTool())
         launcher.add_tool(MediaPlayerTool())
         launcher.add_tool(ImageViewerTool())
         launcher.add_tool(TextEditorTool())

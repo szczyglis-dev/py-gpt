@@ -272,7 +272,7 @@ class VideoPlayerWidget(QWidget):
     def use_as_image(self):
         """Use as image"""
         path = self.window.tools.get("player").grab_frame()
-        self.window.controller.painter.open_external(path)
+        self.window.tools.get("painter").open(path)
 
     def adjust_volume(self, value):
         """

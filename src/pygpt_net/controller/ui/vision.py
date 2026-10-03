@@ -62,7 +62,7 @@ class Vision:
         ctrl = self.window.controller
         camera = ctrl.camera
 
-        if ctrl.painter.is_active():
+        if self.window.tools.get("painter").is_active():
             camera.setup()
             camera.show_camera()
             return

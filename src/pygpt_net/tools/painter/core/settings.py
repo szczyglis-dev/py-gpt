@@ -11,22 +11,22 @@
 
 from typing import Tuple, Optional, Dict, List
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QComboBox
 
-from pygpt_net.ui.widget.draw.modes import DrawMode, DRAW_MODE_ORDER, DRAW_MODE_TRANSLATION_KEYS
+from pygpt_net.tools.painter.core.modes import DrawMode, DRAW_MODE_ORDER, DRAW_MODE_TRANSLATION_KEYS
 from pygpt_net.utils import trans
 
 
-class Common:
-    def __init__(self, window=None):
+class Settings:
+    def __init__(self, tool):
         """
         Painter common methods controller
 
         :param window: Window instance
         """
-        self.window = window
+        self.tool = tool
         # Guard to prevent re-entrancy when programmatically changing the combo/size
         self._changing_canvas_size = False
         # Cached set for predefined canvas sizes
@@ -35,6 +35,10 @@ class Common:
         self._sticky_custom_value: Optional[str] = None
         # Guard for toolbar/context-menu drawing mode synchronization
         self._changing_draw_mode = False
+
+    @property
+    def window(self):
+        return self.tool.window
 
     def convert_to_size(self, canvas_size: str) -> Tuple[int, int]:
         """
@@ -52,12 +56,9 @@ class Common:
         :param width: Canvas width
         :param height: Canvas height
         """
-        painter = self.window.ui.painter
-        if hasattr(painter, "set_canvas_size_pixels"):
-            painter.set_canvas_size_pixels(width, height)
-        else:
-            # required on image open
-            self.window.ui.painter.setFixedSize(QSize(width, height))
+        painter = self.tool.canvas
+        if painter is not None:
+            painter.document.resize(width, height)
 
     def set_brush_mode(self, enabled: bool):
         """
@@ -66,7 +67,7 @@ class Common:
         :param enabled: bool
         """
         if enabled:
-            self.window.ui.painter.set_mode("brush")
+            self.tool.canvas.set_mode("brush")
             self.window.core.config.set('painter.brush.mode', "brush")
             self.window.core.config.save()
 
@@ -77,7 +78,7 @@ class Common:
         :param enabled: bool
         """
         if enabled:
-            self.window.ui.painter.set_mode("erase")
+            self.tool.canvas.set_mode("erase")
             self.window.core.config.set('painter.brush.mode', "erase")
             self.window.core.config.save()
 
@@ -94,14 +95,14 @@ class Common:
         if self._changing_draw_mode:
             return
 
-        combo = self.window.ui.nodes.get('painter.select.draw.mode')
+        combo = self.tool.nodes.get('painter.select.draw.mode')
         if selected is None and combo is not None:
             selected = combo.currentData()
         mode = DrawMode.from_value(selected)
 
         try:
             self._changing_draw_mode = True
-            self.window.ui.painter.set_draw_mode(mode)
+            self.tool.canvas.set_draw_mode(mode)
 
             if combo is not None:
                 idx = combo.findData(mode.value)
@@ -124,7 +125,7 @@ class Common:
 
     def retranslate_draw_modes(self):
         """Refresh toolbar and context-menu drawing mode labels."""
-        combo = self.window.ui.nodes.get('painter.select.draw.mode')
+        combo = self.tool.nodes.get('painter.select.draw.mode')
         if combo is not None:
             current = DrawMode.from_value(combo.currentData())
             combo.blockSignals(True)
@@ -135,7 +136,7 @@ class Common:
             if idx >= 0:
                 combo.setCurrentIndex(idx)
             combo.blockSignals(False)
-        painter = getattr(self.window.ui, 'painter', None)
+        painter = self.tool.canvas
         if painter is not None and hasattr(painter, 'retranslate_draw_modes'):
             painter.retranslate_draw_modes()
 
@@ -152,12 +153,11 @@ class Common:
         # Be resilient if combobox node is not present in a given UI layout
         combo: Optional[QComboBox] = None
         try:
-            if hasattr(self.window.ui, "nodes"):
-                combo = self.window.ui.nodes.get('painter.select.canvas.size', None)
+            combo = self.tool.nodes.get('painter.select.canvas.size', None)
         except Exception:
             combo = None
 
-        painter = self.window.ui.painter
+        painter = self.tool.canvas
 
         # Heuristic to detect manual UI change vs programmatic call
         # - manual if: no arg, or int index (Qt int overload), or arg equals currentText/currentData
@@ -181,8 +181,8 @@ class Common:
             return
 
         # Use true logical canvas size when available
-        if hasattr(painter, "get_canvas_size"):
-            cur_sz = painter.get_canvas_size()
+        if painter is not None:
+            cur_sz = painter.document.size()
             cur_val = f"{cur_sz.width()}x{cur_sz.height()}"
         else:
             cur_val = f"{painter.width()}x{painter.height()}"
@@ -190,7 +190,7 @@ class Common:
         # Save undo only for manual changes and only if size will change
         will_change = selected_norm != cur_val
         if is_manual and will_change:
-            painter.saveForUndo()
+            painter.history.push()
 
         try:
             self._changing_canvas_size = True
@@ -243,7 +243,7 @@ class Common:
         if not sizes:
             return
 
-        current = int(getattr(self.window.ui.painter, 'brushSize', sizes[0]))
+        current = int(getattr(self.tool.canvas, 'brushSize', sizes[0]))
         if direction > 0:
             candidates = [value for value in sizes if value > current]
             target = candidates[0] if candidates else sizes[-1]
@@ -254,7 +254,7 @@ class Common:
         if target == current:
             return
 
-        combo = self.window.ui.nodes.get('painter.select.brush.size')
+        combo = self.tool.nodes.get('painter.select.brush.size')
         if combo is not None:
             idx = combo.findText(str(target))
             if idx >= 0:
@@ -264,8 +264,8 @@ class Common:
 
     def change_brush_color(self):
         """Change the brush color"""
-        color = self.window.ui.nodes['painter.select.brush.color'].currentData()
-        text_color = self.window.ui.nodes['painter.select.brush.color'].currentText()
+        color = self.tool.nodes['painter.select.brush.color'].currentData()
+        text_color = self.tool.nodes['painter.select.brush.color'].currentText()
         self.update_brush_color(color)
         self.window.core.config.set('painter.brush.color', text_color)
         self.window.core.config.save()
@@ -276,7 +276,7 @@ class Common:
 
         :param size: Brush size
         """
-        self.window.ui.painter.set_brush_size(size)
+        self.tool.canvas.set_brush_size(size)
 
     def update_brush_color(self, color: QColor):
         """
@@ -284,7 +284,7 @@ class Common:
 
         :param color: QColor
         """
-        self.window.ui.painter.set_brush_color(color)
+        self.tool.canvas.set_brush_color(color)
 
     def restore_brush_settings(self):
         """Restore brush settings"""
@@ -296,10 +296,10 @@ class Common:
         if self.window.core.config.has('painter.brush.mode'):
             mode = self.window.core.config.get('painter.brush.mode', "brush")
             if mode == "brush":
-                self.window.ui.nodes['painter.btn.brush'].setChecked(True)
+                self.tool.nodes['painter.btn.brush'].setChecked(True)
                 self.set_brush_mode(True)
             elif mode == "erase":
-                self.window.ui.nodes['painter.btn.erase'].setChecked(True)
+                self.tool.nodes['painter.btn.erase'].setChecked(True)
                 self.set_erase_mode(True)
 
         # drawing mode (Free / Arrow / Rectangle / Circle / Line)
@@ -307,7 +307,7 @@ class Common:
 
         # color
         if brush_color:
-            combo = self.window.ui.nodes['painter.select.brush.color']
+            combo = self.tool.nodes['painter.select.brush.color']
             idx = combo.findText(brush_color)
             if idx >= 0:
                 combo.blockSignals(True)
@@ -323,20 +323,20 @@ class Common:
         size = 3
         if self.window.core.config.has('painter.brush.size'):
             size = int(self.window.core.config.get('painter.brush.size', 3))
-        self.window.ui.nodes['painter.select.brush.size'].setCurrentIndex(
-            self.window.ui.nodes['painter.select.brush.size'].findText(str(size))
+        self.tool.nodes['painter.select.brush.size'].setCurrentIndex(
+            self.tool.nodes['painter.select.brush.size'].findText(str(size))
         )
 
     def restore_zoom(self):
         """Restore zoom from config"""
-        if self.window.core.config.has('painter.zoom'):
-            zoom = int(self.window.core.config.get('painter.zoom', 100))
-            self.window.ui.painter.set_zoom_percent(zoom)
+        if self.window.core.config.has('painter.viewport.zoom'):
+            zoom = int(self.window.core.config.get('painter.viewport.zoom', 100))
+            self.tool.canvas.viewport.set_percent(zoom)
 
     def save_zoom(self):
         """Save zoom to config"""
-        zoom = self.window.ui.painter.get_zoom_percent()
-        self.window.core.config.set('painter.zoom', zoom)
+        zoom = self.tool.canvas.viewport.percent()
+        self.window.core.config.set('painter.viewport.zoom', zoom)
         self.window.core.config.save()
 
     def get_colors(self) -> Dict[str, QColor]:
@@ -380,13 +380,6 @@ class Common:
             "1080x1920", "1440x2560", "2160x3840", "2160x4096"
         ]
 
-    def get_capture_dir(self) -> str:
-        """
-        Get capture directory
-
-        :return: path to capture directory
-        """
-        return self.window.core.filesystem.get_runtime_dir('capture')
 
     # ---------- Public sync helper (used by PainterWidget undo/redo) ----------
 
@@ -401,16 +394,15 @@ class Common:
 
         combo: Optional[QComboBox] = None
         try:
-            if hasattr(self.window.ui, "nodes"):
-                combo = self.window.ui.nodes.get('painter.select.canvas.size', None)
+            combo = self.tool.nodes.get('painter.select.canvas.size', None)
         except Exception:
             combo = None
 
-        painter = self.window.ui.painter
+        painter = self.tool.canvas
 
         # Use true logical canvas size, not widget size
-        if hasattr(painter, "get_canvas_size"):
-            sz = painter.get_canvas_size()
+        if painter is not None:
+            sz = painter.document.size()
             canvas_value = f"{sz.width()}x{sz.height()}"
         else:
             canvas_value = f"{painter.width()}x{painter.height()}"
@@ -422,8 +414,8 @@ class Common:
         # Derive sticky from current source image (if custom)
         predef = self._get_predef_canvas_set()
         sticky = None
-        if painter.sourceImageOriginal is not None and not painter.sourceImageOriginal.isNull():
-            src_val = f"{painter.sourceImageOriginal.width()}x{painter.sourceImageOriginal.height()}"
+        if painter.document.source_image is not None and not painter.document.source_image.isNull():
+            src_val = f"{painter.document.source_image.width()}x{painter.document.source_image.height()}"
             src_val = self._normalize_canvas_value(src_val)
             if src_val and src_val not in predef:
                 sticky = src_val

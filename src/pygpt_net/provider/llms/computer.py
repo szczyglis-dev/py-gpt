@@ -504,7 +504,7 @@ class AgentComputerBridge:
     def _capture_snapshot(runtime) -> tuple[Optional[str], dict[str, tuple[int, int]]]:
         """Snapshot the capture directory for a screenshot transport fallback."""
         try:
-            directory = runtime.window.controller.painter.common.get_capture_dir()
+            directory = runtime.window.tools.get("painter").storage.directory()
         except Exception:
             return None, {}
         if not directory or not os.path.isdir(directory):
@@ -597,7 +597,7 @@ class AgentComputerBridge:
             is_sandbox = False
 
         try:
-            capture = window.controller.painter.capture
+            capture = window.tools.get("painter").capture
             if is_sandbox:
                 path = capture.screenshot_playwright(
                     page=getattr(plugin, "page", None),

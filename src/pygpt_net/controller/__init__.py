@@ -38,7 +38,6 @@ from .media import Media
 from .mode import Mode
 from .model import Model
 from .notepad import Notepad
-from .painter import Painter
 from .plugins import Plugins
 from .realtime import Realtime
 from .remote_store import RemoteStore
@@ -96,7 +95,6 @@ class Controller:
         self.mode = Mode(window)
         self.model = Model(window)
         self.notepad = Notepad(window)
-        self.painter = Painter(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.profile_exporter = ProfileExporter(window)
@@ -151,7 +149,6 @@ class Controller:
         self.model.editor.setup()
         self.agents_v2.setup()
         self.calendar.setup()  # after everything is loaded
-        self.painter.setup()  # load previous image if exists
         self.debug.post_setup()  # post setup debug after all loaded
         self.tabs.restore_data()  # restore opened tabs data
 
@@ -234,7 +231,6 @@ class Controller:
             self.agents_v2.reload()
             self.calendar.reload()
             self.plugins.reload()
-            self.painter.reload()
             self.notepad.reload()
             self.files.reload()
             self.lang.reload()

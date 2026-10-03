@@ -2,7 +2,7 @@ import datetime as dt
 import os
 from unittest.mock import MagicMock, patch
 
-from pygpt_net.controller.painter.capture import Capture
+from pygpt_net.tools.painter.core.capture import Capture
 from pygpt_net.core.events import KernelEvent
 
 
@@ -20,9 +20,9 @@ class FixedDateTime(dt.datetime):
 def _capture():
     window = MagicMock()
     window.controller.attachment.is_capture_clear.return_value = False
-    window.controller.painter.common.get_capture_dir.return_value = "/capture"
+    window.tools.get("painter").storage.directory.return_value = "/capture"
     window.core.config.get.return_value = "chat"
-    capture = Capture(window)
+    capture = Capture(_tool(window))
     capture.attach = MagicMock()
     return capture, window
 
@@ -33,8 +33,8 @@ def test_painter_screenshot_playwright_uses_fixed_clock_and_mocks_browser_page()
     expected_name = "cap-2025-01-02_03-04-05-000000"
     expected_path = os.path.join("/capture", expected_name + ".png")
 
-    with patch("pygpt_net.controller.painter.capture.datetime.datetime", FixedDateTime), \
-            patch("pygpt_net.controller.painter.capture.trans", side_effect=lambda key: key):
+    with patch("pygpt_net.tools.painter.core.capture.datetime.datetime", FixedDateTime), \
+            patch("pygpt_net.tools.painter.core.capture.trans", side_effect=lambda key: key):
         result = capture.screenshot_playwright(page, silent=False)
 
     assert result == expected_path
@@ -42,7 +42,8 @@ def test_painter_screenshot_playwright_uses_fixed_clock_and_mocks_browser_page()
     capture.attach.assert_called_once_with(
         expected_name, expected_path, "screenshot", silent=False, append_to_ctx=True
     )
-    window.controller.painter.open.assert_called_once_with(expected_path)
+    window.tools.get("painter").ensure_canvas().document.open.assert_called_once_with(expected_path)
+    window.tools.get("painter").open.assert_not_called()
     event = window.dispatch.call_args.args[0]
     assert isinstance(event, KernelEvent)
     assert "2025-01-02 03:04:05" in event.data["status"]
@@ -53,11 +54,19 @@ def test_painter_use_uses_fixed_clock_without_wall_clock_assumption():
     expected_name = "cap-2025-01-02_03-04-05-000000"
     expected_path = os.path.join("/capture", expected_name + ".png")
 
-    with patch("pygpt_net.controller.painter.capture.datetime.datetime", FixedDateTime), \
-            patch("pygpt_net.controller.painter.capture.trans", side_effect=lambda key: key):
+    with patch("pygpt_net.tools.painter.core.capture.datetime.datetime", FixedDateTime), \
+            patch("pygpt_net.tools.painter.core.capture.trans", side_effect=lambda key: key):
         assert capture.use() is True
 
-    window.ui.painter.image.save.assert_called_once_with(expected_path)
+    window.tools.get("painter").canvas.document.image.save.assert_called_once_with(expected_path)
     capture.attach.assert_called_once_with(expected_name, expected_path)
     event = window.dispatch.call_args.args[0]
     assert "2025-01-02 03:04:05" in event.data["status"]
+
+
+def _tool(window):
+    tool = window.tools.get("painter")
+    tool.window = window
+    tool.nodes = window.ui.nodes
+    tool.ensure_canvas.return_value = tool.canvas
+    return tool

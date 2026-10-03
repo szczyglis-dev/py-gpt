@@ -58,7 +58,7 @@ class Tools:
         # instead of grouping it with the remaining dynamically registered
         # tool actions below the separator.
         actions = window.tools.setup_menu_actions()
-        canvas_action = actions.pop("tools.web_browser", None)
+        visual_actions = [(key, actions.pop(key)) for key in ("tools.painter", "tools.web_browser") if key in actions]
 
         for key, val in tab_tools.items():
             label_key, icon_name, type_ = val[0], val[1], val[2]
@@ -68,9 +68,9 @@ class Tools:
             ui_menu[key] = action
             menu_tools.addAction(action)
 
-            if key == 'tools.painter' and canvas_action is not None:
-                ui_menu['tools.web_browser'] = canvas_action
-                menu_tools.addAction(canvas_action)
+        for key, action in visual_actions:
+            ui_menu[key] = action
+            menu_tools.addAction(action)
 
         if actions:
             menu_tools.addSeparator()

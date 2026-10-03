@@ -144,9 +144,10 @@ class TabEventHandler:
 
             QTimer.singleShot(0, lambda pid=tab.pid: w.controller.chat.render.remeasure_user_messages(pid))
             QTimer.singleShot(120, lambda pid=tab.pid: w.controller.chat.render.remeasure_user_messages(pid))
-        elif tab.type == Tab.TAB_TOOL_PAINTER:
-            if w.core.config.get('vision.capture.enabled'):
-                w.controller.camera.enable_capture()
+        elif tab.type == Tab.TAB_TOOL:
+            tool = w.tools.get(tab.tool_id)
+            if tool is not None and hasattr(tool, 'on_selected'):
+                tool.on_selected(tab)
         elif tab.type == Tab.TAB_TOOL_CALENDAR:
             w.controller.calendar.update()
             w.controller.calendar.update_ctx_counters()

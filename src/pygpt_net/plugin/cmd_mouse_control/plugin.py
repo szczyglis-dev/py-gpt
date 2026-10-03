@@ -294,7 +294,7 @@ class Plugin(BasePlugin):
         """
         self.window.controller.attachment.clear_silent()
         if self.is_sandbox():
-            path = self.window.controller.painter.capture.screenshot_playwright(
+            path = self.window.tools.get("painter").capture.screenshot_playwright(
                 page=self.page,
                 silent=True,
                 append_to_ctx=self.APPEND_SCREENSHOT_TO_CTX,
@@ -302,7 +302,7 @@ class Plugin(BasePlugin):
                 cursor_position=(self.pointer_x, self.pointer_y),
             )  # Playwright screenshot
         else:
-            path = self.window.controller.painter.capture.screenshot(
+            path = self.window.tools.get("painter").capture.screenshot(
                 attach_cursor=True,
                 silent=True,
                 append_to_ctx=self.APPEND_SCREENSHOT_TO_CTX,

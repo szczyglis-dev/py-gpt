@@ -573,7 +573,7 @@ class Attachment:
         now = datetime.now()
         dt = now.strftime("%Y-%m-%d_%H-%M-%S")
         name = 'clipboard-' + dt
-        path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+        path = os.path.join(self.window.tools.get("painter").storage.directory(), name + '.png')
         image.save(path, "PNG")
         self.from_clipboard_url(path)
 

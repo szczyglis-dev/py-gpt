@@ -13,8 +13,8 @@ from unittest.mock import MagicMock
 
 from PySide6.QtCore import Qt
 
-from pygpt_net.ui.widget.draw.modes import DrawMode
-from pygpt_net.ui.widget.draw.painter import PainterWidget
+from pygpt_net.tools.painter.core.modes import DrawMode
+from pygpt_net.tools.painter.ui.canvas import PainterWidget
 
 
 def _wheel_event(delta):
@@ -28,13 +28,13 @@ def test_wheel_during_drawing_increases_brush_size():
     widget = MagicMock()
     widget._mouseDown = True
     widget.drawing = True
-    widget.has_active_text_edit.return_value = False
-    widget.window.controller.painter.common.step_brush_size = MagicMock()
+    widget.text.has_active.return_value = False
+    widget.tool.settings.step_brush_size = MagicMock()
     event = _wheel_event(120)
 
     PainterWidget.wheelEvent(widget, event)
 
-    widget.window.controller.painter.common.step_brush_size.assert_called_once_with(1)
+    widget.tool.settings.step_brush_size.assert_called_once_with(1)
     widget.update.assert_called_once()
     event.accept.assert_called_once()
     event.modifiers.assert_not_called()
@@ -45,13 +45,13 @@ def test_wheel_during_drawing_decreases_brush_size():
     widget = MagicMock()
     widget._mouseDown = True
     widget.drawing = True
-    widget.has_active_text_edit.return_value = False
-    widget.window.controller.painter.common.step_brush_size = MagicMock()
+    widget.text.has_active.return_value = False
+    widget.tool.settings.step_brush_size = MagicMock()
     event = _wheel_event(-120)
 
     PainterWidget.wheelEvent(widget, event)
 
-    widget.window.controller.painter.common.step_brush_size.assert_called_once_with(-1)
+    widget.tool.settings.step_brush_size.assert_called_once_with(-1)
     event.accept.assert_called_once()
 
 
@@ -59,16 +59,16 @@ def test_escape_cancels_active_drawing():
     """Test ESC cancels an in-progress drawing gesture."""
     widget = MagicMock()
     widget.drawing = True
-    widget.cropping = False
+    widget.selection.active = False
     widget._handle_painter_shortcut.return_value = False
-    widget.has_active_text_edit.return_value = False
+    widget.text.has_active.return_value = False
     event = MagicMock()
     event.key.return_value = Qt.Key_Escape
 
     PainterWidget.keyPressEvent(widget, event)
 
     widget.cancel_active_drawing.assert_called_once()
-    widget.cancel_crop.assert_not_called()
+    widget.selection.cancel.assert_not_called()
 
 
 def test_set_draw_mode_cancels_active_gesture():

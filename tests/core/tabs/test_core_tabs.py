@@ -94,7 +94,7 @@ def fake_window():
     window.ui.chat.output.explorer = MagicMock(setup=lambda: fake_explorer_widget)
     window.ui.chat.output.painter = MagicMock(setup=lambda: fake_painter_widget)
     window.ui.chat.output.calendar = MagicMock(setup=lambda: fake_calendar_widget)
-    window.ui.painter = MagicMock(spec=QWidget)
+    window.tools.get("painter").canvas = MagicMock(spec=QWidget)
     window.controller = MagicMock()
     tabs_ctrl = MagicMock()
     tabs_ctrl.get_current_column_idx.return_value = 0
@@ -536,3 +536,38 @@ def test_core_tool_creation_uses_registered_capabilities():
     tool.allow_tab = False
     with pytest.raises(ValueError, match='does not allow tabs'):
         core._get_existing_single_instance_tool(Tab.TAB_TOOL, tool.id)
+
+
+def test_legacy_painter_tab_migrates_to_registered_tool(tabs_instance, fake_window, monkeypatch):
+    from pygpt_net.tools.painter import Painter
+    tool = Painter()
+    tool.attach(fake_window)
+    fake_window.tools.get.return_value = tool
+    captured = []
+    monkeypatch.setattr(tabs_instance, 'add_tool', lambda tab: captured.append(tab))
+    identity = uuid.uuid4()
+    data = dict(uuid=identity, pid=9, type=Tab.TAB_TOOL_PAINTER, title='My drawing',
+                data_id=None, column_idx=1, tool_id=None, custom_name=True, title_source='user')
+    tabs_instance.restore(data)
+    tab = captured[0]
+    assert tab.type == Tab.TAB_TOOL
+    assert tab.tool_id == 'painter'
+    assert tab.uuid == identity
+    assert tab.column_idx == 1
+    assert tab.title == 'My drawing'
+    assert tab.custom_name
+    assert data['type'] == Tab.TAB_TOOL_PAINTER  # Input config stays untouched.
+
+
+def test_loading_saved_tabs_does_not_recreate_closed_painter(tabs_instance, fake_window, monkeypatch):
+    data = {
+        i: dict(pid=i, idx=i, type=kind, tool_id=None)
+        for i, kind in enumerate((Tab.TAB_CHAT, Tab.TAB_FILES, Tab.TAB_TOOL_CALENDAR))
+    }
+    fake_window.core.config.get.return_value = data
+    restore = MagicMock()
+    monkeypatch.setattr(tabs_instance, 'restore', restore)
+    monkeypatch.setattr(tabs_instance, 'update', MagicMock())
+    tabs_instance.load()
+    assert restore.call_count == 3
+    assert all(call.args[0].get('tool_id') != 'painter' for call in restore.call_args_list)

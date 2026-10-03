@@ -140,7 +140,7 @@ class Analyzer:
         :param prompt: analyze prompt
         :return: response
         """
-        path = self.window.controller.painter.capture.screenshot(
+        path = self.window.tools.get("painter").capture.screenshot(
             attach_cursor=True,
             silent=True,
         )

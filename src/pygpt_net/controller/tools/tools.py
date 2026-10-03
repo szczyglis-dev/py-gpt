@@ -30,7 +30,6 @@ class Tools:
             'tools.files': ['files', 'folder_filled', Tab.TAB_FILES],
             'tools.calendar': ['calendar', 'calendar', Tab.TAB_TOOL_CALENDAR],
             'tools.notepad': ['notepad', 'note1', Tab.TAB_NOTEPAD],
-            'tools.painter': ['painter', 'brush', Tab.TAB_TOOL_PAINTER],
         }
 
     def setup(self):

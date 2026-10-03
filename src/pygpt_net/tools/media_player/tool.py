@@ -109,7 +109,7 @@ class MediaPlayer(BaseTool):
         now = datetime.datetime.now()
         dt = now.strftime("%Y-%m-%d_%H-%M-%S")
         name = 'cap-' + dt
-        path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
+        path = os.path.join(self.window.tools.get("painter").storage.directory(), name + '.png')
         # TODO: implement grab screenshot
         return path
 

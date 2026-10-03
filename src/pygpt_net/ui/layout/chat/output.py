@@ -13,7 +13,6 @@ from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pygpt_net.ui.widget.tabs.layout import OutputLayout
 from .explorer import Explorer
 from .calendar import Calendar
-from .painter import Painter
 
 
 class Output:
@@ -26,7 +25,6 @@ class Output:
         self.window = window
         self.explorer = Explorer(window)
         self.calendar = Calendar(window)
-        self.painter = Painter(window)
 
     def setup(self) -> QWidget:
         """

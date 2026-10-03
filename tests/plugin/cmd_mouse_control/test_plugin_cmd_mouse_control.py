@@ -124,12 +124,12 @@ def test_handle_delayed_uses_qtimer_only_when_screenshot_allowed(mock_window):
 def test_delayed_screenshot_native_attaches_local_image_and_dispatches(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.is_sandbox = MagicMock(return_value=False)
-    mock_window.controller.painter.capture.screenshot.return_value = "/tmp/a.png"
+    mock_window.tools.get("painter").capture.screenshot.return_value = "/tmp/a.png"
     mock_window.core.filesystem.make_local.return_value = "local:a.png"
     ctx = CtxItem()
     plugin.delayed_screenshot(ctx)
     mock_window.controller.attachment.clear_silent.assert_called_once_with()
-    mock_window.controller.painter.capture.screenshot.assert_called_once_with(attach_cursor=True, silent=True, append_to_ctx=False)
+    mock_window.tools.get("painter").capture.screenshot.assert_called_once_with(attach_cursor=True, silent=True, append_to_ctx=False)
     assert ctx.images_before == []
     assert ctx.transport_images == ["local:a.png"]
     mock_window.core.attachments.register_ctx_excluded_path.assert_called_once_with("/tmp/a.png")
@@ -139,11 +139,11 @@ def test_delayed_screenshot_native_attaches_local_image_and_dispatches(mock_wind
 def test_delayed_screenshot_sandbox_uses_playwright_capture(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.is_sandbox = MagicMock(return_value=True)
-    mock_window.controller.painter.capture.screenshot_playwright.return_value = "/tmp/a.png"
+    mock_window.tools.get("painter").capture.screenshot_playwright.return_value = "/tmp/a.png"
     mock_window.core.filesystem.make_local.return_value = "local:a.png"
     ctx = CtxItem()
     plugin.delayed_screenshot(ctx)
-    mock_window.controller.painter.capture.screenshot_playwright.assert_called_once_with(
+    mock_window.tools.get("painter").capture.screenshot_playwright.assert_called_once_with(
         page=plugin.page, silent=True, append_to_ctx=False, attach_cursor=True, cursor_position=(0, 0)
     )
     assert ctx.images_before == []

@@ -26,3 +26,18 @@ def test_image_actions_delegate_to_viewer():
     viewer.open_dir.assert_called_once_with("/tmp/image.png")
     viewer.save.assert_called_once_with("/tmp/image.png")
     viewer.delete.assert_called_once_with("/tmp/image.png")
+
+
+def test_edit_opens_original_image_in_painter_and_leaves_viewer():
+    painter = MagicMock()
+    win = MagicMock()
+    win.tools = {"painter": painter}
+    dialog = MagicMock()
+    widget = SimpleNamespace(path="/tmp/original.png", window=dialog, _get_window=lambda: win)
+
+    ImageLabel.action_edit(widget, None)
+
+    painter.open.assert_called_once_with("/tmp/original.png")
+    dialog.close.assert_called_once_with()
+    win.raise_.assert_called_once_with()
+    win.activateWindow.assert_called_once_with()

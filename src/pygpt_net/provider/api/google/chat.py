@@ -824,7 +824,7 @@ class Chat:
             initial_attachments = {}
             if is_first_turn and not attachments and not is_sandbox:
                 self.window.controller.attachment.clear_silent()
-                self.window.controller.painter.capture.screenshot(
+                self.window.tools.get("painter").capture.screenshot(
                     attach_cursor=True,
                     silent=True,
                     append_to_ctx=False,

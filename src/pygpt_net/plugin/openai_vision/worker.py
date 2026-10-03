@@ -96,7 +96,7 @@ class Worker(BaseWorker):
         :return: response item
         """
         try:
-            self.window.controller.painter.capture.screenshot()
+            self.window.tools.get("painter").capture.screenshot()
             result = "OK"
         except Exception as e:
             result = self.throw_error(e)

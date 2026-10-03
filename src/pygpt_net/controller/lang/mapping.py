@@ -151,12 +151,6 @@ class Mapping:
         # output
         nodes['output.edit'] = 'output.edit'
 
-        # painter
-        nodes['painter.btn.brush'] = 'painter.mode.paint'
-        nodes['painter.btn.erase'] = 'painter.mode.erase'
-        nodes['painter.btn.capture'] = 'painter.btn.capture'
-        nodes['painter.btn.camera.capture'] = 'painter.btn.camera.capture'
-        nodes['painter.btn.clear'] = 'painter.btn.clear'
 
         # calendar
         nodes['filter.ctx.label.colors'] = 'filter.ctx.label.colors'
@@ -325,7 +319,6 @@ class Mapping:
 
         # help tips
         nodes['tip.output.tab.files'] = 'tip.output.tab.files'
-        nodes['tip.output.tab.draw'] = 'tip.output.tab.draw'
         nodes['tip.output.tab.calendar'] = 'tip.output.tab.calendar'
         nodes['tip.output.tab.notepad'] = 'tip.output.tab.notepad'
         nodes['tip.input.attachments'] = 'tip.input.attachments'

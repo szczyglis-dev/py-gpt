@@ -79,11 +79,11 @@ class PainterTextEdit(QPlainTextEdit):
         # QPlainTextEdit character undo stack.
         if self.mode.reopened_from_undo():
             if event.matches(QKeySequence.StandardKey.Undo):
-                self.painter.undo()
+                self.painter.history.undo()
                 event.accept()
                 return
             if event.matches(QKeySequence.StandardKey.Redo):
-                self.painter.redo()
+                self.painter.history.redo()
                 event.accept()
                 return
 
@@ -265,7 +265,7 @@ class TextDrawMode(BaseDrawMode):
         widget.brushColor = QColor(color)
         widget._pen.setColor(color)
 
-        nodes = getattr(getattr(widget.window, "ui", None), "nodes", {}) or {}
+        nodes = widget.tool.nodes
         size_combo = nodes.get("painter.select.brush.size")
         if size_combo is not None:
             idx = size_combo.findText(str(font_size))
@@ -318,10 +318,10 @@ class TextDrawMode(BaseDrawMode):
         if (
             discard_undo_stage
             and was_from_undo
-            and widget.undoStack
-            and self.history_kind(widget.undoStack[-1]) == "text_draft_cancel"
+            and widget.history.undo_stack
+            and self.history_kind(widget.history.undo_stack[-1]) == "text_draft_cancel"
         ):
-            widget.undoStack.pop()
+            widget.history.undo_stack.pop()
 
         widget.setFocus(Qt.OtherFocusReason)
         widget.update()
@@ -342,7 +342,7 @@ class TextDrawMode(BaseDrawMode):
         # border/padding). Commit from that actual viewport origin so the text
         # stays pixel-aligned with the live editor at every zoom level.
         viewport_pos = editor.viewport().mapTo(widget, QPoint(0, 0))
-        zoom = max(0.0001, float(widget.zoom))
+        zoom = max(0.0001, float(widget.viewport.zoom))
         draw_origin = QPoint(
             int(round(viewport_pos.x() / zoom)),
             int(round(viewport_pos.y() / zoom)),
@@ -360,19 +360,19 @@ class TextDrawMode(BaseDrawMode):
         # instead of introducing an extra undo level.
         if (
             was_from_undo
-            and widget.undoStack
-            and self.history_kind(widget.undoStack[-1]) == "text_draft_cancel"
+            and widget.history.undo_stack
+            and self.history_kind(widget.history.undo_stack[-1]) == "text_draft_cancel"
         ):
-            widget.undoStack.pop()
+            widget.history.undo_stack.pop()
 
         if not text.strip():
             widget.setFocus(Qt.OtherFocusReason)
             widget.update()
             return False
 
-        widget._ensure_layers()
-        widget._ensure_composited_image()
-        before = widget._snapshot_state()
+        widget.document.ensure_layers()
+        widget.document.compose()
+        before = widget.history.snapshot_state()
         draft = {
             "text": text,
             "origin": QPoint(origin),
@@ -380,7 +380,7 @@ class TextDrawMode(BaseDrawMode):
             "color": QColor(color),
         }
 
-        painter = QPainter(widget.drawingLayer)
+        painter = QPainter(widget.document.drawing)
         painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setRenderHint(QPainter.TextAntialiasing, True)
         painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
@@ -396,9 +396,9 @@ class TextDrawMode(BaseDrawMode):
             baseline += metrics.lineSpacing()
         painter.end()
 
-        widget.undoStack.append(self.make_history_entry(widget, "text_commit", before, draft))
-        widget.redoStack.clear()
-        widget._mark_composite_dirty()
+        widget.history.undo_stack.append(self.make_history_entry(widget, "text_commit", before, draft))
+        widget.history.redo_stack.clear()
+        widget.document.mark_composite_dirty()
         widget.setFocus(Qt.OtherFocusReason)
         widget.update()
         return True
@@ -416,7 +416,7 @@ class TextDrawMode(BaseDrawMode):
         font = QFont(self.font_family)
         size = int(self.font_size)
         if display:
-            size = int(round(size * widget.zoom))
+            size = int(round(size * widget.viewport.zoom))
         font.setPixelSize(max(1, size))
         return font
 
@@ -523,8 +523,8 @@ class TextDrawMode(BaseDrawMode):
         text_h = metrics.height() + (line_count - 1) * metrics.lineSpacing()
         desired_h = max(metrics.height() + vertical_extra, text_h + vertical_extra)
 
-        x = int(round(self.origin.x() * widget.zoom))
-        y = int(round(self.origin.y() * widget.zoom))
+        x = int(round(self.origin.x() * widget.viewport.zoom))
+        y = int(round(self.origin.y() * widget.viewport.zoom))
         x = max(0, min(max(0, widget.width() - 1), x))
         y = max(0, min(max(0, widget.height() - 1), y))
 
@@ -558,7 +558,7 @@ class TextDrawMode(BaseDrawMode):
         if editor is None:
             return
 
-        zoom = max(0.0001, float(widget.zoom))
+        zoom = max(0.0001, float(widget.viewport.zoom))
         x = start_origin.x() + int(round(display_delta.x() / zoom))
         y = start_origin.y() + int(round(display_delta.y() / zoom))
 
@@ -577,8 +577,7 @@ class TextDrawMode(BaseDrawMode):
     # ---------- Painter control integration ----------
 
     def step_size(self, widget, direction: int):
-        common = getattr(getattr(widget.window, "controller", None), "painter", None)
-        common = getattr(common, "common", None)
+        common = widget.tool.settings if widget.tool else None
         if common is not None:
             common.step_brush_size(direction)
 

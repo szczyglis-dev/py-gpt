@@ -79,7 +79,7 @@ class LocalComputer(Computer):
         """
         print("Taking screenshot of the viewport...")
         self.window.controller.attachment.clear_silent()
-        path = self.window.controller.painter.capture.screenshot(attach_cursor=True,
+        path = self.window.tools.get("painter").capture.screenshot(attach_cursor=True,
                                                                  silent=True,
                                                                  append_to_ctx=False)  # transport-only screenshot
         if not path:

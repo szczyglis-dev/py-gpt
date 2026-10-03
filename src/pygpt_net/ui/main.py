@@ -418,8 +418,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.controller.notepad.save_all()
         print("Saving calendar...")
         self.controller.calendar.save_all()
-        print("Saving drawing...")
-        self.controller.painter.save_all()
         print("Saving plugins config...")
         self.controller.plugins.save_all()
         print("Saving tools...")

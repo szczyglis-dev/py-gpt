@@ -208,8 +208,8 @@ class Plugin(BasePlugin):
 
     def capture_user_painter_image(self) -> dict:
         """Capture the current PyGPT Painter canvas for immediate model inspection."""
-        controller = getattr(getattr(self.window, "controller", None), "painter", None)
-        capture = getattr(controller, "capture", None)
+        tool = self.window.tools.get("painter")
+        capture = getattr(tool, "capture", None)
         if capture is None:
             raise RuntimeError("Painter capture controller is not available")
 
@@ -217,12 +217,12 @@ class Plugin(BasePlugin):
         if not path:
             raise RuntimeError("The current Painter image could not be captured")
 
-        painter = getattr(getattr(self.window, "ui", None), "painter", None)
+        painter = tool.canvas if tool is not None else None
         width = 0
         height = 0
         if painter is not None:
             try:
-                size = painter.get_canvas_size() if hasattr(painter, "get_canvas_size") else painter.image.size()
+                size = painter.document.size()
                 width = int(size.width())
                 height = int(size.height())
             except Exception:
