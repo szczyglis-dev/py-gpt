@@ -534,6 +534,8 @@ class Mapping:
         tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
         tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
         tooltips['layout.split'] = 'layout.split.tooltip'
+        tooltips['layout.split.button.0'] = 'layout.split.tooltip'
+        tooltips['layout.split.button.1'] = 'layout.split.tooltip'
         tooltips['preset.prompt'] = 'toolbox.prompt'
         tooltips['icon.video.capture'] = 'icon.video.capture'
         tooltips['icon.audio.output'] = 'icon.audio.output'

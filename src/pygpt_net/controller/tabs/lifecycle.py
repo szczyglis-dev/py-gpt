@@ -36,6 +36,7 @@ class TabLifecycle:
         w = self.window
         state = w.core.config.get("layout.split", False)
         w.ui.nodes['layout.split'].setChecked(state)
+        self.sync_split_buttons()
         if not state:
             w.ui.splitters['columns'].setSizes([1, 0])
         self._sync_chat_input_width()

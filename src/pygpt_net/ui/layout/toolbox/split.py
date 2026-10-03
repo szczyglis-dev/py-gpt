@@ -39,12 +39,5 @@ class Split:
         self.window.ui.nodes['layout.split'].box.toggled.connect(
             self.window.controller.tabs.toggle_split_screen
         )
-        split_widget = QWidget(self.window)
-        split_layout = QHBoxLayout(split_widget)
-
-        split_layout.addWidget(QLabel("", split_widget))
-        split_layout.addStretch(1)
-        split_layout.addWidget(self.window.ui.nodes['layout.split'])
-        split_layout.setContentsMargins(5, 0, 5, 0)
-
-        return split_widget
+        self.window.ui.nodes['layout.split'].hide()
+        return self.window.ui.nodes['layout.split']

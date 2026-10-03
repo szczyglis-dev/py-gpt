@@ -424,14 +424,12 @@ class Input:
         nodes['chat.footer.metadata'] = QWidget()
         nodes['chat.footer.metadata'].setLayout(metadata_layout)
 
-        # Keep the context/token counter on the opposite edge of the same
-        # composer footer row. The embedded input action buttons are managed
-        # by ChatInput itself, but preserve the compatibility layout here.
+        # Input action buttons retain their compatibility layout; token counts
+        # now belong to the global status row.
         right_layout = QHBoxLayout()
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(0)
         right_layout.addLayout(buttons_layout)
-        right_layout.addWidget(nodes['input.counter'], alignment=Qt.AlignVCenter)
         right_layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         nodes['chat.footer.controls'] = QWidget()
@@ -475,33 +473,28 @@ class Input:
         bottom_row = QGridLayout()
         bottom_row.setContentsMargins(0, 4, 2, 2)
         bottom_row.setHorizontalSpacing(6)
-        bottom_row.addLayout(status_layout, 0, 0, alignment=Qt.AlignLeft | Qt.AlignVCenter)
         bottom_row.addWidget(
             self.window.ui.plugin_addon['audio.output.bar'],
             0,
-            1,
-            alignment=Qt.AlignCenter,
-        )
-
-        # Capability/tool icons are application-wide controls, so keep them in
-        # the same full-width row as the global status. Status stays pinned to
-        # the far left, while the icons are pinned to the far right.
-        icons = self._setup_tabs_icons()
-        bottom_row.addWidget(
-            icons,
             0,
-            2,
-            alignment=Qt.AlignRight | Qt.AlignVCenter,
+            alignment=Qt.AlignLeft | Qt.AlignVCenter,
         )
 
-        bottom_side_width = max(
-            status_layout.sizeHint().width(),
-            icons.sizeHint().width(),
-        )
-        bottom_row.setColumnMinimumWidth(0, bottom_side_width)
+        # Global status, its time and capability icons share the right edge.
+        icons = self._setup_tabs_icons()
+        right_controls = QHBoxLayout()
+        right_controls.setContentsMargins(0, 0, 0, 0)
+        right_controls.setSpacing(12)
+        right_controls.addLayout(status_layout, 1)
+        right_controls.addWidget(nodes['input.counter'], alignment=Qt.AlignVCenter)
+        right_controls.addWidget(self._setup_status_counters(), alignment=Qt.AlignVCenter)
+        right_controls.addWidget(icons, alignment=Qt.AlignRight | Qt.AlignVCenter)
+        bottom_row.addLayout(right_controls, 0, 2)
+
+        bottom_side_width = right_controls.sizeHint().width()
         bottom_row.setColumnMinimumWidth(2, bottom_side_width)
-        bottom_row.setColumnStretch(0, 1)
-        bottom_row.setColumnStretch(1, 0)
+        bottom_row.setColumnStretch(0, 0)
+        bottom_row.setColumnStretch(1, 1)
         bottom_row.setColumnStretch(2, 1)
 
         footer_layout = QVBoxLayout()
@@ -608,26 +601,25 @@ class Input:
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # Only plugin/schedule metadata stays on the left. The token/context
-        # counter is placed on the far-right side of the composer footer.
-        # Model selection lives directly in ChatInput's bottom controls row.
+        # Schedule metadata remains with the composer; counters are global.
         layout.addWidget(plugin_addon['schedule'], alignment=Qt.AlignVCenter)
         layout.addSpacing(4)
 
-        status_layout = QHBoxLayout()
-        status_layout.setContentsMargins(0, 0, 0, 0)
-        status_layout.setSpacing(self.STATUS_ITEM_SPACING)
-        status_layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
-        status_layout.addWidget(nodes['chat.mcp'], alignment=Qt.AlignVCenter)
-        status_layout.addWidget(nodes['chat.skills'], alignment=Qt.AlignVCenter)
-        status_layout.addWidget(nodes['chat.annotations'], alignment=Qt.AlignVCenter)
-        # Vision always remains the last status icon in the metadata row.
-        status_layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
-        status_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-
-        layout.addLayout(status_layout)
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         return layout
+
+    def _setup_status_counters(self) -> QWidget:
+        """Global plugin/MCP/skills indicators, between status time and tools."""
+        nodes = self.window.ui.nodes
+        widget = QWidget()
+        widget.setObjectName('global-status-counters')
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 5)
+        layout.setSpacing(self.STATUS_ITEM_SPACING)
+        for key in ('chat.plugins', 'chat.mcp', 'chat.skills',
+                    'chat.annotations', 'inline.vision'):
+            layout.addWidget(nodes[key], alignment=Qt.AlignVCenter)
+        return widget
 
     def _setup_tabs_icons(self) -> QWidget:
         """Build capability/tool icons for the global bottom status row."""

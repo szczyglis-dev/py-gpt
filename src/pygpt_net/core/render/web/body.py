@@ -168,7 +168,8 @@ class Body:
     _SCROLL_FAB_CSS = """
         #scrollFab.scroll-fab {
             position: fixed;
-            right: 16px;
+            left: 50%;
+            transform: translateX(-50%);
             bottom: 16px;
             width: 40px;
             height: 40px;

@@ -9,7 +9,8 @@
 # Updated Date: 2025.09.28 00:00:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget, QSizePolicy
 
 from datetime import datetime
 from pygpt_net.utils import trans
@@ -22,6 +23,7 @@ class BottomStatus:
         self.timer.setObjectName("StatusBarTimer")
         self.msg = QLabel(parent=self.window)
         self.msg.setObjectName("StatusBarMessage")
+        self.msg.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.set_text(trans('status.started'))
 
     def set_text(self, text):
@@ -46,10 +48,10 @@ class BottomStatus:
         self.timer.setText("00:00")
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(5)
+        layout.setSpacing(12)
+        layout.addWidget(self.msg, 1)
         layout.addWidget(self.timer)
-        layout.addWidget(self.msg)
-        layout.addStretch()
         widget = QWidget(self.window)
         widget.setLayout(layout)
+        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         return widget

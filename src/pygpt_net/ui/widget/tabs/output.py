@@ -9,10 +9,11 @@
 # Updated Date: 2026.09.27 15:05:00                  #
 # ================================================== #
 
-from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication
+from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication, QWidget, QHBoxLayout
 from PySide6.QtCore import Qt, Slot, QTimer, QEvent, QMimeData
 from PySide6.QtGui import QAction, QIcon, QGuiApplication, QDrag
 
+from pygpt_net.ui.widget.element.button import LabelButton
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 
@@ -251,6 +252,11 @@ class OutputTabBar(QTabBar):
         if self._corner_current == corner:
             return False  # nothing to do
 
+        if isinstance(self.tabs, OutputTabs):
+            self.tabs.place_add_button(self.corner_button, corner)
+            self._corner_current = corner
+            return True
+
         # detach only from the previously used corner
         if self._corner_current is not None:
             self.tabs.setCornerWidget(None, self._corner_current)
@@ -473,13 +479,43 @@ class OutputTabs(QTabWidget):
         self.setMovable(True)
         self.init()
 
+    def place_add_button(self, button, corner):
+        """Move only [+]; retain the split control in the right corner."""
+        if self.cornerWidget(Qt.TopLeftCorner) is button:
+            self.setCornerWidget(None, Qt.TopLeftCorner)
+        self.corner_layout.removeWidget(button)
+        if corner == Qt.TopLeftCorner:
+            self.setCornerWidget(button, Qt.TopLeftCorner)
+        elif corner == Qt.TopRightCorner:
+            button.setParent(self.corner_controls)
+            self.corner_layout.insertWidget(0, button)
+        else:
+            button.setParent(self)
+            button.hide()
+        self.corner_controls.setVisible(corner == Qt.TopRightCorner or not self.split_button.isHidden())
+
     def init(self):
         """Initialize"""
         # create the [+] button
         add_button = AddButton(self.window, self.column, self)
 
-        # add the button to the top right corner of the tab bar
-        self.setCornerWidget(add_button, corner=Qt.TopRightCorner)
+        # Keep split screen at the far right, independently of inline [+] placement.
+        self.corner_controls = QWidget(self)
+        self.corner_layout = QHBoxLayout(self.corner_controls)
+        self.corner_layout.setContentsMargins(0, 0, 4, 0)
+        self.corner_layout.setSpacing(2)
+        self.split_button = LabelButton(parent=self.corner_controls)
+        self.split_button.setIcon(icon(':/icons/split_screen.svg'))
+        self.split_button.setFixedSize(32, 32)
+        self.split_button.setToolTip(trans('layout.split.tooltip'))
+        self.split_button.clicked.connect(self.window.controller.tabs.toggle_split_screen_animated)
+        column_idx = self.column.get_idx() if self.column is not None else 0
+        self.window.ui.nodes[f'layout.split.button.{column_idx}'] = self.split_button
+        state = self.window.core.config.get('layout.split', False)
+        self.split_button.setVisible(column_idx == (1 if state else 0))
+        self.corner_layout.addWidget(add_button)
+        self.corner_layout.addWidget(self.split_button)
+        self.setCornerWidget(self.corner_controls, corner=Qt.TopRightCorner)
 
         self.setDocumentMode(True)
 

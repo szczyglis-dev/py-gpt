@@ -233,7 +233,7 @@ class TabOperations:
             return None
         splitter = self.window.ui.splitters['columns']
         sizes = splitter.sizes()
-        if tab.column_idx == 1 and not self.is_split_screen_enabled():
+        if tab.column_idx == 1 and (not self.is_split_screen_enabled() or sizes[1] == 0):
             self.enable_split_screen(update_switch=True)
         elif sizes[tab.column_idx] == 0:
             splitter.setSizes([1, 1])

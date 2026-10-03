@@ -65,7 +65,6 @@ class Mode:
             ui_nodes[self.id] = combo
 
         combo.combo.setProperty('class', 'LabelCombo')
-        combo.combo.setProperty('toolboxEdgeRight', False)
         combo.combo.setCursor(Qt.PointingHandCursor)
 
         layout = QVBoxLayout()

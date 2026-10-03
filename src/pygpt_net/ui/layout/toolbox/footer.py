@@ -69,6 +69,7 @@ class Footer:
 
         # Per-mode options. Each direct block is an independent hover section
         # instead of treating the complete footer as one large section.
+        self.split.setup()  # Hidden compatibility node; tab bars own the visible control.
         sections = [
             self.agent.setup(),
             self.agent_llama.setup(),
@@ -80,7 +81,6 @@ class Footer:
             self.audio.setup(),
             self.completion.setup(),
             self.indexes.setup_options(),
-            self.split.setup(),
         ]
 
         widget = QWidget(self.window)

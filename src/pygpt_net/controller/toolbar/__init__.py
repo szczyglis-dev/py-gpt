@@ -1,6 +1,7 @@
 """Navigation actions for the persistent left toolbar."""
-from PySide6.QtCore import QVariantAnimation, QEasingCurve
+from PySide6.QtCore import QVariantAnimation
 from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.core.types.animation import PANEL_ANIMATION_DURATION_MS, PANEL_ANIMATION_EASING
 
 
 class Toolbar:
@@ -14,10 +15,19 @@ class Toolbar:
         return self.window.controller.tabs.open_or_activate(Tab.TAB_CHAT, create=False)
 
     def files(self):
-        return self.window.controller.tabs.open_or_activate(Tab.TAB_FILES)
+        return self.toggle_tool(Tab.TAB_FILES)
 
     def painter(self):
-        return self.window.controller.tabs.open_or_activate(Tab.TAB_TOOL_PAINTER)
+        return self.toggle_tool(Tab.TAB_TOOL_PAINTER)
+
+    def toggle_tool(self, tab_type):
+        """Collapse a tool already selected on the right; otherwise reveal it."""
+        tabs = self.window.controller.tabs
+        current = tabs.get_current_by_column(1)
+        if tabs.is_split_screen_enabled() and current is not None and current.type == tab_type:
+            tabs.disable_split_screen()
+            return current
+        return tabs.open_or_activate(tab_type)
 
     def toggle_toolbox(self, checked=False):
         """Slide the toolbox in/out, preserving the conversation list width."""
@@ -43,8 +53,8 @@ class Toolbar:
         if self._animation is not None:
             self._animation.deleteLater()
         self._animation = animation
-        animation.setDuration(180)
-        animation.setEasingCurve(QEasingCurve.InOutCubic)
+        animation.setDuration(PANEL_ANIMATION_DURATION_MS)
+        animation.setEasingCurve(PANEL_ANIMATION_EASING)
         animation.setStartValue(sizes[0])
         animation.setEndValue(target)
         animation.valueChanged.connect(

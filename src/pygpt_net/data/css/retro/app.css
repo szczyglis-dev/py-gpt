@@ -458,7 +458,7 @@ NotepadWidget {{
 }}
 
 /* Toolbox: section hover and focused selection have separate colors.
- * Inset combos keep rounded edges; toolboxEdgeRight makes them flush. */
+ * Toolbox controls use the same rounded edges as regular controls. */
 
 .toolbox .label-chat-status,
 .toolbox .label-chat-status[toolboxHover="true"],
@@ -499,42 +499,29 @@ NotepadWidget {{
   color: #c4a8d8;
   padding-right: 0px;
   margin-right: 0px;
-  border-top-right-radius: {APP_RADIUS};
-  border-bottom-right-radius: {APP_RADIUS};
+  border-radius: {APP_RADIUS};
 }}
 
 .toolbox QComboBox::drop-down {{
   margin-right: 0px;
-  border-top-right-radius: {APP_RADIUS};
-  border-bottom-right-radius: {APP_RADIUS};
-}}
-
-.toolbox QComboBox[toolboxEdgeRight="true"],
-.toolbox QComboBox[toolboxEdgeRight="true"]::drop-down {{
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
-  border-right-width: 0px;
+  border-radius: {APP_RADIUS};
 }}
 
 .toolbox QLineEdit,
 .toolbox QTextEdit {{
   color: #c4a8d8;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
   padding-right: 0px;
   margin-right: 0px;
-  border-right-width: 0px;
+  border-radius: {APP_RADIUS};
 }}
 
 .toolbox QListView,
 .toolbox QTreeView {{
   color: #c4a8d8;
   selection-background-color: #29163c;
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
   padding-right: 0px;
   margin-right: 0px;
-  border-right-width: 0px;
+  border-radius: {APP_RADIUS};
 }}
 
 .toolbox QListView::item:selected,
@@ -572,11 +559,9 @@ NotepadWidget {{
 }}
 
 .toolbox QPlainTextEdit {{
-  border-top-right-radius: 0px;
-  border-bottom-right-radius: 0px;
   padding-right: 0px;
   margin-right: 0px;
-  border-right-width: 0px;
+  border-radius: {APP_RADIUS};
 }}
 
 /* Buttons */

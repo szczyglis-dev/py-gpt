@@ -180,7 +180,7 @@ class ToolboxMain:
         layout = QVBoxLayout(toolbox_mode)
         self.banner.setup(layout)  # banner is inserted only after a successful remote load
         layout.addWidget(model_widget)  # models
-        layout.addWidget(tip)
+        tip.hide()
         layout.addWidget(presets_widget, 1)  # presets / agents
         layout.addWidget(assistants_widget, 1)  # assistants
         layout.setContentsMargins(0, 0, 0, 0)

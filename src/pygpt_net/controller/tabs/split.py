@@ -9,9 +9,12 @@
 # Updated Date: 2026.09.25 11:30:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, QVariantAnimation, QAbstractAnimation, QObject, QSignalBlocker
+
+from PySide6.QtWidgets import QSplitter
 
 from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.core.types.animation import PANEL_ANIMATION_DURATION_MS, PANEL_ANIMATION_EASING
 
 
 class TabSplit:
@@ -86,6 +89,9 @@ class TabSplit:
         """
         if not self.is_split_screen_enabled():
             return
+        animation = getattr(self, "_split_animation", None)
+        if animation is not None and animation.state() == QAbstractAnimation.Running:
+            return
 
         splitter = self.window.ui.splitters.get('columns')
         if splitter is None or splitter.count() < 2:
@@ -132,9 +138,10 @@ class TabSplit:
                 # dragging the splitter instead of using the toolbar switch.
                 self._schedule_revealed_split_chat_restore()
             self.update_current()
+        self.sync_split_buttons()
         self._sync_chat_input_width()
 
-    def enable_split_screen(self, update_switch: bool = False):
+    def _enable_split_screen(self, update_switch: bool = False):
         """
         Enable split screen mode
 
@@ -143,18 +150,22 @@ class TabSplit:
         if self.is_split_screen_enabled():
             return
 
-        self.window.ui.splitters['columns'].setSizes([1, 1])
+        splitter = self.window.ui.splitters['columns']
+        if isinstance(splitter, QSplitter):
+            splitter.widget(1).show()
+        splitter.setSizes([1, 1])
         self.window.core.config.set("layout.split", True)
         self.window.core.config.save()
         self._schedule_revealed_split_chat_restore()
         self.update_current()
         self._schedule_equal_split_screen_columns()
+        self.sync_split_buttons()
         self._sync_chat_input_width()
 
         if update_switch:
             self.window.ui.nodes['layout.split'].box.setChecked(True)
 
-    def disable_split_screen(self):
+    def _disable_split_screen(self):
         """
         Disable split screen mode
         """
@@ -164,6 +175,7 @@ class TabSplit:
         self.window.core.config.set("layout.split", False)
         self.window.core.config.save()
         self.update_current()
+        self.sync_split_buttons()
         self._sync_chat_input_width()
 
     def toggle_split_screen(self, state):
@@ -176,3 +188,87 @@ class TabSplit:
             self.enable_split_screen()
         else:
             self.disable_split_screen()
+
+    def sync_split_buttons(self):
+        """Display split screen only in the rightmost visible output tab bar."""
+        state = self.is_split_screen_enabled()
+        legacy = self.window.ui.nodes.get('layout.split')
+        if legacy is not None and isinstance(legacy.box, QObject):
+            blocker = QSignalBlocker(legacy.box)
+            legacy.box.setChecked(state)
+            del blocker
+        splitter = self.window.ui.splitters.get('columns')
+        if isinstance(splitter, QSplitter):
+            splitter.widget(1).setVisible(state)
+        column = 1 if state else 0
+        for idx in (0, 1):
+            button = self.window.ui.nodes.get(f'layout.split.button.{idx}')
+            if button is not None:
+                button.setVisible(idx == column)
+                controls = button.parentWidget()
+                controls.setVisible(idx == column or any(
+                    not controls.layout().itemAt(i).widget().isHidden()
+                    for i in range(controls.layout().count())
+                ))
+
+    def enable_split_screen(self, update_switch: bool = False):
+        return self.set_split_screen(True, update_switch=update_switch)
+
+    def disable_split_screen(self):
+        return self.set_split_screen(False)
+
+    def toggle_split_screen_animated(self, checked=False):
+        animation = getattr(self, '_split_animation', None)
+        running = animation is not None and animation.state() == QAbstractAnimation.Running
+        state = self._split_animation_target if running else self.is_split_screen_enabled()
+        return self.set_split_screen(not state, update_switch=True)
+
+    def set_split_screen(self, state: bool, *, animated: bool = True,
+                         update_switch: bool = True):
+        """Shared right-column transition for toolbar, tools and automatic reveals."""
+        splitter = self.window.ui.splitters['columns']
+        # Non-widget callers (including controller tests) can use the same API.
+        if not animated or not isinstance(self.window, QObject):
+            self._stop_split_animation()
+            if state:
+                return self._enable_split_screen(update_switch)
+            return self._disable_split_screen()
+        sizes = splitter.sizes()
+        animation = getattr(self, '_split_animation', None)
+        running = animation is not None and animation.state() == QAbstractAnimation.Running
+        if running and self._split_animation_target == state:
+            return
+        if not running and self.is_split_screen_enabled() == state and (sizes[1] > 0) == state:
+            return
+        self._stop_split_animation()
+        self._split_animation_target = state
+        if state:
+            self._enable_split_screen(update_switch)
+            # Set logical state before tab activation, but animate from the old geometry.
+            splitter.setSizes(sizes)
+        animation = QVariantAnimation(self.window)
+        self._split_animation = animation
+        total = sum(sizes)
+        animation.setDuration(PANEL_ANIMATION_DURATION_MS)
+        animation.setEasingCurve(PANEL_ANIMATION_EASING)
+        animation.setStartValue(sizes[1])
+        animation.setEndValue(total // 2 if state else 0)
+        animation.valueChanged.connect(
+            lambda width: splitter.setSizes([max(0, total - int(width)), int(width)])
+        )
+        animation.finished.connect(lambda: self._finish_split_animation(state))
+        animation.start()
+
+    def _stop_split_animation(self):
+        animation = getattr(self, '_split_animation', None)
+        if animation is not None:
+            animation.stop()
+            animation.deleteLater()
+            self._split_animation = None
+
+    def _finish_split_animation(self, opening):
+        if not opening:
+            self._disable_split_screen()
+        else:
+            self.sync_split_buttons()
+            self._sync_chat_input_width()

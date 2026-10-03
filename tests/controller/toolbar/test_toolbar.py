@@ -69,3 +69,25 @@ def test_toolbox_toggle_animates_and_hides_splitter_handle(qapp):
     assert toolbox.isVisible()
     assert button.isChecked()
     window.close()
+
+
+@pytest.mark.parametrize('action, tab_type', [('files', 2), ('painter', 3)])
+@pytest.mark.parametrize('split, selected_type, collapse', [
+    (True, None, False), (False, 2, False), (True, 0, False),
+    (True, 'same', True),
+])
+def test_tool_buttons_collapse_only_the_selected_visible_right_tool(action, tab_type,
+                                                                    split, selected_type, collapse):
+    tabs = MagicMock()
+    selected = tab_type if selected_type == 'same' else selected_type
+    tabs.get_current_by_column.return_value = (SimpleNamespace(type=selected)
+                                               if selected is not None else None)
+    tabs.is_split_screen_enabled.return_value = split
+    window = SimpleNamespace(controller=SimpleNamespace(tabs=tabs))
+    getattr(Toolbar(window), action)()
+    if collapse:
+        tabs.disable_split_screen.assert_called_once_with()
+        tabs.open_or_activate.assert_not_called()
+    else:
+        tabs.open_or_activate.assert_called_once_with(tab_type)
+        tabs.disable_split_screen.assert_not_called()
