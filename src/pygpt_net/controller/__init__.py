@@ -48,6 +48,7 @@ from .settings import Settings
 from .skills import Skills
 from .theme import Theme
 from .tabs import Tabs
+from .toolbar import Toolbar
 from .tools import Tools
 from .ui import UI
 
@@ -65,6 +66,7 @@ class Controller:
         """
         self.window = window
         self.tabs = Tabs(window)
+        self.toolbar = Toolbar(window)
         self.access = Access(window)
         self.agent = Agent(window)
         self.agents_v2 = AgentsV2(window)

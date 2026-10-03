@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 
 from pygpt_net.item.ctx import CtxMeta, get_additional_ctx_display_names
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
+from pygpt_net.ui.layout.toolbox.mode import Mode
 from pygpt_net.ui.widget.element.button import NewCtxButton, LabelButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem, ShowMoreItem
@@ -95,6 +96,7 @@ class CtxList:
 
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(Mode(self.window).setup())
         layout.addWidget(new_btn_row)
         layout.addWidget(search_input)
         layout.addWidget(ctx_list)

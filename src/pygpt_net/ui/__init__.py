@@ -14,7 +14,7 @@ import threading
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFontDatabase, QIcon
-from PySide6.QtWidgets import QSplitter, QMessageBox
+from PySide6.QtWidgets import QSplitter, QMessageBox, QWidget, QHBoxLayout
 
 from .base.context_menu import ContextMenu
 from .dialogs import Dialogs
@@ -23,6 +23,7 @@ from .layout.ctx import CtxMain
 from .layout.toolbox import ToolboxMain
 from .menu import Menu
 from .tray import Tray
+from .toolbar import LeftToolbar
 
 
 class UI:
@@ -105,7 +106,14 @@ class UI:
         self.dialogs.setup()
 
         # set central widget
-        self.window.setCentralWidget(self.window.ui.splitters['main'])
+        central = QWidget(self.window)
+        central_layout = QHBoxLayout(central)
+        central_layout.setContentsMargins(0, 0, 0, 0)
+        central_layout.setSpacing(0)
+        self.parts['toolbar'] = LeftToolbar(self.window)
+        central_layout.addWidget(self.parts['toolbar'])
+        central_layout.addWidget(self.splitters['main'], 1)
+        self.window.setCentralWidget(central)
 
         # set window title
         self.update_title()

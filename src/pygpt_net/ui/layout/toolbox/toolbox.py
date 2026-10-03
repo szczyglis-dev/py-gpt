@@ -167,9 +167,8 @@ class ToolboxMain:
         nodes['tip.toolbox.mode'] = tip
 
         # Build logical sections separately. Hover is handled independently for
-        # every section (Mode, Model, Presets/Agents, Assistants, System prompt,
+        # every section (Model, Presets/Agents, Assistants, System prompt,
         # Footer), rather than for the complete toolbox.
-        mode_widget = self.mode.setup()
         model_widget = self.model.setup()
         presets_widget = self.presets.setup()
         assistants_widget = self.assistants.setup()
@@ -180,7 +179,6 @@ class ToolboxMain:
         toolbox_mode = QWidget(self.window)
         layout = QVBoxLayout(toolbox_mode)
         self.banner.setup(layout)  # banner is inserted only after a successful remote load
-        layout.addWidget(mode_widget)  # modes
         layout.addWidget(model_widget)  # models
         layout.addWidget(tip)
         layout.addWidget(presets_widget, 1)  # presets / agents
@@ -233,7 +231,6 @@ class ToolboxMain:
         nodes['toolbox'] = toolbox
 
         hover = ToolboxSectionHover(toolbox)
-        hover.register(mode_widget)
         hover.register(model_widget)
         hover.register(presets_widget)
         hover.register(assistants_widget)

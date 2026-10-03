@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.27 10:00:00                  #
 # ================================================== #
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
 
 from pygpt_net.ui.widget.element.labels import ElideTitleLabel
@@ -63,20 +64,11 @@ class Mode:
             combo.setMinimumWidth(0)
             ui_nodes[self.id] = combo
 
-        # The mode selector intentionally reaches the toolbox right edge. Keep
-        # only this combo square on the right; regular inset toolbox combos use
-        # the normal rounded right corners.
-        if hasattr(combo, "combo"):
-            combo.combo.setProperty("toolboxEdgeRight", True)
-
-        header_layout = QVBoxLayout()
-        header_layout.addWidget(label)
-        header_layout.setContentsMargins(5, 5, 0, 0)
+        combo.combo.setProperty('class', 'LabelCombo')
+        combo.combo.setProperty('toolboxEdgeRight', False)
+        combo.combo.setCursor(Qt.PointingHandCursor)
 
         layout = QVBoxLayout()
-        layout.addLayout(header_layout)
         layout.addWidget(combo)
-        layout.addStretch()
-        layout.setContentsMargins(2, 5, 0, 5)
-
+        layout.setContentsMargins(5, 0, 5, 0)
         return layout

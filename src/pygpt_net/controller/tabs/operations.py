@@ -215,6 +215,32 @@ class TabOperations:
             self.handler.on_tab_changed(idx, column_idx)
         return tab
 
+    def open_or_activate(self, type: int, tool_id: Optional[str] = None,
+                         *, create: bool = True):
+        """Reveal and activate the first matching tab, creating it on the right if needed."""
+        candidates = (self.get_tabs_by_tool(tool_id) if tool_id is not None
+                      else self.window.core.tabs.get_tabs_by_type(type))
+        candidates = [tab for tab in candidates if tab.type == type]
+        tab = min(candidates, key=lambda tab: (tab.column_idx, tab.idx)) if candidates else None
+        if tab is None:
+            if not create:
+                return None
+            self.enable_split_screen(update_switch=True)
+            tab = self.append(type, tool_id=tool_id,
+                              idx=self.window.core.tabs.get_max_idx_by_column(1),
+                              column_idx=1, activate=False)
+        if tab is None:
+            return None
+        splitter = self.window.ui.splitters['columns']
+        sizes = splitter.sizes()
+        if tab.column_idx == 1 and not self.is_split_screen_enabled():
+            self.enable_split_screen(update_switch=True)
+        elif sizes[tab.column_idx] == 0:
+            splitter.setSizes([1, 1])
+            self.on_split_screen_changed(True)
+        self.activate_tab(tab)
+        return tab
+
     def open_by_type(self, type: int):
         self.switch_tab(type)
 

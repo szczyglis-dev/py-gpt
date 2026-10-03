@@ -811,3 +811,20 @@ QPushButton[class="LabelButton"] {{
 QPushButton[class="LabelButton"]:hover {{
   background-color: rgba(128, 128, 128, 20);
 }}
+
+/* Compact sidebar mode selector */
+QComboBox[class="LabelCombo"] {{
+  color: {APP_TEXT_COLOR};
+  background-color: transparent;
+  border: none;
+  font-weight: bold;
+  padding: 8px 24px 8px 8px;
+}}
+QComboBox[class="LabelCombo"]:hover {{
+  background-color: rgba(128, 128, 128, 20);
+}}
+QComboBox[class="LabelCombo"]::drop-down {{
+  background-color: transparent;
+  border: none;
+  width: 20px;
+}}

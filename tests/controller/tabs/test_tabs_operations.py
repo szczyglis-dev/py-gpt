@@ -390,3 +390,55 @@ def test_get_tool_column_only_reports_selected_tool(tabs_env):
     tabs._state.remember(1, 0, 90)
     assert tabs.get_tool_column("x") == 1
     assert tabs.get_tool_column("missing") is None
+
+
+def test_open_or_activate_reuses_tab_in_hidden_right_column(tabs_env):
+    tabs = tabs_env.tabs
+    tab = tabs_env.make_tab(type=Tab.TAB_FILES, column_idx=1)
+    tabs_env.core_tabs.get_tabs_by_type.return_value = [tab]
+    tabs.enable_split_screen = MagicMock()
+    tabs.activate_tab = MagicMock()
+    tabs.append = MagicMock()
+    assert tabs.open_or_activate(Tab.TAB_FILES) is tab
+    tabs.enable_split_screen.assert_called_once_with(update_switch=True)
+    tabs.activate_tab.assert_called_once_with(tab)
+    tabs.append.assert_not_called()
+
+
+def test_open_or_activate_reveals_collapsed_left_column(tabs_env):
+    tabs = tabs_env.tabs
+    tab = tabs_env.make_tab(type=Tab.TAB_TOOL_PAINTER, column_idx=0)
+    tabs_env.core_tabs.get_tabs_by_type.return_value = [tab]
+    tabs_env.window.ui.splitters['columns'].sizes.return_value = [0, 700]
+    tabs.on_split_screen_changed = MagicMock()
+    tabs.activate_tab = MagicMock()
+    assert tabs.open_or_activate(Tab.TAB_TOOL_PAINTER) is tab
+    tabs_env.window.ui.splitters['columns'].setSizes.assert_called_once_with([1, 1])
+    tabs.on_split_screen_changed.assert_called_once_with(True)
+    tabs.activate_tab.assert_called_once_with(tab)
+
+
+def test_open_or_activate_creates_missing_tool_on_right(tabs_env):
+    tabs = tabs_env.tabs
+    tabs_env.core_tabs.get_tabs_by_type.return_value = []
+    tabs_env.core_tabs.get_max_idx_by_column.return_value = 3
+    tab = tabs_env.make_tab(type=Tab.TAB_FILES, column_idx=1)
+    tabs.append = MagicMock(return_value=tab)
+    tabs.enable_split_screen = MagicMock()
+    tabs.activate_tab = MagicMock()
+    assert tabs.open_or_activate(Tab.TAB_FILES) is tab
+    tabs.append.assert_called_once_with(Tab.TAB_FILES, tool_id=None, idx=3,
+                                       column_idx=1, activate=False)
+    tabs.activate_tab.assert_called_once_with(tab)
+
+
+def test_home_uses_first_chat_without_creating_one(tabs_env):
+    tabs = tabs_env.tabs
+    right = tabs_env.make_tab(pid=2, idx=0, column_idx=1)
+    left = tabs_env.make_tab(pid=1, idx=2, column_idx=0)
+    tabs_env.core_tabs.get_tabs_by_type.return_value = [right, left]
+    tabs.activate_tab = MagicMock()
+    assert tabs.open_or_activate(Tab.TAB_CHAT, create=False) is left
+    tabs.activate_tab.assert_called_once_with(left)
+    tabs_env.core_tabs.get_tabs_by_type.return_value = []
+    assert tabs.open_or_activate(Tab.TAB_CHAT, create=False) is None
