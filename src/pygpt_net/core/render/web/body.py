@@ -13,7 +13,7 @@ import os
 from json import dumps as _json_dumps
 from random import shuffle as _shuffle
 from pygpt_net.item.render_attachment import attachment_type, attachment_paths
-from PySide6.QtCore import QFile
+from PySide6.QtCore import QFile, QUrl
 import pygpt_net.icons_rc
 
 from typing import Optional, List, Dict, Tuple
@@ -207,6 +207,23 @@ class Body:
             }
         }
     """
+
+    # Keep interaction states in their own stylesheet: profile CSS must not
+    # swallow these rules through an unclosed block or override their visibility.
+    # Keep hover separate so unsupported focus selectors cannot invalidate it.
+    _USER_ACTIONS_CSS = """
+        #container .msg-user-region:hover > .user-message-actions,
+        #container .msg-user-region.user-actions-visible > .user-message-actions {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        #container .msg-user-region:focus-within > .user-message-actions {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+        """
 
     _PERFORMANCE_CSS = """
         #container, #_nodes_, #_append_output_, #_append_output_before_ {
@@ -844,17 +861,20 @@ class Body:
         db_path = os.path.join(app_path, "data", "icons", "db.svg").replace("\\", "/")
         done_path = os.path.join(app_path, "data", "icons", "done.svg").replace("\\", "/")
 
-        icons_js = (
-            f'window.ICON_EXPAND="file://{expand_path}";'
-            f'window.ICON_COLLAPSE="file://{collapse_path}";'
-            f'window.ICON_CODE_COPY="file://{copy_path}";'
-            f'window.ICON_CODE_PREVIEW="file://{preview_path}";'
-            f'window.ICON_CODE_RUN="file://{run_path}";'
-            f'window.ICON_CODE_MENU="file://{menu_path}";'
-            f'window.ICON_URL="file://{url_path}";'
-            f'window.ICON_ATTACHMENTS="file://{attach_path}";'
-            f'window.ICON_DB="file://{db_path}";'
-            f'window.ICON_DONE="file://{done_path}";'
+        icons_js = "".join(
+            f'window.ICON_{name}={_json_dumps(QUrl.fromLocalFile(path).toString())};'
+            for name, path in (
+                ("EXPAND", expand_path),
+                ("COLLAPSE", collapse_path),
+                ("CODE_COPY", copy_path),
+                ("CODE_PREVIEW", preview_path),
+                ("CODE_RUN", run_path),
+                ("CODE_MENU", menu_path),
+                ("URL", url_path),
+                ("ATTACHMENTS", attach_path),
+                ("DB", db_path),
+                ("DONE", done_path),
+            )
         )
 
         t_copy = trans('ctx.extra.copy_code')
@@ -922,6 +942,8 @@ class Body:
         return ''.join((
             self._HTML_P0,
             styles_css,
+            '</style><style id="user-action-style">',
+            self._USER_ACTIONS_CSS,
             self._HTML_P1,
             str(pid),
             self._HTML_P2,

@@ -1088,7 +1088,7 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 /* User action row keeps its space while fading on region hover. */
 .msg-user-region {{ width: 100%; }}
 .user-message-actions {{ display: flex; justify-content: flex-end; align-items: center; gap: 12px; min-height: 26px; padding: 0 10px; box-sizing: border-box; font-size: 0.7rem; color: var(--user-actions-color, #999); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .16s ease, visibility .16s ease; }}
-.msg-user-region:hover .user-message-actions, .msg-user-region:has(:focus-visible) .user-message-actions {{ opacity: 1; visibility: visible; pointer-events: auto; }}
+.msg-user-region:hover .user-message-actions, .msg-user-region:focus-within .user-message-actions {{ opacity: 1; visibility: visible; pointer-events: auto; }}
 .user-message-actions a {{ display: inline-flex; align-items: center; color: inherit; padding: 3px; line-height: 0; opacity: .7; }}
 .user-message-actions a:hover {{ opacity: 1; }}
 .user-message-actions img {{ width: 14px; height: 14px; }}

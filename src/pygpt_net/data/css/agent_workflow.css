@@ -6,10 +6,21 @@ html, body {
     min-height: 100%;
 }
 body.agent-workflow {
+    min-height: 100vh;
+    isolation: isolate;
     font-size: 0.8rem;
     box-sizing: border-box;
     padding: 12px 14px 18px 10px;
     overflow-wrap: anywhere;
+}
+/* Paint the viewport explicitly; Qt WebEngine can retain a partial page background. */
+body.agent-workflow::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: inherit;
+    z-index: -1;
+    pointer-events: none;
 }
 body.theme-dark {
     --wf-text: #e7e7e7;

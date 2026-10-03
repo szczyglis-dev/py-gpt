@@ -1022,11 +1022,12 @@ class PainterWidget(QWidget):
         if fit_canvas_to_image:
             w, h = image.width(), image.height()
             self.window.controller.painter.common.change_canvas_size(f"{w}x{h}")
-        else:
-            self._ensure_layers()
-            self._rescale_base_from_source()
-            self.drawingLayer.fill(Qt.transparent)
-            self._mark_composite_dirty()
+        # Replacing the source must rebuild layers even when the new image has
+        # the same size and change_canvas_size does not trigger a resize.
+        self._ensure_layers()
+        self._rescale_base_from_source()
+        self.drawingLayer.fill(Qt.transparent)
+        self._mark_composite_dirty()
         self.update()
 
     def scale_to_fit(self, image):

@@ -284,12 +284,20 @@ class EventManager {
 		};
 
 		this.handlers.mouseover = (event) => {
+			const region = event.target.closest && event.target.closest('.msg-user-region');
+			if (region && !region.contains(event.relatedTarget)) {
+				region.classList.add('user-actions-visible');
+			}
 			if (event.target.classList.contains('action-img')) {
 				const id = event.target.getAttribute('data-id');
 				addClassToMsg(id, 'msg-highlight');
 			}
 		};
 		this.handlers.mouseout = (event) => {
+			const region = event.target.closest && event.target.closest('.msg-user-region');
+			if (region && !region.contains(event.relatedTarget)) {
+				region.classList.remove('user-actions-visible');
+			}
 			if (event.target.classList.contains('action-img')) {
 				const id = event.target.getAttribute('data-id');
 				const el = document.getElementById('msg-bot-' + id);
