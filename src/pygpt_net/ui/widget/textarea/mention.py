@@ -126,6 +126,8 @@ class MentionPopup(QFrame):
                     matches.append(entry)
 
         self.list.clear()
+        self._add_header(trans('input.mentions.add_new'))
+        self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
         conversations = [e for e in matches if e.kind == KIND_CONVERSATION]
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
         files = [e for e in matches if e.kind == KIND_FILE_CONTEXT]

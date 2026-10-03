@@ -493,6 +493,10 @@ class ChatInput(QTextEdit):
             if not probe.movePosition(QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor):
                 break
             char = self._cursor_selected_text(probe)
+            # Completion belongs to the token currently being typed, never an
+            # earlier @ elsewhere in the paragraph. Whitespace ends a token.
+            if char.isspace():
+                return None
             if char == "@":
                 at_cursor = QTextCursor(probe)
                 break
@@ -505,6 +509,11 @@ class ChatInput(QTextEdit):
 
         at_pos = at_cursor.selectionStart()
         end_pos = current.position()
+        # charFormat() at a fragment boundary can describe the preceding
+        # plain text instead of the selected @. Check the durable anchor range.
+        if any(group['start'] <= at_pos < group['end']
+               for group in self._collect_mention_groups()):
+            return None
 
         # Avoid triggering inside an e-mail/path/identifier: foo@bar, ./@name, etc.
         if at_pos > block_start:
@@ -736,6 +745,35 @@ class ChatInput(QTextEdit):
         if trigger is None:
             return
         at_pos, end_pos, _query = trigger
+        if entry.kind == 'upload':
+            self._mention_popup.hide()
+            added = self.window.controller.attachment.open_add()
+            if not added:
+                self.setFocus()
+                return
+            self._mention_loading = True
+            try:
+                cursor = QTextCursor(self.document())
+                cursor.setPosition(at_pos)
+                cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+                cursor.beginEditBlock()
+                try:
+                    cursor.removeSelectedText()
+                    for attachment in added:
+                        name = attachment.name or os.path.basename(attachment.path or '')
+                        self._insert_mention_cursor(cursor, MentionEntry(KIND_ATTACHMENT, name, name))
+                        self._insert_plain_cursor(cursor, ' ')
+                finally:
+                    cursor.endEditBlock()
+                self.setTextCursor(cursor)
+                self._mention_source_key = None
+                self._mention_trigger_pos = None
+            finally:
+                self._mention_loading = False
+            self._refresh_mention_formats()
+            self.setFocus()
+            self._schedule_auto_resize()
+            return
 
         next_char = ""
         after = QTextCursor(self.document())

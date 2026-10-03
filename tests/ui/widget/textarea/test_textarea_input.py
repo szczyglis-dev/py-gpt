@@ -334,3 +334,39 @@ def test_auto_height_fits_draft_and_caps_growth(text, doc_height, current, windo
         splitter.setSizes.assert_not_called()
     else:
         assert splitter.setSizes.call_args.args[0][1] == expected
+
+
+def test_completed_mention_does_not_trigger_picker_after_spaces():
+    from PySide6.QtWidgets import QApplication, QTextEdit
+    from PySide6.QtGui import QTextCharFormat
+    app = QApplication.instance() or QApplication([])
+    class Editor(QTextEdit):
+        MENTION_ID_PROP = ChatInput.MENTION_ID_PROP
+        MENTION_KIND_PROP = ChatInput.MENTION_KIND_PROP
+        MENTION_VALUE_PROP = ChatInput.MENTION_VALUE_PROP
+        MENTION_LABEL_PROP = ChatInput.MENTION_LABEL_PROP
+        _collect_mention_groups = ChatInput._collect_mention_groups
+        _find_mention_trigger = ChatInput._find_mention_trigger
+        _cursor_selected_text = staticmethod(ChatInput._cursor_selected_text)
+    editor = Editor()
+    cursor = editor.textCursor()
+    cursor.insertText('text ')
+    fmt = QTextCharFormat()
+    fmt.setProperty(editor.MENTION_ID_PROP, 'm1')
+    cursor.insertText('@arnie.png', fmt)
+    cursor.insertText('  ', QTextCharFormat())
+    editor.setTextCursor(cursor)
+    assert editor._find_mention_trigger() is None
+    cursor.insertText('@', QTextCharFormat())
+    editor.setTextCursor(cursor)
+    assert editor._find_mention_trigger() is not None
+    # Formatting may be cleared; the completed label and separator still
+    # terminate the query, including when ordinary text follows it.
+    from pygpt_net.ui.widget.textarea.mention import MentionEntry
+    editor._mention_entries = [MentionEntry('attachment', 'arnie.png', 'arnie.png')]
+    for text in ('text @arnie.png ', 'text @arnie.png xyz', 'text @unknown.bin anything'):
+        editor.setPlainText(text)
+        cursor = editor.textCursor()
+        cursor.movePosition(type(cursor).MoveOperation.End)
+        editor.setTextCursor(cursor)
+        assert editor._find_mention_trigger() is None

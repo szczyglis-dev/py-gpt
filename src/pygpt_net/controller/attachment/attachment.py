@@ -281,6 +281,7 @@ class Attachment:
         """Open add attachment file dialog"""
         last_dir = self.window.core.config.get_last_used_dir()
         mode = self.window.core.config.get('mode')
+        added = []
         dialog = QFileDialog(self.window)
         dialog.setDirectory(last_dir)
         dialog.setFileMode(QFileDialog.ExistingFiles)
@@ -299,10 +300,12 @@ class Attachment:
                         path=path,
                         auto_save=False,
                     )
+                    added.append(attachment)
 
             # save attachments and update attachments list
             self.window.core.attachments.save()
             self.update()
+        return added
 
     def open_add_url(self):
         """Open add attachment URL dialog"""
@@ -689,4 +692,3 @@ class Attachment:
     def reload(self):
         """Reload attachments"""
         self.setup()
-
