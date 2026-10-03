@@ -170,7 +170,7 @@ class Body:
             position: fixed;
             left: 50%;
             transform: translateX(-50%);
-            bottom: 16px;
+            bottom: 0px;
             width: 40px;
             height: 40px;
             border: none;

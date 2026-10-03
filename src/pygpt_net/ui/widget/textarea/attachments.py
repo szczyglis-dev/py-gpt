@@ -5,6 +5,7 @@ from functools import partial
 from PySide6.QtCore import Qt, QRect, QFile, QSize, QEvent, Signal, QMimeData
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPixmap, QIcon, QImageReader, QDrag
 from PySide6.QtWidgets import QWidget, QScrollArea, QHBoxLayout, QToolButton, QApplication
+from pygpt_net.utils import is_image
 
 
 class AttachmentTile(QWidget):
@@ -19,6 +20,7 @@ class AttachmentTile(QWidget):
         self._drag_start = None
         self.setCursor(Qt.PointingHandCursor)
         self.name = item.name or os.path.basename(item.path or '')
+        self.is_image_file = is_image(item.path or self.name)
         self.setFixedSize(self.SIDE, self.SIDE)
         self.setToolTip(item.path or self.name)
         reader = QImageReader(item.path or '')
@@ -86,19 +88,23 @@ class AttachmentTile(QWidget):
     def paintEvent(self, event):
         light = self.window.controller.theme.common.is_light_theme_id(self.window.core.config.get('theme', 'dark'))
         background = QColor('#f5f5f5')
-        border = QColor('#d2d2d2' if light else '#505050')
         band = QColor('#e8e8e8' if light else '#252525')
         text = QColor('#444444' if light else '#dddddd')
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         path = QPainterPath()
-        path.addRoundedRect(0.5, 0.5, self.SIDE - 1, self.SIDE - 1, 8, 8)
+        path.addRoundedRect(0, 0, self.SIDE, self.SIDE, 8, 8)
         painter.setClipPath(path)
-        painter.fillRect(self.rect(), background)
+        # Qt can decode document previews too (e.g. PDF). Only image files
+        # should lose the backing; documents keep a white page background.
+        if not self.is_image_file:
+            painter.fillRect(self.rect(), background)
         if not self.image.isNull():
             image = self.image.scaled(self.SIDE, self.SIDE, Qt.KeepAspectRatioByExpanding, Qt.SmoothTransformation)
             painter.drawPixmap((self.SIDE - image.width()) // 2, (self.SIDE - image.height()) // 2, image)
         else:
+            if self.is_image_file:
+                painter.fillRect(self.rect(), background)
             self.icon.paint(painter, QRect((self.SIDE - 40) // 2, (self.SIDE - 19 - 40) // 2, 40, 40))
         if self.image.isNull():
             painter.fillRect(QRect(0, self.SIDE - 19, self.SIDE, 19), band)
@@ -111,8 +117,6 @@ class AttachmentTile(QWidget):
                     name = name[:-1]
                 name += '...'
             painter.drawText(QRect(4, self.SIDE - 19, self.SIDE - 8, 19), Qt.AlignCenter, name)
-        painter.setPen(border)
-        painter.drawPath(path)
         painter.end()
 
 
@@ -250,6 +254,7 @@ class InputAttachments(QScrollArea):
         items = self.window.core.attachments.get_all(self.mode)
         if key in items:
             self.window.controller.attachment.delete(list(items).index(key), force=True, remove_local=False)
+            self.window.ui.nodes['input'].fit_to_content()
 
     def mark_sent(self):
         self.sent.update(self.window.core.attachments.get_all(self.mode))

@@ -178,7 +178,7 @@ class ChatInput(QTextEdit):
 
         # ---- Auto-resize config (input in splitter) ----
         self._auto_max_lines = 10  # max lines for auto-expansion
-        self._auto_max_ratio = 0.25  # max fraction of main window height
+        self._auto_max_ratio = 0.40  # max fraction of main window height
         self._auto_debounce_ms = 0  # coalesce updates in next event loop turn
         self._auto_updating = False  # reentrancy guard
         self._splitter_resize_in_progress = False
@@ -2459,8 +2459,6 @@ class ChatInput(QTextEdit):
                 sizes[idx] += delta
                 splitter.setSizes(sizes)
             elif not height and previous:
-                if self._attachment_splitter_sizes:
-                    splitter.setSizes(self._attachment_splitter_sizes)
                 self._attachment_splitter_sizes = None
                 collapsible = self._attachment_pane_collapsible
                 # Restore the normal policy only after Qt has committed the
@@ -2471,6 +2469,13 @@ class ChatInput(QTextEdit):
                 QTimer.singleShot(0, restore_policy)
         self._apply_margins()
         self._position_attachment_strip()
+        if height < previous:
+            self.fit_to_content()
+
+    def fit_to_content(self):
+        """Fit remaining text after removing an attachment, after layout settles."""
+        self._pending_fit_content = True
+        self._schedule_auto_resize(force=True)
 
     def _position_attachment_strip(self):
         strip = getattr(self, 'attachment_strip', None)
@@ -2631,7 +2636,7 @@ class ChatInput(QTextEdit):
         min_viewport_h = int(math.ceil(2.0 * doc_margin + line_h))
         # Respect current minimum size hint to avoid jitter on some styles
         min_hint = max(self.minimumSizeHint().height(), 0)
-        attachment_min = (getattr(self, "_attachment_base_input_height", 0)
+        attachment_min = (getattr(self, "_attachment_base_minimum_height", 0)
                           + getattr(self, "_attachment_row_height", 0)) if getattr(self, "_attachment_row_height", 0) else 0
         return max(min_hint, min_viewport_h + non_viewport_h, attachment_min)
 
@@ -2652,9 +2657,8 @@ class ChatInput(QTextEdit):
     def _update_auto_height(self, force: bool = False, minimize_if_single: bool = False):
         """
         Core auto-resize routine:
-        - expand only when the input has focus (unless force=True),
-        - cap by max lines and 1/4 of main window height,
-        - shrink back to minimal only after send or when text is effectively one line.
+        - cap at 420 px or 40% of main window height,
+        - fit the current document on every edit, including deletion.
         """
         if self._auto_updating or self._splitter_resize_in_progress:
             return
@@ -2664,18 +2668,18 @@ class ChatInput(QTextEdit):
         if splitter is None or container is None or idx < 0:
             return  # Not yet attached to the splitter
 
-        # Expansion only with focus unless forced
-        has_focus = self.hasFocus()
-        can_expand = force or has_focus
         if self._user_adjusting_splitter and not force:
             return
 
         # Measure current layout and targets
         doc_h = self._document_content_height()
         non_viewport_h = self.height() - self.viewport().height()
+        # Attachment removal can resize the editor before Qt has resized its
+        # viewport. Never measure controls from that transient geometry alone.
+        margins = self.viewportMargins()
+        non_viewport_h = max(non_viewport_h, margins.top() + margins.bottom() + 2 * self.frameWidth())
         needed_input_h = int(math.ceil(doc_h + non_viewport_h))
         min_input_h = self._min_input_widget_height(non_viewport_h)
-        max_input_by_lines = self._max_input_widget_height_by_lines(non_viewport_h)
 
         # Container overhead above the inner QTextEdit
         container_overhead = max(0, container.height() - self.height())
@@ -2688,10 +2692,11 @@ class ChatInput(QTextEdit):
         except Exception:
             max_container_by_ratio = 0  # fallback disables ratio cap if window unavailable
 
-        max_container_by_lines = max_input_by_lines + container_overhead
-        cap_container_max = max_container_by_lines
+        cap_container_max = 420
         if max_container_by_ratio > 0:
             cap_container_max = min(cap_container_max, max_container_by_ratio)
+        cap_container_max = max(min_container_h, cap_container_max)
+        container.setMaximumHeight(cap_container_max)
 
         current_sizes = splitter.sizes()
         if idx >= len(current_sizes):
@@ -2700,16 +2705,16 @@ class ChatInput(QTextEdit):
 
         # Decide on action
         target_container_h = None
+        fit_content = getattr(self, '_pending_fit_content', False)
+        self._pending_fit_content = False
 
-        # Shrink only when requested or effectively single line
-        if minimize_if_single or self._should_shrink_to_min(doc_h):
+        if (force and minimize_if_single and not fit_content) or self._is_effectively_empty():
             if current_container_h > min_container_h + 1:
                 target_container_h = min_container_h
 
-        # Expand if focused (or forced), but only up to caps
-        elif can_expand:
-            desired = min(needed_container_h, cap_container_max)
-            if desired > current_container_h + 1:
+        else:
+            desired = max(min_container_h, min(needed_container_h, cap_container_max))
+            if abs(desired - current_container_h) > 1:
                 target_container_h = desired
 
         # Apply if needed

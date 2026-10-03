@@ -295,3 +295,40 @@ def test_effectively_empty_strips_whitespace_and_fails_safe():
     assert ChatInput._is_effectively_empty(widget) is False
     widget.toPlainText.side_effect = RuntimeError("gone")
     assert ChatInput._is_effectively_empty(widget) is True
+
+
+@pytest.mark.parametrize('text, doc_height, current, window_height, expected, fit', [
+    ('short draft', 20, 400, 1200, 105, False),
+    ('pasted long draft', 900, 150, 1200, 420, False),
+    ('pasted long draft', 900, 150, 800, 320, False),
+    ('', 20, 400, 1200, 105, False),
+    ('remaining text', 160, 400, 1200, 200, True),
+    ('long remaining text', 900, 420, 1200, None, True),
+])
+def test_auto_height_fits_draft_and_caps_growth(text, doc_height, current, window_height, expected, fit):
+    splitter = MagicMock()
+    splitter.sizes.return_value = [1000-current, current]
+    container = MagicMock()
+    container.height.return_value = current
+    widget = SimpleNamespace(
+        _auto_updating=False, _splitter_resize_in_progress=False,
+        _user_adjusting_splitter=False, _auto_max_ratio=0.4,
+        _pending_fit_content=fit,
+        window=SimpleNamespace(height=lambda: window_height),
+        _get_main_splitter=lambda: splitter,
+        _find_container_in_splitter=lambda s: (container, 1),
+        hasFocus=lambda: True,
+        _document_content_height=lambda: doc_height,
+        height=lambda: current,
+        viewport=lambda: SimpleNamespace(height=lambda: current-40),
+        viewportMargins=lambda: SimpleNamespace(top=lambda: 10, bottom=lambda: 28),
+        frameWidth=lambda: 1,
+        _min_input_widget_height=lambda h: 105,
+        _is_effectively_empty=lambda: not text.strip(),
+    )
+    ChatInput._update_auto_height(widget, force=fit, minimize_if_single=fit)
+    container.setMaximumHeight.assert_called_once_with(min(420, int(window_height*.4)))
+    if expected is None:
+        splitter.setSizes.assert_not_called()
+    else:
+        assert splitter.setSizes.call_args.args[0][1] == expected

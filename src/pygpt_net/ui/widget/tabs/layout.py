@@ -46,6 +46,10 @@ class OutputColumn(QWidget):
         self.splitter = QSplitter(Qt.Vertical, self)
         self.splitter.addWidget(self.tabs)
         self.splitter.addWidget(self.input_host)
+        # Keep programmatic sizing while removing the draggable separator.
+        self.splitter.setHandleWidth(0)
+        self.splitter.handle(1).setEnabled(False)
+        self.splitter.handle(1).hide()
         self.splitter.setCollapsible(1, True)
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 0)
