@@ -364,6 +364,11 @@ class BasePlugin(QObject, LocaleDomain):
         :param err: error message
         """
         self.window.core.debug.log(err)
+        from pygpt_net.core.security import SecurityError
+        if isinstance(err, SecurityError):
+            # Expected policy denials are already returned in tool results.
+            # Keep them in the log without interrupting the user with a dialog.
+            return
         msg = self.window.core.debug.parse_alert(err)
         self.window.ui.dialogs.alert(f"{self.name}: {msg}")
 

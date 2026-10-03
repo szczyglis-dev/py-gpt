@@ -286,3 +286,15 @@ def test_status_and_log_handlers_ignore_threaded_calls(mock_window):
     plugin.handle_log("y")
     mock_window.update_status.assert_not_called()
     plugin.log.assert_not_called()
+
+
+def test_security_denial_is_logged_without_dialog(mock_window):
+    from pygpt_net.core.security import SecurityError
+    plugin = make_plugin(mock_window)
+    mock_window.core.debug = MagicMock()
+    mock_window.ui.dialogs = MagicMock()
+    error = SecurityError('Filesystem access outside workdir is disabled')
+    plugin.error(error)
+    mock_window.core.debug.log.assert_called_once_with(error)
+    mock_window.ui.dialogs.alert.assert_not_called()
+    mock_window.core.debug.parse_alert.assert_not_called()
