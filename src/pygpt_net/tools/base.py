@@ -13,9 +13,9 @@ from typing import Optional, Dict, Any, Callable
 import weakref
 from enum import Enum
 
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, QEvent
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QWidget, QApplication
 
 from pygpt_net.core.events import BaseEvent
 from pygpt_net.core.locale import LocaleDomain
@@ -52,6 +52,9 @@ class BaseTool(QObject, LocaleDomain):
         self.dialog_types = ()
         self.dialog_opener = 'open'
         self._single_dialog_id = None
+        self._surfaces = []
+        self._last_surface = None
+        self._surface_events_installed = False
         self.tab_title = ""
         self.tab_icon = ":/icons/build.svg"
         self._lang_mappings = []
@@ -139,6 +142,126 @@ class BaseTool(QObject, LocaleDomain):
         if policy == ToolMenuAction.TAB_IF_EXISTS:
             return self.open_tab() if exists else self.open_dialog()
         raise ValueError(f'Unsupported tool menu policy: {policy}')
+
+    def register_surface(self, instance, widget, *, tab=None, dialog_id=None):
+        """Register an independent runtime and its tab or dialog frontend."""
+        self._surfaces.append(dict(instance=instance, widget=widget, tab=tab,
+                                   dialog_id=dialog_id))
+        widget.installEventFilter(self)
+        app = QApplication.instance()
+        if app is not None and not self._surface_events_installed:
+            # Global event filters see WebEngine's transient native widgets.
+            # Qt's focusChanged signal provides stable frontend focus instead.
+            app.focusChanged.connect(self._on_surface_focus_changed)
+            self._surface_events_installed = True
+        return instance
+
+    def unregister_surface(self, instance):
+        for entry in self._surfaces:
+            if entry['instance'] is instance:
+                try:
+                    entry['widget'].removeEventFilter(self)
+                except RuntimeError:
+                    pass
+        self._surfaces = [entry for entry in self._surfaces
+                          if entry['instance'] is not instance]
+        if self._last_surface is instance:
+            self._last_surface = None
+
+    def mark_surface_used(self, instance=None, *, tab=None):
+        for entry in self._surfaces:
+            if ((instance is not None and entry['instance'] is instance)
+                    or (tab is not None and entry['tab'] is tab)):
+                self._last_surface = entry['instance']
+                return
+
+    def _on_surface_focus_changed(self, previous, current):
+        if current is None:
+            return
+        for entry in self._surfaces:
+            widget = entry['widget']
+            try:
+                if current is widget or widget.isAncestorOf(current):
+                    self.mark_surface_used(entry['instance'])
+                    break
+            except RuntimeError:
+                pass
+
+    def eventFilter(self, watched, event):
+        for entry in self._surfaces:
+            if watched is not entry['widget']:
+                continue
+            if (event.type() in (QEvent.MouseButtonPress, QEvent.FocusIn)
+                    or (event.type() == QEvent.WindowActivate and entry['tab'] is None)):
+                self.mark_surface_used(entry['instance'])
+            break
+        return super().eventFilter(watched, event)
+
+    def resolve_surface(self, *, create=False, activate=False):
+        """Last used, current tab, tabs in UI order, then visible dialogs.
+
+        Only registered live surfaces participate. Overrides of create_surface()
+        may lazily create a frontend when requested. Returns its runtime, or None.
+        """
+        if self.window is None:
+            return None
+        tabs = self.window.controller.tabs
+        tool_tabs = sorted(tabs.get_tabs_by_tool(self.id),
+                           key=lambda tab: (tab.column_idx, tab.idx))
+        entries = []
+        for entry in self._surfaces:
+            try:
+                from shiboken6 import isValid
+                if not isValid(entry['widget']):
+                    continue
+                tab = entry['tab']
+                if tab is not None:
+                    if not self.can_open_tab() or not any(tab is item for item in tool_tabs):
+                        continue
+                elif not self.can_open_dialog() or not entry['widget'].isVisible():
+                    continue
+                entries.append(entry)
+            except RuntimeError:
+                continue
+        chosen = next((entry for entry in entries
+                       if entry['instance'] is self._last_surface), None)
+        if chosen is None:
+            current = tabs.get_current_tab()
+            chosen = next((entry for entry in entries
+                           if entry['tab'] is not None and entry['tab'] is current), None)
+        if chosen is None:
+            for tab in tool_tabs:
+                chosen = next((entry for entry in entries if entry['tab'] is tab), None)
+                if chosen is not None:
+                    break
+        if chosen is None:
+            chosen = next((entry for entry in entries if entry['tab'] is None), None)
+        if chosen is None:
+            if not create:
+                return None
+            instance = self.create_surface()
+            if instance is None:
+                return None
+            chosen = next((entry for entry in self._surfaces
+                           if entry['instance'] is instance), None)
+            if chosen is None:
+                raise RuntimeError('create_surface() must register the new surface')
+        if activate:
+            tab = chosen['tab']
+            if tab is not None:
+                if tab.column_idx == 1 and not tabs.is_split_screen_enabled():
+                    tabs.enable_split_screen(update_switch=True)
+                tabs.activate_tab(tab, sync_context=False)
+            else:
+                chosen['widget'].show()
+                chosen['widget'].raise_()
+                chosen['widget'].activateWindow()
+            self.mark_surface_used(chosen['instance'])
+        return chosen['instance']
+
+    def create_surface(self):
+        """Override to create and register a runtime frontend on demand."""
+        return None
 
     def setup(self):
         """Setup tool"""

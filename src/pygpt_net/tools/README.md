@@ -34,8 +34,29 @@ surfaces, as provided by Text Editor and Image Viewer.
 `has_tab` and `single_instance` remain compatibility properties mapping to
 `allow_tab` and `not multi_tab`; they do not store a separate policy.
 
-Current policies retain tab-only singleton Canvas (`web_browser`), singleton
+Current policies allow independent Web/Canvas (`web_browser`) tabs and dialogs, singleton
 Python/OS and Agent Workflow tabs, multiple legacy HTML Canvas tabs, multiple
 Text Editor/Image Viewer dialogs, and singleton dialogs for the other tools.
 Direct core tab creation enforces the same limits. Saved tabs are skipped when
 `allow_tab` has subsequently been disabled.
+
+
+## Selecting a runtime frontend
+
+Tools with independent runtimes can register each one with
+`register_surface(instance, widget, tab=tab)` or
+`register_surface(instance, dialog_widget, dialog_id=dialog_id)`.
+`resolve_surface(create=True, activate=True)` selects the last used live
+instance, then the current tab, other tabs in column/index order, and finally
+visible dialogs. It reveals the selected column and activates the concrete tab
+without changing the chat context, or raises the selected dialog. Implement
+`create_surface()` to create and register a runtime if none is available.
+Read-only lookups should leave `create=False` (the default).
+
+Tab selection and mouse/focus events track usage. `mark_surface_used(instance)`
+can also record explicit runtime operations. Call `unregister_surface(instance)`
+on disposal and release that runtime's resources. Closed/removed/deleted
+frontends and disabled surface types do not participate in selection.
+Web/Canvas routes every plugin command through this API while UI callbacks stay
+bound to their own runtime. Each frontend has separate DOM, navigation,
+annotations, browser backend and local-server state; address history is shared.

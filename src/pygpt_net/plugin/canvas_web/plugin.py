@@ -272,6 +272,10 @@ The `get_user_painter_image` tool is different from `canvas_screenshot`: it retr
             tool = self.window.tools.get("web_browser")
             if tool is None:
                 return prompt
+            # Track the concrete owner: selection may change before delivery.
+            runtime = tool.resolve_surface()
+            if runtime is not None:
+                tool = runtime
             annotations = tool.get_annotations()
             if not annotations:
                 return prompt

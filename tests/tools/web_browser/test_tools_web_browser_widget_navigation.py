@@ -37,6 +37,8 @@ def _widget():
     )
     return SimpleNamespace(
         tool=tool,
+        _disposed=False,
+        surface_kind="tab",
         window=window,
         output=output,
         tab=SimpleNamespace(idx=4, column_idx=1),

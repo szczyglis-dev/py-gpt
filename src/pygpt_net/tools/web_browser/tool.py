@@ -97,7 +97,7 @@ class _PreviewHandler(SimpleHTTPRequestHandler):
 
 
 class WebBrowser(AnnotationMixin, BaseTool):
-    """Single persistent browser runtime exposed through one Canvas tab."""
+    """Canvas manager; each frontend owns an independent browser runtime."""
 
     HISTORY_LIMIT = 30
     BROWSER_HISTORY_FILE = "browser_history.json"
@@ -204,12 +204,14 @@ body {
         super(WebBrowser, self).__init__(*args, **kwargs)
         self.id = "web_browser"
         self.allow_tab = True
-        self.allow_dialog = False
-        self.multi_tab = False
-        self.multi_dialog = False
-        self.on_menu_click = ToolMenuAction.ALWAYS_TAB
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = True
+        self.on_menu_click = ToolMenuAction.DIALOG_IF_TAB_EXISTS
         self.dialog_id = "web_browser"
-        self.tab_title = "menu.tools.canvas_html"
+        self.tab_title = "tool.web_browser.tab_title"
+        self.dialog_opener = "open_window"
+        self.runtime_root = None
         self.tab_icon = ":/icons/grid.svg"
         self.opened = False
         self.dialog = None
@@ -243,6 +245,8 @@ body {
         self.annotation_seq = 0
 
         self.pw = None
+        self._playwright_driver = None
+        self._playwright_users = set()
         self.pw_browser = None
         self.pw_context = None
         self.pw_page = None
@@ -284,6 +288,8 @@ body {
 
     def on_reload(self):
         self._load_browser_history()
+        for entry in list(self._surfaces):
+            entry['instance'].on_reload()
         self.update()
         # Canvas is profile-scoped. If a runtime already exists, discard the
         # previous profile's page/session state and start the new profile from
@@ -295,11 +301,20 @@ body {
             self.setup_theme()
 
     def on_exit(self):
+        for entry in list(self._surfaces):
+            self.release_runtime(entry['instance'])
+        self.viewport_policy_timer.stop()
+        if self.pw_frame_timer is not None:
+            self.pw_frame_timer.stop()
         self._stop_server()
         self._stop_playwright()
         if self.surface is not None:
             self.surface.shutdown()
+            self.surface.deleteLater()
             self.surface = None
+        if self.hidden_host is not None:
+            self.hidden_host.deleteLater()
+            self.hidden_host = None
 
     def update(self):
         self.update_menu()
@@ -426,6 +441,8 @@ body {
 
     def _record_browser_history(self, url: str, title: str = ""):
         """Move one visited HTTP(S) URL to the top and persist its timestamp/title."""
+        if self.runtime_root is not None:
+            return self.runtime_root._record_browser_history(url, title)
         if not self._browser_history_enabled():
             return
         url = self._normalize_browser_history_url(url)
@@ -446,6 +463,8 @@ body {
 
     def _update_browser_history_title(self, url: str, title: str):
         """Update the last known title for an existing history URL without reordering it."""
+        if self.runtime_root is not None:
+            return self.runtime_root._update_browser_history_title(url, title)
         if not self._browser_history_enabled():
             return
         url = self._normalize_browser_history_url(url)
@@ -466,6 +485,8 @@ body {
 
     def get_browser_history_entries(self) -> list:
         """Return persistent history entries in newest-first order for address UI."""
+        if self.runtime_root is not None:
+            return self.runtime_root.get_browser_history_entries()
         with self._browser_history_lock:
             return [dict(item) for item in self.browser_history if item.get("url")]
 
@@ -499,6 +520,8 @@ body {
         self._notify_browser_history()
 
     def _notify_browser_history(self):
+        for entry in self._surfaces:
+            entry['instance']._notify_browser_history()
         owner = self.surface_owner
         if owner is not None:
             try:
@@ -761,99 +784,95 @@ body {
             "__ui": True,
         })
 
+    def _new_runtime(self):
+        runtime = WebBrowser()
+        runtime.runtime_root = self
+        runtime.attach(self.window)
+        runtime.setParent(self)
+        return runtime
+
+    def create_surface(self):
+        if not self.can_open_tab():
+            if self.can_open_dialog():
+                return self.open_window()
+            raise RuntimeError("Canvas tabs and dialogs are disabled")
+        tabs = self.window.controller.tabs
+        if not self.can_add_tab():
+            tab = self.existing_tab()
+            entry = next((entry for entry in self._surfaces if entry['tab'] is tab), None)
+            if entry is None:
+                raise RuntimeError("Existing Canvas tab has no registered runtime")
+            return entry['instance']
+        previous = {id(entry['instance']) for entry in self._surfaces}
+        idx = max(0, self.window.core.tabs.get_max_idx_by_column(1))
+        tabs.append(type=Tab.TAB_TOOL, tool_id=self.id, idx=idx, column_idx=1)
+        entry = next((entry for entry in self._surfaces
+                      if id(entry['instance']) not in previous), None)
+        if entry is None:
+            raise RuntimeError("Canvas tab creation did not register a runtime")
+        return entry['instance']
+
     def open(self, load: bool = True):
-        """Open/focus the single Canvas tab in the second column."""
+        if self.runtime_root is not None:
+            return self.runtime_root.activate_runtime(self)
+        return self.resolve_surface(create=True, activate=True)
+
+    def open_tab(self):
         if not self.can_open_tab():
             return None
-        self._ensure_surface()
-        tabs = self.window.controller.tabs
-        tab = tabs.get_first_tab_by_tool(self.id)
+        runtime = self.create_surface()
+        return self.activate_runtime(runtime)
 
-        if tab is None:
-            idx = self.window.core.tabs.get_max_idx_by_column(1)
-            if idx < 0:
-                idx = 0
-            tabs.append(type=Tab.TAB_TOOL, tool_id=self.id, idx=idx, column_idx=1)
-            tab = tabs.get_first_tab_by_tool(self.id)
-
-        # Canvas is tab-only. Manual opening must reveal column 2 even
-        # if an earlier automatic reveal was already consumed in this session.
-        if tab is not None and tab.column_idx == 1 and not tabs.is_split_screen_enabled():
-            tabs.enable_split_screen(update_switch=True)
-        if tab is not None:
-            tabs.switch_tab_by_idx(tab.idx, tab.column_idx)
-        return tab
+    def activate_runtime(self, runtime):
+        self.mark_surface_used(runtime)
+        return self.resolve_surface(activate=True)
 
     def auto_open(self, load: bool = True):
         if self._auto_open_enabled():
             self.ensure_visible_surface()
 
     def ensure_agent_surface(self):
-        """Ensure the Canvas tab exists/reveals only when global auto-open is enabled.
-
-        This compatibility path does not switch an already existing tab. Manual
-        Tools -> Canvas always uses ``open()`` and is unaffected by the setting.
-        """
-        self._ensure_surface()
-        if not self.can_open_tab() or not self._auto_open_enabled():
-            return "hidden"
-
-        tabs = self.window.controller.tabs
-        tab = tabs.get_first_tab_by_tool(self.id)
-
-        if tab is not None and tab.column_idx != 1:
-            # Respect a legacy/user-moved tab in the primary column.  Do not
-            # focus it: model-side browser operations must not steal the chat
-            # input focus or change the globally selected context.
-            return "tab"
-
-        if not tabs.is_split_screen_enabled():
-            tabs.enable_split_screen(update_switch=True)
-
-        if tab is None:
-            idx = self.window.core.tabs.get_max_idx_by_column(1)
-            if idx < 0:
-                idx = 0
-            tabs.append(type=Tab.TAB_TOOL, tool_id=self.id, idx=idx, column_idx=1)
-        # Important: if the tab already exists, leave both column focus and the
-        # selected tab untouched.  The persistent runtime can render/update in
-        # the background and the user keeps typing in Chat uninterrupted.
-        return "tab"
+        runtime = self.runtime_root or self
+        selected = runtime.resolve_surface(create=True, activate=True)
+        return 'tab' if selected.surface_owner.tab is not None else 'dialog'
 
     def ensure_visible_surface(self):
-        """Show Canvas only when its tab is currently not visible.
+        if self.runtime_root is not None:
+            return self.runtime_root.activate_runtime(self)
+        return self.resolve_surface(create=True, activate=True)
 
-        ``canvas_set_html`` produces user-facing visual output, so a hidden or
-        unselected Canvas should be surfaced the same way as opening an internal
-        URL.  If Canvas is already visible, preserve the user's active column.
-        """
-        self._ensure_surface()
-        if not self.can_open_tab():
-            return 'hidden'
-        tabs = self.window.controller.tabs
-        tab = tabs.get_first_tab_by_tool(self.id)
-
-        if tab is not None:
-            selected = tabs.get_current_by_column(tab.column_idx)
-            selected_here = (
-                selected is not None
-                and getattr(selected, "pid", None) == getattr(tab, "pid", None)
-            )
-            column_visible = tab.column_idx == 0 or tabs.is_split_screen_enabled()
-            if selected_here and column_visible:
-                return tab
-
-        # Missing tab, hidden second column, or another tab selected in Canvas'
-        # column: mirror set_url()/internal-link behavior and reveal/focus Canvas.
-        return self.open(load=False)
+    def open_window(self):
+        if not self.can_open_dialog():
+            return None
+        if not self.multi_dialog:
+            for entry in self._surfaces:
+                if entry['tab'] is None:
+                    self.mark_surface_used(entry['instance'])
+                    entry['widget'].show()
+                    return self.resolve_surface(activate=True)
+        from .ui.dialogs import CanvasDialog
+        runtime = self._new_runtime()
+        dialog_id = (self.dialog_id + '.' + uuid.uuid4().hex
+                     if self.multi_dialog else self.dialog_id)
+        try:
+            dialog = CanvasDialog(self.window, dialog_id, runtime, self)
+        except Exception:
+            self.release_runtime(runtime)
+            raise
+        self.window.ui.dialog[dialog_id] = dialog
+        self.register_surface(runtime, dialog, dialog_id=dialog_id)
+        dialog.show()
+        self.mark_surface_used(runtime)
+        dialog.raise_()
+        dialog.activateWindow()
+        return runtime
 
     def close(self):
         """Hide/close the Canvas tab UI while preserving browser runtime."""
         return self.close_surface()
 
     def toggle(self):
-        # The Tools menu is an opener/focuser, not a dialog toggle. Repeated
-        # activation always reuses the canonical singleton tab.
+        # Programmatic toggling opens/focuses the selected runtime.
         return self.open()
 
     @Slot(str, str)
@@ -896,39 +915,69 @@ body {
         }
 
     def close_surface(self):
-        tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
-        if tab is None:
-            self.detach_surface()
-            return {"closed": "none", "session_alive": True}
-        tabs = self.window.controller.tabs
-        if tab.column_idx == 1 and tabs.is_split_screen_enabled():
-            tabs.disable_split_screen()
-            return {"closed": "split_screen", "session_alive": True}
-        tabs.close(tab.idx, tab.column_idx)
-        return {"closed": "tab", "session_alive": True}
+        root = self.runtime_root or self
+        runtime = self if self.runtime_root is not None else root.resolve_surface()
+        entry = next((entry for entry in root._surfaces
+                      if entry['instance'] is runtime), None)
+        if entry is None:
+            return {"closed": "none", "session_alive": False}
+        if entry['tab'] is not None:
+            tab = entry['tab']
+            self.window.controller.tabs.close(tab.idx, tab.column_idx)
+            kind = 'tab'
+        else:
+            entry['widget'].close()
+            kind = 'dialog'
+        return {"closed": kind, "session_alive": False}
 
     def as_tab(self, tab: Tab) -> QWidget:
         if not self.can_open_tab():
             return None
-        tool = Tool(window=self.window, tool=self, surface_kind="tab")
+        runtime = self._new_runtime()
+        tool = Tool(window=self.window, tool=runtime, surface_kind="tab")
         tool_widget = tool.as_tab()
         widget = TabWidget()
         widget.from_tool(tool_widget)
-        widget.setup()
         tool.set_tab(tab)
+        self.register_surface(runtime, widget, tab=tab)
+        try:
+            widget.setup()
+        except Exception:
+            self.release_runtime(runtime)
+            raise
         return widget
 
+    def release_runtime(self, runtime):
+        self.unregister_surface(runtime)
+        if runtime.surface_owner is not None:
+            runtime.surface_owner._disconnect_viewport_hooks()
+        runtime.on_exit()
+        runtime.deleteLater()
+        self._notify_annotation_count_changed()
+
     def setup_dialogs(self):
-        # Canvas is intentionally tab-only. Do not register a dialog
-        # frontend; the runtime itself may continue living in the hidden host.
+        # Frontends and browser engines are created lazily.
         self.dialog = None
 
+    def apply_lang_mappings(self):
+        super().apply_lang_mappings()
+        for entry in self._surfaces:
+            entry['instance'].apply_lang_mappings()
+
     def setup_theme(self):
+        for entry in self._surfaces:
+            entry['instance'].setup_theme()
         # Never touch user/model content on a theme change. Only the synthetic
         # empty Canvas page is regenerated so a live theme/profile switch cannot
         # leave a bright light grid inside the dark application theme.
         if self.surface is not None and self.blank_canvas_active:
             self._render_blank_canvas()
+
+    def get_annotations(self):
+        if self.runtime_root is not None or self.window is None:
+            return super().get_annotations()
+        runtime = self.resolve_surface()
+        return runtime.get_annotations() if runtime is not None else []
 
     def _history_push(self, entry: dict):
         """Append one Canvas history entry and keep only the newest HISTORY_LIMIT items."""
@@ -1117,6 +1166,13 @@ body {
     # ------------------------------------------------------------------
 
     def runtime_call(self, cmd: str, params: dict, plugin=None):
+        if self.runtime_root is None:
+            runtime = self.resolve_surface(create=True, activate=True)
+            return runtime.runtime_call(cmd, params, plugin=plugin)
+        self.runtime_root.mark_surface_used(self)
+        return self._runtime_call_local(cmd, params, plugin=plugin)
+
+    def _runtime_call_local(self, cmd: str, params: dict, plugin=None):
         # Keep old internal calls/conversation tool calls functional after the
         # public API rename; only canvas_* names are exposed to the model.
         if isinstance(cmd, str) and cmd.startswith("web_browser_"):
@@ -1837,7 +1893,11 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             )
         args = [x.strip() for x in str(self._opt("playwright_args", "") or "").split(",") if x.strip()]
         try:
-            self.pw = sync_playwright().start()
+            root = self.runtime_root or self
+            if root._playwright_driver is None:
+                root._playwright_driver = sync_playwright().start()
+            self.pw = root._playwright_driver
+            root._playwright_users.add(self)
             launcher = getattr(self.pw, engine)
             kwargs = {"headless": True}
             if args and engine == "chromium":
@@ -1865,12 +1925,21 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
     def _stop_playwright(self):
         if self.pw_frame_timer is not None:
             self.pw_frame_timer.stop()
-        for obj, method in ((self.pw_page, "close"), (self.pw_context, "close"), (self.pw_browser, "close"), (self.pw, "stop")):
+        for obj, method in ((self.pw_page, "close"), (self.pw_context, "close"), (self.pw_browser, "close")):
             if obj is not None:
                 try:
                     getattr(obj, method)()
                 except Exception:
                     pass
+        root = self.runtime_root or self
+        root._playwright_users.discard(self)
+        if not root._playwright_users and root._playwright_driver is not None:
+            try:
+                root._playwright_driver.stop()
+            except Exception:
+                pass
+            finally:
+                root._playwright_driver = None
         self.pw_page = None
         self.pw_context = None
         self.pw_browser = None
@@ -2401,6 +2470,10 @@ return true; }})()"""
         self._append_console(source, level_name, text)
 
     def _append_console(self, source, level, message):
+        if self.runtime_root is None and self._surfaces:
+            runtime = self.resolve_surface()
+            if runtime is not None:
+                return runtime._append_console(source, level, message)
         level_text = str(level)
         message_text = str(message)
         self.console.append({"time": time.time(), "source": source, "level": level_text, "message": message_text})

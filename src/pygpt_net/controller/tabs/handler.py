@@ -41,6 +41,10 @@ class TabEventHandler:
                      or previous.column_idx != int(column_idx))):
             t._selection_previous_target = previous
         t._state.activate(column_idx, idx, getattr(tab, "pid", None))
+        if tab.type == Tab.TAB_TOOL:
+            tool = self.window.tools.get(tab.tool_id)
+            if tool is not None:
+                tool.mark_surface_used(tab=tab)
 
 
     def on_created(

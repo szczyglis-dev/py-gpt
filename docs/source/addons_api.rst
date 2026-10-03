@@ -1414,6 +1414,15 @@ Use ``can_open_tab()`` and ``can_open_dialog()`` to check permitted surfaces, an
 
 The legacy ``has_tab`` property aliases ``allow_tab``; ``single_instance`` aliases ``not multi_tab``. New Add-ons should use the presentation fields and methods above. See ``examples/addons/tools/example_tool`` for a runnable singleton-dialog example with a policy-aware menu action.
 
+Selecting an independent runtime
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For tools with multiple independent frontends, register each runtime with ``register_surface(instance, widget, tab=tab)`` or ``register_surface(instance, dialog_widget, dialog_id=dialog_id)``. Route model operations through ``resolve_surface(create=True, activate=True)``. Selection prefers the last used live instance, then the currently active tab, other tabs in column/index order, and finally visible dialogs. Activation reveals the relevant column and selects the concrete tab without switching the conversation context, or focuses the dialog.
+
+Override ``create_surface()`` to create and register a runtime when none is available. The resolver returns that runtime; without ``create=True`` it returns ``None`` if none exists. Use the latter for read-only context/annotation queries. Tab selection and mouse/focus events record recent usage; ``mark_surface_used(instance)`` also records explicit operations. Call ``unregister_surface(instance)`` and release runtime resources when disposing a frontend. Removed tabs, closed dialogs, deleted Qt widgets and forbidden surface types are excluded.
+
+The built-in Web/Canvas uses this API for all plugin commands, including HTML, browser interaction and local-server operations. UI callbacks remain bound to their own runtime. Each tab/dialog has independent document, navigation, annotation and browser state.
+
 Lifecycle hooks in practice
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -67,7 +67,7 @@ def add_html_file_actions(menu, tool, parent):
 
 
 class ToolWidget:
-    """A UI owner for the single persistent browser runtime surface."""
+    """A UI owner for one independent browser runtime surface."""
 
     def __init__(self, window=None, tool=None, surface_kind="tab"):
         self.window = window
@@ -95,6 +95,7 @@ class ToolWidget:
         self._viewport_sync_timer = None
         self._columns_splitter = None
         self._app_ready_connected = False
+        self._disposed = False
 
     def on_open(self):
         self.tool.attach_surface(self)
@@ -107,6 +108,8 @@ class ToolWidget:
     def on_delete(self):
         self._disconnect_viewport_hooks()
         self.tool.detach_surface(self)
+        if getattr(self.tool, "runtime_root", None) is not None:
+            self.tool.runtime_root.release_runtime(self.tool)
 
     def _take_surface(self):
         if self.scroll is None:
@@ -399,9 +402,8 @@ class ToolWidget:
     def on_runtime_state(self, state: dict):
         self._sync_from_runtime()
         self._update_viewport_badge(state)
-        # The application has one canonical Canvas tab, but its title
-        # may still follow the currently rendered document.  This is only a
-        # label update; it must never be used as tab identity.
+        # A document title is only a label; the registered runtime/tab identity
+        # determines which frontend receives plugin operations.
         title = state.get("title") or ""
         if self.tab is not None and title and title != "about:blank":
             try:
@@ -433,6 +435,9 @@ class ToolWidget:
                 pass
 
     def _disconnect_viewport_hooks(self):
+        self._disposed = True
+        if self._viewport_sync_timer is not None:
+            self._viewport_sync_timer.stop()
         if self.scroll is not None and self._viewport_filter is not None:
             try:
                 self.scroll.viewport().removeEventFilter(self._viewport_filter)
@@ -465,13 +470,15 @@ class ToolWidget:
 
     def request_viewport_sync(self, immediate: bool = False):
         """Schedule runtime viewport synchronization with the Canvas column."""
-        if self._viewport_sync_timer is None:
+        if self._disposed or self._viewport_sync_timer is None:
             return
         self._connect_viewport_hooks()
         self._viewport_sync_timer.start(0 if immediate else 30)
 
     def _column_visible(self) -> bool:
         """Return False only when the Canvas output column is fully collapsed."""
+        if self.surface_kind == "dialog":
+            return self.scroll is not None and self.scroll.isVisible()
         if self.tab is None:
             return False
         try:
@@ -488,7 +495,8 @@ class ToolWidget:
             return True
 
     def _sync_runtime_viewport(self):
-        if self.tool is None or self.scroll is None or self.tab is None:
+        if (self._disposed or self.tool is None or self.scroll is None
+                or (self.surface_kind == "tab" and self.tab is None)):
             return
         visible = self._column_visible()
         if not visible:
