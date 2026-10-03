@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 20:45:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -282,12 +282,6 @@ class Custom:
             self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.label"))
         else:
             self.window.ui.nodes['video.preview'].video.setToolTip(trans("vision.capture.auto.label"))
-
-        # files / indexes
-        try:
-            self.window.ui.nodes['output_files'].retranslate()
-        except (AttributeError, KeyError, RuntimeError):
-            pass
 
         # input: tabs
         input_tabs = self.window.ui.tabs['input']

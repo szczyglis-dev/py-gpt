@@ -29,14 +29,14 @@ def test_save_all(mock_window):
     settings = Settings(mock_window)
     mock_window.core.config.save = MagicMock()
     mock_window.core.presets.save_all = MagicMock()
-    mock_window.controller.notepad.save_all = MagicMock()
+    mock_window.tools.get("notepad").documents.save_all = MagicMock()
     mock_window.ui.dialogs.alert = MagicMock()
     mock_window.ui.status = MagicMock()
     mock_window.controller.ui.update = MagicMock()
     settings.save_all()
     mock_window.core.config.save.assert_called_once()
     mock_window.core.presets.save_all.assert_called_once()
-    mock_window.controller.notepad.save_all.assert_called_once()
+    mock_window.tools.get("notepad").documents.save_all.assert_called_once()
     mock_window.ui.dialogs.alert.assert_called_once()
     mock_window.controller.ui.update.assert_called_once()
 
@@ -107,10 +107,10 @@ def test_open_config_dir(mock_window, monkeypatch):
     """Test open config dir"""
     settings = Settings(mock_window)
     monkeypatch.setattr(os.path, 'exists', MagicMock(return_value=True))
-    mock_window.controller.files.open_dir = MagicMock()
+    mock_window.tools.get("files").paths.reveal = MagicMock()
     mock_window.core.config.path = 'test'
     settings.open_config_dir()
-    mock_window.controller.files.open_dir.assert_called_once_with('test')
+    mock_window.tools.get("files").paths.reveal.assert_called_once_with('test')
 
 
 def test_welcome_settings(mock_window):

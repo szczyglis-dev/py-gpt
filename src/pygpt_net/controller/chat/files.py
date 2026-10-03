@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.18 01:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -67,7 +67,7 @@ class Files:
                         mode,
                         attachments,
                     )
-                    self.window.controller.files.uploaded_ids = self.window.core.attachments.get_ids(mode)
+                    self.window.tools.get("files").chat.uploaded_ids = self.window.core.attachments.get_ids(mode)
                     attachments_list = self.window.core.attachments.make_json_list(attachments)
 
                 # show uploaded status

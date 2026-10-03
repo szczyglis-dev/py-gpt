@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 22:10:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Optional, List, Union
@@ -233,7 +233,7 @@ class Ctx:
                 self.window.dispatch(AppEvent(AppEvent.CTX_SELECTED))  # app event
             self.set_group(meta.group_id)
             self.window.controller.chat.attachment.update()
-            self.window.controller.files.update_explorer(reload=True)
+            self.window.tools.get("files").refresh(reload=True)
             self.set_selected(id)
             self.clean_memory()  # clean memory
             return
@@ -248,7 +248,7 @@ class Ctx:
 
         self.common.focus_chat(meta)
         self.window.controller.chat.attachment.update()
-        self.window.controller.files.update_explorer(reload=True)
+        self.window.tools.get("files").refresh(reload=True)
         self.set_selected(id)
         self.clean_memory()  # clean memory
 
@@ -269,7 +269,7 @@ class Ctx:
         self.reload_config(all=False)
         self.update(reload=False, all=True, select=False)
         self.set_selected(id)
-        self.window.controller.files.update_explorer(reload=True)
+        self.window.tools.get("files").refresh(reload=True)
 
     def select_by_idx(self, idx: int):
         """
@@ -628,7 +628,7 @@ class Ctx:
         self.update(reload=False, all=True)
         # Loading a context can also happen from an output-tab switch. Keep
         # the Files root/workdir in sync even when the ctx list was not clicked.
-        self.window.controller.files.update_explorer(reload=True)
+        self.window.tools.get("files").refresh(reload=True)
 
         if meta is not None:
             self.window.controller.tabs.on_load_ctx(meta, pid=tab_pid)
@@ -1366,7 +1366,7 @@ class Ctx:
             updated = True
 
         if updated:
-            self.window.controller.files.update_explorer(reload=True)
+            self.window.tools.get("files").refresh(reload=True)
         if updated and update:
             QTimer.singleShot(
                 10,
@@ -1386,7 +1386,7 @@ class Ctx:
             updated = True
         if updated:
             self.group_id = None
-            self.window.controller.files.update_explorer(reload=True)
+            self.window.tools.get("files").refresh(reload=True)
             QTimer.singleShot(
                 10,
                 lambda: self.update_and_restore()
@@ -1584,7 +1584,7 @@ class Ctx:
                 self.window.ui.dialog['rename'].close()
             self.update_and_restore()
             # The Files tool root follows the active conversation immediately.
-            self.window.controller.files.update_explorer(reload=True)
+            self.window.tools.get("files").refresh(reload=True)
 
     def get_group_name(self, id: int) -> str:
         """

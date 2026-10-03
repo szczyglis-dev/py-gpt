@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import QUrl
@@ -58,7 +58,7 @@ class Url:
                 return
             if action == "download":
                 if link.local_path:
-                    self.window.controller.files.download_local(link.local_path)
+                    self.window.tools.get("files").transfers.download(link.local_path)
                 elif link.target:
                     # Keep remote bridge targets inside the regular URL flow;
                     # never leak bridge://... to the OS/browser.
@@ -103,7 +103,7 @@ class Url:
             return
 
         if link.kind == "local" and link.local_path:
-            self.window.controller.files.open(link.local_path)
+            self.window.tools.get("files").paths.open(link.local_path)
             return
         if link.kind == "web":
             self.window.controller.dialogs.info.open_url(link.target)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
@@ -166,14 +166,6 @@ class Lang:
         except Exception as e:
             print("Error updating tool locale", e)
             w.core.debug.log(e)
-
-        # Files tab tooltip contains both a translated prefix and a live path.
-        # Rebuild it on a runtime language switch instead of treating it as a
-        # static tab tooltip.
-        try:
-            w.core.tabs.refresh_files_tooltips()
-        except Exception:
-            pass
 
         w.controller.ctx.common.update_label_by_current()
         w.controller.ctx.update(True, False)

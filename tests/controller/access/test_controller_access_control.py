@@ -153,12 +153,12 @@ def test_control_handle_input_send_and_append_use_chat_input_without_real_io():
 def test_control_handle_notepad_clear_force_extracts_numeric_index():
     control = _control()
     control.handle_result = MagicMock()
-    control.window.controller.notepad.clear.return_value = True
+    control.window.tools.get("notepad").documents.clear.return_value = True
     event = ControlEvent(ControlEvent.NOTEPAD_CLEAR, {"params": "note 17"})
 
     control.handle(event, force=True)
 
-    control.window.controller.notepad.clear.assert_called_once_with(17)
+    control.window.tools.get("notepad").documents.clear.assert_called_once_with(17)
     control.handle_result.assert_called_once_with(event, True)
 
 

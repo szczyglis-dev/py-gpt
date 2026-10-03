@@ -26,21 +26,23 @@ def test_install(mock_window):
     mock_window.core.presets.install = MagicMock()
     mock_window.core.idx.install = MagicMock()
     mock_window.core.ctx.install = MagicMock()
-    mock_window.core.notepad.install = MagicMock()
+    notepad_provider = MagicMock()
     mock_window.core.attachments.install = MagicMock()
     mock_window.core.assistants.install = MagicMock()
     mock_window.core.image.install = MagicMock()
     mock_window.core.filesystem.install = MagicMock()
     mock_window.core.camera.install = MagicMock()
 
-    with patch('pygpt_net.core.installer.installer.Path', Path):
+    with patch('pygpt_net.core.installer.installer.Path', Path), \
+            patch('pygpt_net.core.installer.installer.DbSqliteProvider', return_value=notepad_provider) as provider_class:
         installer.install()
         mock_window.core.config.install.assert_called_once()
         mock_window.core.models.install.assert_called_once()
         mock_window.core.presets.install.assert_called_once()
         mock_window.core.idx.install.assert_called_once()
         mock_window.core.ctx.install.assert_called_once()
-        mock_window.core.notepad.install.assert_called_once()
+        provider_class.assert_called_once_with(mock_window)
+        notepad_provider.install.assert_called_once()
         mock_window.core.attachments.install.assert_called_once()
         mock_window.core.assistants.install.assert_called_once()
         mock_window.core.image.install.assert_called_once()

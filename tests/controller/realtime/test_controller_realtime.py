@@ -34,6 +34,7 @@ def _realtime():
         "audio.input.auto_turn": True,
     }.get(key, default)
     realtime.window.controller.tabs.get_current_type.return_value = Tab.TAB_CHAT
+    realtime.window.tools.get("notepad").tabs.is_active.return_value = False
     realtime.window.controller.kernel.stopped.return_value = False
     realtime.window.controller.audio.is_muted.return_value = False
     return realtime
@@ -52,7 +53,7 @@ def test_realtime_is_enabled_only_in_audio_mode_outside_notepad():
 
     assert realtime.is_enabled() is True
 
-    realtime.window.controller.tabs.get_current_type.return_value = Tab.TAB_NOTEPAD
+    realtime.window.tools.get("notepad").tabs.is_active.return_value = True
     assert realtime.is_enabled() is False
 
     realtime.window.core.config.get.side_effect = lambda key, default=None: "chat" if key == "mode" else default

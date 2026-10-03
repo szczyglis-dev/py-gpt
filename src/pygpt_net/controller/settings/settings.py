@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 12:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -58,7 +58,7 @@ class Settings:
         self.window.core.tabs.save()
         self.window.core.config.save()
         self.window.core.presets.save_all()
-        self.window.controller.notepad.save_all()
+        self.window.tools.get("notepad").documents.save_all()
         self.window.controller.calendar.save_all()
         self.window.tools.get("painter").storage.save()
         if not force:
@@ -222,7 +222,7 @@ class Settings:
     def open_config_dir(self):
         """Open user config directory"""
         if os.path.exists(self.window.core.config.path):
-            self.window.controller.files.open_dir(self.window.core.config.path)
+            self.window.tools.get("files").paths.reveal(self.window.core.config.path)
         else:
             self.window.update_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
@@ -230,7 +230,7 @@ class Settings:
         """Open the application-wide base directory that owns path.cfg."""
         path = self.window.core.config.get_base_workdir()
         if os.path.exists(path):
-            self.window.controller.files.open_dir(path)
+            self.window.tools.get("files").paths.reveal(path)
         else:
             self.window.update_status('Global base directory not exists: {}'.format(path))
 

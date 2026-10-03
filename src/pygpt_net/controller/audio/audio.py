@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -495,7 +495,7 @@ class Audio:
             tab = self.window.controller.tabs.get_current_tab()
             if not tab:
                 return
-            if tab.type == Tab.TAB_NOTEPAD:
+            if tab.type == Tab.TAB_TOOL and tab.tool_id == "notepad":
                 self.window.controller.audio.ui.on_input_continuous_enable("input")
             else:
                 self.window.controller.audio.ui.on_input_continuous_disable("input")

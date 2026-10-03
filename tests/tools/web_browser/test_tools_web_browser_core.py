@@ -39,6 +39,16 @@ def _tool():
         STATE_BUSY="busy",
     )
     tool.window = window
+    from pygpt_net.controller.tabs.operations import TabOperations
+    selection = SimpleNamespace(
+        _state=SimpleNamespace(recent_pids=[]),
+        window=SimpleNamespace(ui=SimpleNamespace(splitters={
+            'columns': SimpleNamespace(sizes=lambda: [500, 500])})),
+        get_current_tab=tabs.get_current_tab,
+        get_current_by_column=tabs.get_current_by_column,
+    )
+    tabs.preferred_tab.side_effect = lambda items, **kwargs: TabOperations.preferred_tab(selection, items, **kwargs)
+
     # Core tests use a mocked viewport; real load completion is covered by
     # dedicated Qt backend tests and the WebEngine integration check.
     tool.qt.load_html = MagicMock(side_effect=lambda html, base_url: tool.surface.web.setHtml(html, base_url))
@@ -365,7 +375,7 @@ def test_plugin_commands_follow_last_used_runtime_and_fallback_after_close(qapp)
     tool.register_surface(first, first_widget, tab=first_tab)
     tool.register_surface(second, second_widget, tab=second_tab)
     tabs.get_tabs_by_tool.return_value = [first_tab, second_tab]
-    tabs.get_current_tab.return_value = first_tab
+    tabs.get_current_tab.return_value = second_tab
     first.commands.execute = MagicMock(return_value='first')
     second.commands.execute = MagicMock(return_value='second')
     plugin = object()
@@ -376,6 +386,7 @@ def test_plugin_commands_follow_last_used_runtime_and_fallback_after_close(qapp)
     assert first.commands.execute.call_count == 0
     assert second.commands.execute.call_count == 7
     tool.unregister_surface(second)
+    tabs.get_current_tab.return_value = first_tab
     assert tool.runtime_call('canvas_get_html', {}, plugin=plugin) == 'first'
     tabs.activate_tab.assert_called_with(first_tab, sync_context=False)
 

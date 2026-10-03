@@ -148,3 +148,59 @@ def test_ordinary_microphone_capture_shows_stop():
     window.ui.nodes['input.send_btn'].setEnabled.assert_called_with(False)
     window.ui.nodes['input'].set_icon_visible.assert_any_call('send', False)
     window.ui.nodes['input'].set_icon_visible.assert_any_call('stop', True)
+
+
+def test_recording_stays_in_originating_notepad_when_selection_changes():
+    from types import SimpleNamespace
+    ctrl, window = _ui()
+    first, second = MagicMock(), MagicMock()
+    window.tools.get('notepad').documents.widgets = {1: first, 2: second}
+    window.controller.tabs.get_current_tab.return_value = SimpleNamespace(tool_id='notepad', data_id=2)
+    ctrl.on_input_toggle_requested('input', notepad=first)
+    first.set_record_pending.assert_called_once_with()
+    second.set_record_pending.assert_not_called()
+    ctrl.on_input_begin('input')
+    ctrl.on_input_volume_change(42, 'input')
+    first.set_recording_active.assert_called_once_with()
+    first.set_record_level.assert_called_once_with(42)
+    second.set_recording_active.assert_not_called()
+    second.set_record_level.assert_not_called()
+    second.set_mic_state.assert_called_with(False)
+    assert ctrl.is_recording_in(first)
+    assert not ctrl.is_recording_in(second)
+    ctrl.on_input_end('input')
+    assert not ctrl.is_recording_in(first)
+    ctrl.on_input_toggle_requested('input', notepad=second)
+    second.set_record_pending.assert_called_once_with()
+
+
+def test_closed_notepad_is_not_replaced_by_another_during_capture_start():
+    from types import SimpleNamespace
+    ctrl, window = _ui()
+    first, second = MagicMock(), MagicMock()
+    window.tools.get('notepad').documents.widgets = {1: first, 2: second}
+    ctrl.on_input_toggle_requested('input', notepad=first)
+    window.tools.get('notepad').documents.widgets = {2: second}
+    window.controller.tabs.get_current_tab.return_value = SimpleNamespace(tool_id='notepad', data_id=2)
+    ctrl.on_input_begin('input')
+    ctrl.on_input_volume_change(42, 'input')
+    second.set_recording_active.assert_not_called()
+    second.set_record_level.assert_not_called()
+    assert not ctrl.is_recording_in(second)
+    ctrl.on_input_abort('input')
+    ctrl.on_input_toggle_requested('input')
+    second.set_record_pending.assert_called_once_with()
+
+
+def test_chat_capture_does_not_show_notepad_recording_bars():
+    from types import SimpleNamespace
+    ctrl, window = _ui()
+    note = MagicMock()
+    window.tools.get('notepad').documents.widgets = {1: note}
+    window.controller.tabs.get_current_tab.return_value = SimpleNamespace(tool_id=None)
+    ctrl.on_input_toggle_requested('input')
+    ctrl.on_input_begin('input')
+    ctrl.on_input_volume_change(42, 'input')
+    note.set_record_pending.assert_not_called()
+    note.set_recording_active.assert_not_called()
+    note.set_record_level.assert_not_called()

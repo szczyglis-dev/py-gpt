@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.08.12 14:30:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from .core.runtime_packages import RuntimePackages
@@ -40,7 +40,6 @@ from .core.image import Image
 from .core.llm import LLM
 from .core.models import Models
 from .core.modes import Modes
-from .core.notepad import Notepad
 from .core.platforms import Platforms
 from .core.plugins import Plugins
 from .core.presets import Presets
@@ -101,7 +100,6 @@ class Core:
         self.installer = Installer(window)
         self.models = Models(window)
         self.modes = Modes(window)
-        self.notepad = Notepad(window)
         self.platforms = Platforms(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)

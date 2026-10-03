@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.03 17:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -82,7 +82,7 @@ class ImageLabel(QLabel):
             self,
         )
         actions['use_attachment'].triggered.connect(
-            lambda: win.controller.files.use_attachment(self.path),
+            lambda: win.tools.get("files").chat.attach(self.path),
         )
         use_actions.append(actions['use_attachment'])
 

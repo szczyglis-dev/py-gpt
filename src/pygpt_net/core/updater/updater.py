@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 12:31:00
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -27,6 +27,8 @@ from packaging.version import parse as parse_version, Version
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.auto_updater import AutoUpdater, UpdatePayload
 from pygpt_net.utils import trans
+
+from pygpt_net.provider.core.notepad.db_sqlite import DbSqliteProvider
 
 
 class Updater(QObject):
@@ -227,7 +229,7 @@ class Updater(QObject):
         :param version: current app version
         """
         try:
-            if self.window.core.notepad.patch(version):
+            if DbSqliteProvider(self.window).patch(version):
                 print("Migrated notepad. [OK]")
         except Exception as e:
             self.throw_startup_error(e, "notepad")

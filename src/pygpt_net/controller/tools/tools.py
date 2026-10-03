@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Dict, List, Optional
@@ -27,9 +27,7 @@ class Tools:
         """
         self.window = window
         self.tab_tools = {
-            'tools.files': ['files', 'folder_filled', Tab.TAB_FILES],
             'tools.calendar': ['calendar', 'calendar', Tab.TAB_TOOL_CALENDAR],
-            'tools.notepad': ['notepad', 'note1', Tab.TAB_NOTEPAD],
         }
 
     def setup(self):
@@ -108,9 +106,16 @@ class Tools:
         """
         submenu = None
         tools = self.window.tools.get_all()
-        for id in tools:
-            tool = tools[id]
-            if not tool.can_add_tab():
+        if hasattr(parent, 'add_tab'):
+            caller = parent
+        available = {id: tool for id, tool in tools.items() if tool.can_add_tab()}
+        for tool in available.values():
+            hook = getattr(tool, 'get_tab_menu', None)
+            if hook is not None:
+                for action in hook(menu, idx, column_idx, caller):
+                    menu.addAction(action)
+        for id, tool in available.items():
+            if getattr(tool, 'hide_in_tab_tools', False):
                 continue
             # Do not offer an action that cannot create anything. Single-instance
             # tools (e.g. Canvas, Agent Workflow and Python/OS) disappear from
@@ -119,8 +124,6 @@ class Tools:
                 submenu = menu.addMenu(QIcon(":/icons/add.svg"), trans("action.tab.add.tool"))
             icon = tool.tab_icon
             title = trans(tool.tab_title)
-            if hasattr(parent, 'add_tab'):
-                caller = parent
             action = QAction(QIcon(icon), title, parent)
             action.triggered.connect(
                 lambda checked=False, idx=idx, column_idx=column_idx, id=id, caller=caller: caller.add_tab(idx, column_idx, Tab.TAB_TOOL, id)

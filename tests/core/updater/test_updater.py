@@ -104,9 +104,10 @@ def test_patch_attachments(mock_window):
 def test_patch_notepad(mock_window):
     """Test patch_notepad"""
     updater = Updater(mock_window)
-    mock_window.core.notepad.patch = MagicMock(return_value=True)
-    updater.patch_notepad(parse_version("1.0.0"))
-    mock_window.core.notepad.patch.assert_called_once()
+    with patch('pygpt_net.core.updater.updater.DbSqliteProvider') as provider_class:
+        updater.patch_notepad(parse_version("1.0.0"))
+        provider_class.assert_called_once_with(mock_window)
+        provider_class.return_value.patch.assert_called_once_with(parse_version("1.0.0"))
 
 
 def test_patch_dir(mock_window):

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 19:05:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QApplication
@@ -148,7 +148,7 @@ class Layout:
         data = {}
         ui_splitters = self.window.ui.splitters
         for splitter in self.splitters:
-            if splitter == "calendar" and not self.window.controller.notepad.opened_once:
+            if splitter == "calendar" and not self.window.tools.get("notepad").tabs.opened_once:
                 continue
             splitter_widget = ui_splitters.get(splitter)
             if splitter_widget is None:
@@ -237,7 +237,7 @@ class Layout:
         if output is not None and hasattr(output, 'verticalScrollBar'):
             data['output'] = output.verticalScrollBar().value()
 
-        for nid, notepad in self.window.ui.notepad.items():
+        for nid, notepad in self.window.tools.get("notepad").documents.widgets.items():
             try:
                 scroll_id = f"notepad.{nid}"
                 data[scroll_id] = notepad.textarea.verticalScrollBar().value()
@@ -251,7 +251,7 @@ class Layout:
         if not config.has('layout.scroll'):
             return
         data = config.get('layout.scroll')
-        notepads = self.window.ui.notepad
+        notepads = self.window.tools.get("notepad").documents.widgets
         for scroll_id, value in data.items():
             if scroll_id.startswith("notepad."):
                 try:

@@ -100,10 +100,6 @@ def fake_window():
     tabs_ctrl.get_current_column_idx.return_value = 0
     window.controller.ui = MagicMock()
     window.controller.tabs = tabs_ctrl
-    notepad = MagicMock()
-    notepad.create.return_value = (MagicMock(spec=QWidget), 0, 1)
-    window.controller.notepad = notepad
-    window.controller.notepad.load = MagicMock()
     tool = MagicMock()
     tool.as_tab.return_value = MagicMock(spec=QWidget)
     tool.tab_icon = "tool-icon"
@@ -123,8 +119,7 @@ def fake_window():
     container_widget.setOwner = MagicMock()
     window.core.ctx.container = MagicMock()
     window.core.ctx.container.get.return_value = container_widget
-    window.core.notepad = MagicMock()
-    window.core.notepad.import_from_db.return_value = None
+    window.tools.get("notepad").storage.import_from_db.return_value = {}
     return window
 
 @pytest.fixture
@@ -186,15 +181,13 @@ def test_append_tabs_chat(tabs_instance, fake_window, monkeypatch):
     assert tab.new_idx == 0
 
 def test_append_tabs_notepad(tabs_instance, fake_window, monkeypatch):
-    called = False
-    def fake_add_notepad(tab):
-        setattr(tab, "idx", 0)
-    monkeypatch.setattr(tabs_instance, "add_notepad", fake_add_notepad)
-    fake_load = fake_window.controller.notepad.load
+    monkeypatch.setattr(tabs_instance, "add_tool", lambda tab: setattr(tab, "idx", 0))
+    fake_window.tools.get.return_value = type('Tool', (), {'allows_multiple_tabs': lambda self: True, 'can_open_tab': lambda self: True})()
     initial_last_pid = tabs_instance.last_pid
     tab = tabs_instance.append(Tab.TAB_NOTEPAD, "tool", 0, 0)
-    fake_load.assert_called()
     assert tab.pid == initial_last_pid + 1
+    assert tab.type == Tab.TAB_TOOL and tab.tool_id == 'notepad'
+
 
 def test_restore(tabs_instance, fake_window, monkeypatch):
     def fake_add_chat(tab):
@@ -571,3 +564,65 @@ def test_loading_saved_tabs_does_not_recreate_closed_painter(tabs_instance, fake
     tabs_instance.load()
     assert restore.call_count == 3
     assert all(call.args[0].get('tool_id') != 'painter' for call in restore.call_args_list)
+
+
+def test_legacy_files_tab_migrates_to_registered_tool(tabs_instance, fake_window, monkeypatch):
+    from pygpt_net.tools.files import Files
+    tool = Files()
+    tool.attach(fake_window)
+    fake_window.tools.get.return_value = tool
+    captured = []
+    monkeypatch.setattr(tabs_instance, 'add_tool', lambda tab: captured.append(tab))
+    identity = uuid.uuid4()
+    data = dict(uuid=identity, pid=9, type=Tab.TAB_FILES, title='My files',
+                data_id=None, column_idx=1, tool_id=None, custom_name=True, title_source='user')
+    tabs_instance.restore(data)
+    tab = captured[0]
+    assert tab.type == Tab.TAB_TOOL
+    assert tab.tool_id == 'files'
+    assert tab.uuid == identity
+    assert tab.column_idx == 1
+    assert tab.title == 'My files'
+    assert tab.custom_name
+    assert data['type'] == Tab.TAB_FILES  # Input config stays untouched.
+
+
+
+def test_loading_saved_tabs_does_not_recreate_closed_files(tabs_instance, fake_window, monkeypatch):
+    data = {i: dict(pid=i, idx=i, type=kind, tool_id=None)
+            for i, kind in enumerate((Tab.TAB_CHAT, Tab.TAB_TOOL_CALENDAR))}
+    fake_window.core.config.get.return_value = data
+    restore = MagicMock()
+    monkeypatch.setattr(tabs_instance, 'restore', restore)
+    monkeypatch.setattr(tabs_instance, 'update', MagicMock())
+    tabs_instance.load()
+    assert restore.call_count == 2
+    assert all(call.args[0]['type'] != Tab.TAB_FILES for call in restore.call_args_list)
+
+
+def test_default_files_tab_uses_registered_tool(tabs_instance, fake_window):
+    tabs_data = tabs_instance.from_defaults()
+    assert tabs_data[1]['type'] == Tab.TAB_TOOL
+    assert tabs_data[1]['tool_id'] == 'files'
+
+
+def test_legacy_notepad_tabs_migrate_independently(tabs_instance, fake_window, monkeypatch):
+    from pygpt_net.tools.notepad import Notepad
+    tool = Notepad()
+    tool.attach(fake_window)
+    fake_window.tools.get.return_value = tool
+    captured = []
+    monkeypatch.setattr(tabs_instance, 'add_tool', lambda tab: captured.append(tab))
+    for note_id, column in ((3, 0), (8, 1)):
+        identity = uuid.uuid4()
+        data = dict(uuid=identity, pid=note_id, type=Tab.TAB_NOTEPAD,
+                    title=f'Note {note_id}', data_id=note_id, column_idx=column,
+                    tool_id=None, custom_name=True, title_source='user')
+        tabs_instance.restore(data)
+        tab = captured[-1]
+        assert tab.type == Tab.TAB_TOOL and tab.tool_id == 'notepad'
+        assert tab.uuid == identity and tab.data_id == note_id
+        assert tab.column_idx == column and tab.custom_name
+        assert tab.title == f'Note {note_id}'
+        assert data['type'] == Tab.TAB_NOTEPAD
+    assert len(captured) == 2

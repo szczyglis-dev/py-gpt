@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.08 11:45:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -22,8 +22,8 @@ class Tab:
     # types
     TAB_ADD = -1
     TAB_CHAT = 0
-    TAB_NOTEPAD = 1
-    TAB_FILES = 2
+    TAB_NOTEPAD = 1  # Legacy saved-tab type; migrated to TAB_TOOL/notepad.
+    TAB_FILES = 2  # Legacy saved layouts; migrated to TAB_TOOL / files.
     TAB_TOOL_PAINTER = 3  # Legacy saved layouts; migrated to TAB_TOOL / painter.
     TAB_TOOL_CALENDAR = 4
     TAB_TOOL = 100

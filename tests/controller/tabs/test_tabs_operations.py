@@ -372,6 +372,7 @@ def test_tool_queries_sort_and_activate_first_instance(tabs_env):
     t1 = tabs_env.make_tab(pid=1, idx=0, column_idx=1, type=Tab.TAB_TOOL, tool_id="x")
     other = tabs_env.make_tab(pid=2, idx=0, column_idx=0, type=Tab.TAB_TOOL, tool_id="y")
     tabs_env.install(t3, t1, other)
+    tabs_env.window.ui.splitters["columns"].sizes.return_value = [500, 500]
 
     assert tabs.get_tabs_by_tool("x") == [t1, t3]
     assert tabs.is_tool("x") is True
@@ -442,3 +443,47 @@ def test_home_uses_first_chat_without_creating_one(tabs_env):
     tabs.activate_tab.assert_called_once_with(left)
     tabs_env.core_tabs.get_tabs_by_type.return_value = []
     assert tabs.open_or_activate(Tab.TAB_CHAT, create=False) is None
+
+
+def test_tool_selection_prefers_visible_other_column_over_covered_or_collapsed(tabs_env):
+    tabs = tabs_env.tabs
+    left = tabs_env.make_tab(pid=1, idx=1, column_idx=0, type=Tab.TAB_TOOL, tool_id='x')
+    chat = tabs_env.make_tab(pid=2, idx=0, column_idx=0)
+    right = tabs_env.make_tab(pid=3, idx=0, column_idx=1, type=Tab.TAB_TOOL, tool_id='x')
+    tabs_env.install(left, chat, right)
+    splitter = tabs_env.window.ui.splitters['columns']
+    splitter.sizes.return_value = [500, 500]
+    tabs._state.activate(0, 0, chat.pid)
+    tabs._state.remember(1, 0, right.pid)
+    assert tabs.get_first_tab_by_tool('x') is right
+    assert tabs.preferred_tab([left, right], preferred=left) is right
+    tabs.activate_tab = MagicMock()
+    assert tabs.open_or_activate(Tab.TAB_TOOL, 'x') is right
+    tabs.activate_tab.assert_called_once_with(right)
+    tabs._state.activate(0, 1, left.pid)
+    assert tabs.get_first_tab_by_tool('x') is left
+    splitter.sizes.return_value = [0, 500]
+    assert tabs.get_first_tab_by_tool('x') is right
+    tabs_env.install(chat, right)
+    assert tabs.get_first_tab_by_tool('x') is right
+
+
+def test_preferred_tab_uses_visible_then_recent_then_ui_order(tabs_env):
+    tabs = tabs_env.tabs
+    left = tabs_env.make_tab(pid=1, idx=0, column_idx=0, type=Tab.TAB_TOOL, tool_id='x')
+    right = tabs_env.make_tab(pid=2, idx=0, column_idx=1, type=Tab.TAB_TOOL, tool_id='x')
+    tabs_env.install(left, right)
+    splitter = tabs_env.window.ui.splitters['columns']
+    splitter.sizes.return_value = [500, 500]
+    tabs._state.activate(1, 0, right.pid)
+    tabs._state.remember(0, 0, left.pid)
+    assert tabs.preferred_tab([right, left], preferred=right) is left
+    splitter.sizes.return_value = [0, 0]
+    assert tabs.get_first_tab_by_tool('x') is right
+    splitter.sizes.return_value = [500, 0]
+    tabs.get_current_tab = MagicMock(return_value=None)
+    tabs.get_current_by_column = MagicMock(return_value=None)
+    assert tabs.get_first_tab_by_tool('x') is right
+    tabs._state.recent_pids.clear()
+    assert tabs.get_first_tab_by_tool('x') is left
+    assert tabs.preferred_tab([]) is None

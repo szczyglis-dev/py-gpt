@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 15:05:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication, QWidget, QHBoxLayout
@@ -477,13 +477,7 @@ class AddButton(QPushButton):
         add_chat.triggered.connect(
             lambda: self.tabs.add_tab(-2, column_idx, Tab.TAB_CHAT)
         )
-        add_notepad = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.notepad'), menu)
-        add_notepad.triggered.connect(
-            lambda: self.tabs.add_tab(-2, column_idx, Tab.TAB_NOTEPAD)
-        )
-
         menu.addAction(add_chat)
-        menu.addAction(add_notepad)
 
         self.window.controller.tools.append_tab_menu(self, menu, -2, column_idx, self.tabs)
 
@@ -666,12 +660,8 @@ class OutputTabs(QTabWidget):
                 self.window.controller.tabs.on_tab_clicked(idx, column_idx)
             tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
             if tab is not None:
-                if tab.type == Tab.TAB_NOTEPAD:
-                    self.show_notepad_menu(idx, column_idx, event.globalPos())  # notepad
-                elif tab.type == Tab.TAB_CHAT:
+                if tab.type == Tab.TAB_CHAT:
                     self.show_chat_menu(idx, column_idx, event.globalPos())  # chat
-                elif tab.type == Tab.TAB_FILES:
-                    self.show_files_menu(idx, column_idx, event.globalPos())  # files
                 elif tab.type == Tab.TAB_TOOL:
                     self.show_tool_menu(idx, column_idx, event.globalPos())  # tool
                 else:
@@ -719,29 +709,6 @@ class OutputTabs(QTabWidget):
 
         return menu
 
-    def show_notepad_menu(self, index: int, column_idx: int, global_pos):
-        """
-        Show notepad menu
-
-        :param index: index
-        :param column_idx: column index
-        :param global_pos: global position
-        """
-        context_menu = self.prepare_menu(index, column_idx)
-        close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
-        close_act.triggered.connect(
-            lambda: self.close_tab(index, column_idx)
-        )
-        close_all_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close_all.notepad'), context_menu)
-        close_all_act.triggered.connect(
-            lambda: self.close_all(Tab.TAB_NOTEPAD, column_idx)
-        )
-        context_menu.addAction(close_act)
-
-        if self.window.core.tabs.count_by_type(Tab.TAB_NOTEPAD) > 1:
-            context_menu.addAction(close_all_act)
-
-        context_menu.exec(global_pos)
 
     def show_chat_menu(self, index: int, column_idx: int, global_pos):
         """
@@ -768,22 +735,6 @@ class OutputTabs(QTabWidget):
 
         context_menu.exec(global_pos)
 
-    def show_files_menu(self, index: int, column_idx: int, global_pos):
-        """
-        Show files menu
-
-        :param index: index
-        :param column_idx: column index
-        :param global_pos: global position
-        """
-        context_menu = self.prepare_menu(index, column_idx)
-        refresh = QAction(icon(ICON_PATH_RELOAD), trans('action.refresh'), context_menu)
-        refresh.triggered.connect(
-            lambda: self.window.controller.files.update_explorer()
-        )
-        context_menu.addAction(refresh)
-        context_menu.exec(global_pos)
-
     def show_tool_menu(self, index: int, column_idx: int, global_pos):
         """
         Show tool menu
@@ -793,6 +744,11 @@ class OutputTabs(QTabWidget):
         :param global_pos: global position
         """
         context_menu = self.prepare_menu(index, column_idx)
+        tab = self.window.core.tabs.get_tab_by_index(index, column_idx)
+        if tab is not None:
+            tool = self.window.tools.get(tab.tool_id)
+            if tool is not None:
+                tool.populate_tab_menu(context_menu, tab)
         close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
         close_act.triggered.connect(
             lambda: self.close_tab(index, column_idx)

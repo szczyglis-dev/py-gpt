@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -24,7 +24,6 @@ class TabLifecycle:
         self.begin_widget_loading()
         try:
             w.core.tabs.load()
-            w.controller.notepad.load()
             if not reload:
                 self.setup_options()
         finally:

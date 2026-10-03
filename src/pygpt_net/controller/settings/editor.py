@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 20:15:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -175,7 +175,7 @@ class Editor:
             self.window.core.camera.install()
             self.window.core.image.install()
             self.window.core.filesystem.install()
-            self.window.controller.files.update_explorer()
+            self.window.tools.get("files").refresh()
 
         # switch log level in runtime
         if self.config_changed('log.level'):

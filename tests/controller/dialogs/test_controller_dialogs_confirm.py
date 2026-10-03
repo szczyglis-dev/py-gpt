@@ -19,12 +19,13 @@ def _ctrl():
         ('ctx.delete', 'controller.ctx', 'delete', ('ctx-1', True), {}),
         ('preset_delete', 'controller.presets', 'delete', ('p-1', True), {}),
         ('attachments.delete', 'controller.attachment', 'delete', ('a-1',), {'force': True, 'remove_local': True}),
-        ('files.delete.recursive', 'controller.files', 'delete_recursive', ('f-1', True), {}),
+        ('files.delete.recursive', 'files_operations', 'delete_recursive', ('f-1', True), {}),
         ('remote_store.delete', 'controller.remote_store', 'delete', ('s-1', True), {}),
     ],
 )
 def test_confirm_accept_routes_representative_actions(kind, target, method, args, kwargs):
     ctrl, window = _ctrl()
+    window.files_operations = window.tools.get("files").operations
     obj = window
     for part in target.split('.'):
         obj = getattr(obj, part)
@@ -81,7 +82,7 @@ def test_confirm_accept_rename_create_and_url_routes():
     )
 
     ctrl.accept_create('mkdir', '/tmp', 'new-dir')
-    window.controller.files.make_dir.assert_called_once_with('/tmp', 'new-dir')
+    window.tools.get("files").operations.mkdir.assert_called_once_with('/tmp', 'new-dir')
 
     ctrl.accept_create('agent.builder.agent', None, 'Agent')
     agent_builder.add_agent.assert_called_once_with('Agent')

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 16:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtGui import QAction, QIcon
@@ -58,7 +58,7 @@ class Tools:
         # instead of grouping it with the remaining dynamically registered
         # tool actions below the separator.
         actions = window.tools.setup_menu_actions()
-        visual_actions = [(key, actions.pop(key)) for key in ("tools.painter", "tools.web_browser") if key in actions]
+        visual_actions = [(key, actions.pop(key)) for key in ("tools.notepad", "tools.files", "tools.painter", "tools.web_browser") if key in actions]
 
         for key, val in tab_tools.items():
             label_key, icon_name, type_ = val[0], val[1], val[2]

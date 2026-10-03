@@ -43,6 +43,7 @@ class BaseTool(QObject, LocaleDomain):
         self.init_locale_domain()
         self.window = None
         self.id = ""
+        self.hide_in_tab_tools = False
         self.allow_tab = False
         self.allow_dialog = True
         self.multi_tab = True
@@ -173,6 +174,8 @@ class BaseTool(QObject, LocaleDomain):
             if ((instance is not None and entry['instance'] is instance)
                     or (tab is not None and entry['tab'] is tab)):
                 self._last_surface = entry['instance']
+                if entry['tab'] is not None:
+                    self.window.controller.tabs.remember_tab_usage(entry['tab'])
                 return
 
     def _on_surface_focus_changed(self, previous, current):
@@ -198,7 +201,7 @@ class BaseTool(QObject, LocaleDomain):
         return super().eventFilter(watched, event)
 
     def resolve_surface(self, *, create=False, activate=False):
-        """Last used, current tab, tabs in UI order, then visible dialogs.
+        """Resolve live frontends using the application tab selection policy.
 
         Only registered live surfaces participate. Overrides of create_surface()
         may lazily create a frontend when requested. Returns its runtime, or None.
@@ -206,8 +209,7 @@ class BaseTool(QObject, LocaleDomain):
         if self.window is None:
             return None
         tabs = self.window.controller.tabs
-        tool_tabs = sorted(tabs.get_tabs_by_tool(self.id),
-                           key=lambda tab: (tab.column_idx, tab.idx))
+        tool_tabs = tabs.get_tabs_by_tool(self.id)
         entries = []
         for entry in self._surfaces:
             try:
@@ -223,17 +225,17 @@ class BaseTool(QObject, LocaleDomain):
                 entries.append(entry)
             except RuntimeError:
                 continue
-        chosen = next((entry for entry in entries
+        recent = next((entry for entry in entries
                        if entry['instance'] is self._last_surface), None)
+        # Dialog focus is local to the tool; all tab selection policy belongs
+        # to the application tab controller.
+        chosen = recent if recent is not None and recent['tab'] is None else None
         if chosen is None:
-            current = tabs.get_current_tab()
+            candidates = [entry['tab'] for entry in entries if entry['tab'] is not None]
+            selected = tabs.preferred_tab(
+                candidates, preferred=recent['tab'] if recent is not None else None)
             chosen = next((entry for entry in entries
-                           if entry['tab'] is not None and entry['tab'] is current), None)
-        if chosen is None:
-            for tab in tool_tabs:
-                chosen = next((entry for entry in entries if entry['tab'] is tab), None)
-                if chosen is not None:
-                    break
+                           if entry['tab'] is not None and entry['tab'] is selected), None)
         if chosen is None:
             chosen = next((entry for entry in entries if entry['tab'] is None), None)
         if chosen is None:
@@ -262,6 +264,26 @@ class BaseTool(QObject, LocaleDomain):
     def create_surface(self):
         """Override to create and register a runtime frontend on demand."""
         return None
+
+    def get_tab_title(self, tab):
+        """Default title; tools may include a document-specific suffix."""
+        return trans(self.tab_title)
+
+    def get_tab_tooltip(self, tab):
+        """Return tool-specific tab metadata; defaults to its visible title."""
+        return tab.title or ''
+
+    def get_tab_menu(self, parent, idx, column_idx, caller):
+        """Return QActions for the top level of the tab bar's [+] menu.
+
+        Parent actions to parent (the menu). caller.add_tab() creates a tab at
+        idx in column_idx. The default offers no custom actions.
+        """
+        return []
+
+    def populate_tab_menu(self, menu, tab):
+        """Add tool actions before the standard tab controls."""
+        pass
 
     def setup(self):
         """Setup tool"""

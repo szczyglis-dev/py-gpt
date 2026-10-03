@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 20:35:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -187,9 +187,9 @@ class Confirm:
 
         # files
         elif type == 'files.delete':
-            self.window.controller.files.delete(id, True)
+            self.window.tools.get("files").operations.delete(id, True)
         elif type == 'files.delete.recursive':
-            self.window.controller.files.delete_recursive(id, True)
+            self.window.tools.get("files").operations.delete_recursive(id, True)
 
         # workdir change dialog
         elif type == 'workdir.change':
@@ -402,9 +402,9 @@ class Confirm:
         elif type == 'attachment_uploaded':
             self.window.controller.assistant.files.update_name(id, name)
         elif type == 'output_file':
-            self.window.controller.files.update_name(id, name)
+            self.window.tools.get("files").operations.apply_name(id, name)
         elif type == 'notepad':
-            self.window.controller.notepad.update_name(id, name, True)
+            self.window.tools.get("notepad").documents.rename(id, name)
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.update_name(id, name)
         elif type == 'prompt.custom.rename':
@@ -420,11 +420,11 @@ class Confirm:
         """
         # unchanged content...
         if type == 'mkdir':
-            self.window.controller.files.make_dir(id, name)
+            self.window.tools.get("files").operations.mkdir(id, name)
         if type == 'touch':
-            self.window.controller.files.touch_file(id, name, True)
+            self.window.tools.get("files").operations.touch(id, name, True)
         elif type == 'duplicate':
-            self.window.controller.files.duplicate_local(id, name, True)
+            self.window.tools.get("files").operations.duplicate(id, name, True)
         elif type == 'plugin.preset':
             self.window.controller.plugins.presets.create(id, name)
         elif type == 'ctx.group':

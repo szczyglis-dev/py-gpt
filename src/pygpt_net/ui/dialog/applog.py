@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.03.25 12:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -142,6 +142,6 @@ class AppLog:
         """Open log file in external editor"""
         path = self.get_log_path()
         if os.path.exists(path):
-            self.window.controller.files.open(path)
+            self.window.tools.get("files").paths.open(path)
         else:
             print("Log file not found!")

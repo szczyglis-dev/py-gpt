@@ -6,12 +6,11 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.14 21:50:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pygpt_net.ui.widget.tabs.layout import OutputLayout
-from .explorer import Explorer
 from .calendar import Calendar
 
 
@@ -23,7 +22,6 @@ class Output:
         :param window: Window instance
         """
         self.window = window
-        self.explorer = Explorer(window)
         self.calendar = Calendar(window)
 
     def setup(self) -> QWidget:

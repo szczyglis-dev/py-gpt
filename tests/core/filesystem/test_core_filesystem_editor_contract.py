@@ -21,7 +21,7 @@ def make_editor(tmp_path):
     window = SimpleNamespace(
         ui=SimpleNamespace(dialog={"d": dialog}, editor={"d": widget}, paths={"d": path_widget}, dialogs=dialogs),
         core=SimpleNamespace(debug=SimpleNamespace(log=MagicMock())),
-        controller=SimpleNamespace(files=SimpleNamespace(update_explorer=MagicMock())),
+        tools=MagicMock(),
         update_status=MagicMock(),
     )
     return Editor(window), window, dialog, widget
@@ -72,4 +72,4 @@ def test_save_updates_base_content_and_warns_for_invalid_json(tmp_path):
     assert dialog.base_content == "{bad"
     window.ui.dialogs.alert.assert_called_once()
     dialog.update_file_title.assert_called_with(force=True)
-    window.controller.files.update_explorer.assert_called_once()
+    window.tools.get("files").refresh.assert_called_once()

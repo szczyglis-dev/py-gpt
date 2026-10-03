@@ -35,7 +35,7 @@ def test_tray_commands_restore_then_delegate():
     Tray.new_ctx(tray)
     tray.window.controller.ctx.new_ungrouped.assert_called_once_with()
     Tray.open_notepad(tray)
-    tray.window.controller.notepad.open.assert_called_once_with()
+    tray.window.tools.get("notepad").tabs.open.assert_called_once_with()
     Tray.open_scheduled_tasks(tray)
     tray.window.controller.plugins.settings.open_plugin.assert_called_once_with("crontab")
     assert tray.window.restore.call_count == 3

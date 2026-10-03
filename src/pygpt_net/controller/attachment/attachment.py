@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 21:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -381,7 +381,7 @@ class Attachment:
                 idx=idx,
             )
             if path is not None and path != '' and os.path.exists(path):
-                self.window.controller.files.open_dir(
+                self.window.tools.get("files").paths.reveal(
                     path=path,
                     select=True,
                 )
@@ -400,7 +400,7 @@ class Attachment:
                 idx=idx,
             )
             if path is not None and path != '' and os.path.exists(path):
-                self.window.controller.files.open(
+                self.window.tools.get("files").paths.open(
                     path=path,
                 )
 

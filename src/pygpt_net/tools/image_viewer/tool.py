@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 19:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import hashlib
@@ -302,7 +302,7 @@ class ImageViewer(BaseTool):
         :param path: path to image
         """
         if os.path.exists(path):
-            self.window.controller.files.open(path)
+            self.window.tools.get("files").paths.open(path)
 
     def open_dir(self, path: str):
         """
@@ -311,7 +311,7 @@ class ImageViewer(BaseTool):
         :param path: path to image
         """
         if os.path.exists(path):
-            self.window.controller.files.open_dir(
+            self.window.tools.get("files").paths.reveal(
                 path,
                 True,
             )

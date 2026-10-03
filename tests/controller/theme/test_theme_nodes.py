@@ -30,6 +30,6 @@ def test_apply_all(mock_window):
     """Test apply all"""
     theme = Theme(mock_window)
     theme.nodes.apply_all = MagicMock()
-    mock_window.controller.notepad.get_num_notepads = MagicMock(return_value=1)
+    mock_window.tools.get("notepad").tabs.count = MagicMock(return_value=1)
     theme.nodes.apply_all()
     theme.nodes.apply_all.assert_called()

@@ -43,7 +43,6 @@ _COMPONENTS = {
     "llm": ("pygpt_net.core.llm", "LLM"),
     "models": ("pygpt_net.core.models", "Models"),
     "modes": ("pygpt_net.core.modes", "Modes"),
-    "notepad": ("pygpt_net.core.notepad", "Notepad"),
     "platforms": ("pygpt_net.core.platforms", "Platforms"),
     "packages": ("pygpt_net.core.runtime_packages", "RuntimePackages"),
     "plugins": ("pygpt_net.core.plugins", "Plugins"),

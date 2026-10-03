@@ -16,6 +16,16 @@ def _manager(qapp):
     tabs.get_tabs_by_tool.return_value = []
     tabs.get_current_tab.return_value = None
     tool.attach(SimpleNamespace(controller=SimpleNamespace(tabs=tabs)))
+    from pygpt_net.controller.tabs.operations import TabOperations
+    selection = SimpleNamespace(
+        _state=SimpleNamespace(recent_pids=[]),
+        window=SimpleNamespace(ui=SimpleNamespace(splitters={
+            'columns': SimpleNamespace(sizes=lambda: [500, 500])})),
+        get_current_tab=tabs.get_current_tab,
+        get_current_by_column=tabs.get_current_by_column,
+    )
+    tabs.preferred_tab.side_effect = lambda items, **kwargs: TabOperations.preferred_tab(selection, items, **kwargs)
+
     return tool, tabs
 
 
@@ -97,3 +107,15 @@ def test_creation_only_when_no_surface_and_respects_permissions(qapp):
     tool.create_surface.side_effect = create
     assert tool.resolve_surface(create=True) is runtime
     tool.create_surface.assert_called_once_with()
+
+
+def test_visible_surface_wins_over_last_used_hidden_surface(qapp):
+    tool, tabs = _manager(qapp)
+    first, first_widget, first_tab = _tab(tool, tabs, 0, 0)
+    second, second_widget, second_tab = _tab(tool, tabs, 1, 0)
+    second_widget.show()
+    tabs.get_current_by_column.side_effect = lambda col: second_tab if col == 1 else None
+    tool.mark_surface_used(first)
+    tabs.get_current_tab.return_value = None
+    assert tool.resolve_surface() is second
+    second_widget.close()

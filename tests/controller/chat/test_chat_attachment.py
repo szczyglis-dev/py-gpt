@@ -90,6 +90,7 @@ class DummyWindow:
         self.core = DummyCore()
         self.ui = DummyUI()
         self.controller = DummyController()
+        self.tools = MagicMock()
         self.threadpool = MagicMock()
         self.dispatch = MagicMock()
 
@@ -445,7 +446,7 @@ class TestAttachment:
         monkeypatch.setattr(os.path, "isfile", lambda p: True)
         att = Attachment(dummy_window)
         att.open_by_idx(0)
-        dummy_window.controller.files.open.assert_called_with("file.txt")
+        dummy_window.tools.get("files").paths.open.assert_called_with("file.txt")
 
     def test_open_dir_src_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"path": "dir/file.txt"}]
@@ -456,7 +457,7 @@ class TestAttachment:
         monkeypatch.setattr(os.path, "dirname", lambda p: "dir")
         att = Attachment(dummy_window)
         att.open_dir_src_by_idx(0)
-        dummy_window.controller.files.open.assert_called_with("dir")
+        dummy_window.tools.get("files").paths.open.assert_called_with("dir")
 
     def test_open_dir_dest_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"uuid": "uid", "path": "file.txt"}]
@@ -468,7 +469,7 @@ class TestAttachment:
         monkeypatch.setattr(os.path, "join", lambda *args: "/".join(args))
         att = Attachment(dummy_window)
         att.open_dir_dest_by_idx(0)
-        dummy_window.controller.files.open.assert_called_with("root_dir/uid")
+        dummy_window.tools.get("files").paths.open.assert_called_with("root_dir/uid")
 
     def test_has_file_by_idx(self, dummy_window, dummy_meta, monkeypatch):
         dummy_meta.additional_ctx = [{"path": "file.txt"}]

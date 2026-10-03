@@ -231,7 +231,7 @@ def test_video_player_use_frame_as_attachment_or_image():
     player_tool.grab_frame.return_value = "/tmp/frame.png"
     tools = MagicMock()
     files = MagicMock(); painter = MagicMock()
-    tools.get.side_effect = lambda key: painter if key == "painter" else player_tool
+    tools.get.side_effect = lambda key: {"painter": painter, "files": files}.get(key, player_tool)
     widget = SimpleNamespace(
         window=SimpleNamespace(
             tools=tools,
@@ -240,7 +240,7 @@ def test_video_player_use_frame_as_attachment_or_image():
     )
 
     VideoPlayerWidget.use_as_attachment(widget)
-    files.use_attachment.assert_called_once_with("/tmp/frame.png")
+    files.chat.attach.assert_called_once_with("/tmp/frame.png")
     VideoPlayerWidget.use_as_image(widget)
     painter.open.assert_called_once_with("/tmp/frame.png")
 

@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.04 00:00:00                  #
+# ================================================== #
 """Navigation actions for the persistent left toolbar."""
 from PySide6.QtCore import QVariantAnimation
 from pygpt_net.core.tabs.tab import Tab
@@ -15,13 +25,13 @@ class Toolbar:
         return self.window.controller.tabs.open_or_activate(Tab.TAB_CHAT, create=False)
 
     def files(self):
-        return self.toggle_tool(Tab.TAB_FILES)
+        return self.toggle_tool(Tab.TAB_TOOL, "files")
 
     def painter(self):
         return self.toggle_tool(Tab.TAB_TOOL, "painter")
 
     def notepad(self):
-        return self.toggle_tool(Tab.TAB_NOTEPAD)
+        return self.toggle_tool(Tab.TAB_TOOL, "notepad")
 
     def toggle_tool(self, tab_type, tool_id=None):
         """Collapse a tool already selected on the right; otherwise reveal it."""

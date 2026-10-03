@@ -25,7 +25,7 @@ def _tool():
     filesystem = MagicMock(); filesystem.sizeof_fmt.return_value = "10 KB"
     window = SimpleNamespace(
         core=SimpleNamespace(filesystem=filesystem, debug=MagicMock()),
-        controller=SimpleNamespace(files=MagicMock()),
+        tools=MagicMock(),
         ui=SimpleNamespace(dialogs=MagicMock(), dialog={}, nodes={"dialog.image.pixmap": [MagicMock() for _ in range(4)]}),
         update_status=MagicMock(),
     )
@@ -159,8 +159,8 @@ def test_image_viewer_open_and_open_dir_only_for_existing_path():
     with patch("pygpt_net.tools.image_viewer.tool.os.path.exists", side_effect=[True, False, True, False]):
         tool.open("yes.png"); tool.open("no.png")
         tool.open_dir("yes.png"); tool.open_dir("no.png")
-    tool.window.controller.files.open.assert_called_once_with("yes.png")
-    tool.window.controller.files.open_dir.assert_called_once_with("yes.png", True)
+    tool.window.tools.get("files").paths.open.assert_called_once_with("yes.png")
+    tool.window.tools.get("files").paths.reveal.assert_called_once_with("yes.png", True)
 
 
 def test_image_viewer_save_by_id_and_save_none_status():

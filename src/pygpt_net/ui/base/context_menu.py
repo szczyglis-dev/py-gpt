@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 10:30:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 from typing import Union
 
@@ -175,12 +175,14 @@ class ContextMenu:
             menu.addAction(action)
 
         if 'notepad' not in excluded:
-            tabs = window.core.tabs.get_tabs_by_type(Tab.TAB_NOTEPAD)
+            tabs = window.controller.tabs.get_tabs_by_tool("notepad")
             if tabs:
                 for tab in tabs:
+                    if f"notepad_id_{tab.data_id}" in excluded:
+                        continue
                     action = QAction(self._ICON_PASTE, tab.title, menu)
                     action.triggered.connect(
-                        lambda checked=False, tab=tab: ctrl.notepad.append_text(resolved_text(), tab.data_id)
+                        lambda checked=False, tab=tab: tools.get("notepad").documents.append(resolved_text(), tab.data_id)
                     )
                     menu.addAction(action)
 

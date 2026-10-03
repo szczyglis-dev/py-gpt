@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import re
@@ -254,7 +254,7 @@ class Control:
         elif event.name == ControlEvent.TAB_CHAT:
             self.window.controller.tabs.switch_tab(Tab.TAB_CHAT)
         elif event.name == ControlEvent.TAB_FILES:
-            self.window.controller.tabs.switch_tab(Tab.TAB_FILES)
+            self.window.tools.get("files").open_tab()
         elif event.name == ControlEvent.TAB_CALENDAR:
             self.window.controller.tabs.switch_tab(Tab.TAB_TOOL_CALENDAR)
         elif event.name == ControlEvent.TAB_DRAW:
@@ -271,7 +271,7 @@ class Control:
                         tmp_idx = int(num[0])
                 except Exception as e:
                     print(e)
-            self.window.controller.notepad.switch_to_tab(tmp_idx)
+            self.window.tools.get("notepad").tabs.open(tmp_idx)
             self.handle_result(event, True)
 
         # voice control
@@ -330,11 +330,11 @@ class Control:
             if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
                 if msg != "":
-                    if self.window.controller.notepad.is_active():
-                        idx = self.window.controller.notepad.get_current_active()
-                        self.window.controller.notepad.append_text(msg, idx)
+                    if self.window.tools.get("notepad").tabs.is_active():
+                        idx = self.window.tools.get("notepad").tabs.current()
+                        self.window.tools.get("notepad").documents.append(msg, idx)
                     else:
-                        self.window.controller.notepad.append_text(msg, 1)
+                        self.window.tools.get("notepad").documents.append(msg, 1)
                     self.handle_result(event, True)
         elif event.name == ControlEvent.NOTEPAD_CLEAR:
             if force:
@@ -347,11 +347,11 @@ class Control:
                             idx = int(num[0])
                     except:
                         pass
-                    if self.window.controller.notepad.clear(idx):
+                    if self.window.tools.get("notepad").documents.clear(idx):
                         self.handle_result(event, True)
                 else:
-                    idx = self.window.controller.notepad.get_current_active()
-                    if idx is not None and self.window.controller.notepad.clear(idx):
+                    idx = self.window.tools.get("notepad").tabs.current()
+                    if idx is not None and self.window.tools.get("notepad").documents.clear(idx):
                         self.handle_result(event, True)
             else:
                 self.last_confirm = event
@@ -369,9 +369,9 @@ class Control:
                         idx = int(num[0])
                 except:
                     pass
-                text = self.window.controller.notepad.get_notepad_text(idx)
+                text = self.window.tools.get("notepad").documents.text(idx)
             else:
-                text = self.window.controller.notepad.get_current_notepad_text()
+                text = self.window.tools.get("notepad").documents.text()
             self.window.controller.audio.play_event(
                 text,
                 event,

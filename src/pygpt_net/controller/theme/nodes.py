@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 13:45:00
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.events import RenderEvent
@@ -106,20 +106,8 @@ class Nodes:
                     continue
                 apply_ref(k, t)
 
-        # apply to notepads
         size = w.core.config.get('font_size')
         style_output = ctrl.theme.style('font.chat.output')
-        if ui.notepad:
-            for np in ui.notepad.values():
-                ta = np.textarea
-                ta.apply_theme_style()
-                ta.value = size
-
-        files = ui.nodes.get('output_files')
-        if files is not None:
-            viewer = files.preview.viewer
-            if hasattr(viewer, 'restore_zoom'):
-                viewer.restore_zoom()
 
         # apply to calendar
         note = ui.calendar.get('note')

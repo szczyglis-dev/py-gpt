@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.21 01:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 
@@ -90,7 +90,7 @@ class UIDebug:
         self.update_section(ui.menu, 'menu')
         self.update_section(ui.models, 'models')
         self.update_section(ui.nodes, 'nodes')
-        self.update_section(ui.notepad, 'notepad')
+        self.update_section(self.window.tools.get("notepad").documents.widgets, 'notepad')
         self.update_section(ui.paths, 'paths')
         self.update_section(ui.plugin_addon, 'plugin_addon')
         self.update_section(ui.splitters, 'splitters')

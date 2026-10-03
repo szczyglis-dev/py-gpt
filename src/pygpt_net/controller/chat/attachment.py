@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -699,7 +699,7 @@ class Attachment(QObject):
                     path = item["real_path"]
                 if os.path.exists(path) and os.path.isfile(path):
                     print(f"Opening attachment: {path}")
-                    self.window.controller.files.open(path)
+                    self.window.tools.get("files").paths.open(path)
 
     def open_dir_src_by_idx(self, idx: Union[int, list]):
         """
@@ -721,7 +721,7 @@ class Attachment(QObject):
                 dir = os.path.dirname(path)
                 if os.path.exists(dir) and os.path.isdir(dir):
                     print(f"Opening source directory: {dir}")
-                    self.window.controller.files.open(dir)
+                    self.window.tools.get("files").paths.open(dir)
 
     def open_dir_dest_by_idx(self, idx: Union[int, list]):
         """
@@ -743,7 +743,7 @@ class Attachment(QObject):
                 else:
                     dir = os.path.join(root_dir, item["uuid"])
                 if os.path.exists(dir) and os.path.isdir(dir):
-                    self.window.controller.files.open(dir)
+                    self.window.tools.get("files").paths.open(dir)
                     print(f"Opening destination directory: {dir}")
 
     def has_file_by_idx(self, idx: int) -> bool:

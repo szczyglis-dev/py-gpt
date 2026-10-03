@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.01 16:55:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import re
@@ -121,7 +121,7 @@ class Tray:
         tray_menu['open_notepad'] = action
         tray_menu['open_notepad'].triggered.connect(self.open_notepad)
 
-        if w.controller.notepad.get_num_notepads() == 0:
+        if w.tools.get("notepad").tabs.count() == 0:
             self.hide_notepad_menu()
 
         screenshot_menu = QMenu(trans("menu.tray.screenshot"), w)
@@ -345,7 +345,7 @@ class Tray:
     def open_notepad(self):
         """Open notepad"""
         self.window.restore()
-        self.window.controller.notepad.open()
+        self.window.tools.get("notepad").tabs.open()
 
     def open_scheduled_tasks(self):
         """Open scheduled tasks"""

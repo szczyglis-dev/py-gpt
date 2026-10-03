@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 12:31:00
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from .packages import Packages
@@ -26,7 +26,6 @@ from .connectors import Connectors
 from .ctx import Ctx
 from .debug import Debug
 from .dialogs import Dialogs
-from .files import Files
 from .finder import Finder
 from .extensions import Extensions
 from .idx import Idx
@@ -37,7 +36,6 @@ from .layout import Layout
 from .media import Media
 from .mode import Mode
 from .model import Model
-from .notepad import Notepad
 from .plugins import Plugins
 from .realtime import Realtime
 from .remote_store import RemoteStore
@@ -82,7 +80,6 @@ class Controller:
         self.ctx = Ctx(window)
         self.debug = Debug(window)
         self.dialogs = Dialogs(window)
-        self.files = Files(window)
         self.finder = Finder(window)
         self.extensions = Extensions(window)
         self.packages = Packages(window)
@@ -94,7 +91,6 @@ class Controller:
         self.media = Media(window)
         self.mode = Mode(window)
         self.model = Model(window)
-        self.notepad = Notepad(window)
         self.plugins = Plugins(window)
         self.presets = Presets(window)
         self.profile_exporter = ProfileExporter(window)
@@ -231,8 +227,6 @@ class Controller:
             self.agents_v2.reload()
             self.calendar.reload()
             self.plugins.reload()
-            self.notepad.reload()
-            self.files.reload()
             self.lang.reload()
             self.debug.reload()
             self.chat.reload()

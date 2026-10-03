@@ -35,6 +35,7 @@ class TabState:
     active_column: int = 0
     current_by_column: Dict[int, int] = field(default_factory=lambda: {0: 0, 1: 0})
     pid_by_column: Dict[int, int] = field(default_factory=dict)
+    recent_pids: list[int] = field(default_factory=list)
     initialized: bool = False
     loading_widgets: bool = False
     locked: bool = False
@@ -97,6 +98,12 @@ class TabState:
             self.pid_by_column.pop(column_idx, None)
         else:
             self.pid_by_column[column_idx] = int(pid)
+            self.record_usage(pid)
+
+    def record_usage(self, pid: int) -> None:
+        if pid in self.recent_pids:
+            self.recent_pids.remove(pid)
+        self.recent_pids.insert(0, pid)
 
     def remember(self, column_idx: int, idx: int, pid: Optional[int] = None) -> None:
         """Remember a column selection without changing the active column."""
@@ -130,10 +137,13 @@ class TabState:
         self.active_column = 0
         self.current_by_column = {0: 0, 1: 0}
         self.pid_by_column.clear()
+        self.recent_pids.clear()
         self.pending_focus_column = None
         self.locked = False
 
     def drop_pid(self, pid: int) -> None:
+        if pid in self.recent_pids:
+            self.recent_pids.remove(pid)
         for column_idx, selected_pid in list(self.pid_by_column.items()):
             if selected_pid == pid:
                 self.pid_by_column.pop(column_idx, None)

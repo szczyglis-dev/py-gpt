@@ -16,7 +16,7 @@ def _window(tmp_path=None):
         ui=SimpleNamespace(
             editor={"app.log": editor}, nodes={}, paths={}, dialog={}, dialogs=SimpleNamespace(confirm=MagicMock())
         ),
-        controller=SimpleNamespace(files=SimpleNamespace(open=MagicMock())),
+        tools=MagicMock(),
     )
 
 
@@ -83,11 +83,11 @@ def test_open_external_opens_existing_file_only(tmp_path):
     path = tmp_path / "app.log"
     path.write_text("x", encoding="utf-8")
     app.open_external()
-    window.controller.files.open.assert_called_once_with(str(path))
+    window.tools.get("files").paths.open.assert_called_once_with(str(path))
 
     path.unlink()
-    window.controller.files.open.reset_mock()
+    window.tools.get("files").paths.open.reset_mock()
     with patch("builtins.print") as printed:
         app.open_external()
-    window.controller.files.open.assert_not_called()
+    window.tools.get("files").paths.open.assert_not_called()
     printed.assert_called_once_with("Log file not found!")

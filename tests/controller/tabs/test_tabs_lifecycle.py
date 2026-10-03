@@ -11,7 +11,6 @@ def test_setup_loads_widgets_notepad_options_and_marks_initialized(tabs_env):
     tabs.setup()
 
     window.core.tabs.load.assert_called_once_with()
-    window.controller.notepad.load.assert_called_once_with()
     tabs.setup_options.assert_called_once_with()
     assert tabs.is_widget_loading() is False
     assert tabs.is_initialized() is True

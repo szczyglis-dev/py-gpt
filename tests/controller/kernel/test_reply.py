@@ -44,7 +44,7 @@ def reply_instance():
     legacy.enabled.return_value = False
     window.controller.agent.legacy = legacy
     window.controller.files = MagicMock()
-    window.controller.files.update_explorer = MagicMock()
+    window.tools.get("files").refresh = MagicMock()
     window.core.ctx = MagicMock()
     window.core.ctx.as_previous.return_value = MagicMock()
     window.core.ctx.update_item = MagicMock()
@@ -182,11 +182,11 @@ def test_on_post_response_update(reply_instance):
     reply, window = reply_instance
     fake_ctx = create_fake_ctx(agent_call=False)
     reply.on_post_response(fake_ctx, extra_data={"post_update": ["file_explorer"]})
-    window.controller.files.update_explorer.assert_called_once()
-    window.controller.files.update_explorer.reset_mock()
+    window.tools.get("files").refresh.assert_called_once()
+    window.tools.get("files").refresh.reset_mock()
     # Passing extra data without "file_explorer" should not trigger update.
     reply.on_post_response(fake_ctx, extra_data={"post_update": ["other"]})
-    window.controller.files.update_explorer.assert_not_called()
+    window.tools.get("files").refresh.assert_not_called()
 
 # Test clear method.
 def test_clear(reply_instance):

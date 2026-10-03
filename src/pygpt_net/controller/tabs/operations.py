@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Any, Optional, Tuple
@@ -70,12 +70,14 @@ class TabOperations:
         # insertTab/removeTab can emit currentChanged synchronously. Treat the
         # structural change as a transaction and publish exactly one selection
         # after the core registry and Qt widget agree on the new tab identity.
+        document_args = {"data_id": data_id} if type == Tab.TAB_TOOL and data_id is not None else {}
         with self.suspend_tab_events():
             tab = self.window.core.tabs.append(
                 type=type,
                 idx=idx,
                 column_idx=column_idx,
                 tool_id=tool_id,
+                **document_args,
             )
 
         # Core also enforces single-instance tools; always trust the returned
@@ -224,7 +226,7 @@ class TabOperations:
         candidates = (self.get_tabs_by_tool(tool_id) if tool_id is not None
                       else self.window.core.tabs.get_tabs_by_type(type))
         candidates = [tab for tab in candidates if tab.type == type]
-        tab = min(candidates, key=lambda tab: (tab.column_idx, tab.idx)) if candidates else None
+        tab = self.preferred_tab(candidates)
         if tab is None:
             if not create:
                 return None
@@ -397,7 +399,37 @@ class TabOperations:
 
     def get_first_tab_by_tool(self, tool_id: str) -> Optional[Tab]:
         tabs = self.get_tabs_by_tool(tool_id)
-        return tabs[0] if tabs else None
+        return self.preferred_tab(tabs)
+
+    def preferred_tab(self, tabs, *, preferred=None) -> Optional[Tab]:
+        """First visible selected tab, then last used, then first in UI order."""
+        if not tabs:
+            return None
+        sizes = self.window.ui.splitters['columns'].sizes()
+        current = self.get_current_tab()
+        selected = {tab.column_idx: self.get_current_by_column(tab.column_idx)
+                    for tab in tabs}
+        recent = self._state.recent_pids
+
+        def priority(tab):
+            visible = tab.column_idx < len(sizes) and sizes[tab.column_idx] > 0
+            if visible and (current is tab or selected[tab.column_idx] is tab):
+                return 0, 0, tab.column_idx, tab.idx
+            if preferred is tab:
+                return 1, -1, tab.column_idx, tab.idx
+            pid = getattr(tab, 'pid', None)
+            if pid in recent:
+                return 1, recent.index(pid), tab.column_idx, tab.idx
+            if current is tab or selected[tab.column_idx] is tab:
+                return 1, len(recent), tab.column_idx, tab.idx
+            return 2, 0, tab.column_idx, tab.idx
+
+        return min(tabs, key=priority)
+
+    def remember_tab_usage(self, tab):
+        """Record tool interaction in the same history as normal tab activation."""
+        if tab.pid is not None:
+            self._state.record_usage(tab.pid)
 
     def switch_to_first_tab_by_tool(self, tool_id: str):
         tab = self.get_first_tab_by_tool(tool_id)
@@ -405,8 +437,8 @@ class TabOperations:
             self.activate_tab(tab)
 
     def get_tool_column(self, tool_id: str) -> Optional[int]:
-        for column_idx in range(self.window.core.tabs.NUM_COLS):
-            tab = self.get_current_by_column(column_idx)
-            if tab is not None and tab.tool_id == tool_id:
-                return column_idx
-        return None
+        selected = [self.get_current_by_column(column_idx)
+                    for column_idx in range(self.window.core.tabs.NUM_COLS)]
+        tab = self.preferred_tab([tab for tab in selected
+                                  if tab is not None and tab.tool_id == tool_id])
+        return tab.column_idx if tab is not None else None

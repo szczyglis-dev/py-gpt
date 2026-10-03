@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -126,10 +126,7 @@ class TabEventHandler:
         w.controller.ui.mode.update()
         w.controller.ui.vision.update()
 
-        if tab.type == Tab.TAB_NOTEPAD:
-            w.controller.notepad.opened_once = True
-            w.controller.notepad.on_open(idx, column_idx)
-        elif tab.type == Tab.TAB_CHAT:
+        if tab.type == Tab.TAB_CHAT:
             if not t._request_active() and not t.is_context_sync_suppressed():
                 meta_id = getattr(tab, "data_id", None)
                 if meta_id is not None:

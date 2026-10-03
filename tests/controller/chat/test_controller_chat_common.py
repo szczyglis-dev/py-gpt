@@ -373,6 +373,7 @@ def test_ordinary_stop_and_send_submit_microphone_without_realtime_cancel(vad, a
 
     common = _common()
     window = common.window
+    window.tools.get("notepad").tabs.is_active.return_value = False
     window.core.config.get.side_effect = lambda key, default=None: {
         "mode": "chat", "audio.input.auto_turn": vad,
     }.get(key, default)
@@ -400,6 +401,7 @@ def test_realtime_vad_stop_keeps_interrupt_route():
 
     common = _common()
     window = common.window
+    window.tools.get("notepad").tabs.is_active.return_value = False
     window.core.config.get.side_effect = lambda key, default=None: {
         "mode": MODE_AUDIO, "audio.input.auto_turn": True,
     }.get(key, default)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.02 14:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 import base64
 import mimetypes
@@ -489,7 +489,7 @@ class ChatWebOutput(QWebEngineView):
         # A directory is not a file download. Reuse the existing folder copy
         # flow, which prompts for a target directory instead of Save As.
         if link.kind == "local" and link.local_path and os.path.isdir(link.local_path):
-            self.window.controller.files.download_local(link.local_path)
+            self.window.tools.get("files").transfers.download(link.local_path)
             return
 
         filename = self._download_filename(link)

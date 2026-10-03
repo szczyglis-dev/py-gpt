@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 10:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import copy
@@ -133,7 +133,7 @@ class Editor:
             self.window.ui.dialog[dialog_id].base_content = copy.deepcopy(data)
             self.window.ui.dialog[dialog_id].update_file_title(force=True)
             self.window.update_status("Saved file: {}".format(os.path.basename(path)))
-            self.window.controller.files.update_explorer()
+            self.window.tools.get("files").refresh()
         except Exception as e:
             self.window.core.debug.log(e)
             self.window.update_status("Error saving file: {}".format(path))

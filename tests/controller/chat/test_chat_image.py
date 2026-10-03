@@ -105,7 +105,7 @@ def test_open_dir(mock_window):
     with patch('os.path.exists') as mock:
         image.open_dir('path')
         mock.assert_called_once_with('path')
-        mock_window.controller.files.open_dir.assert_called_once_with('path', True)
+        mock_window.tools.get("files").paths.reveal.assert_called_once_with('path', True)
 
 
 def test_save(mock_window):

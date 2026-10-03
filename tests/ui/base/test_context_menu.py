@@ -45,10 +45,10 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
     translator = MagicMock()
     tabs = [SimpleNamespace(title="Notes A", data_id="a"), SimpleNamespace(title="Notes B", data_id="b")]
     core_tabs = MagicMock()
-    core_tabs.get_tabs_by_type.return_value = tabs
+    controller.tabs.get_tabs_by_tool.return_value = tabs
     window = SimpleNamespace(
         controller=controller,
-        tools={"interpreter": interpreter, "translator": translator},
+        tools={"interpreter": interpreter, "translator": translator, "notepad": MagicMock()},
         core=SimpleNamespace(tabs=core_tabs),
     )
 
@@ -62,12 +62,12 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
 
     controller.chat.common.append_to_input.assert_called_once_with("hello")
     controller.calendar.note.append_text_today.assert_called_once_with("hello")
-    controller.notepad.append_text.assert_any_call("hello", "a")
-    controller.notepad.append_text.assert_any_call("hello", "b")
+    window.tools["notepad"].documents.append.assert_any_call("hello", "a")
+    window.tools["notepad"].documents.append.assert_any_call("hello", "b")
     interpreter.append_to_input.assert_called_once_with("hello")
     translator.append_content.assert_any_call("left", "hello")
     translator.append_content.assert_any_call("right", "hello")
-    core_tabs.get_tabs_by_type.assert_called_once_with(Tab.TAB_NOTEPAD)
+    controller.tabs.get_tabs_by_tool.assert_called_once_with("notepad")
 
 
 def test_copy_to_menu_respects_exclusions(qapp):

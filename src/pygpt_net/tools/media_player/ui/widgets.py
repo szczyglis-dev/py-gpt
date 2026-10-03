@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.25 03:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -267,7 +267,7 @@ class VideoPlayerWidget(QWidget):
     def use_as_attachment(self):
         """Use as attachment"""
         path = self.window.tools.get("player").grab_frame()
-        self.window.controller.files.use_attachment(path)
+        self.window.tools.get("files").chat.attach(path)
 
     def use_as_image(self):
         """Use as image"""

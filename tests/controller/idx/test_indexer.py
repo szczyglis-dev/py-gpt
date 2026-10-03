@@ -19,10 +19,10 @@ from pygpt_net.controller.idx.indexer import Indexer
 
 def test_update_explorer(mock_window):
     """Test update explorer"""
-    mock_window.controller.files.update_explorer = MagicMock()
+    mock_window.tools.get("files").refresh = MagicMock()
     idx = Indexer(mock_window)
     idx.update_explorer()
-    mock_window.controller.files.update_explorer.assert_called_once()
+    mock_window.tools.get("files").refresh.assert_called_once()
 
 
 def test_update_idx_status(mock_window):

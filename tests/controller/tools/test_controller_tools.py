@@ -32,10 +32,10 @@ def test_tools_get_tab_tools_returns_controller_mapping():
     result = tools.get_tab_tools()
 
     assert result is tools.tab_tools
-    assert "tools.files" in result
+    assert "tools.files" not in result
     assert "tools.calendar" in result
-    assert "tools.notepad" in result
-    assert "tools.painter" in result
+    assert "tools.notepad" not in result
+    assert "tools.painter" not in result
 
 
 def test_tools_append_tab_menu_adds_only_tools_with_tabs():

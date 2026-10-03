@@ -636,9 +636,9 @@ class Plugin(BasePlugin):
         # send text
         if self.get_option_value('auto_send'):
             # to: notepad
-            if self.window.controller.notepad.is_active():
-                idx = self.window.controller.notepad.get_current_active()
-                self.window.controller.notepad.append_text(text, idx)
+            if self.window.tools.get("notepad").tabs.is_active():
+                idx = self.window.tools.get("notepad").tabs.current()
+                self.window.tools.get("notepad").documents.append(text, idx)
                 self.set_status('')
 
                 data = {}

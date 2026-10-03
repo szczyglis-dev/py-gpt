@@ -6,10 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.14 22:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from pathlib import Path
+
+from pygpt_net.provider.core.notepad.db_sqlite import DbSqliteProvider
 
 
 class Installer:
@@ -45,7 +47,7 @@ class Installer:
             self.window.core.ctx.install()
 
             # install notepad
-            self.window.core.notepad.install()
+            DbSqliteProvider(self.window).install()
 
             # install attachments
             self.window.core.attachments.install()

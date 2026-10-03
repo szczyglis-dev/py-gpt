@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 16:40:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Slot, QTimer
@@ -64,7 +64,7 @@ class Realtime:
         """
         mode = self.window.core.config.get("mode")
         if mode == MODE_AUDIO:
-            if self.window.controller.tabs.get_current_type() != Tab.TAB_NOTEPAD:
+            if not self.window.tools.get("notepad").tabs.is_active():
                 return True
         return False
 

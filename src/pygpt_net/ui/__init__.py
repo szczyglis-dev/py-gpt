@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 22:50:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -55,7 +55,6 @@ class UI:
         self.menu = {}
         self.models = {}
         self.nodes = {}
-        self.notepad = {}
         self.parts = {}
         self.paths = {}
         self.plugin_addon = {}

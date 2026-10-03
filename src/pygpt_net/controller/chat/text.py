@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 16:05:00
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Optional
@@ -220,7 +220,7 @@ class Text:
         if reply:
             ctx.extra["sub_reply"] = True  # mark as sub reply in extra data
 
-        controller.files.reset()  # clear uploaded files IDs
+        self.window.tools.get("files").chat.reset()  # clear uploaded files IDs
         controller.chat.log_ctx(ctx, "input")  # log
 
         # assistant: create thread, upload attachments
@@ -325,7 +325,7 @@ class Text:
                 attachments=files,
                 ctx=ctx, # CtxItem instance
                 external_functions=functions,  # external functions
-                file_ids=controller.files.get_ids(),  # uploaded files IDs
+                file_ids=self.window.tools.get("files").chat.uploaded_ids,  # uploaded files IDs
                 history=(core.ctx.all() + [ctx]) if continuation_parent is not None else core.ctx.all(),
                 idx=controller.idx.get_current(),  # current idx
                 idx_mode=idx_mode,  # llama index mode (chat or query)

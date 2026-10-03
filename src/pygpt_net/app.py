@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 13:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -390,6 +390,8 @@ def run(**kwargs):
         from pygpt_net.tools.audio_transcriber import AudioTranscriber as AudioTranscriberTool
         from pygpt_net.tools.code_interpreter import CodeInterpreter as CodeInterpreterTool
         from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
+        from pygpt_net.tools.notepad import Notepad as NotepadTool
+        from pygpt_net.tools.files import Files as FilesTool
         from pygpt_net.tools.painter import Painter as PainterTool
         from pygpt_net.tools.media_player import MediaPlayer as MediaPlayerTool
         from pygpt_net.tools.text_editor import TextEditor as TextEditorTool
@@ -594,6 +596,8 @@ def run(**kwargs):
 
         # register base tools
         launcher.add_tool(IndexerTool())
+        launcher.add_tool(NotepadTool())
+        launcher.add_tool(FilesTool())
         launcher.add_tool(PainterTool())
         launcher.add_tool(MediaPlayerTool())
         launcher.add_tool(ImageViewerTool())

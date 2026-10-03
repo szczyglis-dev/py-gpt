@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.06 00:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import json
@@ -330,7 +330,7 @@ class Reply:
             if (ctx is None or not ctx.agent_call) or not self.window.controller.kernel.is_threaded():
                 if "post_update" in extra_data and isinstance(extra_data["post_update"], list):
                     if "file_explorer" in extra_data["post_update"]:
-                        self.window.controller.files.update_explorer()  # update file explorer view
+                        self.window.tools.get("files").refresh()  # update file explorer view
 
     def clear(self):
         """Clear reply stack"""

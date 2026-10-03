@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.04 00:00:00                  #
+# ================================================== #
 """Attachment thumbnails embedded in the chat composer."""
 import os
 from functools import partial
@@ -247,7 +257,7 @@ class InputAttachments(QScrollArea):
         if is_image:
             self.window.tools.get("viewer").open_preview(item.path)
         else:
-            self.window.controller.files.open(path=item.path)
+            self.window.tools.get("files").paths.open(path=item.path)
 
     def remove_attachment(self, key):
         # Resolve the current index on click, rather than retaining a stale index.

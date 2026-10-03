@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.12.27 19:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -45,7 +45,7 @@ class Indexer(QObject):
 
     def update_explorer(self):
         """Update file explorer view"""
-        self.window.controller.files.update_explorer()
+        self.window.tools.get("files").refresh()
 
     def update_idx_status(self, idx: str = "base"):
         """

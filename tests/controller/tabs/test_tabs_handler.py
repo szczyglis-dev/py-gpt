@@ -162,11 +162,11 @@ def test_on_tab_changed_dispatches_type_specific_actions(tabs_env, monkeypatch):
     tabs.mark_initialized()
     monkeypatch.setattr(handler_mod.QTimer, "singleShot", MagicMock())
 
-    note = tabs_env.make_tab(pid=20, idx=0, column_idx=0, type=Tab.TAB_NOTEPAD)
+    note = tabs_env.make_tab(pid=20, idx=0, column_idx=0, type=Tab.TAB_TOOL)
+    note.tool_id = "notepad"
     tabs_env.install(note)
     handler.on_tab_changed(0, 0)
-    assert window.controller.notepad.opened_once is True
-    window.controller.notepad.on_open.assert_called_with(0, 0)
+    window.tools.get("notepad").on_selected.assert_called_with(note)
 
     painter = tabs_env.make_tab(pid=21, idx=0, column_idx=0, type=Tab.TAB_TOOL)
     painter.tool_id = "painter"
