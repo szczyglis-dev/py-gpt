@@ -96,6 +96,7 @@ class ContextList(BaseList):
         self._section_visibility_updating = False
         self._icons = {
             'add': QIcon(":/icons/add.svg"),
+            'new_chat': QIcon(":/icons/new_chat.svg"),
             'edit': QIcon(":/icons/edit.svg"),
             'delete': QIcon(":/icons/delete.svg"),
             'chat': QIcon(":/icons/chat.svg"),
@@ -128,7 +129,7 @@ class ContextList(BaseList):
             self,
             self._icons['attachment'],
             self._icons['pin'],
-            self._icons['add'],
+            self._icons['new_chat'],
         ))
 
         # Hover actions. The delegate replaces the project context counter with
@@ -1656,7 +1657,7 @@ class ContextList(BaseList):
         """
         menu = QMenu(self)
 
-        a_new = menu.addAction(self._icons['add'], trans('action.ctx.new'))
+        a_new = menu.addAction(self._icons['new_chat'], trans('action.ctx.new'))
         a_new.triggered.connect(functools.partial(self.action_group_new_in_group, group_ids))
 
         a_rename = menu.addAction(self._icons['edit'], trans('action.edit'))
@@ -1752,7 +1753,7 @@ class ContextList(BaseList):
 
             if hasattr(item, 'isFolder') and item.isFolder:
                 menu = QMenu(self)
-                a_new = menu.addAction(self._icons['add'], trans('action.ctx.new'))
+                a_new = menu.addAction(self._icons['new_chat'], trans('action.ctx.new'))
                 a_new.triggered.connect(functools.partial(self.window.controller.ctx.new_in_group, force=False, group_id=id_value))
                 a_rename = menu.addAction(self._icons['edit'], trans('action.edit'))
                 a_rename.triggered.connect(functools.partial(self.window.controller.ctx.edit_group, id_value))
@@ -2403,7 +2404,7 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
         self._attachment_icon = attachment_icon or QIcon(":/icons/attachment.svg")
         # Use provided pin icon (transparent background) as pinned indicator
         self._pin_icon = pin_icon or QIcon(":/icons/pin.svg")
-        self._add_icon = add_icon or QIcon(":/icons/add.svg")
+        self._add_icon = add_icon or QIcon(":/icons/new_chat.svg")
 
         # Predefined label colors (status -> QColor)
         self._status_colors = {

@@ -105,14 +105,14 @@ class NewCtxButton(LabelButton):
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
-        self.setIcon(QIcon(":/icons/note1.svg"))
+        self.setIcon(QIcon(":/icons/new_chat.svg"))
         self.setToolTip(trans('ctx.new.tooltip'))
         self.clicked.connect(lambda: self.window.controller.ctx.new(force=False))
 
     @classmethod
     def _ensure_icons(cls):
         if cls._icon_add is None:
-            cls._icon_add = QIcon(":/icons/add.svg")
+            cls._icon_add = QIcon(":/icons/new_chat.svg")
             cls._icon_folder_filled = QIcon(":/icons/folder_filled.svg")
 
     def mousePressEvent(self, event):

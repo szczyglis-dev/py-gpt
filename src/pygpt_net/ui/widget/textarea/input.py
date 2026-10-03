@@ -1231,7 +1231,8 @@ class ChatInput(QTextEdit):
         for prefix, current, callback in sections:
             if prefix == 'input.internet':
                 menu.addSeparator()
-            header = QAction(trans(prefix + '.header'), menu)
+            header_icon = 'terminal.svg' if prefix == 'input.tools' else 'web_search.svg'
+            header = QAction(QIcon(f':/icons/{header_icon}'), trans(prefix + '.header'), menu)
             header.setEnabled(False)
             font = header.font()
             font.setBold(True)
@@ -1404,7 +1405,7 @@ class ChatInput(QTextEdit):
         # Match the context-list section-header convention: disabled + bold.
         # Keeping the header as a menu action lets the native theme provide the
         # correct text color in both light and dark themes.
-        header = QAction(trans("reasoning_effort.header"), menu)
+        header = QAction(QIcon(":/icons/bolt.svg"), trans("reasoning_effort.header"), menu)
         header.setEnabled(False)
         header_font = header.font()
         header_font.setBold(True)
