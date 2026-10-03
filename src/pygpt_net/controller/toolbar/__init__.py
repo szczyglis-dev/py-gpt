@@ -34,23 +34,26 @@ class Toolbar:
 
     def toggle_toolbox(self, checked=False):
         """Slide the toolbox in/out, preserving the conversation list width."""
+        from pygpt_net.ui.layout.sidebar import pane_sizes
         splitter = self.window.ui.splitters['main']
         toolbox = self.window.ui.parts['toolbox']
+        toolbox_idx = splitter.indexOf(toolbox)
+        ctx_idx = splitter.indexOf(self.window.ui.parts['ctx'])
         sizes = splitter.sizes()
         if self._animation is not None:
             self._animation.stop()
         opening = not self._toolbox_visible
         self._toolbox_visible = opening
-        if not opening and sizes[0] > 0:
-            self._toolbox_width = sizes[0]
-            self.window.core.config.set('layout.toolbox.width', sizes[0])
+        if not opening and sizes[toolbox_idx] > 0:
+            self._toolbox_width = sizes[toolbox_idx]
+            self.window.core.config.set('layout.toolbox.width', sizes[toolbox_idx])
         if opening:
             remembered = self.window.core.config.get('layout.toolbox.width', self._toolbox_width)
             if isinstance(remembered, (int, float)) and remembered > 0:
                 self._toolbox_width = int(remembered)
             toolbox.show()
         total = sum(sizes)
-        ctx_width = sizes[1]
+        ctx_width = sizes[ctx_idx]
         target = min(self._toolbox_width, max(0, total - ctx_width - 200)) if opening else 0
         animation = QVariantAnimation(self.window)
         if self._animation is not None:
@@ -58,10 +61,10 @@ class Toolbar:
         self._animation = animation
         animation.setDuration(PANEL_ANIMATION_DURATION_MS)
         animation.setEasingCurve(PANEL_ANIMATION_EASING)
-        animation.setStartValue(sizes[0])
+        animation.setStartValue(sizes[toolbox_idx])
         animation.setEndValue(target)
         animation.valueChanged.connect(
-            lambda width: splitter.setSizes([int(width), ctx_width, max(0, total - ctx_width - int(width))])
+            lambda width: splitter.setSizes(pane_sizes(int(width), ctx_width, max(0, total - ctx_width - int(width))))
         )
         animation.finished.connect(lambda: self._finish_toolbox_animation(opening))
         self.window.ui.nodes['toolbar.toolbox'].setChecked(opening)

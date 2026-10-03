@@ -24,6 +24,7 @@ from .layout.toolbox import ToolboxMain
 from .menu import Menu
 from .tray import Tray
 from .toolbar import LeftToolbar
+from .layout.sidebar import TOOLBOX_FIRST, pane_sizes
 
 
 class UI:
@@ -86,8 +87,8 @@ class UI:
 
         # horizontal splitter
         self.splitters['main'] = QSplitter(Qt.Horizontal)
-        self.splitters['main'].addWidget(self.parts['toolbox'])  # hidden left toolbox
-        self.splitters['main'].addWidget(self.parts['ctx'])  # contexts
+        for name in (('toolbox', 'ctx') if TOOLBOX_FIRST else ('ctx', 'toolbox')):
+            self.splitters['main'].addWidget(self.parts[name])
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
         self.parts['toolbox'].hide()
 
@@ -153,7 +154,7 @@ class UI:
             if total_width > 0:
                 size_output = int(total_width * 0.75)
                 size_ctx = max(200, total_width - size_output)
-                self.window.ui.splitters['main'].setSizes([0, size_ctx, size_output])
+                self.window.ui.splitters['main'].setSizes(pane_sizes(0, size_ctx, size_output))
             else:
                 QTimer.singleShot(0, set_initial_splitter_width)
         QTimer.singleShot(10, set_initial_splitter_width)

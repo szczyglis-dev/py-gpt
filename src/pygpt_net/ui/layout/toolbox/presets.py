@@ -49,6 +49,12 @@ class Presets:
         skills_page = self.setup_skills()
 
         tabs = QTabWidget()
+        tabs.setDocumentMode(True)
+        tabs.tabBar().setObjectName('toolboxTabs')
+        tabs.tabBar().setDrawBase(False)
+        tabs.tabBar().setExpanding(False)
+        # Match the main tab row, including its 36 px corner controls.
+        tabs.tabBar().setMinimumHeight(42)
         tabs.addTab(preset_page, trans("toolbox.agents.label"))
         tabs.addTab(skills_page, trans("preset.tab.skills"))
         # The extra Skills tab belongs to Chat with Agents only. Other modes
@@ -78,6 +84,8 @@ class Presets:
         nodes = self.window.ui.nodes
 
         nodes['preset.presets.new'] = QPushButton(QIcon(":/icons/add.svg"), "")
+        nodes['preset.presets.new'].setFlat(True)
+        nodes['preset.presets.new'].setStyleSheet('QPushButton { border: none; background: transparent; }')
         nodes['preset.presets.new'].setToolTip(trans('toolbox.presets.add.tooltip'))
         nodes['preset.presets.new'].clicked.connect(
             lambda _=False: self.window.controller.presets.editor.edit()
@@ -90,7 +98,9 @@ class Presets:
         nodes['preset.agents.label'].setVisible(False)
         nodes['preset.experts.label'].setVisible(False)
 
-        header = QHBoxLayout()
+        header_widget = QWidget()
+        nodes['preset.header'] = header_widget
+        header = QHBoxLayout(header_widget)
         header.addWidget(nodes['preset.presets.label'])
         header.addWidget(nodes['preset.agents.label'])
         header.addWidget(nodes['preset.experts.label'])
@@ -107,7 +117,7 @@ class Presets:
 
         layout = QVBoxLayout()
         layout.addStretch()
-        layout.addLayout(header)
+        layout.addWidget(header_widget)
         layout.addWidget(nodes[self.id], 1)
         layout.addWidget(nodes['tip.toolbox.presets'])
         layout.setContentsMargins(2, 5, 0, 5)

@@ -27,6 +27,7 @@ from pygpt_net.core.types import (
 )
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.events import Event
+from PySide6.QtCore import Qt
 from pygpt_net.utils import trans
 
 
@@ -148,6 +149,18 @@ class Mode:
         if presets_tabs is not None:
             presets_tabs.setTabVisible(1, is_agent_v2)
             presets_tabs.tabBar().setVisible(is_agent_v2)
+            header = ui_nodes.get('preset.header')
+            add_preset = ui_nodes.get('preset.presets.new')
+            if header is not None and add_preset is not None:
+                if is_agent_v2:
+                    header.layout().removeWidget(add_preset)
+                    presets_tabs.setCornerWidget(add_preset, Qt.TopRightCorner)
+                    header.hide()
+                else:
+                    presets_tabs.setCornerWidget(None, Qt.TopRightCorner)
+                    header.layout().addWidget(add_preset, alignment=Qt.AlignRight)
+                    header.show()
+                add_preset.show()
             if not is_agent_v2 and presets_tabs.currentIndex() != 0:
                 presets_tabs.setCurrentIndex(0)
             if is_agent_v2:

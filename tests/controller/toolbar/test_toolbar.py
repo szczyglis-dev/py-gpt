@@ -20,11 +20,15 @@ def finish_animation():
     loop.exec()
 
 
-def test_toolbox_toggle_animates_and_hides_splitter_handle(qapp):
+@pytest.mark.parametrize("toolbox_first", [True, False])
+def test_toolbox_toggle_animates_and_hides_splitter_handle(qapp, monkeypatch, toolbox_first):
+    from pygpt_net.ui.layout import sidebar
+    monkeypatch.setattr(sidebar, "TOOLBOX_FIRST", toolbox_first)
+    ti, ci = (0, 1) if toolbox_first else (1, 0)
     window = QMainWindow()
     splitter = QSplitter(Qt.Horizontal)
     toolbox, contexts, chat = QWidget(), QWidget(), QWidget()
-    for widget in (toolbox, contexts, chat):
+    for widget in ((toolbox, contexts, chat) if toolbox_first else (contexts, toolbox, chat)):
         splitter.addWidget(widget)
     contexts.setMinimumWidth(200)
     toolbox.hide()
@@ -35,34 +39,36 @@ def test_toolbox_toggle_animates_and_hides_splitter_handle(qapp):
     config.get.side_effect = lambda key, default=None: values.get(key, default)
     config.set.side_effect = lambda key, value: values.__setitem__(key, value)
     window.core = SimpleNamespace(config=config)
-    window.ui = SimpleNamespace(splitters={'main': splitter}, parts={'toolbox': toolbox},
+    window.ui = SimpleNamespace(splitters={'main': splitter}, parts={'toolbox': toolbox, 'ctx': contexts},
                                 nodes={'toolbar.toolbox': button})
     window.setCentralWidget(splitter)
     window.resize(1000, 500)
     window.show()
     qapp.processEvents()
-    splitter.setSizes([0, 220, 780])
+    splitter.setSizes(sidebar.pane_sizes(0, 220, 780))
     controller = Toolbar(window)
-    original_context_width = splitter.sizes()[1]
-    assert not splitter.handle(1).isVisible()
+    original_context_width = splitter.sizes()[ci]
+    if toolbox_first:
+        assert not splitter.handle(1).isVisible()
     controller.toggle_toolbox()
     finish_animation()
     assert toolbox.isVisible()
     assert splitter.handle(1).isVisible()
-    assert splitter.sizes()[0] > 200
-    assert abs(splitter.sizes()[1] - original_context_width) < 15
+    assert splitter.sizes()[ti] > 200
+    assert abs(splitter.sizes()[ci] - original_context_width) < 15
     assert button.isChecked()
-    splitter.setSizes([300, 220, 480])
-    width = splitter.sizes()[0]
+    splitter.setSizes(sidebar.pane_sizes(300, 220, 480))
+    width = splitter.sizes()[ti]
     controller.toggle_toolbox()
     finish_animation()
     assert toolbox.isHidden()
-    assert not splitter.handle(1).isVisible()
+    if toolbox_first:
+        assert not splitter.handle(1).isVisible()
     assert not button.isChecked()
     assert values['layout.toolbox.width'] == width
     controller.toggle_toolbox()
     finish_animation()
-    assert abs(splitter.sizes()[0] - width) < 15
+    assert abs(splitter.sizes()[ti] - width) < 15
     controller.toggle_toolbox()
     controller.toggle_toolbox()
     finish_animation()

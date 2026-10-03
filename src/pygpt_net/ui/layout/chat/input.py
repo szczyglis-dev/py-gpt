@@ -237,8 +237,8 @@ class Input:
         # inner editor minimum are kept in sync; otherwise QTabWidget's
         # current-page minimumSizeHint would still clamp the pane to the old
         # effective height. Files tabs keep their existing minimums.
-        self.min_height_input_tab = 85
-        self.min_height_input = 85
+        self.min_height_input_tab = 100
+        self.min_height_input = 100
         self.min_height_input_extra = 100
 
         # Exact main.output splitter geometry from the moment the user leaves

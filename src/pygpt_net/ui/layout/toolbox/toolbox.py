@@ -129,6 +129,7 @@ class ToolboxSectionHover(QObject):
 
 class ToolboxMain:
     MIN_WIDTH = 200
+    TOP_MARGIN = 0  # Align presets / agent tabs with the mode selector row.
 
     def __init__(self, window=None):
         """
@@ -228,7 +229,7 @@ class ToolboxMain:
         toolbox_layout = QVBoxLayout(toolbox)
         toolbox_layout.addWidget(splitter, 1)
         toolbox_layout.addWidget(footer_widget, 0)
-        toolbox_layout.setContentsMargins(0, 0, 0, 0)
+        toolbox_layout.setContentsMargins(0, self.TOP_MARGIN, 0, 0)
         toolbox_layout.setSpacing(0)
         nodes['toolbox'] = toolbox
 

@@ -797,7 +797,8 @@ QComboBox[class="LabelCombo"], QPushButton[class="LabelButton"] {{
 
 /* The main window must meet the menu without the theme widget margin. */
 QMainWindow {{ margin: 0px; padding: 0px; }}
-QTabBar#outputTabs::tab {{ padding-top: 6px; padding-bottom: 12px; }}
+QTabBar#outputTabs::tab,
+QTabBar#toolboxTabs::tab {{ padding-top: 6px; padding-bottom: 12px; }}
 
 /* Files breadcrumb hierarchy. */
 QPushButton[fileBreadcrumb="true"] {{ color: #aaaaaa; }}

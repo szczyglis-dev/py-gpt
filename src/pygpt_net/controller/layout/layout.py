@@ -165,12 +165,16 @@ class Layout:
                             data[splitter] = previous[splitter]
                             continue
                 data[splitter] = splitter_widget.sizes()
-                if splitter == 'main' and data[splitter][0] > 0:
-                    config.set('layout.toolbox.width', data[splitter][0])
+                if splitter == 'main':
+                    from pygpt_net.ui.layout.sidebar import TOOLBOX_FIRST
+                    toolbox_width = data[splitter][0 if TOOLBOX_FIRST else 1]
+                    if toolbox_width > 0:
+                        config.set('layout.toolbox.width', toolbox_width)
             except Exception:
                 pass
         config.set('layout.splitters', data)
-        config.set('layout.main.order', 'toolbox-first')
+        from pygpt_net.ui.layout.sidebar import order_name
+        config.set('layout.main.order', order_name())
 
     def splitters_restore(self):
         """Restore splitters state"""
@@ -185,10 +189,13 @@ class Layout:
                 continue
             try:
                 if splitter == 'main' and len(sizes) == 3:
-                    if config.get('layout.main.order') != 'toolbox-first':
-                        sizes = [0, sizes[0], sizes[1] + sizes[2]]
+                    from pygpt_net.ui.layout.sidebar import pane_sizes
+                    saved_order = config.get('layout.main.order')
+                    if saved_order == 'toolbox-first':
+                        toolbox, contexts, chat = sizes
                     else:
-                        sizes = [0, sizes[1], sizes[2] + sizes[0]]
+                        contexts, toolbox, chat = sizes
+                    sizes = pane_sizes(0, contexts, chat + toolbox)
                 if splitter == "toolbox" and len(sizes) == 2:
                     total = sum(sizes)
                     if total > 0 and sizes[1] < total * 0.3:
