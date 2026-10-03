@@ -148,3 +148,10 @@ QMenu#chatInputReasoningEffortMenu {{
   border: 0;
   border-width: 0;
 }}
+
+/* Join the navigation rail directly to the main menu. */
+QMenuBar {{
+  margin: 0px;
+  padding: 0px;
+  border: none;
+}}

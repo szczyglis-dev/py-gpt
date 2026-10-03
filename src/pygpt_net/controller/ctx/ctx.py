@@ -201,6 +201,7 @@ class Ctx:
             self.window.core.config.set('assistant_thread', self.window.core.ctx.get_thread())
             self.window.core.config.save()
 
+        self.window.core.tabs.refresh_chat_icons()
         self.window.controller.calendar.update(all=False)
         self.window.controller.chat.attachment.update()
 

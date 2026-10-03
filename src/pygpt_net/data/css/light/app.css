@@ -527,7 +527,7 @@ QWidget#ComboPopupWindow {{
   qproperty-activeTextColor: {APP_TEXT_COLOR};
   qproperty-focusedSelectedTextColor: #ffffff;
   qproperty-showMoreHoverTextColor: {APP_TEXT_COLOR};
-  background-color: #f7f7f7;
+  background-color: #ffffff;
 }}
 
 .ctx-list::item:hover:!selected {{
@@ -809,7 +809,7 @@ QComboBox[class="LabelCombo"] {{
   background-color: transparent;
   border: none;
   font-weight: bold;
-  padding: 8px 24px 8px 8px;
+  padding: 8px 24px 8px 28px;
 }}
 QComboBox[class="LabelCombo"]:hover {{
   background-color: rgba(128, 128, 128, 20);
@@ -819,3 +819,47 @@ QComboBox[class="LabelCombo"]::drop-down {{
   border: none;
   width: 20px;
 }}
+
+/* Match the context controls and surrounding pane to the conversation list. */
+QWidget#contextSidebar,
+QWidget#contextListPanel {{
+  background-color: #ffffff;
+}}
+
+/* The navigation rail and menu form a subtle surface beside the sidebar. */
+QMenuBar {{
+  background-color: #f1f1f1;
+}}
+
+/* Mode stays borderless while focused or while its popup is open. */
+QComboBox[class="LabelCombo"]:focus,
+QComboBox[class="LabelCombo"]:on,
+QComboBox[class="LabelCombo"]:pressed {{
+  border: none;
+  outline: none;
+  background-color: transparent;
+}}
+
+/* Reset theme widget margins on the navigation surfaces and controls. */
+QWidget#mainCentralWidget, QWidget#leftToolbar,
+QWidget#contextSidebar, QWidget#contextListPanel,
+QComboBox[class="LabelCombo"], QPushButton[class="LabelButton"] {{
+  margin: 0px;
+}}
+
+/* The main window must meet the menu without the theme widget margin. */
+QMainWindow {{ margin: 0px; padding: 0px; }}
+QTabBar#outputTabs::tab {{ padding-top: 6px; padding-bottom: 12px; }}
+
+QTabBar#outputTabs {{ border-bottom: 0px; }}
+QTabBar#outputTabs::tab,
+QTabBar#outputTabs::tab:selected,
+QTabBar#outputTabs::tab:top:selected,
+QTabBar#outputTabs[activeColumn="false"]::tab:selected,
+QTabBar#outputTabs[activeColumn="false"]::tab:top:selected {{
+  border-bottom: 0px;
+}}
+
+/* Files breadcrumb hierarchy. */
+QPushButton[fileBreadcrumb="true"] {{ color: #666666; }}
+QPushButton[fileBreadcrumb="true"][currentBreadcrumb="true"] {{ color: #000000; }}

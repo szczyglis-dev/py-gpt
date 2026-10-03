@@ -215,10 +215,12 @@ class ToolboxMain:
         splitter.addWidget(toolbox_mode)
         splitter.addWidget(bottom_widget)
 
-        # Keep the System prompt pane at the user-selected height across window
-        # resizes. The upper toolbox area absorbs the remaining height.
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 0)
+        # Give the System prompt about one third of the resizable area.
+        splitter.setStretchFactor(0, 2)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([600, 300])
+        bottom_widget.setMinimumHeight(180)
+        splitter.setCollapsible(1, False)
 
         toolbox = QWidget(self.window)
         toolbox.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)

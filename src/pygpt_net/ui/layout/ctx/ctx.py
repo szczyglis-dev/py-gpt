@@ -49,7 +49,7 @@ class CtxMain:
         layout.setContentsMargins(5, 5, 2, 5)
 
         widget = QWidget()
+        widget.setObjectName('contextSidebar')
         widget.setLayout(layout)
 
         return widget
-

@@ -63,10 +63,12 @@ class CtxList:
         models = ui.models
 
         widget = QWidget()
+        widget.setObjectName('contextListPanel')
         widget.setContentsMargins(0, 0, 0, 0)
 
         new_btn = NewCtxButton(trans('ctx.new.chat'), self.window)
         new_btn.setContentsMargins(0, 0, 0, 0)
+        new_btn.setIconSize(QtCore.QSize(16, 16))
         nodes['ctx.new'] = new_btn
 
         ctx_list = ContextList(self.window, ctx_id)
@@ -83,7 +85,7 @@ class CtxList:
         new_btn_row_layout.addWidget(new_btn, 1)
         search_btn = LabelButton()
         search_btn.setIcon(QIcon(':/icons/search.svg'))
-        search_btn.setFixedWidth(36)
+        search_btn.setFixedSize(40, 40)
         search_btn.setCheckable(True)
         search_btn.setToolTip(trans('ctx.list.search.placeholder'))
         nodes['ctx.search.toggle'] = search_btn
@@ -92,13 +94,16 @@ class CtxList:
         search_btn.toggled.connect(
             lambda visible: nodes['ctx.search'].setFocus() if visible else None
         )
-        new_btn_row_layout.addWidget(search_btn)
 
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(Mode(self.window).setup())
-        layout.addWidget(new_btn_row)
+        mode_row = QHBoxLayout()
+        mode_row.setContentsMargins(0, 0, 5, 0)
+        mode_row.addWidget(Mode(self.window).setup(), 1)
+        mode_row.addWidget(search_btn)
+        layout.addLayout(mode_row)
         layout.addWidget(search_input)
+        layout.addWidget(new_btn_row)
         layout.addWidget(ctx_list)
 
         model = self.create_model(self.window)

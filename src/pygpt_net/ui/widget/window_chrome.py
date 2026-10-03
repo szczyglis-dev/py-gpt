@@ -172,7 +172,7 @@ class WindowChrome(QObject):
             layout.addWidget(self.btn_close)
 
             self.container.setStyleSheet(
-                "QWidget#windowControls { margin: 0; padding: 0; border: 0; }"
+                "QWidget#windowControls { margin: 0; padding: 0; border: 0; background: transparent; }"
                 "QPushButton {"
                 "  border: 0;"
                 "  border-radius: 0px;"
@@ -272,7 +272,7 @@ class WindowChrome(QObject):
         # that margin changes both the apparent top offset and usable text
         # width between themes. Keep their box metrics theme-independent while
         # still inheriting the theme's .label-help text color.
-        label.setStyleSheet("margin: 0px; padding: 0px;")
+        label.setStyleSheet("margin: 0px; padding: 0px; background: transparent;")
         return label
 
     def refresh_metadata(self):

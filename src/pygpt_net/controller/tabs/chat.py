@@ -63,6 +63,7 @@ class ChatTabs:
         if tab is None or tab.type != Tab.TAB_CHAT:
             return None
         tab.data_id = meta_id
+        self.window.core.tabs.refresh_chat_icons()
         tab.loaded = False
         if meta_id is None:
             self.window.core.ctx.output.remove_pid(tab.pid)
@@ -195,6 +196,7 @@ class ChatTabs:
             self.window.controller.chat.render.clear_pid(tab.pid)
             self.window.core.ctx.output.remove_pid(tab.pid)
             tab.data_id = None
+            self.window.core.tabs.refresh_chat_icons()
             tab.loaded = False
             self.set_chat_placeholder(tab)
 

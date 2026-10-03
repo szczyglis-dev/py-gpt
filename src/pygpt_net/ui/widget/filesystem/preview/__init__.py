@@ -137,6 +137,8 @@ class PreviewPanel(QWidget):
             if path == self.path and isinstance(self.viewer, TextPreview) and self.viewer.is_content_modified():
                 name += ' *'
             button = QPushButton(name)
+            button.setProperty("fileBreadcrumb", True)
+            button.setProperty("currentBreadcrumb", i == len(paths) - 1)
             button.setFlat(True)
             button.setToolTip(os.path.relpath(path, self.root))
             if os.path.isdir(path):

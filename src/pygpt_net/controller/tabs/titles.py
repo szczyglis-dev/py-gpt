@@ -309,6 +309,7 @@ class TabTitles:
         being allowed to survive as a misleading tab assignment.
         """
         changed = False
+        self.window.core.tabs.refresh_chat_icons()
         core = self.window.core
         for tab in core.tabs.pids.values():
             if tab.type != Tab.TAB_CHAT:

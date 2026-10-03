@@ -46,7 +46,7 @@ class Tabs:
         self.last_pid = -1
         self.pids = {}  # pid: Tab data
         self.icons = {
-            Tab.TAB_CHAT: ":/icons/chat.svg",
+            Tab.TAB_CHAT: ":/icons/chat1.svg",
             Tab.TAB_NOTEPAD: ":/icons/paste.svg",
             Tab.TAB_FILES: ":/icons/folder_filled.svg",
             Tab.TAB_TOOL_PAINTER: ":/icons/brush.svg",
@@ -730,6 +730,17 @@ class Tabs:
                 continue
             tabs.setTabToolTip(tab.idx, tooltip)
 
+    def refresh_chat_icons(self):
+        """Reflect each chat's current project membership in both columns."""
+        for tab in self.pids.values():
+            if tab.type != Tab.TAB_CHAT:
+                continue
+            meta = self.window.core.ctx.get_meta_by_id(tab.data_id) if tab.data_id is not None else None
+            tab.icon = ":/icons/folder.svg" if meta is not None and meta.group_id else ":/icons/chat1.svg"
+            tabs = self.window.ui.layout.get_tabs_by_idx(tab.column_idx)
+            if tabs is not None and tab.idx is not None and 0 <= tab.idx < tabs.count():
+                tabs.setTabIcon(tab.idx, QIcon(tab.icon))
+
     def add_chat(self, tab: Tab):
         """
         Add chat tab
@@ -751,7 +762,7 @@ class Tabs:
         if hasattr(tab.child, "setOwner"):
             tab.child.setOwner(tab)
 
-        # Chat tabs intentionally use text only (no leading icon).
+        self.refresh_chat_icons()
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
 
@@ -880,7 +891,7 @@ class Tabs:
         new_tabs = new_column.get_tabs()
         insert_idx = new_tabs.count() if new_idx is None else max(0, min(int(new_idx), new_tabs.count()))
         if tab.type == Tab.TAB_CHAT:
-            # Chat tabs intentionally use text only (no leading icon).
+            self.refresh_chat_icons()
             tab.idx = new_tabs.insertTab(insert_idx, tab.child, tab.title)
         else:
             icon = QIcon()  # for test purposes only

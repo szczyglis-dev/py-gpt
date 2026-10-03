@@ -10,8 +10,8 @@
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QPushButton, QToolButton, QTabBar, QApplication, QWidget, QHBoxLayout
-from PySide6.QtCore import Qt, Slot, QTimer, QEvent, QMimeData
-from PySide6.QtGui import QAction, QIcon, QGuiApplication, QDrag
+from PySide6.QtCore import Qt, Slot, QTimer, QEvent, QMimeData, QSize
+from PySide6.QtGui import QAction, QIcon, QGuiApplication, QDrag, QPixmap, QPainter
 
 from pygpt_net.ui.widget.element.button import LabelButton
 from pygpt_net.core.tabs.tab import Tab
@@ -40,6 +40,28 @@ TAB_DRAG_MIME = 'application/x-pygpt-output-tab'
 
 
 class OutputTabBar(QTabBar):
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        if option.icon.isNull():
+            return
+        # Qt centers the SVG canvas slightly above the visible text. Adjust
+        # only the tab's painted icon, keeping layout and original assets intact.
+        size = option.iconSize
+        key = (option.icon.cacheKey(), size.width(), size.height(), self.devicePixelRatioF())
+        cache = getattr(self, '_aligned_icons', None)
+        if cache is None:
+            cache = self._aligned_icons = {}
+        if key not in cache:
+            original = option.icon.pixmap(size, self.devicePixelRatioF())
+            shifted = QPixmap(original.size())
+            shifted.setDevicePixelRatio(original.devicePixelRatio())
+            shifted.fill(Qt.transparent)
+            painter = QPainter(shifted)
+            painter.drawPixmap(0, 2, original)
+            painter.end()
+            cache[key] = QIcon(shifted)
+        option.icon = cache[key]
+
     def __init__(
             self,
             window=None,
@@ -502,11 +524,12 @@ class OutputTabs(QTabWidget):
         # Keep split screen at the far right, independently of inline [+] placement.
         self.corner_controls = QWidget(self)
         self.corner_layout = QHBoxLayout(self.corner_controls)
-        self.corner_layout.setContentsMargins(0, 0, 4, 0)
+        self.corner_layout.setContentsMargins(0, 0, 12, 0)
         self.corner_layout.setSpacing(2)
         self.split_button = LabelButton(parent=self.corner_controls)
         self.split_button.setIcon(icon(':/icons/split_screen.svg'))
-        self.split_button.setFixedSize(32, 32)
+        self.split_button.setFixedSize(36, 36)
+        self.split_button.setIconSize(QSize(20, 20))
         self.split_button.setToolTip(trans('layout.split.tooltip'))
         self.split_button.clicked.connect(self.window.controller.tabs.toggle_split_screen_animated)
         column_idx = self.column.get_idx() if self.column is not None else 0

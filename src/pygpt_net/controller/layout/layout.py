@@ -189,6 +189,10 @@ class Layout:
                         sizes = [0, sizes[0], sizes[1] + sizes[2]]
                     else:
                         sizes = [0, sizes[1], sizes[2] + sizes[0]]
+                if splitter == "toolbox" and len(sizes) == 2:
+                    total = sum(sizes)
+                    if total > 0 and sizes[1] < total * 0.3:
+                        sizes = [int(total * 0.67), total - int(total * 0.67)]
                 current = splitter_widget.sizes()
                 if current != sizes:
                     splitter_widget.setSizes(sizes)

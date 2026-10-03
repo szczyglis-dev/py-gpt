@@ -768,7 +768,7 @@ QComboBox[class="LabelCombo"] {{
   background-color: transparent;
   border: none;
   font-weight: bold;
-  padding: 8px 24px 8px 8px;
+  padding: 8px 24px 8px 28px;
 }}
 QComboBox[class="LabelCombo"]:hover {{
   background-color: rgba(128, 128, 128, 20);
@@ -778,3 +778,27 @@ QComboBox[class="LabelCombo"]::drop-down {{
   border: none;
   width: 20px;
 }}
+
+/* Mode stays borderless while focused or while its popup is open. */
+QComboBox[class="LabelCombo"]:focus,
+QComboBox[class="LabelCombo"]:on,
+QComboBox[class="LabelCombo"]:pressed {{
+  border: none;
+  outline: none;
+  background-color: transparent;
+}}
+
+/* Reset theme widget margins on the navigation surfaces and controls. */
+QWidget#mainCentralWidget, QWidget#leftToolbar,
+QWidget#contextSidebar, QWidget#contextListPanel,
+QComboBox[class="LabelCombo"], QPushButton[class="LabelButton"] {{
+  margin: 0px;
+}}
+
+/* The main window must meet the menu without the theme widget margin. */
+QMainWindow {{ margin: 0px; padding: 0px; }}
+QTabBar#outputTabs::tab {{ padding-top: 6px; padding-bottom: 12px; }}
+
+/* Files breadcrumb hierarchy. */
+QPushButton[fileBreadcrumb="true"] {{ color: #aaaaaa; }}
+QPushButton[fileBreadcrumb="true"][currentBreadcrumb="true"] {{ color: #ffffff; }}

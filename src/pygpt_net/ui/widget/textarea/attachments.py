@@ -100,16 +100,17 @@ class AttachmentTile(QWidget):
             painter.drawPixmap((self.SIDE - image.width()) // 2, (self.SIDE - image.height()) // 2, image)
         else:
             self.icon.paint(painter, QRect((self.SIDE - 40) // 2, (self.SIDE - 19 - 40) // 2, 40, 40))
-        painter.fillRect(QRect(0, self.SIDE - 19, self.SIDE, 19), band)
-        painter.setPen(text)
-        painter.setFont(self.font())
-        # Use three literal dots for clipped filenames.
-        name = self.name
-        if self.fontMetrics().horizontalAdvance(name) > self.SIDE - 8:
-            while name and self.fontMetrics().horizontalAdvance(name + '...') > self.SIDE - 8:
-                name = name[:-1]
-            name += '...'
-        painter.drawText(QRect(4, self.SIDE - 19, self.SIDE - 8, 19), Qt.AlignCenter, name)
+        if self.image.isNull():
+            painter.fillRect(QRect(0, self.SIDE - 19, self.SIDE, 19), band)
+            painter.setPen(text)
+            painter.setFont(self.font())
+            # Use three literal dots for clipped filenames.
+            name = self.name
+            if self.fontMetrics().horizontalAdvance(name) > self.SIDE - 8:
+                while name and self.fontMetrics().horizontalAdvance(name + '...') > self.SIDE - 8:
+                    name = name[:-1]
+                name += '...'
+            painter.drawText(QRect(4, self.SIDE - 19, self.SIDE - 8, 19), Qt.AlignCenter, name)
         painter.setPen(border)
         painter.drawPath(path)
         painter.end()

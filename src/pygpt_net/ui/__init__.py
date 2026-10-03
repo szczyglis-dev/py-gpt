@@ -107,7 +107,10 @@ class UI:
         self.dialogs.setup()
 
         # set central widget
+        self.window.setContentsMargins(0, 0, 0, 0)
+        self.window.menuBar().setContentsMargins(0, 0, 0, 0)
         central = QWidget(self.window)
+        central.setObjectName("mainCentralWidget")
         central_layout = QHBoxLayout(central)
         central_layout.setContentsMargins(0, 0, 0, 0)
         central_layout.setSpacing(0)
