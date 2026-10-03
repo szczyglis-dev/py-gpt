@@ -67,5 +67,5 @@ def test_tools_button_title_tracks_tools_choice(qapp, monkeypatch):
     for value, title in ((True, 'input.tools.enabled'), (False, 'input.tools.disabled')):
         config.get.return_value = value
         ChatInput.update_tools_selector(widget)
-        assert button.text() == title + '  ▴'
+        assert button.text() == ('✓ ' if value else '') + title + '  ▴'
     button.deleteLater()

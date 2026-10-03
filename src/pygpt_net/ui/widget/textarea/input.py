@@ -1197,7 +1197,8 @@ class ChatInput(QTextEdit):
             return
         state = bool(self.window.core.config.get('cmd', False))
         label = trans('input.tools.enabled' if state else 'input.tools.disabled')
-        button.setText(f'{label}  ▴')
+        prefix = '✓ ' if state else ''
+        button.setText(f'{prefix}{label}  ▴')
         button.setToolTip(trans('input.tools.header'))
         self._icon_meta_right['web']['tooltip'] = trans('input.tools.header')
         self._fit_right_text_button(button)

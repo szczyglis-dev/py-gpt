@@ -85,7 +85,7 @@ class AttachmentTile(QWidget):
 
     def paintEvent(self, event):
         light = self.window.controller.theme.common.is_light_theme_id(self.window.core.config.get('theme', 'dark'))
-        background = QColor('#f5f5f5' if light else '#303030')
+        background = QColor('#f5f5f5')
         border = QColor('#d2d2d2' if light else '#505050')
         band = QColor('#e8e8e8' if light else '#252525')
         text = QColor('#444444' if light else '#dddddd')
