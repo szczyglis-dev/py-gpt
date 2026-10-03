@@ -123305,7 +123305,7 @@ ime.scrollMgr.sc\
 heduleScroll(tru\
 e);\x0a\x09\x09return tru\
 e;\x0a\x09};\x0a\x0a}\x0a\
-\x00\x002\xec\
+\x00\x006\x89\
 /\
 / ==============\
 ================\
@@ -123468,660 +123468,718 @@ true);\x0a\x09\x09this.sc\
 heduleScrollFabU\
 pdate();\x0a\x09}\x0a\x0a\x09no\
 teUserScroll(del\
-taY = 0) {\x0a\x09\x09con\
-st dir = deltaY \
-< 0 ? -1 : (delt\
-aY > 0 ? 1 : 0);\
-\x0a\x09\x09if (dir < 0) \
-{\x0a\x09\x09\x09this.suspen\
-dAutoFollow();\x0a\x09\
-\x09\x09return;\x0a\x09\x09}\x0a\x09\x09\
-if (dir > 0 && !\
-this.autoFollow)\
- {\x0a\x09\x09\x09this._canc\
-elScheduledPageS\
-croll();\x0a\x09\x09\x09this\
-.userInteracted \
-= true;\x0a\x09\x09\x09this.\
-userScrollDirect\
-ion = 1;\x0a\x09\x09\x09if (\
-this.isAtBottom(\
-)) this.armManua\
-lResume();\x0a\x09\x09}\x0a\x09\
-}\x0a\x0a\x09noteObserved\
-UserScroll(delta\
-Top = 0) {\x0a\x09\x09// \
-A scroll event i\
-s not proof of u\
-ser input. Remov\
-ing the request \
-loader\x0a\x09\x09// can \
-shrink the docum\
-ent and Chromium\
- clamps scrollTo\
-p upward. Wheel \
-and\x0a\x09\x09// keyboar\
-d intent is hand\
-led before scrol\
-ling by noteUser\
-Scroll(); only a\
-\x0a\x09\x09// held scrol\
-lbar/touch point\
-er may transfer \
-FOLLOW here.\x0a\x09\x09i\
-f (this.autoFoll\
-ow && !this.poin\
-terScrollActive)\
- return;\x0a\x09\x09if (d\
-eltaTop < -0.5) \
-{\x0a\x09\x09\x09this.suspen\
-dAutoFollow();\x0a\x09\
-\x09\x09return;\x0a\x09\x09}\x0a\x09\x09\
-if (deltaTop > 0\
-.5 && !this.auto\
-Follow) {\x0a\x09\x09\x09thi\
-s._cancelSchedul\
-edPageScroll();\x0a\
-\x09\x09\x09this.userInte\
-racted = true;\x0a\x09\
-\x09\x09this.userScrol\
-lDirection = 1;\x0a\
-\x09\x09\x09if (this.isAt\
-Bottom()) this.a\
-rmManualResume()\
-;\x0a\x09\x09\x09else this._\
-clearManualResum\
-e();\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09ar\
-mManualResume(de\
-layMs = 90) {\x0a\x09\x09\
-if (this.autoFol\
-low || this.user\
-ScrollDirection \
-< 0) return;\x0a\x09\x09t\
-his.manualResume\
-Candidate = true\
-;\x0a\x09\x09const seq = \
-++this.manualRes\
-umeSeq;\x0a\x09\x09if (th\
-is.manualResumeT\
-imer) clearTimeo\
-ut(this.manualRe\
-sumeTimer);\x0a\x09\x09th\
-is.manualResumeT\
-imer = setTimeou\
-t(() => {\x0a\x09\x09\x09thi\
-s.manualResumeTi\
-mer = 0;\x0a\x09\x09\x09if (\
-seq !== this.man\
-ualResumeSeq) re\
-turn;\x0a\x09\x09\x09if (!th\
-is.manualResumeC\
-andidate || this\
-.autoFollow) ret\
+taY = 0) {\x0a\x09\x09thi\
+s.userScrollAnim\
+ation = null;\x0a\x09\x09\
+const dir = delt\
+aY < 0 ? -1 : (d\
+eltaY > 0 ? 1 : \
+0);\x0a\x09\x09if (dir < \
+0) {\x0a\x09\x09\x09this.sus\
+pendAutoFollow()\
+;\x0a\x09\x09\x09return;\x0a\x09\x09}\
+\x0a\x09\x09if (dir > 0 &\
+& !this.autoFoll\
+ow) {\x0a\x09\x09\x09this._c\
+ancelScheduledPa\
+geScroll();\x0a\x09\x09\x09t\
+his.userInteract\
+ed = true;\x0a\x09\x09\x09th\
+is.userScrollDir\
+ection = 1;\x0a\x09\x09\x09i\
+f (this.isAtBott\
+om()) this.armMa\
+nualResume();\x0a\x09\x09\
+}\x0a\x09}\x0a\x0a\x09noteObser\
+vedUserScroll(de\
+ltaTop = 0) {\x0a\x09\x09\
+// A scroll even\
+t is not proof o\
+f user input. Re\
+moving the reque\
+st loader\x0a\x09\x09// c\
+an shrink the do\
+cument and Chrom\
+ium clamps scrol\
+lTop upward. Whe\
+el and\x0a\x09\x09// keyb\
+oard intent is h\
+andled before sc\
+rolling by noteU\
+serScroll(); onl\
+y a\x0a\x09\x09// held sc\
+rollbar/touch po\
+inter may transf\
+er FOLLOW here.\x0a\
+\x09\x09if (this.autoF\
+ollow && !this.p\
+ointerScrollActi\
+ve) return;\x0a\x09\x09if\
+ (deltaTop < -0.\
+5) {\x0a\x09\x09\x09this.sus\
+pendAutoFollow()\
+;\x0a\x09\x09\x09return;\x0a\x09\x09}\
+\x0a\x09\x09if (deltaTop \
+> 0.5 && !this.a\
+utoFollow) {\x0a\x09\x09\x09\
+this._cancelSche\
+duledPageScroll(\
+);\x0a\x09\x09\x09this.userI\
+nteracted = true\
+;\x0a\x09\x09\x09this.userSc\
+rollDirection = \
+1;\x0a\x09\x09\x09if (this.i\
+sAtBottom()) thi\
+s.armManualResum\
+e();\x0a\x09\x09\x09else thi\
+s._clearManualRe\
+sume();\x0a\x09\x09}\x0a\x09}\x0a\x0a\
+\x09armManualResume\
+(delayMs = 90) {\
+\x0a\x09\x09if (this.auto\
+Follow || this.u\
+serScrollDirecti\
+on < 0) return;\x0a\
+\x09\x09this.manualRes\
+umeCandidate = t\
+rue;\x0a\x09\x09const seq\
+ = ++this.manual\
+ResumeSeq;\x0a\x09\x09if \
+(this.manualResu\
+meTimer) clearTi\
+meout(this.manua\
+lResumeTimer);\x0a\x09\
+\x09this.manualResu\
+meTimer = setTim\
+eout(() => {\x0a\x09\x09\x09\
+this.manualResum\
+eTimer = 0;\x0a\x09\x09\x09i\
+f (seq !== this.\
+manualResumeSeq)\
+ return;\x0a\x09\x09\x09if (\
+!this.manualResu\
+meCandidate || t\
+his.autoFollow) \
+return;\x0a\x09\x09\x09if (t\
+his.userScrollDi\
+rection < 0) ret\
 urn;\x0a\x09\x09\x09if (this\
-.userScrollDirec\
-tion < 0) return\
-;\x0a\x09\x09\x09if (this.po\
+.pointerScrollAc\
+tive) {\x0a\x09\x09\x09\x09this\
+.armManualResume\
+(delayMs);\x0a\x09\x09\x09\x09r\
+eturn;\x0a\x09\x09\x09}\x0a\x09\x09\x09t\
+his.resumeAutoFo\
+llow(true);\x0a\x09\x09},\
+ Math.max(0, del\
+ayMs | 0));\x0a\x09}\x0a\x0a\
+\x09setPointerScrol\
+lActive(active) \
+{\x0a\x09\x09if (!active \
+&& this.pointerS\
+crollActive) {\x0a\x09\
+\x09\x09// The final s\
+croll event may \
+arrive after poi\
+nterup. Observe \
+the drag\x0a\x09\x09\x09// b\
+efore releasing \
+it, otherwise ca\
+tching up to bot\
+tom erases its i\
+ntent.\x0a\x09\x09\x09const \
+top = Number(Uti\
+ls.SE.scrollTop \
+|| 0);\x0a\x09\x09\x09if (!t\
+his.isProgrammat\
+icScroll(top)) t\
+his.noteObserved\
+UserScroll(top -\
+ this.lastScroll\
+Top);\x0a\x09\x09\x09this.la\
+stScrollTop = to\
+p;\x0a\x09\x09}\x0a\x09\x09this.po\
 interScrollActiv\
-e) {\x0a\x09\x09\x09\x09this.ar\
-mManualResume(de\
-layMs);\x0a\x09\x09\x09\x09retu\
-rn;\x0a\x09\x09\x09}\x0a\x09\x09\x09this\
-.resumeAutoFollo\
-w(true);\x0a\x09\x09}, Ma\
-th.max(0, delayM\
-s | 0));\x0a\x09}\x0a\x0a\x09se\
-tPointerScrollAc\
-tive(active) {\x0a\x09\
-\x09if (!active && \
-this.pointerScro\
-llActive) {\x0a\x09\x09\x09/\
-/ The final scro\
-ll event may arr\
-ive after pointe\
-rup. Observe the\
- drag\x0a\x09\x09\x09// befo\
-re releasing it,\
- otherwise catch\
-ing up to bottom\
- erases its inte\
-nt.\x0a\x09\x09\x09const top\
- = Number(Utils.\
-SE.scrollTop || \
-0);\x0a\x09\x09\x09if (!this\
-.isProgrammaticS\
-croll(top)) this\
-.noteObservedUse\
-rScroll(top - th\
-is.lastScrollTop\
-);\x0a\x09\x09\x09this.lastS\
-crollTop = top;\x0a\
-\x09\x09}\x0a\x09\x09this.point\
-erScrollActive =\
- !!active;\x0a\x09\x09if \
-(this.pointerScr\
-ollActive) retur\
-n;\x0a\x09\x09if (this.ma\
-nualResumeCandid\
-ate && !this.aut\
-oFollow) {\x0a\x09\x09\x09th\
-is.armManualResu\
-me(0);\x0a\x09\x09\x09return\
-;\x0a\x09\x09}\x0a\x09\x09// Conte\
-nt may have grow\
-n while the scro\
-llbar thumb was \
-held. If the use\
-r\x0a\x09\x09// never lef\
-t FOLLOW, catch \
-up exactly once \
-after releasing \
-it.\x0a\x09\x09if (this.a\
-utoFollow) this.\
-_syncToPhysicalB\
-ottom(false);\x0a\x09}\
-\x0a\x0a\x09isUserScrolli\
-ngUp() {\x0a\x09\x09retur\
-n !this.autoFoll\
-ow && this.userS\
-crollDirection <\
- 0;\x0a\x09}\x0a\x0a\x09shouldF\
-ollowOnStreamSta\
-rt() {\x0a\x09\x09return \
-this.autoFollow \
-=== true;\x0a\x09}\x0a\x0a\x09i\
-sNearBottom(marg\
-inPx = 100) {\x0a\x09\x09\
-const el = Utils\
-.SE;\x0a\x09\x09return (e\
+e = !!active;\x0a\x09\x09\
+if (this.pointer\
+ScrollActive) re\
+turn;\x0a\x09\x09if (this\
+.manualResumeCan\
+didate && !this.\
+autoFollow) {\x0a\x09\x09\
+\x09this.armManualR\
+esume(0);\x0a\x09\x09\x09ret\
+urn;\x0a\x09\x09}\x0a\x09\x09// Co\
+ntent may have g\
+rown while the s\
+crollbar thumb w\
+as held. If the \
+user\x0a\x09\x09// never \
+left FOLLOW, cat\
+ch up exactly on\
+ce after releasi\
+ng it.\x0a\x09\x09if (thi\
+s.autoFollow) th\
+is._syncToPhysic\
+alBottom(false);\
+\x0a\x09}\x0a\x0a\x09isUserScro\
+llingUp() {\x0a\x09\x09re\
+turn !this.autoF\
+ollow && this.us\
+erScrollDirectio\
+n < 0;\x0a\x09}\x0a\x0a\x09shou\
+ldFollowOnStream\
+Start() {\x0a\x09\x09retu\
+rn this.autoFoll\
+ow === true;\x0a\x09}\x0a\
+\x0a\x09isNearBottom(m\
+arginPx = 100) {\
+\x0a\x09\x09const el = Ut\
+ils.SE;\x0a\x09\x09return\
+ (el.scrollHeigh\
+t - el.clientHei\
+ght - el.scrollT\
+op) <= marginPx;\
+\x0a\x09}\x0a\x0a\x09isAtBottom\
+() {\x0a\x09\x09const el \
+= Utils.SE;\x0a\x09\x09co\
+nst distance = e\
 l.scrollHeight -\
  el.clientHeight\
- - el.scrollTop)\
- <= marginPx;\x0a\x09}\
-\x0a\x0a\x09isAtBottom() \
-{\x0a\x09\x09const el = U\
-tils.SE;\x0a\x09\x09const\
- distance = el.s\
+ - el.scrollTop;\
+\x0a\x09\x09const thresho\
+ld = Math.max(1,\
+ Math.min(Number\
+(this.cfg.UI.AUT\
+O_FOLLOW_REENABL\
+E_PX || 2), 2));\
+\x0a\x09\x09return distan\
+ce <= threshold;\
+\x0a\x09}\x0a\x0a\x09maybeEnabl\
+eAutoFollowByPro\
+ximity() {\x0a\x09\x09if \
+(!this.autoFollo\
+w && this.manual\
+ResumeCandidate)\
+ this.armManualR\
+esume();\x0a\x09}\x0a\x0a\x09sc\
+rollToTopUser() \
+{\x0a\x09\x09this._animat\
+eUserScroll(fals\
+e);\x0a\x09}\x0a\x0a\x09scrollT\
+oBottomUser() {\x0a\
+\x09\x09this._animateU\
+serScroll(true);\
+\x0a\x09}\x0a\x0a\x09_animateUs\
+erScroll(toBotto\
+m) {\x0a\x09\x09this.susp\
+endAutoFollow();\
+\x0a\x09\x09const el = Ut\
+ils.SE;\x0a\x09\x09const \
+start = Number(e\
+l.scrollTop || 0\
+);\x0a\x09\x09const token\
+ = {};\x0a\x09\x09this.us\
+erScrollAnimatio\
+n = token;\x0a\x09\x09con\
+st started = per\
+formance.now();\x0a\
+\x09\x09const reduced \
+= window.matchMe\
+dia && window.ma\
+tchMedia('(prefe\
+rs-reduced-motio\
+n: reduce)').mat\
+ches;\x0a\x09\x09const du\
+ration = reduced\
+ ? 0 : 450;\x0a\x09\x09co\
+nst step = (now)\
+ => {\x0a\x09\x09\x09if (thi\
+s.userScrollAnim\
+ation !== token)\
+ return;\x0a\x09\x09\x09if (\
+this.pointerScro\
+llActive) { this\
+.userScrollAnima\
+tion = null; ret\
+urn; }\x0a\x09\x09\x09const \
+progress = durat\
+ion ? Math.min(1\
+, (now - started\
+) / duration) : \
+1;\x0a\x09\x09\x09const ease\
+d = 1 - Math.pow\
+(1 - progress, 3\
+);\x0a\x09\x09\x09const targ\
+et = toBottom ? \
+Math.max(0, el.s\
 crollHeight - el\
-.clientHeight - \
-el.scrollTop;\x0a\x09\x09\
-const threshold \
-= Math.max(1, Ma\
-th.min(Number(th\
-is.cfg.UI.AUTO_F\
-OLLOW_REENABLE_P\
-X || 2), 2));\x0a\x09\x09\
-return distance \
-<= threshold;\x0a\x09}\
-\x0a\x0a\x09maybeEnableAu\
-toFollowByProxim\
-ity() {\x0a\x09\x09if (!t\
-his.autoFollow &\
-& this.manualRes\
-umeCandidate) th\
-is.armManualResu\
-me();\x0a\x09}\x0a\x0a\x09scrol\
-lToTopUser() {\x0a\x09\
-\x09this.suspendAut\
-oFollow();\x0a\x09\x09con\
-st el = Utils.SE\
-;\x0a\x09\x09this.markPro\
-grammaticScroll(\
-0);\x0a\x09\x09try { el.s\
-crollTop = 0; } \
-catch (_) {\x0a\x09\x09\x09t\
-ry { el.scrollTo\
-({ top: 0, behav\
-ior: 'instant' }\
-); } catch (__) \
-{}\x0a\x09\x09}\x0a\x09\x09this.la\
-stScrollTop = Nu\
-mber(el.scrollTo\
-p || 0);\x0a\x09}\x0a\x0a\x09sc\
-rollToBottomUser\
-() {\x0a\x09\x09this.resu\
+.clientHeight) :\
+ 0;\x0a\x09\x09\x09const top\
+ = start + (targ\
+et - start) * ea\
+sed;\x0a\x09\x09\x09this.mar\
+kProgrammaticScr\
+oll(top);\x0a\x09\x09\x09el.\
+scrollTop = top;\
+\x0a\x09\x09\x09this.lastScr\
+ollTop = Number(\
+el.scrollTop || \
+0);\x0a\x09\x09\x09if (progr\
+ess < 1) request\
+AnimationFrame(s\
+tep);\x0a\x09\x09\x09else {\x0a\
+\x09\x09\x09\x09this.userScr\
+ollAnimation = n\
+ull;\x0a\x09\x09\x09\x09if (toB\
+ottom) this.resu\
 meAutoFollow(tru\
-e);\x0a\x09}\x0a\x0a\x09// ====\
+e);\x0a\x09\x09\x09\x09this.sch\
+eduleScrollFabUp\
+date();\x0a\x09\x09\x09}\x0a\x09\x09}\
+;\x0a\x09\x09requestAnima\
+tionFrame(step);\
+\x0a\x09}\x0a\x0a\x09// =======\
 ================\
 ================\
-====\x0a\x09// Content\
- observation\x0a\x09//\
- ===============\
+=\x0a\x09// Content ob\
+servation\x0a\x09// ==\
 ================\
-=========\x0a\x0a\x09inst\
-allContentObserv\
-er(target = null\
-) {\x0a\x09\x09this.disco\
-nnectContentObse\
-rver();\x0a\x09\x09const \
-host = target ||\
- this.dom.get('c\
-ontainer');\x0a\x09\x09if\
- (!host || typeo\
-f ResizeObserver\
- === 'undefined'\
-) return false;\x0a\
-\x0a\x09\x09try {\x0a\x09\x09\x09this\
-.contentObserver\
- = new ResizeObs\
-erver(() => {\x0a\x09\x09\
-\x09\x09// Do not muta\
-te scroll/layout\
- from inside the\
- ResizeObserver \
-delivery\x0a\x09\x09\x09\x09// \
-cycle. Chromium \
-reports \x22loop co\
-mpleted with und\
-elivered\x0a\x09\x09\x09\x09// \
-notifications\x22 w\
-hen observer cal\
-lbacks synchrono\
-usly trigger mor\
-e\x0a\x09\x09\x09\x09// geometr\
-y work. Coalesce\
- the reaction in\
-to the next anim\
-ation frame.\x0a\x09\x09\x09\
-\x09this.raf.schedu\
-le('SM:contentRe\
-sizeObserver', (\
-) => {\x0a\x09\x09\x09\x09\x09if (\
-this.autoFollow \
-=== true && !thi\
-s.pointerScrollA\
-ctive) {\x0a\x09\x09\x09\x09\x09\x09t\
-his._syncToPhysi\
-calBottom(false)\
-;\x0a\x09\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09th\
-is.scheduleScrol\
-lFabUpdate();\x0a\x09\x09\
-\x09\x09}, 'ScrollMana\
-ger', 0);\x0a\x09\x09\x09});\
-\x0a\x09\x09\x09this.content\
-Observer.observe\
-(host);\x0a\x09\x09\x09this.\
-contentObserverT\
-arget = host;\x0a\x09\x09\
+================\
+======\x0a\x0a\x09install\
+ContentObserver(\
+target = null) {\
+\x0a\x09\x09this.disconne\
+ctContentObserve\
+r();\x0a\x09\x09const hos\
+t = target || th\
+is.dom.get('cont\
+ainer');\x0a\x09\x09if (!\
+host || typeof R\
+esizeObserver ==\
+= 'undefined') r\
+eturn false;\x0a\x0a\x09\x09\
+try {\x0a\x09\x09\x09this.co\
+ntentObserver = \
+new ResizeObserv\
+er(() => {\x0a\x09\x09\x09\x09/\
+/ Do not mutate \
+scroll/layout fr\
+om inside the Re\
+sizeObserver del\
+ivery\x0a\x09\x09\x09\x09// cyc\
+le. Chromium rep\
+orts \x22loop compl\
+eted with undeli\
+vered\x0a\x09\x09\x09\x09// not\
+ifications\x22 when\
+ observer callba\
+cks synchronousl\
+y trigger more\x0a\x09\
+\x09\x09\x09// geometry w\
+ork. Coalesce th\
+e reaction into \
+the next animati\
+on frame.\x0a\x09\x09\x09\x09th\
+is.raf.schedule(\
+'SM:contentResiz\
+eObserver', () =\
+> {\x0a\x09\x09\x09\x09\x09if (thi\
+s.autoFollow ===\
+ true && !this.p\
+ointerScrollActi\
+ve) {\x0a\x09\x09\x09\x09\x09\x09this\
+._syncToPhysical\
+Bottom(false);\x0a\x09\
+\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\x09this.\
+scheduleScrollFa\
+bUpdate();\x0a\x09\x09\x09\x09}\
+, 'ScrollManager\
+', 0);\x0a\x09\x09\x09});\x0a\x09\x09\
 \x09this.contentObs\
-erverActive = tr\
-ue;\x0a\x09\x09\x09return tr\
-ue;\x0a\x09\x09} catch (_\
-) {\x0a\x09\x09\x09this.cont\
-entObserver = nu\
-ll;\x0a\x09\x09\x09this.cont\
-entObserverTarge\
-t = null;\x0a\x09\x09\x09thi\
-s.contentObserve\
-rActive = false;\
-\x0a\x09\x09\x09return false\
-;\x0a\x09\x09}\x0a\x09}\x0a\x0a\x09disco\
-nnectContentObse\
-rver() {\x0a\x09\x09if (t\
-his.contentObser\
-ver) {\x0a\x09\x09\x09try { \
-this.contentObse\
-rver.disconnect(\
-); } catch (_) {\
-}\x0a\x09\x09}\x0a\x09\x09this.con\
-tentObserver = n\
-ull;\x0a\x09\x09this.cont\
-entObserverTarge\
-t = null;\x0a\x09\x09this\
+erver.observe(ho\
+st);\x0a\x09\x09\x09this.con\
+tentObserverTarg\
+et = host;\x0a\x09\x09\x09th\
+is.contentObserv\
+erActive = true;\
+\x0a\x09\x09\x09return true;\
+\x0a\x09\x09} catch (_) {\
+\x0a\x09\x09\x09this.content\
+Observer = null;\
+\x0a\x09\x09\x09this.content\
+ObserverTarget =\
+ null;\x0a\x09\x09\x09this.c\
+ontentObserverAc\
+tive = false;\x0a\x09\x09\
+\x09return false;\x0a\x09\
+\x09}\x0a\x09}\x0a\x0a\x09disconne\
+ctContentObserve\
+r() {\x0a\x09\x09if (this\
 .contentObserver\
-Active = false;\x0a\
-\x09\x09try { this.raf\
-.cancel('SM:cont\
-entResizeObserve\
-r'); } catch (_)\
- {}\x0a\x09}\x0a\x0a\x09// ====\
+) {\x0a\x09\x09\x09try { thi\
+s.contentObserve\
+r.disconnect(); \
+} catch (_) {}\x0a\x09\
+\x09}\x0a\x09\x09this.conten\
+tObserver = null\
+;\x0a\x09\x09this.content\
+ObserverTarget =\
+ null;\x0a\x09\x09this.co\
+ntentObserverAct\
+ive = false;\x0a\x09\x09t\
+ry { this.raf.ca\
+ncel('SM:content\
+ResizeObserver')\
+; } catch (_) {}\
+\x0a\x09}\x0a\x0a\x09// =======\
 ================\
 ================\
-====\x0a\x09// Page sc\
-rolling\x0a\x09// ====\
+=\x0a\x09// Page scrol\
+ling\x0a\x09// =======\
 ================\
 ================\
-====\x0a\x0a\x09markProgr\
-ammaticScroll(ta\
-rgetTop = null) \
-{\x0a\x09\x09this.program\
-maticScrollPendi\
-ng = true;\x0a\x09\x09thi\
-s.programmaticSc\
-rollTarget = Num\
-ber.isFinite(tar\
-getTop) ? target\
-Top : null;\x0a\x09}\x0a\x0a\
-\x09isProgrammaticS\
-croll(top) {\x0a\x09\x09i\
-f (!this.program\
-maticScrollPendi\
-ng) return false\
-;\x0a\x09\x09const target\
- = this.programm\
-aticScrollTarget\
-;\x0a\x09\x09const match \
-= target == null\
- || Math.abs(Num\
-ber(top || 0) - \
-target) <= 4;\x0a\x09\x09\
-this.programmati\
-cScrollPending =\
- false;\x0a\x09\x09this.p\
+=\x0a\x0a\x09markProgramm\
+aticScroll(targe\
+tTop = null) {\x0a\x09\
+\x09this.programmat\
+icScrollPending \
+= true;\x0a\x09\x09this.p\
 rogrammaticScrol\
-lTarget = null;\x0a\
-\x09\x09return match;\x0a\
-\x09}\x0a\x0a\x09// Live cal\
-ls become geomet\
-ry notifications\
- while ResizeObs\
-erver is active.\
-\x0a\x09// There is no\
- token-by-token \
-rAF scroll anymo\
-re.\x0a\x09scheduleScr\
-oll(live = false\
+lTarget = Number\
+.isFinite(target\
+Top) ? targetTop\
+ : null;\x0a\x09}\x0a\x0a\x09is\
+ProgrammaticScro\
+ll(top) {\x0a\x09\x09if (\
+!this.programmat\
+icScrollPending)\
+ return false;\x0a\x09\
+\x09const target = \
+this.programmati\
+cScrollTarget;\x0a\x09\
+\x09const match = t\
+arget == null ||\
+ Math.abs(Number\
+(top || 0) - tar\
+get) <= 4;\x0a\x09\x09thi\
+s.programmaticSc\
+rollPending = fa\
+lse;\x0a\x09\x09this.prog\
+rammaticScrollTa\
+rget = null;\x0a\x09\x09r\
+eturn match;\x0a\x09}\x0a\
+\x0a\x09// Live calls \
+become geometry \
+notifications wh\
+ile ResizeObserv\
+er is active.\x0a\x09/\
+/ There is no to\
+ken-by-token rAF\
+ scroll anymore.\
+\x0a\x09scheduleScroll\
+(live = false, f\
+orce = false) {\x0a\
+\x09\x09if (!force && \
+this.autoFollow \
+!== true) return\
+;\x0a\x0a\x09\x09if (this.co\
+ntentObserverAct\
+ive) {\x0a\x09\x09\x09if (fo\
+rce || live === \
+false) this._syn\
+cToPhysicalBotto\
+m(!!force);\x0a\x09\x09\x09t\
+his.scheduleScro\
+llFabUpdate();\x0a\x09\
+\x09\x09return;\x0a\x09\x09}\x0a\x0a\x09\
+\x09// Fallback for\
+ engines without\
+ ResizeObserver.\
+\x0a\x09\x09if (this.scro\
+llScheduled) ret\
+urn;\x0a\x09\x09this.scro\
+llScheduled = tr\
+ue;\x0a\x09\x09this.raf.s\
+chedule('SM:scro\
+ll', () => {\x0a\x09\x09\x09\
+this.scrollSched\
+uled = false;\x0a\x09\x09\
+\x09this.scrollToBo\
+ttom(live, force\
+);\x0a\x09\x09\x09this.sched\
+uleScrollFabUpda\
+te();\x0a\x09\x09}, 'Scro\
+llManager', 1);\x0a\
+\x09}\x0a\x0a\x09cancelPendi\
+ngScroll() {\x0a\x09\x09t\
+ry { this.raf.ca\
+ncelGroup('Scrol\
+lManager'); } ca\
+tch (_) {}\x0a\x09\x09thi\
+s.scrollSchedule\
+d = false;\x0a\x09\x09thi\
+s.scrollFabUpdat\
+eScheduled = fal\
+se;\x0a\x09\x09this.scrol\
+lRAF = 0;\x0a\x09\x09this\
+.scrollFabRAF = \
+0;\x0a\x09\x09this.progra\
+mmaticScrollPend\
+ing = false;\x0a\x09\x09t\
+his.programmatic\
+ScrollTarget = n\
+ull;\x0a\x09\x09this.mess\
+ageVirtualRefres\
+hScheduled = fal\
+se;\x0a\x09}\x0a\x0a\x09forceSc\
+rollToBottomImme\
+diate() {\x0a\x09\x09this\
+._syncToPhysical\
+Bottom(true);\x0a\x09}\
+\x0a\x0a\x09forceScrollTo\
+BottomImmediateA\
+tEnd() {\x0a\x09\x09if (!\
+this.autoFollow)\
+ return;\x0a\x09\x09this.\
+_syncToPhysicalB\
+ottom(false);\x0a\x09\x09\
+this.scheduleScr\
+ollFabUpdate();\x0a\
+\x09}\x0a\x0a\x09scrollToBot\
+tom(live = false\
 , force = false)\
  {\x0a\x09\x09if (!force \
 && this.autoFoll\
-ow !== true) ret\
-urn;\x0a\x0a\x09\x09if (this\
-.contentObserver\
-Active) {\x0a\x09\x09\x09if \
-(force || live =\
-== false) this._\
-syncToPhysicalBo\
-ttom(!!force);\x0a\x09\
-\x09\x09this.scheduleS\
-crollFabUpdate()\
-;\x0a\x09\x09\x09return;\x0a\x09\x09}\
-\x0a\x0a\x09\x09// Fallback \
-for engines with\
-out ResizeObserv\
-er.\x0a\x09\x09if (this.s\
-crollScheduled) \
-return;\x0a\x09\x09this.s\
-crollScheduled =\
- true;\x0a\x09\x09this.ra\
-f.schedule('SM:s\
-croll', () => {\x0a\
-\x09\x09\x09this.scrollSc\
-heduled = false;\
-\x0a\x09\x09\x09this.scrollT\
-oBottom(live, fo\
-rce);\x0a\x09\x09\x09this.sc\
-heduleScrollFabU\
-pdate();\x0a\x09\x09}, 'S\
-crollManager', 1\
-);\x0a\x09}\x0a\x0a\x09cancelPe\
-ndingScroll() {\x0a\
-\x09\x09try { this.raf\
-.cancelGroup('Sc\
-rollManager'); }\
- catch (_) {}\x0a\x09\x09\
-this.scrollSched\
-uled = false;\x0a\x09\x09\
-this.scrollFabUp\
-dateScheduled = \
-false;\x0a\x09\x09this.sc\
-rollRAF = 0;\x0a\x09\x09t\
-his.scrollFabRAF\
- = 0;\x0a\x09\x09this.pro\
-grammaticScrollP\
-ending = false;\x0a\
-\x09\x09this.programma\
-ticScrollTarget \
-= null;\x0a\x09\x09this.m\
-essageVirtualRef\
-reshScheduled = \
-false;\x0a\x09}\x0a\x0a\x09forc\
-eScrollToBottomI\
-mmediate() {\x0a\x09\x09t\
-his._syncToPhysi\
-calBottom(true);\
-\x0a\x09}\x0a\x0a\x09forceScrol\
-lToBottomImmedia\
-teAtEnd() {\x0a\x09\x09if\
- (!this.autoFoll\
-ow) return;\x0a\x09\x09th\
-is._syncToPhysic\
-alBottom(false);\
-\x0a\x09\x09this.schedule\
-ScrollFabUpdate(\
-);\x0a\x09}\x0a\x0a\x09scrollTo\
-Bottom(live = fa\
-lse, force = fal\
-se) {\x0a\x09\x09if (!for\
-ce && this.autoF\
-ollow !== true) \
-{\x0a\x09\x09\x09this.prevSc\
-roll = Utils.SE.\
-scrollHeight;\x0a\x09\x09\
-\x09return;\x0a\x09\x09}\x0a\x09\x09t\
-his._syncToPhysi\
-calBottom(!!forc\
-e);\x0a\x09}\x0a\x0a\x09// ====\
+ow !== true) {\x0a\x09\
+\x09\x09this.prevScrol\
+l = Utils.SE.scr\
+ollHeight;\x0a\x09\x09\x09re\
+turn;\x0a\x09\x09}\x0a\x09\x09this\
+._syncToPhysical\
+Bottom(!!force);\
+\x0a\x09}\x0a\x0a\x09// =======\
 ================\
 ================\
-====\x0a\x09// Scroll \
-navigation butto\
-n\x0a\x09// ==========\
-================\
-==============\x0a\x0a\
-\x09hasVerticalScro\
-ll() {\x0a\x09\x09const e\
-l = Utils.SE;\x0a\x09\x09\
-return (el.scrol\
-lHeight - el.cli\
-entHeight) > 1;\x0a\
-\x09}\x0a\x0a\x09computeFabA\
-ction() {\x0a\x09\x09cons\
-t el = Utils.SE;\
-\x0a\x09\x09const h = el.\
-scrollHeight;\x0a\x09\x09\
-const c = el.cli\
-entHeight;\x0a\x09\x09con\
-st hasScroll = (\
-h - c) > 1;\x0a\x09\x09if\
- (!hasScroll) re\
-turn 'none';\x0a\x09\x09c\
-onst dist = h - \
-c - el.scrollTop\
-;\x0a\x09\x09if (dist <= \
-2) return 'up';\x0a\
-\x09\x09if (dist >= th\
-is.cfg.FAB.SHOW_\
-DOWN_THRESHOLD_P\
-X) return 'down'\
-;\x0a\x09\x09return 'none\
-';\x0a\x09}\x0a\x0a\x09updateSc\
-rollFab(force = \
-false, actionOve\
-rride = null, by\
-passFreeze = fal\
-se) {\x0a\x09\x09const bt\
-n = this.dom.get\
-('scrollFab');\x0a\x09\
-\x09const icon = th\
-is.dom.get('scro\
-llFabIcon');\x0a\x09\x09i\
-f (!btn || !icon\
-) return;\x0a\x09\x09cons\
-t now = Utils.no\
-w();\x0a\x09\x09const act\
-ion = actionOver\
-ride || this.com\
-puteFabAction();\
-\x0a\x09\x09if (!force &&\
- !bypassFreeze &\
-& now < this.fab\
-FreezeUntil && a\
-ction !== this.c\
-urrentFabAction)\
- return;\x0a\x09\x09if (a\
-ction === 'none'\
-) {\x0a\x09\x09\x09if (this.\
-currentFabAction\
- !== 'none' || f\
-orce) {\x0a\x09\x09\x09\x09btn.\
-classList.remove\
-('visible');\x0a\x09\x09\x09\
-\x09this.currentFab\
-Action = 'none';\
-\x0a\x09\x09\x09}\x0a\x09\x09\x09return;\
-\x0a\x09\x09}\x0a\x09\x09if (actio\
-n !== this.curre\
-ntFabAction || f\
-orce) {\x0a\x09\x09\x09if (a\
-ction === 'up') \
-{\x0a\x09\x09\x09\x09if (icon.d\
-ataset.dir !== '\
-up') {\x0a\x09\x09\x09\x09\x09icon\
-.src = this.cfg.\
-ICONS.COLLAPSE;\x0a\
-\x09\x09\x09\x09\x09icon.datase\
-t.dir = 'up';\x0a\x09\x09\
-\x09\x09}\x0a\x09\x09\x09\x09btn.titl\
-e = 'Go to top';\
-\x0a\x09\x09\x09} else {\x0a\x09\x09\x09\
-\x09if (icon.datase\
-t.dir !== 'down'\
-) {\x0a\x09\x09\x09\x09\x09icon.sr\
-c = this.cfg.ICO\
-NS.EXPAND;\x0a\x09\x09\x09\x09\x09\
-icon.dataset.dir\
- = 'down';\x0a\x09\x09\x09\x09}\
-\x0a\x09\x09\x09\x09btn.title =\
- 'Go to bottom';\
-\x0a\x09\x09\x09}\x0a\x09\x09\x09btn.set\
-Attribute('aria-\
-label', btn.titl\
-e);\x0a\x09\x09\x09this.curr\
-entFabAction = a\
-ction;\x0a\x09\x09\x09btn.cl\
-assList.add('vis\
-ible');\x0a\x09\x09} else\
- if (!btn.classL\
-ist.contains('vi\
-sible')) btn.cla\
-ssList.add('visi\
-ble');\x0a\x09}\x0a\x0a\x09sche\
-duleScrollFabUpd\
-ate() {\x0a\x09\x09if (th\
-is.scrollFabUpda\
-teScheduled) ret\
-urn;\x0a\x09\x09this.scro\
-llFabUpdateSched\
-uled = true;\x0a\x09\x09t\
-his.raf.schedule\
-('SM:fab', () =>\
- {\x0a\x09\x09\x09this.scrol\
-lFabUpdateSchedu\
-led = false;\x0a\x09\x09\x09\
-const action = t\
-his.computeFabAc\
-tion();\x0a\x09\x09\x09if (a\
-ction !== this.c\
-urrentFabAction)\
- this.updateScro\
-llFab(false, act\
-ion);\x0a\x09\x09}, 'Scro\
-llManager', 2);\x0a\
-\x09}\x0a\x0a\x09// ========\
-================\
-================\
-\x0a\x09// Page scroll\
-ing internals\x0a\x09/\
-/ ==============\
-================\
-==========\x0a\x0a\x09_ca\
-ncelScheduledPag\
-eScroll() {\x0a\x09\x09tr\
-y { this.raf.can\
-cel('SM:scroll')\
-; } catch (_) {}\
-\x0a\x09\x09this.scrollSc\
-heduled = false;\
-\x0a\x09}\x0a\x0a\x09_maxScroll\
-Top() {\x0a\x09\x09const \
-el = Utils.SE;\x0a\x09\
-\x09return Math.max\
-(0, el.scrollHei\
-ght - el.clientH\
-eight);\x0a\x09}\x0a\x0a\x09// \
-Set the viewport\
- to the real bot\
-tom synchronousl\
-y. Reading scrol\
-lHeight\x0a\x09// forc\
-es current layou\
-t, so this never\
- uses a stale/es\
-timated target.\x0a\
-\x09_syncToPhysical\
-Bottom(force = f\
-alse) {\x0a\x09\x09if (!f\
-orce && this.aut\
-oFollow !== true\
-) return false;\x0a\
-\x09\x09if (!force && \
-this.pointerScro\
-llActive) return\
- false;\x0a\x0a\x09\x09const\
- el = Utils.SE;\x0a\
-\x09\x09const target =\
- this._maxScroll\
-Top();\x0a\x09\x09const c\
-urrent = Number(\
-el.scrollTop || \
-0);\x0a\x09\x09this.prevS\
-croll = el.scrol\
-lHeight;\x0a\x0a\x09\x09if (\
-Math.abs(current\
- - target) <= 0.\
-5) {\x0a\x09\x09\x09this.las\
-tScrollTop = cur\
-rent;\x0a\x09\x09\x09return \
-false;\x0a\x09\x09}\x0a\x0a\x09\x09th\
-is.markProgramma\
-ticScroll(target\
-);\x0a\x09\x09try { el.sc\
-rollTop = target\
-; } catch (_) {\x0a\
-\x09\x09\x09try { el.scro\
-llTo({ top: targ\
-et, behavior: 'i\
-nstant' }); } ca\
-tch (__) {}\x0a\x09\x09}\x0a\
-\x09\x09this.lastScrol\
-lTop = Number(el\
-.scrollTop || ta\
-rget);\x0a\x09\x09this.pr\
-evScroll = el.sc\
-rollHeight;\x0a\x09\x09re\
-turn true;\x0a\x09}\x0a\x0a\x09\
+=\x0a\x09// Scroll nav\
+igation button\x0a\x09\
 // =============\
 ================\
-===========\x0a\x09// \
-Scroll ownership\
- and user intera\
-ction internals\x0a\
-\x09// ============\
+===========\x0a\x0a\x09ha\
+sVerticalScroll(\
+) {\x0a\x09\x09const el =\
+ Utils.SE;\x0a\x09\x09ret\
+urn (el.scrollHe\
+ight - el.client\
+Height) > 1;\x0a\x09}\x0a\
+\x0a\x09computeFabActi\
+on() {\x0a\x09\x09const e\
+l = Utils.SE;\x0a\x09\x09\
+const h = el.scr\
+ollHeight;\x0a\x09\x09con\
+st c = el.client\
+Height;\x0a\x09\x09const \
+hasScroll = (h -\
+ c) > 1;\x0a\x09\x09if (!\
+hasScroll) retur\
+n 'none';\x0a\x09\x09cons\
+t dist = h - c -\
+ el.scrollTop;\x0a\x09\
+\x09if (dist <= 2) \
+return 'up';\x0a\x09\x09i\
+f (dist >= this.\
+cfg.FAB.SHOW_DOW\
+N_THRESHOLD_PX) \
+return 'down';\x0a\x09\
+\x09return 'none';\x0a\
+\x09}\x0a\x0a\x09updateScrol\
+lFab(force = fal\
+se, actionOverri\
+de = null, bypas\
+sFreeze = false)\
+ {\x0a\x09\x09const btn =\
+ this.dom.get('s\
+crollFab');\x0a\x09\x09co\
+nst icon = this.\
+dom.get('scrollF\
+abIcon');\x0a\x09\x09if (\
+!btn || !icon) r\
+eturn;\x0a\x09\x09const n\
+ow = Utils.now()\
+;\x0a\x09\x09const action\
+ = actionOverrid\
+e || this.comput\
+eFabAction();\x0a\x09\x09\
+if (!force && !b\
+ypassFreeze && n\
+ow < this.fabFre\
+ezeUntil && acti\
+on !== this.curr\
+entFabAction) re\
+turn;\x0a\x09\x09if (acti\
+on === 'none') {\
+\x0a\x09\x09\x09if (this.cur\
+rentFabAction !=\
+= 'none' || forc\
+e) {\x0a\x09\x09\x09\x09btn.cla\
+ssList.remove('v\
+isible');\x0a\x09\x09\x09\x09th\
+is.currentFabAct\
+ion = 'none';\x0a\x09\x09\
+\x09}\x0a\x09\x09\x09return;\x0a\x09\x09\
+}\x0a\x09\x09if (action !\
+== this.currentF\
+abAction || forc\
+e) {\x0a\x09\x09\x09if (acti\
+on === 'up') {\x0a\x09\
+\x09\x09\x09if (icon.data\
+set.dir !== 'up'\
+) {\x0a\x09\x09\x09\x09\x09icon.sr\
+c = this.cfg.ICO\
+NS.COLLAPSE;\x0a\x09\x09\x09\
+\x09\x09icon.dataset.d\
+ir = 'up';\x0a\x09\x09\x09\x09}\
+\x0a\x09\x09\x09\x09btn.title =\
+ 'Go to top';\x0a\x09\x09\
+\x09} else {\x0a\x09\x09\x09\x09if\
+ (icon.dataset.d\
+ir !== 'down') {\
+\x0a\x09\x09\x09\x09\x09icon.src =\
+ this.cfg.ICONS.\
+EXPAND;\x0a\x09\x09\x09\x09\x09ico\
+n.dataset.dir = \
+'down';\x0a\x09\x09\x09\x09}\x0a\x09\x09\
+\x09\x09btn.title = 'G\
+o to bottom';\x0a\x09\x09\
+\x09}\x0a\x09\x09\x09btn.setAtt\
+ribute('aria-lab\
+el', btn.title);\
+\x0a\x09\x09\x09this.current\
+FabAction = acti\
+on;\x0a\x09\x09\x09btn.class\
+List.add('visibl\
+e');\x0a\x09\x09} else if\
+ (!btn.classList\
+.contains('visib\
+le')) btn.classL\
+ist.add('visible\
+');\x0a\x09}\x0a\x0a\x09schedul\
+eScrollFabUpdate\
+() {\x0a\x09\x09if (this.\
+scrollFabUpdateS\
+cheduled) return\
+;\x0a\x09\x09this.scrollF\
+abUpdateSchedule\
+d = true;\x0a\x09\x09this\
+.raf.schedule('S\
+M:fab', () => {\x0a\
+\x09\x09\x09this.scrollFa\
+bUpdateScheduled\
+ = false;\x0a\x09\x09\x09con\
+st action = this\
+.computeFabActio\
+n();\x0a\x09\x09\x09if (acti\
+on !== this.curr\
+entFabAction) th\
+is.updateScrollF\
+ab(false, action\
+);\x0a\x09\x09}, 'ScrollM\
+anager', 2);\x0a\x09}\x0a\
+\x0a\x09// ===========\
 ================\
-============\x0a\x0a\x09_\
-clearManualResum\
-e() {\x0a\x09\x09this.man\
-ualResumeCandida\
-te = false;\x0a\x09\x09th\
-is.manualResumeS\
-eq += 1;\x0a\x09\x09if (t\
-his.manualResume\
-Timer) {\x0a\x09\x09\x09clea\
-rTimeout(this.ma\
-nualResumeTimer)\
-;\x0a\x09\x09\x09this.manual\
-ResumeTimer = 0;\
-\x0a\x09\x09}\x0a\x09}\x0a\x0a}\x0a\
+=============\x0a\x09/\
+/ Page scrolling\
+ internals\x0a\x09// =\
+================\
+================\
+=======\x0a\x0a\x09_cance\
+lScheduledPageSc\
+roll() {\x0a\x09\x09try {\
+ this.raf.cancel\
+('SM:scroll'); }\
+ catch (_) {}\x0a\x09\x09\
+this.scrollSched\
+uled = false;\x0a\x09}\
+\x0a\x0a\x09_maxScrollTop\
+() {\x0a\x09\x09const el \
+= Utils.SE;\x0a\x09\x09re\
+turn Math.max(0,\
+ el.scrollHeight\
+ - el.clientHeig\
+ht);\x0a\x09}\x0a\x0a\x09// Set\
+ the viewport to\
+ the real bottom\
+ synchronously. \
+Reading scrollHe\
+ight\x0a\x09// forces \
+current layout, \
+so this never us\
+es a stale/estim\
+ated target.\x0a\x09_s\
+yncToPhysicalBot\
+tom(force = fals\
+e) {\x0a\x09\x09if (!forc\
+e && this.autoFo\
+llow !== true) r\
+eturn false;\x0a\x09\x09i\
+f (!force && thi\
+s.pointerScrollA\
+ctive) return fa\
+lse;\x0a\x0a\x09\x09const el\
+ = Utils.SE;\x0a\x09\x09c\
+onst target = th\
+is._maxScrollTop\
+();\x0a\x09\x09const curr\
+ent = Number(el.\
+scrollTop || 0);\
+\x0a\x09\x09this.prevScro\
+ll = el.scrollHe\
+ight;\x0a\x0a\x09\x09if (Mat\
+h.abs(current - \
+target) <= 0.5) \
+{\x0a\x09\x09\x09this.lastSc\
+rollTop = curren\
+t;\x0a\x09\x09\x09return fal\
+se;\x0a\x09\x09}\x0a\x0a\x09\x09this.\
+markProgrammatic\
+Scroll(target);\x0a\
+\x09\x09try { el.scrol\
+lTop = target; }\
+ catch (_) {\x0a\x09\x09\x09\
+try { el.scrollT\
+o({ top: target,\
+ behavior: 'inst\
+ant' }); } catch\
+ (__) {}\x0a\x09\x09}\x0a\x09\x09t\
+his.lastScrollTo\
+p = Number(el.sc\
+rollTop || targe\
+t);\x0a\x09\x09this.prevS\
+croll = el.scrol\
+lHeight;\x0a\x09\x09retur\
+n true;\x0a\x09}\x0a\x0a\x09// \
+================\
+================\
+========\x0a\x09// Scr\
+oll ownership an\
+d user interacti\
+on internals\x0a\x09//\
+ ===============\
+================\
+=========\x0a\x0a\x09_cle\
+arManualResume()\
+ {\x0a\x09\x09this.manual\
+ResumeCandidate \
+= false;\x0a\x09\x09this.\
+manualResumeSeq \
++= 1;\x0a\x09\x09if (this\
+.manualResumeTim\
+er) {\x0a\x09\x09\x09clearTi\
+meout(this.manua\
+lResumeTimer);\x0a\x09\
+\x09\x09this.manualRes\
+umeTimer = 0;\x0a\x09\x09\
+}\x0a\x09}\x0a\x0a}\x0a\
 \x00\x00\x16\x81\
 /\
 / Runtime constr\
@@ -124705,12 +124763,12 @@ r,r.macros=r.mac\
 ros||{},d(e,r)}}\
 (),i=i.default}(\
 )}));\
-\x00\x05\x00\xcc\
+\x00\x05\x03\xd4\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
-26-10-03 03:49:2\
-7 by bin/minify.\
+26-10-03 21:18:3\
+4 by bin/minify.\
 py using rjsmin \
 */\x0a\x0a/* data/js/a\
 pp/parts/markdow\
@@ -141214,2635 +141272,2691 @@ ttom(true);this.\
 scheduleScrollFa\
 bUpdate();}\x0anote\
 UserScroll(delta\
-Y=0){const dir=d\
-eltaY<0?-1:(delt\
-aY>0?1:0);if(dir\
-<0){this.suspend\
-AutoFollow();ret\
-urn;}\x0aif(dir>0&&\
-!this.autoFollow\
-){this._cancelSc\
-heduledPageScrol\
-l();this.userInt\
-eracted=true;thi\
-s.userScrollDire\
-ction=1;if(this.\
-isAtBottom())thi\
-s.armManualResum\
-e();}}\x0anoteObser\
-vedUserScroll(de\
-ltaTop=0){if(thi\
-s.autoFollow&&!t\
-his.pointerScrol\
-lActive)return;i\
-f(deltaTop<-0.5)\
-{this.suspendAut\
-oFollow();return\
-;}\x0aif(deltaTop>0\
-.5&&!this.autoFo\
-llow){this._canc\
-elScheduledPageS\
-croll();this.use\
-rInteracted=true\
-;this.userScroll\
-Direction=1;if(t\
-his.isAtBottom()\
-)this.armManualR\
-esume();else thi\
-s._clearManualRe\
-sume();}}\x0aarmMan\
-ualResume(delayM\
-s=90){if(this.au\
-toFollow||this.u\
-serScrollDirecti\
-on<0)return;this\
-.manualResumeCan\
-didate=true;cons\
-t seq=++this.man\
-ualResumeSeq;if(\
-this.manualResum\
-eTimer)clearTime\
-out(this.manualR\
-esumeTimer);this\
-.manualResumeTim\
-er=setTimeout(()\
-=>{this.manualRe\
-sumeTimer=0;if(s\
-eq!==this.manual\
-ResumeSeq)return\
-;if(!this.manual\
-ResumeCandidate|\
-|this.autoFollow\
-)return;if(this.\
+Y=0){this.userSc\
+rollAnimation=nu\
+ll;const dir=del\
+taY<0?-1:(deltaY\
+>0?1:0);if(dir<0\
+){this.suspendAu\
+toFollow();retur\
+n;}\x0aif(dir>0&&!t\
+his.autoFollow){\
+this._cancelSche\
+duledPageScroll(\
+);this.userInter\
+acted=true;this.\
 userScrollDirect\
-ion<0)return;if(\
-this.pointerScro\
-llActive){this.a\
-rmManualResume(d\
-elayMs);return;}\
-\x0athis.resumeAuto\
-Follow(true);},M\
-ath.max(0,delayM\
-s|0));}\x0asetPoint\
-erScrollActive(a\
-ctive){if(!activ\
-e&&this.pointerS\
-crollActive){con\
-st top=Number(Ut\
-ils.SE.scrollTop\
-||0);if(!this.is\
-ProgrammaticScro\
-ll(top))this.not\
-eObservedUserScr\
-oll(top-this.las\
-tScrollTop);this\
-.lastScrollTop=t\
-op;}\x0athis.pointe\
-rScrollActive=!!\
-active;if(this.p\
-ointerScrollActi\
-ve)return;if(thi\
-s.manualResumeCa\
-ndidate&&!this.a\
-utoFollow){this.\
+ion=1;if(this.is\
+AtBottom())this.\
 armManualResume(\
-0);return;}\x0aif(t\
-his.autoFollow)t\
-his._syncToPhysi\
-calBottom(false)\
-;}\x0aisUserScrolli\
-ngUp(){return!th\
-is.autoFollow&&t\
+);}}\x0anoteObserve\
+dUserScroll(delt\
+aTop=0){if(this.\
+autoFollow&&!thi\
+s.pointerScrollA\
+ctive)return;if(\
+deltaTop<-0.5){t\
+his.suspendAutoF\
+ollow();return;}\
+\x0aif(deltaTop>0.5\
+&&!this.autoFoll\
+ow){this._cancel\
+ScheduledPageScr\
+oll();this.userI\
+nteracted=true;t\
 his.userScrollDi\
-rection<0;}\x0ashou\
-ldFollowOnStream\
-Start(){return t\
-his.autoFollow==\
-=true;}\x0aisNearBo\
-ttom(marginPx=10\
-0){const el=Util\
-s.SE;return(el.s\
-crollHeight-el.c\
-lientHeight-el.s\
-crollTop)<=margi\
-nPx;}\x0aisAtBottom\
-(){const el=Util\
-s.SE;const dista\
-nce=el.scrollHei\
-ght-el.clientHei\
-ght-el.scrollTop\
-;const threshold\
-=Math.max(1,Math\
-.min(Number(this\
-.cfg.UI.AUTO_FOL\
-LOW_REENABLE_PX|\
-|2),2));return d\
-istance<=thresho\
-ld;}\x0amaybeEnable\
-AutoFollowByProx\
-imity(){if(!this\
-.autoFollow&&thi\
-s.manualResumeCa\
-ndidate)this.arm\
-ManualResume();}\
-\x0ascrollToTopUser\
-(){this.suspendA\
-utoFollow();cons\
-t el=Utils.SE;th\
-is.markProgramma\
-ticScroll(0);try\
-{el.scrollTop=0;\
-}catch(_){try{el\
-.scrollTo({top:0\
-,behavior:'insta\
-nt'});}catch(__)\
-{}}\x0athis.lastScr\
-ollTop=Number(el\
-.scrollTop||0);}\
-\x0ascrollToBottomU\
-ser(){this.resum\
-eAutoFollow(true\
-);}\x0ainstallConte\
-ntObserver(targe\
-t=null){this.dis\
-connectContentOb\
-server();const h\
-ost=target||this\
-.dom.get('contai\
-ner');if(!host||\
-typeof ResizeObs\
-erver==='undefin\
-ed')return false\
-;try{this.conten\
-tObserver=new Re\
-sizeObserver(()=\
->{this.raf.sched\
-ule('SM:contentR\
-esizeObserver',(\
-)=>{if(this.auto\
-Follow===true&&!\
-this.pointerScro\
-llActive){this._\
-syncToPhysicalBo\
-ttom(false);}\x0ath\
-is.scheduleScrol\
-lFabUpdate();},'\
-ScrollManager',0\
-);});this.conten\
-tObserver.observ\
-e(host);this.con\
-tentObserverTarg\
-et=host;this.con\
-tentObserverActi\
-ve=true;return t\
-rue;}catch(_){th\
-is.contentObserv\
-er=null;this.con\
-tentObserverTarg\
-et=null;this.con\
-tentObserverActi\
-ve=false;return \
-false;}}\x0adisconn\
-ectContentObserv\
-er(){if(this.con\
-tentObserver){tr\
-y{this.contentOb\
-server.disconnec\
-t();}catch(_){}}\
-\x0athis.contentObs\
-erver=null;this.\
-contentObserverT\
-arget=null;this.\
-contentObserverA\
-ctive=false;try{\
-this.raf.cancel(\
-'SM:contentResiz\
-eObserver');}cat\
-ch(_){}}\x0amarkPro\
-grammaticScroll(\
-targetTop=null){\
-this.programmati\
-cScrollPending=t\
-rue;this.program\
-maticScrollTarge\
-t=Number.isFinit\
-e(targetTop)?tar\
-getTop:null;}\x0ais\
-ProgrammaticScro\
-ll(top){if(!this\
-.programmaticScr\
-ollPending)retur\
-n false;const ta\
-rget=this.progra\
-mmaticScrollTarg\
-et;const match=t\
-arget==null||Mat\
-h.abs(Number(top\
-||0)-target)<=4;\
-this.programmati\
-cScrollPending=f\
-alse;this.progra\
-mmaticScrollTarg\
-et=null;return m\
-atch;}\x0ascheduleS\
-croll(live=false\
-,force=false){if\
-(!force&&this.au\
-toFollow!==true)\
-return;if(this.c\
-ontentObserverAc\
-tive){if(force||\
-live===false)thi\
+rection=1;if(thi\
+s.isAtBottom())t\
+his.armManualRes\
+ume();else this.\
+_clearManualResu\
+me();}}\x0aarmManua\
+lResume(delayMs=\
+90){if(this.auto\
+Follow||this.use\
+rScrollDirection\
+<0)return;this.m\
+anualResumeCandi\
+date=true;const \
+seq=++this.manua\
+lResumeSeq;if(th\
+is.manualResumeT\
+imer)clearTimeou\
+t(this.manualRes\
+umeTimer);this.m\
+anualResumeTimer\
+=setTimeout(()=>\
+{this.manualResu\
+meTimer=0;if(seq\
+!==this.manualRe\
+sumeSeq)return;i\
+f(!this.manualRe\
+sumeCandidate||t\
+his.autoFollow)r\
+eturn;if(this.us\
+erScrollDirectio\
+n<0)return;if(th\
+is.pointerScroll\
+Active){this.arm\
+ManualResume(del\
+ayMs);return;}\x0at\
+his.resumeAutoFo\
+llow(true);},Mat\
+h.max(0,delayMs|\
+0));}\x0asetPointer\
+ScrollActive(act\
+ive){if(!active&\
+&this.pointerScr\
+ollActive){const\
+ top=Number(Util\
+s.SE.scrollTop||\
+0);if(!this.isPr\
+ogrammaticScroll\
+(top))this.noteO\
+bservedUserScrol\
+l(top-this.lastS\
+crollTop);this.l\
+astScrollTop=top\
+;}\x0athis.pointerS\
+crollActive=!!ac\
+tive;if(this.poi\
+nterScrollActive\
+)return;if(this.\
+manualResumeCand\
+idate&&!this.aut\
+oFollow){this.ar\
+mManualResume(0)\
+;return;}\x0aif(thi\
+s.autoFollow)thi\
 s._syncToPhysica\
-lBottom(!!force)\
-;this.scheduleSc\
-rollFabUpdate();\
-return;}\x0aif(this\
-.scrollScheduled\
-)return;this.scr\
-ollScheduled=tru\
-e;this.raf.sched\
-ule('SM:scroll',\
-()=>{this.scroll\
-Scheduled=false;\
-this.scrollToBot\
-tom(live,force);\
-this.scheduleScr\
-ollFabUpdate();}\
-,'ScrollManager'\
-,1);}\x0acancelPend\
-ingScroll(){try{\
-this.raf.cancelG\
-roup('ScrollMana\
-ger');}catch(_){\
-}\x0athis.scrollSch\
-eduled=false;thi\
-s.scrollFabUpdat\
-eScheduled=false\
-;this.scrollRAF=\
-0;this.scrollFab\
-RAF=0;this.progr\
-ammaticScrollPen\
-ding=false;this.\
-programmaticScro\
-llTarget=null;th\
-is.messageVirtua\
-lRefreshSchedule\
-d=false;}\x0aforceS\
-crollToBottomImm\
-ediate(){this._s\
-yncToPhysicalBot\
-tom(true);}\x0aforc\
-eScrollToBottomI\
-mmediateAtEnd(){\
-if(!this.autoFol\
-low)return;this.\
-_syncToPhysicalB\
-ottom(false);thi\
-s.scheduleScroll\
-FabUpdate();}\x0asc\
-rollToBottom(liv\
-e=false,force=fa\
-lse){if(!force&&\
-this.autoFollow!\
-==true){this.pre\
-vScroll=Utils.SE\
-.scrollHeight;re\
-turn;}\x0athis._syn\
-cToPhysicalBotto\
-m(!!force);}\x0ahas\
-VerticalScroll()\
+lBottom(false);}\
+\x0aisUserScrolling\
+Up(){return!this\
+.autoFollow&&thi\
+s.userScrollDire\
+ction<0;}\x0ashould\
+FollowOnStreamSt\
+art(){return thi\
+s.autoFollow===t\
+rue;}\x0aisNearBott\
+om(marginPx=100)\
 {const el=Utils.\
 SE;return(el.scr\
 ollHeight-el.cli\
-entHeight)>1;}\x0ac\
-omputeFabAction(\
-){const el=Utils\
-.SE;const h=el.s\
-crollHeight;cons\
-t c=el.clientHei\
-ght;const hasScr\
-oll=(h-c)>1;if(!\
-hasScroll)return\
-'none';const dis\
-t=h-c-el.scrollT\
-op;if(dist<=2)re\
-turn'up';if(dist\
->=this.cfg.FAB.S\
-HOW_DOWN_THRESHO\
-LD_PX)return'dow\
-n';return'none';\
-}\x0aupdateScrollFa\
-b(force=false,ac\
-tionOverride=nul\
-l,bypassFreeze=f\
-alse){const btn=\
-this.dom.get('sc\
-rollFab');const \
-icon=this.dom.ge\
-t('scrollFabIcon\
-');if(!btn||!ico\
-n)return;const n\
-ow=Utils.now();c\
-onst action=acti\
-onOverride||this\
-.computeFabActio\
-n();if(!force&&!\
-bypassFreeze&&no\
-w<this.fabFreeze\
-Until&&action!==\
-this.currentFabA\
-ction)return;if(\
-action==='none')\
-{if(this.current\
-FabAction!=='non\
-e'||force){btn.c\
-lassList.remove(\
-'visible');this.\
-currentFabAction\
-='none';}\x0areturn\
-;}\x0aif(action!==t\
-his.currentFabAc\
-tion||force){if(\
-action==='up'){i\
-f(icon.dataset.d\
-ir!=='up'){icon.\
-src=this.cfg.ICO\
-NS.COLLAPSE;icon\
-.dataset.dir='up\
-';}\x0abtn.title='G\
-o to top';}else{\
-if(icon.dataset.\
-dir!=='down'){ic\
-on.src=this.cfg.\
-ICONS.EXPAND;ico\
-n.dataset.dir='d\
-own';}\x0abtn.title\
-='Go to bottom';\
-}\x0abtn.setAttribu\
-te('aria-label',\
-btn.title);this.\
-currentFabAction\
-=action;btn.clas\
-sList.add('visib\
-le');}else if(!b\
-tn.classList.con\
-tains('visible')\
-)btn.classList.a\
-dd('visible');}\x0a\
-scheduleScrollFa\
-bUpdate(){if(thi\
-s.scrollFabUpdat\
-eScheduled)retur\
-n;this.scrollFab\
-UpdateScheduled=\
-true;this.raf.sc\
-hedule('SM:fab',\
-()=>{this.scroll\
-FabUpdateSchedul\
-ed=false;const a\
-ction=this.compu\
-teFabAction();if\
-(action!==this.c\
-urrentFabAction)\
-this.updateScrol\
-lFab(false,actio\
-n);},'ScrollMana\
-ger',2);}\x0a_cance\
-lScheduledPageSc\
-roll(){try{this.\
-raf.cancel('SM:s\
-croll');}catch(_\
-){}\x0athis.scrollS\
-cheduled=false;}\
-\x0a_maxScrollTop()\
+entHeight-el.scr\
+ollTop)<=marginP\
+x;}\x0aisAtBottom()\
 {const el=Utils.\
-SE;return Math.m\
-ax(0,el.scrollHe\
-ight-el.clientHe\
-ight);}\x0a_syncToP\
-hysicalBottom(fo\
-rce=false){if(!f\
-orce&&this.autoF\
-ollow!==true)ret\
-urn false;if(!fo\
-rce&&this.pointe\
-rScrollActive)re\
-turn false;const\
- el=Utils.SE;con\
-st target=this._\
-maxScrollTop();c\
-onst current=Num\
-ber(el.scrollTop\
-||0);this.prevSc\
-roll=el.scrollHe\
-ight;if(Math.abs\
-(current-target)\
-<=0.5){this.last\
-ScrollTop=curren\
-t;return false;}\
-\x0athis.markProgra\
-mmaticScroll(tar\
-get);try{el.scro\
-llTop=target;}ca\
-tch(_){try{el.sc\
-rollTo({top:targ\
-et,behavior:'ins\
-tant'});}catch(_\
-_){}}\x0athis.lastS\
-crollTop=Number(\
-el.scrollTop||ta\
-rget);this.prevS\
-croll=el.scrollH\
-eight;return tru\
-e;}\x0a_clearManual\
-Resume(){this.ma\
-nualResumeCandid\
-ate=false;this.m\
-anualResumeSeq+=\
-1;if(this.manual\
-ResumeTimer){cle\
-arTimeout(this.m\
+SE;const distanc\
+e=el.scrollHeigh\
+t-el.clientHeigh\
+t-el.scrollTop;c\
+onst threshold=M\
+ath.max(1,Math.m\
+in(Number(this.c\
+fg.UI.AUTO_FOLLO\
+W_REENABLE_PX||2\
+),2));return dis\
+tance<=threshold\
+;}\x0amaybeEnableAu\
+toFollowByProxim\
+ity(){if(!this.a\
+utoFollow&&this.\
+manualResumeCand\
+idate)this.armMa\
+nualResume();}\x0as\
+crollToTopUser()\
+{this._animateUs\
+erScroll(false);\
+}\x0ascrollToBottom\
+User(){this._ani\
+mateUserScroll(t\
+rue);}\x0a_animateU\
+serScroll(toBott\
+om){this.suspend\
+AutoFollow();con\
+st el=Utils.SE;c\
+onst start=Numbe\
+r(el.scrollTop||\
+0);const token={\
+};this.userScrol\
+lAnimation=token\
+;const started=p\
+erformance.now()\
+;const reduced=w\
+indow.matchMedia\
+&&window.matchMe\
+dia('(prefers-re\
+duced-motion: re\
+duce)').matches;\
+const duration=r\
+educed?0:450;con\
+st step=(now)=>{\
+if(this.userScro\
+llAnimation!==to\
+ken)return;if(th\
+is.pointerScroll\
+Active){this.use\
+rScrollAnimation\
+=null;return;}\x0ac\
+onst progress=du\
+ration?Math.min(\
+1,(now-started)/\
+duration):1;cons\
+t eased=1-Math.p\
+ow(1-progress,3)\
+;const target=to\
+Bottom?Math.max(\
+0,el.scrollHeigh\
+t-el.clientHeigh\
+t):0;const top=s\
+tart+(target-sta\
+rt)*eased;this.m\
+arkProgrammaticS\
+croll(top);el.sc\
+rollTop=top;this\
+.lastScrollTop=N\
+umber(el.scrollT\
+op||0);if(progre\
+ss<1)requestAnim\
+ationFrame(step)\
+;else{this.userS\
+crollAnimation=n\
+ull;if(toBottom)\
+this.resumeAutoF\
+ollow(true);this\
+.scheduleScrollF\
+abUpdate();}};re\
+questAnimationFr\
+ame(step);}\x0ainst\
+allContentObserv\
+er(target=null){\
+this.disconnectC\
+ontentObserver()\
+;const host=targ\
+et||this.dom.get\
+('container');if\
+(!host||typeof R\
+esizeObserver===\
+'undefined')retu\
+rn false;try{thi\
+s.contentObserve\
+r=new ResizeObse\
+rver(()=>{this.r\
+af.schedule('SM:\
+contentResizeObs\
+erver',()=>{if(t\
+his.autoFollow==\
+=true&&!this.poi\
+nterScrollActive\
+){this._syncToPh\
+ysicalBottom(fal\
+se);}\x0athis.sched\
+uleScrollFabUpda\
+te();},'ScrollMa\
+nager',0);});thi\
+s.contentObserve\
+r.observe(host);\
+this.contentObse\
+rverTarget=host;\
+this.contentObse\
+rverActive=true;\
+return true;}cat\
+ch(_){this.conte\
+ntObserver=null;\
+this.contentObse\
+rverTarget=null;\
+this.contentObse\
+rverActive=false\
+;return false;}}\
+\x0adisconnectConte\
+ntObserver(){if(\
+this.contentObse\
+rver){try{this.c\
+ontentObserver.d\
+isconnect();}cat\
+ch(_){}}\x0athis.co\
+ntentObserver=nu\
+ll;this.contentO\
+bserverTarget=nu\
+ll;this.contentO\
+bserverActive=fa\
+lse;try{this.raf\
+.cancel('SM:cont\
+entResizeObserve\
+r');}catch(_){}}\
+\x0amarkProgrammati\
+cScroll(targetTo\
+p=null){this.pro\
+grammaticScrollP\
+ending=true;this\
+.programmaticScr\
+ollTarget=Number\
+.isFinite(target\
+Top)?targetTop:n\
+ull;}\x0aisProgramm\
+aticScroll(top){\
+if(!this.program\
+maticScrollPendi\
+ng)return false;\
+const target=thi\
+s.programmaticSc\
+rollTarget;const\
+ match=target==n\
+ull||Math.abs(Nu\
+mber(top||0)-tar\
+get)<=4;this.pro\
+grammaticScrollP\
+ending=false;thi\
+s.programmaticSc\
+rollTarget=null;\
+return match;}\x0as\
+cheduleScroll(li\
+ve=false,force=f\
+alse){if(!force&\
+&this.autoFollow\
+!==true)return;i\
+f(this.contentOb\
+serverActive){if\
+(force||live===f\
+alse)this._syncT\
+oPhysicalBottom(\
+!!force);this.sc\
+heduleScrollFabU\
+pdate();return;}\
+\x0aif(this.scrollS\
+cheduled)return;\
+this.scrollSched\
+uled=true;this.r\
+af.schedule('SM:\
+scroll',()=>{thi\
+s.scrollSchedule\
+d=false;this.scr\
+ollToBottom(live\
+,force);this.sch\
+eduleScrollFabUp\
+date();},'Scroll\
+Manager',1);}\x0aca\
+ncelPendingScrol\
+l(){try{this.raf\
+.cancelGroup('Sc\
+rollManager');}c\
+atch(_){}\x0athis.s\
+crollScheduled=f\
+alse;this.scroll\
+FabUpdateSchedul\
+ed=false;this.sc\
+rollRAF=0;this.s\
+crollFabRAF=0;th\
+is.programmaticS\
+crollPending=fal\
+se;this.programm\
+aticScrollTarget\
+=null;this.messa\
+geVirtualRefresh\
+Scheduled=false;\
+}\x0aforceScrollToB\
+ottomImmediate()\
+{this._syncToPhy\
+sicalBottom(true\
+);}\x0aforceScrollT\
+oBottomImmediate\
+AtEnd(){if(!this\
+.autoFollow)retu\
+rn;this._syncToP\
+hysicalBottom(fa\
+lse);this.schedu\
+leScrollFabUpdat\
+e();}\x0ascrollToBo\
+ttom(live=false,\
+force=false){if(\
+!force&&this.aut\
+oFollow!==true){\
+this.prevScroll=\
+Utils.SE.scrollH\
+eight;return;}\x0at\
+his._syncToPhysi\
+calBottom(!!forc\
+e);}\x0ahasVertical\
+Scroll(){const e\
+l=Utils.SE;retur\
+n(el.scrollHeigh\
+t-el.clientHeigh\
+t)>1;}\x0acomputeFa\
+bAction(){const \
+el=Utils.SE;cons\
+t h=el.scrollHei\
+ght;const c=el.c\
+lientHeight;cons\
+t hasScroll=(h-c\
+)>1;if(!hasScrol\
+l)return'none';c\
+onst dist=h-c-el\
+.scrollTop;if(di\
+st<=2)return'up'\
+;if(dist>=this.c\
+fg.FAB.SHOW_DOWN\
+_THRESHOLD_PX)re\
+turn'down';retur\
+n'none';}\x0aupdate\
+ScrollFab(force=\
+false,actionOver\
+ride=null,bypass\
+Freeze=false){co\
+nst btn=this.dom\
+.get('scrollFab'\
+);const icon=thi\
+s.dom.get('scrol\
+lFabIcon');if(!b\
+tn||!icon)return\
+;const now=Utils\
+.now();const act\
+ion=actionOverri\
+de||this.compute\
+FabAction();if(!\
+force&&!bypassFr\
+eeze&&now<this.f\
+abFreezeUntil&&a\
+ction!==this.cur\
+rentFabAction)re\
+turn;if(action==\
+='none'){if(this\
+.currentFabActio\
+n!=='none'||forc\
+e){btn.classList\
+.remove('visible\
+');this.currentF\
+abAction='none';\
+}\x0areturn;}\x0aif(ac\
+tion!==this.curr\
+entFabAction||fo\
+rce){if(action==\
+='up'){if(icon.d\
+ataset.dir!=='up\
+'){icon.src=this\
+.cfg.ICONS.COLLA\
+PSE;icon.dataset\
+.dir='up';}\x0abtn.\
+title='Go to top\
+';}else{if(icon.\
+dataset.dir!=='d\
+own'){icon.src=t\
+his.cfg.ICONS.EX\
+PAND;icon.datase\
+t.dir='down';}\x0ab\
+tn.title='Go to \
+bottom';}\x0abtn.se\
+tAttribute('aria\
+-label',btn.titl\
+e);this.currentF\
+abAction=action;\
+btn.classList.ad\
+d('visible');}el\
+se if(!btn.class\
+List.contains('v\
+isible'))btn.cla\
+ssList.add('visi\
+ble');}\x0aschedule\
+ScrollFabUpdate(\
+){if(this.scroll\
+FabUpdateSchedul\
+ed)return;this.s\
+crollFabUpdateSc\
+heduled=true;thi\
+s.raf.schedule('\
+SM:fab',()=>{thi\
+s.scrollFabUpdat\
+eScheduled=false\
+;const action=th\
+is.computeFabAct\
+ion();if(action!\
+==this.currentFa\
+bAction)this.upd\
+ateScrollFab(fal\
+se,action);},'Sc\
+rollManager',2);\
+}\x0a_cancelSchedul\
+edPageScroll(){t\
+ry{this.raf.canc\
+el('SM:scroll');\
+}catch(_){}\x0athis\
+.scrollScheduled\
+=false;}\x0a_maxScr\
+ollTop(){const e\
+l=Utils.SE;retur\
+n Math.max(0,el.\
+scrollHeight-el.\
+clientHeight);}\x0a\
+_syncToPhysicalB\
+ottom(force=fals\
+e){if(!force&&th\
+is.autoFollow!==\
+true)return fals\
+e;if(!force&&thi\
+s.pointerScrollA\
+ctive)return fal\
+se;const el=Util\
+s.SE;const targe\
+t=this._maxScrol\
+lTop();const cur\
+rent=Number(el.s\
+crollTop||0);thi\
+s.prevScroll=el.\
+scrollHeight;if(\
+Math.abs(current\
+-target)<=0.5){t\
+his.lastScrollTo\
+p=current;return\
+ false;}\x0athis.ma\
+rkProgrammaticSc\
+roll(target);try\
+{el.scrollTop=ta\
+rget;}catch(_){t\
+ry{el.scrollTo({\
+top:target,behav\
+ior:'instant'});\
+}catch(__){}}\x0ath\
+is.lastScrollTop\
+=Number(el.scrol\
+lTop||target);th\
+is.prevScroll=el\
+.scrollHeight;re\
+turn true;}\x0a_cle\
+arManualResume()\
+{this.manualResu\
+meCandidate=fals\
+e;this.manualRes\
+umeSeq+=1;if(thi\
+s.manualResumeTi\
+mer){clearTimeou\
+t(this.manualRes\
+umeTimer);this.m\
 anualResumeTimer\
-);this.manualRes\
-umeTimer=0;}}};\x0a\
-\x0a/* data/js/app/\
-stream.js */\x0acon\
-st RE_SAFE_BREAK\
-=/\x5cs|[.,;:!?()\x5c[\
-\x5c]{}'\x22\xc2\xab\xc2\xbb\xe2\x80\x9e\xe2\x80\x9d\
-\xe2\x80\x9c\xe2\x80\x94\xe2\x80\x93\x5c-\xe2\x80\xa6>]\
-/;const RE_STRUC\
-T_BOUNDARY=/\x5cn(\x5c\
-n|[-*]\x5cs|\x5cd+\x5c.\x5cs\
-|#{1,6}\x5cs|>\x5cs)/;\
-const RE_MD_INLI\
-NE_TRIGGER=/(\x5c*\x5c\
-*|__|[_`]|~~|\x5c[[\
-^\x5c]]+\x5c]\x5c([^)]+\x5c)\
-)/;const RE_LINE\
-_END=/[\x5cn\x5cr]$/;c\
-lass StreamEngin\
-e{constructor(cf\
-g,dom,renderer,m\
-ath,highlighter,\
-codeScroll,scrol\
-lMgr,raf,asyncer\
-,logger){this.cf\
-g=cfg;this.dom=d\
-om;this.renderer\
-=renderer;this.m\
-ath=math;this.hi\
-ghlighter=highli\
-ghter;this.codeS\
-croll=codeScroll\
-;this.scrollMgr=\
-scrollMgr;this.r\
-af=raf;this.asyn\
-cer=asyncer;this\
-.logger=logger||\
-new Logger(cfg);\
-this.suppressPos\
-tFinalizePass=fa\
-lse;this._firstC\
-odeOpenSnapDone=\
-false;this.isStr\
-eaming=false;thi\
-s._lastInjectedE\
-OL=false;this._m\
-dQuickRe=/(\x5c*\x5c*|\
-__|~~|`|!\x5c[|\x5c[[^\
-\x5c]]+\x5c]\x5c([^)]+\x5c)|\
-^> |\x5cn> |\x5cn#{1,6\
-}\x5cs|\x5cn[-*+]\x5cs|\x5cn\
-\x5cd+\x5c.\x5cs)/m;this.\
-_reSafeBreak=RE_\
-SAFE_BREAK;this.\
-_reStructBoundar\
-y=RE_STRUCT_BOUN\
-DARY;this._reMDI\
-nlineTrigger=RE_\
-MD_INLINE_TRIGGE\
-R;this._reLineEn\
-d=RE_LINE_END;th\
-is._tpl=(typeof \
-document!=='unde\
-fined')?document\
-.createElement('\
-template'):null;\
-this.buffer=new \
-StreamBuffer(thi\
-s.cfg,(tag,data)\
-=>this.debug(tag\
-,data));this.pla\
-in=new StreamPla\
-in(this);this.re\
-asoning=new Stre\
-amReasoning(this\
-);this.fences=ne\
-w StreamFences(t\
-his);this.code=n\
-ew StreamCode(th\
-is);this.languag\
-e=new StreamLang\
-uage(this);this.\
-stability=new St\
-reamStability(th\
-is);this.snapsho\
-ts=new StreamSna\
-pshots(this);thi\
-s.debug('init',{\
-materializeTailA\
-t:this.buffer._t\
-ailMaterializeAt\
-,hasTpl:!!this._\
-tpl});}\x0adebug(ta\
-g,data){try{cons\
-t lg=this.logger\
-||(this.cfg&&thi\
-s.cfg.logger)||(\
-window.runtime&&\
-runtime.logger)|\
-|null;if(!lg||ty\
-peof lg.debug!==\
-'function')retur\
-n;lg.debug_obj(\x22\
-STREAM\x22,tag,data\
-);}catch(_){}}\x0ar\
-eset(){this.debu\
-g('reset',{});th\
-is.buffer.clear(\
-);this.fences.re\
-set();this.snaps\
-hots.reset();thi\
-s.code.reset();t\
+=0;}}};\x0a\x0a/* data\
+/js/app/stream.j\
+s */\x0aconst RE_SA\
+FE_BREAK=/\x5cs|[.,\
+;:!?()\x5c[\x5c]{}'\x22\xc2\xab\
+\xc2\xbb\xe2\x80\x9e\xe2\x80\x9d\xe2\x80\x9c\xe2\x80\x94\xe2\x80\
+\x93\x5c-\xe2\x80\xa6>]/;const \
+RE_STRUCT_BOUNDA\
+RY=/\x5cn(\x5cn|[-*]\x5cs\
+|\x5cd+\x5c.\x5cs|#{1,6}\x5c\
+s|>\x5cs)/;const RE\
+_MD_INLINE_TRIGG\
+ER=/(\x5c*\x5c*|__|[_`\
+]|~~|\x5c[[^\x5c]]+\x5c]\x5c\
+([^)]+\x5c))/;const\
+ RE_LINE_END=/[\x5c\
+n\x5cr]$/;class Str\
+eamEngine{constr\
+uctor(cfg,dom,re\
+nderer,math,high\
+lighter,codeScro\
+ll,scrollMgr,raf\
+,asyncer,logger)\
+{this.cfg=cfg;th\
+is.dom=dom;this.\
+renderer=rendere\
+r;this.math=math\
+;this.highlighte\
+r=highlighter;th\
+is.codeScroll=co\
+deScroll;this.sc\
+rollMgr=scrollMg\
+r;this.raf=raf;t\
+his.asyncer=asyn\
+cer;this.logger=\
+logger||new Logg\
+er(cfg);this.sup\
+pressPostFinaliz\
+ePass=false;this\
+._firstCodeOpenS\
+napDone=false;th\
+is.isStreaming=f\
+alse;this._lastI\
+njectedEOL=false\
+;this._mdQuickRe\
+=/(\x5c*\x5c*|__|~~|`|\
+!\x5c[|\x5c[[^\x5c]]+\x5c]\x5c(\
+[^)]+\x5c)|^> |\x5cn> \
+|\x5cn#{1,6}\x5cs|\x5cn[-\
+*+]\x5cs|\x5cn\x5cd+\x5c.\x5cs)\
+/m;this._reSafeB\
+reak=RE_SAFE_BRE\
+AK;this._reStruc\
+tBoundary=RE_STR\
+UCT_BOUNDARY;thi\
+s._reMDInlineTri\
+gger=RE_MD_INLIN\
+E_TRIGGER;this._\
+reLineEnd=RE_LIN\
+E_END;this._tpl=\
+(typeof document\
+!=='undefined')?\
+document.createE\
+lement('template\
+'):null;this.buf\
+fer=new StreamBu\
+ffer(this.cfg,(t\
+ag,data)=>this.d\
+ebug(tag,data));\
+this.plain=new S\
+treamPlain(this)\
+;this.reasoning=\
+new StreamReason\
+ing(this);this.f\
+ences=new Stream\
+Fences(this);thi\
+s.code=new Strea\
+mCode(this);this\
+.language=new St\
+reamLanguage(thi\
+s);this.stabilit\
+y=new StreamStab\
+ility(this);this\
+.snapshots=new S\
+treamSnapshots(t\
+his);this.debug(\
+'init',{material\
+izeTailAt:this.b\
+uffer._tailMater\
+ializeAt,hasTpl:\
+!!this._tpl});}\x0a\
+debug(tag,data){\
+try{const lg=thi\
+s.logger||(this.\
+cfg&&this.cfg.lo\
+gger)||(window.r\
+untime&&runtime.\
+logger)||null;if\
+(!lg||typeof lg.\
+debug!=='functio\
+n')return;lg.deb\
+ug_obj(\x22STREAM\x22,\
+tag,data);}catch\
+(_){}}\x0areset(){t\
+his.debug('reset\
+',{});this.buffe\
+r.clear();this.f\
+ences.reset();th\
+is.snapshots.res\
+et();this.code.r\
+eset();this.reas\
+oning.reset();th\
+is.plain.reset()\
+;this.suppressPo\
+stFinalizePass=f\
+alse;this._first\
+CodeOpenSnapDone\
+=false;this._las\
+tInjectedEOL=fal\
+se;}\x0aabortAndRes\
+et(opts){const o\
+=Object.assign({\
+finalizeActive:t\
+rue,clearBuffer:\
+true,clearMsg:fa\
+lse,defuseOrphan\
+s:true,reason:''\
+,suppressLog:fal\
+se},(opts||{}));\
+this.debug('abor\
+t',o);try{this.r\
+af.cancelGroup('\
+StreamEngine');}\
+catch(_){}\x0atry{t\
+his.raf.cancel('\
+SE:snapshot');}c\
+atch(_){}\x0athis.s\
+napshots.snapsho\
+tScheduled=false\
+;this.snapshots.\
+snapshotRAF=0;co\
+nst hadActive=!!\
+this.code.active\
+Code;try{if(this\
+.code.activeCode\
+){if(o.finalizeA\
+ctive===true)thi\
+s.code.finalizeA\
+ctiveCode();else\
+ this.code.defus\
+eActiveToPlain()\
+;}}catch(e){}\x0aif\
+(o.defuseOrphans\
+){try{this.code.\
+defuseOrphanActi\
+veBlocks();}catc\
+h(e){}}\x0aif(o.cle\
+arBuffer){this.b\
+uffer.clear();th\
+is.fences.fenceO\
+pen=false;this.f\
+ences.fenceMark=\
+'`';this.fences.\
+fenceLen=3;this.\
+fences.fenceTail\
+='';this.fences.\
+fenceBuf='';this\
+.code.codeStream\
+.open=false;this\
+.code.codeStream\
+.lines=0;this.co\
+de.codeStream.ch\
+ars=0;window.__l\
+astSnapshotLen=0\
+;}\x0aif(o.clearMsg\
+===true){try{thi\
+s.dom.resetEphem\
+eral();}catch(_)\
+{}}\x0athis.plain.r\
+eset();}\x0agetMsg(\
+create,name_head\
+er){return this.\
+dom.getStreamMsg\
+(create,name_hea\
+der);}\x0abeginStre\
+am(chunk=false,c\
+learOutput=true)\
+{this.isStreamin\
+g=true;this.debu\
+g('stream.begin'\
+,{chunk,clearOut\
+put});const foll\
+ow=this.scrollMg\
+r.shouldFollowOn\
+StreamStart();if\
+(chunk){try{runt\
+ime.loading.hide\
+(false);}catch(_\
+){}}\x0aif(clearOut\
+put)this.dom.cle\
+arOutput();this.\
+reset();if(follo\
+w){this.scrollMg\
+r.resumeAutoFoll\
+ow(true);}else{t\
+his.scrollMgr.su\
+spendAutoFollow(\
+);this.scrollMgr\
+.scheduleScrollF\
+abUpdate();}}\x0aen\
+dStream(){this.i\
+sStreaming=false\
+;const msg=this.\
+getMsg(false,'')\
+;if(msg)this.sna\
+pshots.renderSna\
+pshot(msg);if(!t\
 his.reasoning.re\
-set();this.plain\
-.reset();this.su\
-ppressPostFinali\
-zePass=false;thi\
-s._firstCodeOpen\
-SnapDone=false;t\
-his._lastInjecte\
-dEOL=false;}\x0aabo\
-rtAndReset(opts)\
-{const o=Object.\
-assign({finalize\
-Active:true,clea\
-rBuffer:true,cle\
-arMsg:false,defu\
-seOrphans:true,r\
-eason:'',suppres\
-sLog:false},(opt\
-s||{}));this.deb\
-ug('abort',o);tr\
-y{this.raf.cance\
-lGroup('StreamEn\
-gine');}catch(_)\
+asoningHideAfter\
+Response&&this.r\
+easoning.reasoni\
+ngHasResponseTex\
+t){this.reasonin\
+g.cancelReasonin\
+gTimers();this.r\
+easoning.reasoni\
+ngVisible=false;\
+this.reasoning.r\
+easoningFadeInSt\
+artedAt=0;this.r\
+easoning.reasoni\
+ngFadeOutStarted\
+At=0;if(msg)this\
+.reasoning.syncR\
+easoningVisibili\
+ty(this.snapshot\
+s.getMsgSnapshot\
+Root(msg));}\x0athi\
+s.snapshots.snap\
+shotScheduled=fa\
+lse;try{this.raf\
+.cancel('SE:snap\
+shot');}catch(_)\
 {}\x0atry{this.raf.\
-cancel('SE:snaps\
-hot');}catch(_){\
-}\x0athis.snapshots\
-.snapshotSchedul\
-ed=false;this.sn\
-apshots.snapshot\
-RAF=0;const hadA\
-ctive=!!this.cod\
-e.activeCode;try\
-{if(this.code.ac\
-tiveCode){if(o.f\
-inalizeActive===\
-true)this.code.f\
-inalizeActiveCod\
-e();else this.co\
-de.defuseActiveT\
-oPlain();}}catch\
-(e){}\x0aif(o.defus\
-eOrphans){try{th\
-is.code.defuseOr\
-phanActiveBlocks\
-();}catch(e){}}\x0a\
-if(o.clearBuffer\
-){this.buffer.cl\
-ear();this.fence\
-s.fenceOpen=fals\
-e;this.fences.fe\
-nceMark='`';this\
-.fences.fenceLen\
-=3;this.fences.f\
-enceTail='';this\
-.fences.fenceBuf\
-='';this.code.co\
-deStream.open=fa\
-lse;this.code.co\
-deStream.lines=0\
-;this.code.codeS\
-tream.chars=0;wi\
-ndow.__lastSnaps\
-hotLen=0;}\x0aif(o.\
-clearMsg===true)\
-{try{this.dom.re\
-setEphemeral();}\
-catch(_){}}\x0athis\
-.plain.reset();}\
-\x0agetMsg(create,n\
-ame_header){retu\
-rn this.dom.getS\
-treamMsg(create,\
-name_header);}\x0ab\
-eginStream(chunk\
-=false,clearOutp\
-ut=true){this.is\
-Streaming=true;t\
-his.debug('strea\
-m.begin',{chunk,\
-clearOutput});co\
-nst follow=this.\
-scrollMgr.should\
-FollowOnStreamSt\
-art();if(chunk){\
-try{runtime.load\
-ing.hide(false);\
-}catch(_){}}\x0aif(\
-clearOutput)this\
-.dom.clearOutput\
-();this.reset();\
-if(follow){this.\
-scrollMgr.resume\
-AutoFollow(true)\
-;}else{this.scro\
-llMgr.suspendAut\
-oFollow();this.s\
-crollMgr.schedul\
-eScrollFabUpdate\
-();}}\x0aendStream(\
-){this.isStreami\
-ng=false;const m\
-sg=this.getMsg(f\
-alse,'');if(msg)\
-this.snapshots.r\
-enderSnapshot(ms\
-g);if(!this.reas\
-oning.reasoningH\
-ideAfterResponse\
-&&this.reasoning\
-.reasoningHasRes\
-ponseText){this.\
-reasoning.cancel\
-ReasoningTimers(\
-);this.reasoning\
-.reasoningVisibl\
-e=false;this.rea\
-soning.reasoning\
-FadeInStartedAt=\
-0;this.reasoning\
-.reasoningFadeOu\
-tStartedAt=0;if(\
-msg)this.reasoni\
-ng.syncReasoning\
-Visibility(this.\
-snapshots.getMsg\
-SnapshotRoot(msg\
-));}\x0athis.snapsh\
-ots.snapshotSche\
-duled=false;try{\
-this.raf.cancel(\
-'SE:snapshot');}\
+cancelGroup('Str\
+eamEngine');}cat\
+ch(_){}\x0atry{this\
+.raf.cancelGroup\
+('CodeScroll');}\
 catch(_){}\x0atry{t\
 his.raf.cancelGr\
-oup('StreamEngin\
-e');}catch(_){}\x0a\
-try{this.raf.can\
-celGroup('CodeSc\
-roll');}catch(_)\
-{}\x0atry{this.raf.\
-cancelGroup('Scr\
-ollMgr');}catch(\
-_){}\x0aif(this.cod\
-e._promoteTimer)\
-{clearTimeout(th\
-is.code._promote\
-Timer);this.code\
-._promoteTimer=0\
-;}\x0athis.snapshot\
-s.snapshotRAF=0;\
-const hadActive=\
-!!this.code.acti\
-veCode;if(this.c\
-ode.activeCode)t\
-his.code.finaliz\
-eActiveCode();if\
-(!hadActive){if(\
-this.highlighter\
-.hlQueue&&this.h\
-ighlighter.hlQue\
-ue.length){this.\
-highlighter.flus\
-h(this.code.acti\
-veCode);}\x0aconst \
-snap=msg?this.sn\
-apshots.getMsgSn\
-apshotRoot(msg):\
-null;if(snap)thi\
-s.math.renderAsy\
-nc(snap);}\x0athis.\
-buffer.clear();t\
-his.fences.fence\
-Open=false;this.\
-code.codeStream.\
-open=false;this.\
-code.activeCode=\
-null;this.snapsh\
-ots.lastSnapshot\
-Ts=Utils.now();t\
-his.suppressPost\
-FinalizePass=fal\
-se;this.plain.re\
-set();this.debug\
-('stream.end',{h\
-adActive});}\x0aapp\
-lyStream(name_he\
-ader,chunk,alrea\
-dyBuffered=false\
-){if(!this.code.\
-activeCode&&!thi\
-s.fences.fenceOp\
-en){try{if(docum\
-ent.querySelecto\
-r('pre code[data\
--_active_stream=\
-\x221\x22]'))this.code\
-.defuseOrphanAct\
-iveBlocks();}cat\
-ch(_){}}\x0aif(this\
-.snapshots.snaps\
-hotScheduled&&!t\
-his.raf.isSchedu\
-led('SE:snapshot\
-'))this.snapshot\
-s.snapshotSchedu\
-led=false;const \
-msg=this.getMsg(\
-true,name_header\
-);if(!msg||!chun\
-k)return;const s\
-=String(chunk);c\
-onst reasoningSt\
-ate=this.reasoni\
-ng.updateReasoni\
-ngVisibilityFrom\
-Chunk(s);const r\
-easoningOpened=r\
-easoningState.ch\
-anged&&this.reas\
-oning.reasoningT\
-hinking;if(reaso\
-ningState.hasRes\
-ponseText&&!this\
-.reasoning.reaso\
-ningThinking){th\
-is.reasoning.sch\
-eduleReasoningHi\
-de(msg);}\x0aif(/[<\
->]/.test(s)){thi\
-s.debug('apply.c\
-hunk',{len:s.len\
-gth,nl:Utils.cou\
-ntNewlines(s),he\
-ad:s.slice(0,120\
-),tail:s.slice(-\
-120)});}\x0aif(!alr\
-eadyBuffered)thi\
-s.buffer.append(\
-s);if(reasoningO\
-pened&&this.reas\
-oning.reasoningE\
-nabled&&!this.fe\
-nces.fenceOpen&&\
-!this.code.codeS\
-tream.open){try{\
-this.snapshots.r\
-enderSnapshot(ms\
-g);try{this.raf.\
-cancel('SE:snaps\
-hot');}catch(_){\
-}\x0athis.snapshots\
-.snapshotSchedul\
-ed=false;}catch(\
-_){}}\x0aconst chan\
-ge=this.fences.u\
-pdateFenceHeuris\
-tic(s);const nlC\
-ount=Utils.count\
-Newlines(s);cons\
-t chunkHasNL=nlC\
-ount>0;if(!chang\
-e.opened&&!this.\
-fences.fenceOpen\
-){this.snapshots\
-.maybeEagerSnaps\
-hotForCustomOpen\
-ers(msg,s);}\x0aif(\
+oup('ScrollMgr')\
+;}catch(_){}\x0aif(\
+this.code._promo\
+teTimer){clearTi\
+meout(this.code.\
+_promoteTimer);t\
+his.code._promot\
+eTimer=0;}\x0athis.\
+snapshots.snapsh\
+otRAF=0;const ha\
+dActive=!!this.c\
+ode.activeCode;i\
+f(this.code.acti\
+veCode)this.code\
+.finalizeActiveC\
+ode();if(!hadAct\
+ive){if(this.hig\
+hlighter.hlQueue\
+&&this.highlight\
+er.hlQueue.lengt\
+h){this.highligh\
+ter.flush(this.c\
+ode.activeCode);\
+}\x0aconst snap=msg\
+?this.snapshots.\
+getMsgSnapshotRo\
+ot(msg):null;if(\
+snap)this.math.r\
+enderAsync(snap)\
+;}\x0athis.buffer.c\
+lear();this.fenc\
+es.fenceOpen=fal\
+se;this.code.cod\
+eStream.open=fal\
+se;this.code.act\
+iveCode=null;thi\
+s.snapshots.last\
+SnapshotTs=Utils\
+.now();this.supp\
+ressPostFinalize\
+Pass=false;this.\
+plain.reset();th\
+is.debug('stream\
+.end',{hadActive\
+});}\x0aapplyStream\
+(name_header,chu\
+nk,alreadyBuffer\
+ed=false){if(!th\
+is.code.activeCo\
+de&&!this.fences\
+.fenceOpen){try{\
+if(document.quer\
+ySelector('pre c\
+ode[data-_active\
+_stream=\x221\x22]'))t\
+his.code.defuseO\
+rphanActiveBlock\
+s();}catch(_){}}\
+\x0aif(this.snapsho\
+ts.snapshotSched\
+uled&&!this.raf.\
+isScheduled('SE:\
+snapshot'))this.\
+snapshots.snapsh\
+otScheduled=fals\
+e;const msg=this\
+.getMsg(true,nam\
+e_header);if(!ms\
+g||!chunk)return\
+;const s=String(\
+chunk);const rea\
+soningState=this\
+.reasoning.updat\
+eReasoningVisibi\
+lityFromChunk(s)\
+;const reasoning\
+Opened=reasoning\
+State.changed&&t\
+his.reasoning.re\
+asoningThinking;\
+if(reasoningStat\
+e.hasResponseTex\
+t&&!this.reasoni\
+ng.reasoningThin\
+king){this.reaso\
+ning.scheduleRea\
+soningHide(msg);\
+}\x0aif(/[<>]/.test\
+(s)){this.debug(\
+'apply.chunk',{l\
+en:s.length,nl:U\
+tils.countNewlin\
+es(s),head:s.sli\
+ce(0,120),tail:s\
+.slice(-120)});}\
+\x0aif(!alreadyBuff\
+ered)this.buffer\
+.append(s);if(re\
+asoningOpened&&t\
+his.reasoning.re\
+asoningEnabled&&\
 !this.fences.fen\
 ceOpen&&!this.co\
 de.codeStream.op\
-en){const mdPres\
-ent=this.snapsho\
-ts.chunkHasMarkd\
-own(s)||this.sna\
-pshots.chunkHasC\
-ustomOpeners(s)|\
-|change.opened;c\
-onst thr=this.pl\
-ain.threshold();\
-if(mdPresent){if\
-(this.plain.stat\
-e.noMdNL!==0){th\
-is.debug('apply.\
-plain.resetOnMD'\
-,{noMdNL:this.pl\
+en){try{this.sna\
+pshots.renderSna\
+pshot(msg);try{t\
+his.raf.cancel('\
+SE:snapshot');}c\
+atch(_){}\x0athis.s\
+napshots.snapsho\
+tScheduled=false\
+;}catch(_){}}\x0aco\
+nst change=this.\
+fences.updateFen\
+ceHeuristic(s);c\
+onst nlCount=Uti\
+ls.countNewlines\
+(s);const chunkH\
+asNL=nlCount>0;i\
+f(!change.opened\
+&&!this.fences.f\
+enceOpen){this.s\
+napshots.maybeEa\
+gerSnapshotForCu\
+stomOpeners(msg,\
+s);}\x0aif(!this.fe\
+nces.fenceOpen&&\
+!this.code.codeS\
+tream.open){cons\
+t mdPresent=this\
+.snapshots.chunk\
+HasMarkdown(s)||\
+this.snapshots.c\
+hunkHasCustomOpe\
+ners(s)||change.\
+opened;const thr\
+=this.plain.thre\
+shold();if(mdPre\
+sent){if(this.pl\
 ain.state.noMdNL\
-});}\x0athis.plain.\
-state.noMdNL=0;i\
-f(this.plain.sta\
-te.enabled){this\
-.plain.state.ena\
-bled=false;this.\
-plain.state.supp\
-ressInline=false\
-;this.plain.stat\
-e.forceFullMDOnc\
-e=true;this.debu\
-g('apply.plain.d\
-isableOnMD',{});\
-this.snapshots.s\
-cheduleSnapshot(\
-msg,true);}}else\
- if(chunkHasNL){\
-this.plain.state\
-.noMdNL+=nlCount\
-;if(!this.plain.\
-state.enabled&&t\
-his.plain.state.\
-noMdNL>=thr){thi\
+!==0){this.debug\
+('apply.plain.re\
+setOnMD',{noMdNL\
+:this.plain.stat\
+e.noMdNL});}\x0athi\
+s.plain.state.no\
+MdNL=0;if(this.p\
+lain.state.enabl\
+ed){this.plain.s\
+tate.enabled=fal\
+se;this.plain.st\
+ate.suppressInli\
+ne=false;this.pl\
+ain.state.forceF\
+ullMDOnce=true;t\
+his.debug('apply\
+.plain.disableOn\
+MD',{});this.sna\
+pshots.scheduleS\
+napshot(msg,true\
+);}}else if(chun\
+kHasNL){this.pla\
+in.state.noMdNL+\
+=nlCount;if(!thi\
 s.plain.state.en\
-abled=true;this.\
-plain.state.supp\
-ressInline=true;\
-this.debug('appl\
-y.plain.enable',\
-{noMdNL:this.pla\
-in.state.noMdNL,\
-thr});this.snaps\
-hots.scheduleSna\
-pshot(msg);}}}\x0al\
-et didImmediateO\
-penSnap=false;if\
-(change.opened){\
-this.code.codeSt\
-ream.open=true;t\
-his.code.codeStr\
-eam.lines=0;this\
-.code.codeStream\
-.chars=0;this.sn\
-apshots.resetBud\
-get();this.debug\
-('code.open',{})\
-;this.snapshots.\
-scheduleSnapshot\
-(msg);if(!this._\
-firstCodeOpenSna\
-pDone&&!this.cod\
-e.activeCode&&((\
-window.__lastSna\
-pshotLen||0)===0\
-)){try{this.snap\
-shots.renderSnap\
-shot(msg);try{th\
-is.raf.cancel('S\
-E:snapshot');}ca\
-tch(_){}\x0athis.sn\
-apshots.snapshot\
-Scheduled=false;\
-this._firstCodeO\
-penSnapDone=true\
-;didImmediateOpe\
-nSnap=true;this.\
-debug('code.open\
-.immediateSnap',\
-{});}catch(_){}}\
-}\x0aif(this.code.c\
-odeStream.open){\
-this.code.codeSt\
-ream.lines+=nlCo\
-unt;this.code.co\
-deStream.chars+=\
-s.length;if(this\
-.code.activeCode\
-&&this.code.acti\
-veCode.codeEl&&t\
-his.code.activeC\
-ode.codeEl.isCon\
-nected){let part\
-ForCode=s;let re\
-mainder='';if(di\
-dImmediateOpenSn\
-ap)partForCode='\
-';else if(change\
-.closed&&change.\
-splitAt>=0&&chan\
-ge.splitAt<=s.le\
-ngth){partForCod\
-e=s.slice(0,chan\
-ge.splitAt);rema\
-inder=s.slice(ch\
-ange.splitAt);}\x0a\
-if(partForCode){\
-this.code.append\
-ToActiveTail(par\
-tForCode);this.c\
-ode.activeCode.l\
-ines+=Utils.coun\
-tNewlines(partFo\
-rCode);this.lang\
-uage.maybePromot\
-eLanguageFromDir\
-ective();this.co\
-de.enforceHLStop\
-Budget();const t\
-ailLenNow=(this.\
-code.activeCode.\
-tailEl.textConte\
-nt||'').length;c\
-onst hasNL=partF\
-orCode.indexOf('\
-\x5cn')>=0;if(!this\
-.code.activeCode\
-.plainStream){co\
-nst HL_MIN=this.\
-cfg.PROFILE_CODE\
-.minCharsForHL;i\
-f(hasNL||tailLen\
-Now>=HL_MIN)this\
-.code.schedulePr\
-omoteTail(false)\
-;}}\x0athis.scrollM\
-gr.scrollFabUpda\
-teScheduled=fals\
-e;this.scrollMgr\
-.scheduleScroll(\
-true);this.scrol\
-lMgr.fabFreezeUn\
-til=Utils.now()+\
-this.cfg.FAB.TOG\
-GLE_DEBOUNCE_MS;\
-this.scrollMgr.s\
-cheduleScrollFab\
-Update();if(chan\
-ge.closed){this.\
-debug('code.clos\
-e',{remainderLen\
-:remainder.lengt\
-h});this.code.fi\
-nalizeActiveCode\
-();this.code.cod\
-eStream.open=fal\
-se;this.snapshot\
-s.resetBudget();\
+abled&&this.plai\
+n.state.noMdNL>=\
+thr){this.plain.\
+state.enabled=tr\
+ue;this.plain.st\
+ate.suppressInli\
+ne=true;this.deb\
+ug('apply.plain.\
+enable',{noMdNL:\
 this.plain.state\
-.forceFullMDOnce\
-=true;this.snaps\
-hots.scheduleSna\
-pshot(msg,true);\
-if(remainder&&re\
-mainder.length){\
-this.applyStream\
-(name_header,rem\
-ainder,true);}}\x0a\
-return;}else{if(\
-!this.code.activ\
-eCode&&(this.cod\
-e.codeStream.lin\
-es>=2||this.code\
-.codeStream.char\
-s>=80)){this.deb\
-ug('code.awaitAc\
-tive.forceSnap',\
-{lines:this.code\
-.codeStream.line\
-s,chars:this.cod\
-e.codeStream.cha\
-rs});this.snapsh\
-ots.scheduleSnap\
-shot(msg,true);r\
-eturn;}\x0aif(chang\
-e.closed){this.c\
-ode.codeStream.o\
-pen=false;this.s\
-napshots.resetBu\
-dget();this.debu\
-g('code.closed.o\
-utside',{});this\
-.plain.state.for\
-ceFullMDOnce=tru\
-e;this.snapshots\
-.scheduleSnapsho\
-t(msg,true);}els\
-e{const boundary\
-=this.snapshots.\
-hasStructuralBou\
-ndary(s);if(this\
-.snapshots.shoul\
-dSnapshotOnChunk\
-(s,chunkHasNL,bo\
-undary)){this.de\
-bug('snapshot.de\
-cide',{reason:'b\
-oundary/step'});\
-this.snapshots.s\
-cheduleSnapshot(\
-msg);}else{this.\
-snapshots.maybeS\
-cheduleSoftSnaps\
-hot(msg,chunkHas\
-NL);}}\x0areturn;}}\
-\x0aif(change.close\
-d){this.code.cod\
-eStream.open=fal\
-se;this.snapshot\
-s.resetBudget();\
-this.debug('code\
-.closed.outside'\
-,{});this.snapsh\
-ots.scheduleSnap\
-shot(msg);}else{\
-const boundary=t\
-his.snapshots.ha\
-sStructuralBound\
-ary(s);if(this.s\
-napshots.shouldS\
-napshotOnChunk(s\
-,chunkHasNL,boun\
-dary)){this.debu\
-g('snapshot.deci\
-de',{reason:'bou\
-ndary/step'});th\
+.noMdNL,thr});th\
 is.snapshots.sch\
 eduleSnapshot(ms\
-g);}else{this.sn\
-apshots.maybeSch\
-eduleSoftSnapsho\
-t(msg,chunkHasNL\
-);}}}};\x0a\x0a/* data\
-/js/app/queue.js\
- */\x0aclass Stream\
-Queue{constructo\
-r(cfg,engine,scr\
-ollMgr,raf){this\
-.cfg=cfg;this.en\
-gine=engine;this\
-.scrollMgr=scrol\
-lMgr;this.raf=ra\
-f;this.q=[];this\
-.rd=0;this.drain\
-Scheduled=false;\
-this.batching=fa\
-lse;this.needScr\
-oll=false;this.D\
-RAIN_KEY=Symbol(\
-'SQ:drain');cons\
-t R=(this.cfg&&t\
-his.cfg.RAF)||{}\
-;this.DRAIN_BUDG\
-ET_MS=(R.STREAM_\
-DRAIN_BUDGET_MS!\
-=null)?R.STREAM_\
-DRAIN_BUDGET_MS:\
-4;this.COMPACT_S\
-LICE_THRESHOLD=1\
-024;this._lastCo\
-mpactRd=0;}\x0acoun\
-t(){return Math.\
-max(0,this.q.len\
-gth-this.rd);}\x0a_\
-compactContiguou\
-sSameName(){cons\
-t n=this.count()\
-;if(n<2)return;c\
-onst out=[];let \
-prev=null;for(le\
-t i=this.rd;i<th\
-is.q.length;i++)\
-{const cur=this.\
-q[i];if(!cur)con\
-tinue;if(prev&&p\
-rev.name===cur.n\
-ame){if(cur.part\
-s&&cur.parts.len\
-gth){for(let k=0\
-;k<cur.parts.len\
-gth;k++)prev.par\
-ts.push(cur.part\
-s[k]);}else if(c\
-ur.chunk){prev.p\
-arts.push(cur.ch\
-unk);}\x0aprev.len+\
-=(cur.len|0);if(\
-cur.parts)cur.pa\
-rts.length=0;cur\
-.chunk='';cur.le\
-n=0;cur.name='';\
-}else{const part\
-s=cur.parts?cur.\
-parts:(cur.chunk\
-?[cur.chunk]:[])\
-;prev={name:cur.\
-name,parts:parts\
-,len:cur.len!=nu\
-ll?cur.len:(cur.\
-chunk?cur.chunk.\
-length:0)};out.p\
-ush(prev);if(cur\
-.parts)cur.parts\
-=[];cur.chunk=''\
-;cur.len=0;cur.n\
-ame='';}}\x0athis.q\
-=out;this.rd=0;t\
-his._lastCompact\
-Rd=0;}\x0a_maybeCom\
-pact(){if(this.r\
-d===0)return;con\
-st n=this.count(\
-);if(n===0){this\
-.q=[];this.rd=0;\
-this._lastCompac\
-tRd=0;return;}\x0ai\
-f(this.rd>=this.\
-COMPACT_SLICE_TH\
-RESHOLD){this.q=\
-this.q.slice(thi\
-s.rd);this.rd=0;\
-this._lastCompac\
-tRd=0;return;}\x0ai\
-f(this.rd-this._\
-lastCompactRd>=1\
-28||(this.rd>64&\
-&this.rd>=(this.\
-q.length>>1))){t\
-his.q=this.q.sli\
-ce(this.rd);this\
-.rd=0;this._last\
-CompactRd=0;}}\x0a_\
-scheduleDrain(){\
-if(this.drainSch\
-eduled)return;th\
+g);}}}\x0alet didIm\
+mediateOpenSnap=\
+false;if(change.\
+opened){this.cod\
+e.codeStream.ope\
+n=true;this.code\
+.codeStream.line\
+s=0;this.code.co\
+deStream.chars=0\
+;this.snapshots.\
+resetBudget();th\
+is.debug('code.o\
+pen',{});this.sn\
+apshots.schedule\
+Snapshot(msg);if\
+(!this._firstCod\
+eOpenSnapDone&&!\
+this.code.active\
+Code&&((window._\
+_lastSnapshotLen\
+||0)===0)){try{t\
+his.snapshots.re\
+nderSnapshot(msg\
+);try{this.raf.c\
+ancel('SE:snapsh\
+ot');}catch(_){}\
+\x0athis.snapshots.\
+snapshotSchedule\
+d=false;this._fi\
+rstCodeOpenSnapD\
+one=true;didImme\
+diateOpenSnap=tr\
+ue;this.debug('c\
+ode.open.immedia\
+teSnap',{});}cat\
+ch(_){}}}\x0aif(thi\
+s.code.codeStrea\
+m.open){this.cod\
+e.codeStream.lin\
+es+=nlCount;this\
+.code.codeStream\
+.chars+=s.length\
+;if(this.code.ac\
+tiveCode&&this.c\
+ode.activeCode.c\
+odeEl&&this.code\
+.activeCode.code\
+El.isConnected){\
+let partForCode=\
+s;let remainder=\
+'';if(didImmedia\
+teOpenSnap)partF\
+orCode='';else i\
+f(change.closed&\
+&change.splitAt>\
+=0&&change.split\
+At<=s.length){pa\
+rtForCode=s.slic\
+e(0,change.split\
+At);remainder=s.\
+slice(change.spl\
+itAt);}\x0aif(partF\
+orCode){this.cod\
+e.appendToActive\
+Tail(partForCode\
+);this.code.acti\
+veCode.lines+=Ut\
+ils.countNewline\
+s(partForCode);t\
+his.language.may\
+bePromoteLanguag\
+eFromDirective()\
+;this.code.enfor\
+ceHLStopBudget()\
+;const tailLenNo\
+w=(this.code.act\
+iveCode.tailEl.t\
+extContent||'').\
+length;const has\
+NL=partForCode.i\
+ndexOf('\x5cn')>=0;\
+if(!this.code.ac\
+tiveCode.plainSt\
+ream){const HL_M\
+IN=this.cfg.PROF\
+ILE_CODE.minChar\
+sForHL;if(hasNL|\
+|tailLenNow>=HL_\
+MIN)this.code.sc\
+hedulePromoteTai\
+l(false);}}\x0athis\
+.scrollMgr.scrol\
+lFabUpdateSchedu\
+led=false;this.s\
+crollMgr.schedul\
+eScroll(true);th\
+is.scrollMgr.fab\
+FreezeUntil=Util\
+s.now()+this.cfg\
+.FAB.TOGGLE_DEBO\
+UNCE_MS;this.scr\
+ollMgr.scheduleS\
+crollFabUpdate()\
+;if(change.close\
+d){this.debug('c\
+ode.close',{rema\
+inderLen:remaind\
+er.length});this\
+.code.finalizeAc\
+tiveCode();this.\
+code.codeStream.\
+open=false;this.\
+snapshots.resetB\
+udget();this.pla\
+in.state.forceFu\
+llMDOnce=true;th\
+is.snapshots.sch\
+eduleSnapshot(ms\
+g,true);if(remai\
+nder&&remainder.\
+length){this.app\
+lyStream(name_he\
+ader,remainder,t\
+rue);}}\x0areturn;}\
+else{if(!this.co\
+de.activeCode&&(\
+this.code.codeSt\
+ream.lines>=2||t\
+his.code.codeStr\
+eam.chars>=80)){\
+this.debug('code\
+.awaitActive.for\
+ceSnap',{lines:t\
+his.code.codeStr\
+eam.lines,chars:\
+this.code.codeSt\
+ream.chars});thi\
+s.snapshots.sche\
+duleSnapshot(msg\
+,true);return;}\x0a\
+if(change.closed\
+){this.code.code\
+Stream.open=fals\
+e;this.snapshots\
+.resetBudget();t\
+his.debug('code.\
+closed.outside',\
+{});this.plain.s\
+tate.forceFullMD\
+Once=true;this.s\
+napshots.schedul\
+eSnapshot(msg,tr\
+ue);}else{const \
+boundary=this.sn\
+apshots.hasStruc\
+turalBoundary(s)\
+;if(this.snapsho\
+ts.shouldSnapsho\
+tOnChunk(s,chunk\
+HasNL,boundary))\
+{this.debug('sna\
+pshot.decide',{r\
+eason:'boundary/\
+step'});this.sna\
+pshots.scheduleS\
+napshot(msg);}el\
+se{this.snapshot\
+s.maybeScheduleS\
+oftSnapshot(msg,\
+chunkHasNL);}}\x0ar\
+eturn;}}\x0aif(chan\
+ge.closed){this.\
+code.codeStream.\
+open=false;this.\
+snapshots.resetB\
+udget();this.deb\
+ug('code.closed.\
+outside',{});thi\
+s.snapshots.sche\
+duleSnapshot(msg\
+);}else{const bo\
+undary=this.snap\
+shots.hasStructu\
+ralBoundary(s);i\
+f(this.snapshots\
+.shouldSnapshotO\
+nChunk(s,chunkHa\
+sNL,boundary)){t\
+his.debug('snaps\
+hot.decide',{rea\
+son:'boundary/st\
+ep'});this.snaps\
+hots.scheduleSna\
+pshot(msg);}else\
+{this.snapshots.\
+maybeScheduleSof\
+tSnapshot(msg,ch\
+unkHasNL);}}}};\x0a\
+\x0a/* data/js/app/\
+queue.js */\x0aclas\
+s StreamQueue{co\
+nstructor(cfg,en\
+gine,scrollMgr,r\
+af){this.cfg=cfg\
+;this.engine=eng\
+ine;this.scrollM\
+gr=scrollMgr;thi\
+s.raf=raf;this.q\
+=[];this.rd=0;th\
 is.drainSchedule\
-d=true;this.raf.\
-schedule(this.DR\
-AIN_KEY,()=>this\
-.drain(),'Stream\
-Queue',-5);}\x0aenq\
-ueue(name_header\
-,chunk){if(!chun\
-k||chunk.length=\
-==0)return;const\
- name=name_heade\
-r;const hasPendi\
-ng=this.count()>\
-0;const tail=has\
-Pending?this.q[t\
-his.q.length-1]:\
-null;if(tail&&ta\
-il.name===name){\
-tail.parts.push(\
-chunk);tail.len+\
-=chunk.length;}e\
-lse{this.q.push(\
-{name,parts:[chu\
-nk],len:chunk.le\
-ngth});}\x0aconst c\
-nt=this.count();\
-if(cnt>(this.cfg\
-.STREAM.EMERGENC\
-Y_COALESCE_LEN|0\
-))this._compactC\
+d=false;this.bat\
+ching=false;this\
+.needScroll=fals\
+e;this.DRAIN_KEY\
+=Symbol('SQ:drai\
+n');const R=(thi\
+s.cfg&&this.cfg.\
+RAF)||{};this.DR\
+AIN_BUDGET_MS=(R\
+.STREAM_DRAIN_BU\
+DGET_MS!=null)?R\
+.STREAM_DRAIN_BU\
+DGET_MS:4;this.C\
+OMPACT_SLICE_THR\
+ESHOLD=1024;this\
+._lastCompactRd=\
+0;}\x0acount(){retu\
+rn Math.max(0,th\
+is.q.length-this\
+.rd);}\x0a_compactC\
 ontiguousSameNam\
-e();else if(cnt>\
-(this.cfg.STREAM\
-.QUEUE_MAX_ITEMS\
-|0))this._compac\
-tContiguousSameN\
-ame();this._sche\
-duleDrain();}\x0adr\
-ain(){this.drain\
-Scheduled=false;\
-const adaptive=(\
+e(){const n=this\
+.count();if(n<2)\
+return;const out\
+=[];let prev=nul\
+l;for(let i=this\
+.rd;i<this.q.len\
+gth;i++){const c\
+ur=this.q[i];if(\
+!cur)continue;if\
+(prev&&prev.name\
+===cur.name){if(\
+cur.parts&&cur.p\
+arts.length){for\
+(let k=0;k<cur.p\
+arts.length;k++)\
+prev.parts.push(\
+cur.parts[k]);}e\
+lse if(cur.chunk\
+){prev.parts.pus\
+h(cur.chunk);}\x0ap\
+rev.len+=(cur.le\
+n|0);if(cur.part\
+s)cur.parts.leng\
+th=0;cur.chunk='\
+';cur.len=0;cur.\
+name='';}else{co\
+nst parts=cur.pa\
+rts?cur.parts:(c\
+ur.chunk?[cur.ch\
+unk]:[]);prev={n\
+ame:cur.name,par\
+ts:parts,len:cur\
+.len!=null?cur.l\
+en:(cur.chunk?cu\
+r.chunk.length:0\
+)};out.push(prev\
+);if(cur.parts)c\
+ur.parts=[];cur.\
+chunk='';cur.len\
+=0;cur.name='';}\
+}\x0athis.q=out;thi\
+s.rd=0;this._las\
+tCompactRd=0;}\x0a_\
+maybeCompact(){i\
+f(this.rd===0)re\
+turn;const n=thi\
+s.count();if(n==\
+=0){this.q=[];th\
+is.rd=0;this._la\
+stCompactRd=0;re\
+turn;}\x0aif(this.r\
+d>=this.COMPACT_\
+SLICE_THRESHOLD)\
+{this.q=this.q.s\
+lice(this.rd);th\
+is.rd=0;this._la\
+stCompactRd=0;re\
+turn;}\x0aif(this.r\
+d-this._lastComp\
+actRd>=128||(thi\
+s.rd>64&&this.rd\
+>=(this.q.length\
+>>1))){this.q=th\
+is.q.slice(this.\
+rd);this.rd=0;th\
+is._lastCompactR\
+d=0;}}\x0a_schedule\
+Drain(){if(this.\
+drainScheduled)r\
+eturn;this.drain\
+Scheduled=true;t\
+his.raf.schedule\
+(this.DRAIN_KEY,\
+()=>this.drain()\
+,'StreamQueue',-\
+5);}\x0aenqueue(nam\
+e_header,chunk){\
+if(!chunk||chunk\
+.length===0)retu\
+rn;const name=na\
+me_header;const \
+hasPending=this.\
+count()>0;const \
+tail=hasPending?\
+this.q[this.q.le\
+ngth-1]:null;if(\
+tail&&tail.name=\
+==name){tail.par\
+ts.push(chunk);t\
+ail.len+=chunk.l\
+ength;}else{this\
+.q.push({name,pa\
+rts:[chunk],len:\
+chunk.length});}\
+\x0aconst cnt=this.\
+count();if(cnt>(\
 this.cfg.STREAM.\
-COALESCE_MODE===\
-'adaptive');cons\
-t coalesceAggres\
-sive=adaptive&&(\
-this.count()>=(t\
-his.cfg.STREAM.E\
-MERGENCY_COALESC\
-E_LEN|0));const \
-basePerFrame=thi\
-s.cfg.STREAM.MAX\
-_PER_FRAME|0;con\
-st perFrame=adap\
-tive?Math.min(ba\
-sePerFrame+Math.\
-floor(this.count\
-()/20),basePerFr\
-ame*4):basePerFr\
-ame;const start=\
-Utils.now();cons\
-t sched=(navigat\
-or&&navigator.sc\
-heduling&&naviga\
-tor.scheduling.i\
-sInputPending)?n\
-avigator.schedul\
-ing:null;this.ba\
-tching=true;let \
-processed=0;whil\
-e(this.rd<this.q\
-.length&&process\
-ed<perFrame){con\
-st idx=this.rd++\
-;const e=this.q[\
-idx];if(!e)conti\
-nue;if(coalesceA\
-ggressive){while\
-(this.rd<this.q.\
-length&&this.q[t\
-his.rd]&&this.q[\
-this.rd].name===\
-e.name){const n=\
-this.q[this.rd++\
-];if(n.parts&&n.\
-parts.length){fo\
-r(let k=0;k<n.pa\
-rts.length;k++)e\
-.parts.push(n.pa\
-rts[k]);}else if\
-(n.chunk){e.part\
-s.push(n.chunk);\
-}\x0ae.len+=(n.len|\
-0);if(n.parts)n.\
-parts.length=0;n\
-.chunk='';n.len=\
-0;n.name='';this\
-.q[this.rd-1]=nu\
-ll;}}\x0alet payloa\
-d='';if(!e.parts\
-||e.parts.length\
-===0)payload=e.c\
-hunk||'';else if\
-(e.parts.length=\
-==1)payload=e.pa\
-rts[0]||'';else \
-payload=e.parts.\
-join('');this.en\
-gine.applyStream\
-(e.name,payload)\
-;processed++;if(\
-e.parts)e.parts.\
-length=0;e.chunk\
-='';e.len=0;e.na\
-me='';this.q[idx\
-]=null;payload='\
-';if(sched&&sche\
-d.isInputPending\
-({includeContinu\
-ous:true}))break\
-;if((Utils.now()\
--start)>=this.DR\
-AIN_BUDGET_MS)br\
-eak;}\x0athis.batch\
-ing=false;if(thi\
-s.needScroll){th\
-is.scrollMgr.sch\
-eduleScroll(true\
-);this.needScrol\
-l=false;}\x0athis._\
-maybeCompact();i\
-f(this.count()>0\
-)this._scheduleD\
-rain();}\x0akick(){\
-if(this.count()|\
-|this.drainSched\
-uled)this._sched\
-uleDrain();}\x0acle\
-ar(){for(let i=t\
-his.rd;i<this.q.\
-length;i++){cons\
-t e=this.q[i];if\
-(!e)continue;if(\
-e.parts)e.parts.\
-length=0;e.chunk\
-='';e.len=0;e.na\
-me='';this.q[i]=\
-null;}\x0athis.q=[]\
-;this.rd=0;this.\
-_lastCompactRd=0\
-;try{this.raf.ca\
-ncelGroup('Strea\
-mQueue');}catch(\
-_){}\x0athis.drainS\
-cheduled=false;}\
-};\x0a\x0a/* data/js/a\
-pp/template.js *\
-/\x0aclass NodeTemp\
-lateEngine{const\
-ructor(cfg,logge\
-r){this.cfg=cfg|\
-|{};this.logger=\
-logger||{debug:(\
-)=>{}};this.tool\
-s=new NodeToolsT\
-emplate(this);th\
-is.artifacts=new\
- NodeArtifactsTe\
-mplate(this);thi\
-s.timeline=new N\
-odeTimelineTempl\
-ate(this);}\x0aesc(\
-s){return(s==nul\
-l)?'':String(s);\
-}\x0aescapeHtml(s){\
-return(typeof Ut\
-ils!=='undefined\
-')?Utils.escapeH\
-tml(s):String(s)\
-.replace(/[&<>\x22'\
-]/g,m=>({'&':'&a\
-mp;','<':'&lt;',\
-'>':'&gt;','\x22':'\
-&quot;',\x22'\x22:'&#0\
-39;'}[m]));}\x0aren\
-derNode(block){c\
-onst parts=[];if\
-(block&&block.in\
-put&&block.input\
-.text)parts.push\
-(this._renderUse\
-r(block));if(blo\
-ck&&block.output\
-){const extra=bl\
-ock.extra||{};co\
-nst hasToolCalls\
-=Array.isArray(e\
-xtra.tool_calls)\
-&&extra.tool_cal\
-ls.length>0;cons\
-t hasTimeline=Ar\
-ray.isArray(extr\
-a.partial_timeli\
-ne)&&extra.parti\
-al_timeline.leng\
-th>0;const hasCo\
-llapsedWorkflow=\
-!!(extra.collaps\
-ed_workflow&&Arr\
-ay.isArray(extra\
+EMERGENCY_COALES\
+CE_LEN|0))this._\
+compactContiguou\
+sSameName();else\
+ if(cnt>(this.cf\
+g.STREAM.QUEUE_M\
+AX_ITEMS|0))this\
+._compactContigu\
+ousSameName();th\
+is._scheduleDrai\
+n();}\x0adrain(){th\
+is.drainSchedule\
+d=false;const ad\
+aptive=(this.cfg\
+.STREAM.COALESCE\
+_MODE==='adaptiv\
+e');const coales\
+ceAggressive=ada\
+ptive&&(this.cou\
+nt()>=(this.cfg.\
+STREAM.EMERGENCY\
+_COALESCE_LEN|0)\
+);const basePerF\
+rame=this.cfg.ST\
+REAM.MAX_PER_FRA\
+ME|0;const perFr\
+ame=adaptive?Mat\
+h.min(basePerFra\
+me+Math.floor(th\
+is.count()/20),b\
+asePerFrame*4):b\
+asePerFrame;cons\
+t start=Utils.no\
+w();const sched=\
+(navigator&&navi\
+gator.scheduling\
+&&navigator.sche\
+duling.isInputPe\
+nding)?navigator\
+.scheduling:null\
+;this.batching=t\
+rue;let processe\
+d=0;while(this.r\
+d<this.q.length&\
+&processed<perFr\
+ame){const idx=t\
+his.rd++;const e\
+=this.q[idx];if(\
+!e)continue;if(c\
+oalesceAggressiv\
+e){while(this.rd\
+<this.q.length&&\
+this.q[this.rd]&\
+&this.q[this.rd]\
+.name===e.name){\
+const n=this.q[t\
+his.rd++];if(n.p\
+arts&&n.parts.le\
+ngth){for(let k=\
+0;k<n.parts.leng\
+th;k++)e.parts.p\
+ush(n.parts[k]);\
+}else if(n.chunk\
+){e.parts.push(n\
+.chunk);}\x0ae.len+\
+=(n.len|0);if(n.\
+parts)n.parts.le\
+ngth=0;n.chunk='\
+';n.len=0;n.name\
+='';this.q[this.\
+rd-1]=null;}}\x0ale\
+t payload='';if(\
+!e.parts||e.part\
+s.length===0)pay\
+load=e.chunk||''\
+;else if(e.parts\
+.length===1)payl\
+oad=e.parts[0]||\
+'';else payload=\
+e.parts.join('')\
+;this.engine.app\
+lyStream(e.name,\
+payload);process\
+ed++;if(e.parts)\
+e.parts.length=0\
+;e.chunk='';e.le\
+n=0;e.name='';th\
+is.q[idx]=null;p\
+ayload='';if(sch\
+ed&&sched.isInpu\
+tPending({includ\
+eContinuous:true\
+}))break;if((Uti\
+ls.now()-start)>\
+=this.DRAIN_BUDG\
+ET_MS)break;}\x0ath\
+is.batching=fals\
+e;if(this.needSc\
+roll){this.scrol\
+lMgr.scheduleScr\
+oll(true);this.n\
+eedScroll=false;\
+}\x0athis._maybeCom\
+pact();if(this.c\
+ount()>0)this._s\
+cheduleDrain();}\
+\x0akick(){if(this.\
+count()||this.dr\
+ainScheduled)thi\
+s._scheduleDrain\
+();}\x0aclear(){for\
+(let i=this.rd;i\
+<this.q.length;i\
+++){const e=this\
+.q[i];if(!e)cont\
+inue;if(e.parts)\
+e.parts.length=0\
+;e.chunk='';e.le\
+n=0;e.name='';th\
+is.q[i]=null;}\x0at\
+his.q=[];this.rd\
+=0;this._lastCom\
+pactRd=0;try{thi\
+s.raf.cancelGrou\
+p('StreamQueue')\
+;}catch(_){}\x0athi\
+s.drainScheduled\
+=false;}};\x0a\x0a/* d\
+ata/js/app/templ\
+ate.js */\x0aclass \
+NodeTemplateEngi\
+ne{constructor(c\
+fg,logger){this.\
+cfg=cfg||{};this\
+.logger=logger||\
+{debug:()=>{}};t\
+his.tools=new No\
+deToolsTemplate(\
+this);this.artif\
+acts=new NodeArt\
+ifactsTemplate(t\
+his);this.timeli\
+ne=new NodeTimel\
+ineTemplate(this\
+);}\x0aesc(s){retur\
+n(s==null)?'':St\
+ring(s);}\x0aescape\
+Html(s){return(t\
+ypeof Utils!=='u\
+ndefined')?Utils\
+.escapeHtml(s):S\
+tring(s).replace\
+(/[&<>\x22']/g,m=>(\
+{'&':'&amp;','<'\
+:'&lt;','>':'&gt\
+;','\x22':'&quot;',\
+\x22'\x22:'&#039;'}[m]\
+));}\x0arenderNode(\
+block){const par\
+ts=[];if(block&&\
+block.input&&blo\
+ck.input.text)pa\
+rts.push(this._r\
+enderUser(block)\
+);if(block&&bloc\
+k.output){const \
+extra=block.extr\
+a||{};const hasT\
+oolCalls=Array.i\
+sArray(extra.too\
+l_calls)&&extra.\
+tool_calls.lengt\
+h>0;const hasTim\
+eline=Array.isAr\
+ray(extra.partia\
+l_timeline)&&ext\
+ra.partial_timel\
+ine.length>0;con\
+st hasCollapsedW\
+orkflow=!!(extra\
 .collapsed_workf\
-low.timeline)&&e\
-xtra.collapsed_w\
-orkflow.timeline\
-.length>0);if(bl\
-ock.output.text|\
-|hasToolCalls||h\
-asTimeline||hasC\
-ollapsedWorkflow\
-||extra.tool_out\
-put_visible===tr\
-ue){parts.push(t\
-his._renderBot(b\
-lock));}}\x0areturn\
- parts.join('');\
-}\x0arenderNodes(bl\
-ocks){if(!Array.\
-isArray(blocks))\
-return'';const o\
-ut=[];for(let i=\
-0;i<blocks.lengt\
-h;i++){const b=b\
-locks[i]||null;i\
-f(!b)continue;ou\
-t.push(this.rend\
-erNode(b));}\x0aret\
-urn out.join('')\
-;}\x0a_nameHeader(r\
-ole,name,avatarU\
-rl){if(!name&&!a\
-vatarUrl)return'\
-';const cls=(rol\
-e==='user')?'nam\
-e-user':'name-bo\
-t';const img=ava\
-tarUrl?`<img src\
-=\x22${this.esc(ava\
-tarUrl)}\x22 class=\
-\x22avatar\x22> `:'';r\
-eturn`<div class\
-=\x22name-header ${\
-cls}\x22>${img}${th\
-is.esc(name || '\
-')}</div>`;}\x0a_re\
-nderUser(block){\
-const id=block.i\
-d;const inp=bloc\
-k.input||{};cons\
-t msgId=`msg-use\
-r-${id}`;const p\
-ersonalize=!!(bl\
-ock&&block.extra\
-&&block.extra.pe\
-rsonalize===true\
-);const nameHead\
-er=personalize?t\
-his._nameHeader(\
-'user',inp.name|\
-|'',inp.avatar_i\
-mg||null):'';con\
-st dateLabel=inp\
-.date_label?`<di\
-v class=\x22msg-dat\
-e-separator${blo\
+low&&Array.isArr\
+ay(extra.collaps\
+ed_workflow.time\
+line)&&extra.col\
+lapsed_workflow.\
+timeline.length>\
+0);if(block.outp\
+ut.text||hasTool\
+Calls||hasTimeli\
+ne||hasCollapsed\
+Workflow||extra.\
+tool_output_visi\
+ble===true){part\
+s.push(this._ren\
+derBot(block));}\
+}\x0areturn parts.j\
+oin('');}\x0arender\
+Nodes(blocks){if\
+(!Array.isArray(\
+blocks))return''\
+;const out=[];fo\
+r(let i=0;i<bloc\
+ks.length;i++){c\
+onst b=blocks[i]\
+||null;if(!b)con\
+tinue;out.push(t\
+his.renderNode(b\
+));}\x0areturn out.\
+join('');}\x0a_name\
+Header(role,name\
+,avatarUrl){if(!\
+name&&!avatarUrl\
+)return'';const \
+cls=(role==='use\
+r')?'name-user':\
+'name-bot';const\
+ img=avatarUrl?`\
+<img src=\x22${this\
+.esc(avatarUrl)}\
+\x22 class=\x22avatar\x22\
+> `:'';return`<d\
+iv class=\x22name-h\
+eader ${cls}\x22>${\
+img}${this.esc(n\
+ame || '')}</div\
+>`;}\x0a_renderUser\
+(block){const id\
+=block.id;const \
+inp=block.input|\
+|{};const msgId=\
+`msg-user-${id}`\
+;const personali\
+ze=!!(block&&blo\
+ck.extra&&block.\
+extra.personaliz\
+e===true);const \
+nameHeader=perso\
+nalize?this._nam\
+eHeader('user',i\
+np.name||'',inp.\
+avatar_img||null\
+):'';const dateL\
+abel=inp.date_la\
+bel?`<div class=\
+\x22msg-date-separa\
+tor${block.extra\
+ && block.extra.\
+live_input_fade \
+? ' input-live-d\
+ate' : ''}\x22>${th\
+is.escapeHtml(in\
+p.date_label)}</\
+div>`:'';const c\
+ontent=(typeof U\
+tils!=='undefine\
+d'&&Utils.render\
+MentionText)?Uti\
+ls.renderMention\
+Text(inp.text||'\
+'):this.escapeHt\
+ml(inp.text||'')\
+.replace(/\x5cr?\x5cn/\
+g,'<br>');const \
+I=(this.cfg&&thi\
+s.cfg.ICONS)||{}\
+;const L=(this.c\
+fg&&this.cfg.LOC\
+ALE)||{};const c\
+opyIcon=I.CODE_C\
+OPY||'';const co\
+pyTitle=L.COPY||\
+'Copy';const cop\
+yBtn=`<a href=\x22e\
+mpty:${this.esc(\
+id)}\x22 class=\x22msg\
+-copy-btn\x22 data-\
+id=\x22${this.esc(i\
+d)}\x22 data-tip=\x22$\
+{this.escapeHtml\
+(copyTitle)}\x22 ti\
+tle=\x22${this.esca\
+peHtml(copyTitle\
+)}\x22 aria-label=\x22\
+${this.escapeHtm\
+l(copyTitle)}\x22 r\
+ole=\x22button\x22><im\
+g src=\x22${this.es\
+c(copyIcon)}\x22 cl\
+ass=\x22copy-img\x22 a\
+lt=\x22${this.escap\
+eHtml(copyTitle)\
+}\x22 data-id=\x22${th\
+is.esc(id)}\x22></a\
+>`;const editBtn\
+=`<a href=\x22extra\
+-edit:${this.esc\
+(id)}\x22 class=\x22us\
+er-edit-btn\x22 dat\
+a-id=\x22${this.esc\
+(id)}\x22 title=\x22${\
+this.escapeHtml(\
+inp.edit_title |\
+| 'Edit')}\x22 aria\
+-label=\x22${this.e\
+scapeHtml(inp.ed\
+it_title || 'Edi\
+t')}\x22 role=\x22butt\
+on\x22><img src=\x22${\
+this.esc(inp.edi\
+t_icon || '')}\x22 \
+alt=\x22\x22></a>`;ret\
+urn`${dateLabel}\
+<div class=\x22msg-\
+user-region${blo\
 ck.extra && bloc\
 k.extra.live_inp\
 ut_fade ? ' inpu\
-t-live-date' : '\
-'}\x22>${this.escap\
-eHtml(inp.date_l\
-abel)}</div>`:''\
-;const content=(\
-typeof Utils!=='\
-undefined'&&Util\
-s.renderMentionT\
-ext)?Utils.rende\
-rMentionText(inp\
-.text||''):this.\
-escapeHtml(inp.t\
-ext||'').replace\
-(/\x5cr?\x5cn/g,'<br>'\
-);const I=(this.\
-cfg&&this.cfg.IC\
-ONS)||{};const L\
-=(this.cfg&&this\
-.cfg.LOCALE)||{}\
-;const copyIcon=\
-I.CODE_COPY||'';\
-const copyTitle=\
-L.COPY||'Copy';c\
-onst copyBtn=`<a\
- href=\x22empty:${t\
-his.esc(id)}\x22 cl\
-ass=\x22msg-copy-bt\
-n\x22 data-id=\x22${th\
-is.esc(id)}\x22 dat\
-a-tip=\x22${this.es\
-capeHtml(copyTit\
-le)}\x22 title=\x22${t\
-his.escapeHtml(c\
-opyTitle)}\x22 aria\
--label=\x22${this.e\
-scapeHtml(copyTi\
-tle)}\x22 role=\x22but\
-ton\x22><img src=\x22$\
-{this.esc(copyIc\
-on)}\x22 class=\x22cop\
-y-img\x22 alt=\x22${th\
-is.escapeHtml(co\
-pyTitle)}\x22 data-\
-id=\x22${this.esc(i\
-d)}\x22></a>`;const\
- editBtn=`<a hre\
-f=\x22extra-edit:${\
-this.esc(id)}\x22 c\
-lass=\x22user-edit-\
-btn\x22 data-id=\x22${\
-this.esc(id)}\x22 t\
-itle=\x22${this.esc\
-apeHtml(inp.edit\
-_title || 'Edit'\
-)}\x22 aria-label=\x22\
-${this.escapeHtm\
-l(inp.edit_title\
- || 'Edit')}\x22 ro\
-le=\x22button\x22><img\
- src=\x22${this.esc\
-(inp.edit_icon |\
-| '')}\x22 alt=\x22\x22><\
-/a>`;return`${da\
-teLabel}<div cla\
-ss=\x22msg-user-reg\
-ion${block.extra\
- && block.extra.\
-live_input_fade \
-? ' input-live-a\
-rrival' : ''}\x22>$\
-{this.artifacts.\
-renderUserAttach\
-ments((block.ext\
-ra || {}).user_a\
-ttachments)}<div\
- class=\x22msg-box \
-msg-user\x22 id=\x22${\
-msgId}\x22>${nameHe\
-ader}<div class=\
-\x22msg\x22><p style=\x22\
-margin:0\x22>${cont\
-ent}</p></div></\
-div><div class=\x22\
-user-message-act\
-ions\x22><time>${th\
-is.escapeHtml(in\
-p.time_label || \
-'')}</time>${cop\
-yBtn}${editBtn}<\
-/div></div>`;}\x0a_\
-renderActions(bl\
-ock){const extra\
-=block.extra||{}\
-;const actions=e\
-xtra.actions||[]\
-;if(!actions||!a\
-ctions.length)re\
-turn'';const par\
-ts=actions.map((\
-a)=>{const href=\
-this.esc(a.href|\
-|'#');const titl\
-e=this.esc(a.tit\
-le||'');const ic\
-on=this.esc(a.ic\
-on||'');const id\
-=this.esc(a.id||\
-block.id);return\
-`<a href=\x22${href\
-}\x22 class=\x22action\
--icon\x22 data-id=\x22\
-${id}\x22 role=\x22but\
-ton\x22><span class\
-=\x22cmd\x22><img src=\
-\x22${icon}\x22 class=\
-\x22action-img\x22 tit\
-le=\x22${title}\x22 al\
-t=\x22${title}\x22 dat\
-a-id=\x22${id}\x22></s\
-pan></a>`;});ret\
-urn`<div class=\x22\
-action-icons\x22 da\
-ta-id=\x22${this.es\
-c(block.id)}\x22>${\
-parts.join('')}<\
-/div>`;}\x0a_render\
-Bot(block){const\
- id=block.id;con\
-st out=block.out\
-put||{};const ms\
-gId=`msg-bot-${i\
-d}`;const person\
-alize=!!(block&&\
-block.extra&&blo\
-ck.extra.persona\
-lize===true);con\
-st nameHeader=pe\
-rsonalize?this._\
-nameHeader('bot'\
-,out.name||'',ou\
-t.avatar_img||nu\
-ll):'';const mdT\
-ext=this.escapeH\
-tml(out.text||''\
-);const timeline\
-Html=this.timeli\
-ne.renderPartial\
-Timeline(block);\
-const agentName=\
-String(out.agent\
-_name_prefix||''\
-).trim();const a\
-gentPrefix=(!tim\
-elineHtml&&mdTex\
-t&&agentName)?`<\
-span class='agen\
-t-name-prefix'>$\
-{this.escapeHtml\
-(agentName)}</sp\
-an>`:'';const md\
-Block=timelineHt\
-ml?'':(mdText?`$\
-{agentPrefix}<di\
-v class='md-bloc\
-k' md-block-mark\
-down='1'>${mdTex\
-t}</div>`:'');co\
-nst collapsedWor\
-kflowHtml=timeli\
-neHtml?'':this.t\
-imeline.renderCo\
-llapsedWorkflow(\
-block);const pri\
-maryHtml=timelin\
-eHtml||`${collap\
-sedWorkflowHtml}\
-${mdBlock}`;cons\
-t toolWrap=timel\
-ineHtml?'':this.\
-tools.renderTool\
-OutputWrapper(bl\
-ock);const extra\
-s=this.artifacts\
-.renderExtras(bl\
-ock);const actio\
-ns=(block.extra&\
-&block.extra.foo\
-ter_icons)?this.\
-_renderActions(b\
-lock):'';const d\
-ebug=(block.extr\
-a&&block.extra.d\
-ebug_html)?Strin\
-g(block.extra.de\
-bug_html):'';con\
-st toolCalls=Arr\
-ay.isArray(block\
-.extra&&block.ex\
-tra.tool_calls)?\
+t-live-arrival' \
+: ''}\x22>${this.ar\
+tifacts.renderUs\
+erAttachments((b\
+lock.extra || {}\
+).user_attachmen\
+ts)}<div class=\x22\
+msg-box msg-user\
+\x22 id=\x22${msgId}\x22>\
+${nameHeader}<di\
+v class=\x22msg\x22><p\
+ style=\x22margin:0\
+\x22>${content}</p>\
+</div></div><div\
+ class=\x22user-mes\
+sage-actions\x22><t\
+ime>${this.escap\
+eHtml(inp.time_l\
+abel || '')}</ti\
+me>${copyBtn}${e\
+ditBtn}</div></d\
+iv>`;}\x0a_renderAc\
+tions(block){con\
+st extra=block.e\
+xtra||{};const a\
+ctions=extra.act\
+ions||[];if(!act\
+ions||!actions.l\
+ength)return'';c\
+onst parts=actio\
+ns.map((a)=>{con\
+st href=this.esc\
+(a.href||'#');co\
+nst title=this.e\
+sc(a.title||'');\
+const icon=this.\
+esc(a.icon||'');\
+const id=this.es\
+c(a.id||block.id\
+);return`<a href\
+=\x22${href}\x22 class\
+=\x22action-icon\x22 d\
+ata-id=\x22${id}\x22 r\
+ole=\x22button\x22><sp\
+an class=\x22cmd\x22><\
+img src=\x22${icon}\
+\x22 class=\x22action-\
+img\x22 title=\x22${ti\
+tle}\x22 alt=\x22${tit\
+le}\x22 data-id=\x22${\
+id}\x22></span></a>\
+`;});return`<div\
+ class=\x22action-i\
+cons\x22 data-id=\x22$\
+{this.esc(block.\
+id)}\x22>${parts.jo\
+in('')}</div>`;}\
+\x0a_renderBot(bloc\
+k){const id=bloc\
+k.id;const out=b\
+lock.output||{};\
+const msgId=`msg\
+-bot-${id}`;cons\
+t personalize=!!\
+(block&&block.ex\
+tra&&block.extra\
+.personalize===t\
+rue);const nameH\
+eader=personaliz\
+e?this._nameHead\
+er('bot',out.nam\
+e||'',out.avatar\
+_img||null):'';c\
+onst mdText=this\
+.escapeHtml(out.\
+text||'');const \
+timelineHtml=thi\
+s.timeline.rende\
+rPartialTimeline\
+(block);const ag\
+entName=String(o\
+ut.agent_name_pr\
+efix||'').trim()\
+;const agentPref\
+ix=(!timelineHtm\
+l&&mdText&&agent\
+Name)?`<span cla\
+ss='agent-name-p\
+refix'>${this.es\
+capeHtml(agentNa\
+me)}</span>`:'';\
+const mdBlock=ti\
+melineHtml?'':(m\
+dText?`${agentPr\
+efix}<div class=\
+'md-block' md-bl\
+ock-markdown='1'\
+>${mdText}</div>\
+`:'');const coll\
+apsedWorkflowHtm\
+l=timelineHtml?'\
+':this.timeline.\
+renderCollapsedW\
+orkflow(block);c\
+onst primaryHtml\
+=timelineHtml||`\
+${collapsedWorkf\
+lowHtml}${mdBloc\
+k}`;const toolWr\
+ap=timelineHtml?\
+'':this.tools.re\
+nderToolOutputWr\
+apper(block);con\
+st extras=this.a\
+rtifacts.renderE\
+xtras(block);con\
+st actions=(bloc\
+k.extra&&block.e\
+xtra.footer_icon\
+s)?this._renderA\
+ctions(block):''\
+;const debug=(bl\
+ock.extra&&block\
+.extra.debug_htm\
+l)?String(block.\
+extra.debug_html\
+):'';const toolC\
+alls=Array.isArr\
+ay(block.extra&&\
 block.extra.tool\
-_calls.filter(Bo\
-olean):[];const \
-hasToolCalls=too\
-lCalls.length>0;\
-const toolOnly=h\
-asToolCalls&&!md\
-Text;const chain\
-Continuation=!!(\
-block.extra&&blo\
-ck.extra.tool_ch\
-ain_continuation\
-===true);const t\
-oolChainAttrs=ha\
-sToolCalls?` dat\
-a-tool-only='${t\
-oolOnly ? '1' : \
-'0'}' data-tool-\
-chain-continuati\
-on='${chainConti\
-nuation ? '1' : \
-'0'}'`:'';return\
-(`<div class='ms\
-g-box msg-bot' i\
-d='${msgId}'${to\
-olChainAttrs}>`+\
-`${nameHeader}`+\
-`<div class='msg\
-'>`+`<div class=\
-'msg-timeline'>$\
-{primaryHtml}${t\
-oolWrap}</div>`+\
-`<div class='msg\
--tool-extra'></d\
-iv>`+`<div class\
-='msg-extra'>${e\
-xtras}</div>`+`$\
-{actions}${debug\
-}`+`</div>`+`</d\
-iv>`);}};\x0a\x0a/* da\
-ta/js/app/tool.j\
-s */\x0aclass ToolO\
-utput{constructo\
-r(scrollMgr=null\
-,{templates=null\
-,renderer=null,f\
-indStatusHost=()\
-=>null}={}){this\
-.groups=new Tool\
-Groups(this);thi\
-s.scrollMgr=scro\
-llMgr;this.templ\
-ates=templates;t\
-his.renderer=ren\
-derer;this.findS\
-tatusHost=findSt\
-atusHost;this._v\
-iewportAnchorSeq\
-=0;this._viewpor\
-tAnchorTimer=0;}\
-\x0areconcile(paren\
-t,desired){const\
- wanted=JSON.par\
-se(desired.getAt\
-tribute('data-to\
-ol-keys')||'[]')\
-;const sources=A\
-rray.from(parent\
-.querySelectorAl\
-l('.tool-output[\
-data-tool-keys]'\
-)).filter(el=>(!\
-wanted.length&&e\
-l.id===desired.i\
-d)||JSON.parse(e\
-l.getAttribute('\
-data-tool-keys')\
-||'[]').some(key\
-=>wanted.include\
-s(key)));const e\
-xisting=sources[\
-0];if(!existing)\
-return desired.c\
-loneNode(true);c\
-onst content=thi\
-s._content(exist\
-ing);const expan\
-ded=sources.some\
-(el=>{const body\
-=this._content(e\
-l);return body&&\
-body.classList.c\
-ontains('is-expa\
-nded');});const \
-clone=desired.cl\
-oneNode(true);fo\
-r(const pair of \
-Array.from(clone\
-.querySelectorAl\
-l('[data-tool-ke\
-y]'))){const old\
-=sources.flatMap\
-(source=>Array.f\
-rom(source.query\
-SelectorAll('[da\
-ta-tool-key]')))\
-.find(el=>el.get\
-Attribute('data-\
-tool-key')===pai\
-r.getAttribute('\
-data-tool-key'))\
-;if(!old)continu\
-e;for(const sele\
-ctor of['.tool-o\
-utput-request-da\
-ta','.tool-outpu\
-t-result-data'])\
-{const nextData=\
-pair.querySelect\
-or(selector),old\
-Data=old.querySe\
-lector(selector)\
-;if(!nextData||!\
-oldData)continue\
-;const raw=el=>{\
-const payload=el\
-.querySelector('\
-[data-tool-raw]'\
-);if(payload)ret\
-urn payload.getA\
-ttribute('data-t\
-ool-raw');const \
-pending=el.query\
-Selector('[md-bl\
-ock-markdown]');\
-if(pending)retur\
-n pending.textCo\
-ntent;const code\
-=el.querySelecto\
-r('pre code');re\
-turn code?this._\
-codeMarkdown(cod\
-e.textContent):'\
-';};if(raw(nextD\
-ata)===raw(oldDa\
-ta))nextData.rep\
-laceWith(oldData\
-);}\x0aconst oldIte\
-m=old.closest('.\
-tool-output-item\
-'),nextItem=pair\
-.closest('.tool-\
-output-item');if\
-(nextItem&&((old\
-Item&&oldItem.qu\
-erySelector('[ar\
-ia-expanded=\x22tru\
-e\x22]'))||(!oldIte\
-m&&expanded))){t\
-his._setExpanded\
-(nextItem.queryS\
-elector('.tool-g\
-roup-content'),t\
-rue);nextItem.qu\
-erySelector('but\
-ton').setAttribu\
-te('aria-expande\
-d','true');nextI\
-tem.querySelecto\
-r('.tool-output-\
-arrow').classLis\
-t.add('toggle-ex\
-panded');}}\x0afor(\
-const attr of Ar\
-ray.from(existin\
-g.attributes))ex\
-isting.removeAtt\
-ribute(attr.name\
-);for(const attr\
- of Array.from(c\
-lone.attributes)\
-)existing.setAtt\
-ribute(attr.name\
-,attr.value);con\
-st oldHeader=thi\
-s.directChild(ex\
-isting,'.tool-ou\
-tput-toggle');co\
-nst newHeader=th\
-is.directChild(c\
-lone,'.tool-outp\
-ut-toggle');if(o\
-ldHeader&&newHea\
-der){oldHeader.o\
-nclick=null;for(\
-const attr of Ar\
-ray.from(oldHead\
-er.attributes))o\
-ldHeader.removeA\
-ttribute(attr.na\
-me);for(const at\
+_calls)?block.ex\
+tra.tool_calls.f\
+ilter(Boolean):[\
+];const hasToolC\
+alls=toolCalls.l\
+ength>0;const to\
+olOnly=hasToolCa\
+lls&&!mdText;con\
+st chainContinua\
+tion=!!(block.ex\
+tra&&block.extra\
+.tool_chain_cont\
+inuation===true)\
+;const toolChain\
+Attrs=hasToolCal\
+ls?` data-tool-o\
+nly='${toolOnly \
+? '1' : '0'}' da\
+ta-tool-chain-co\
+ntinuation='${ch\
+ainContinuation \
+? '1' : '0'}'`:'\
+';return(`<div c\
+lass='msg-box ms\
+g-bot' id='${msg\
+Id}'${toolChainA\
+ttrs}>`+`${nameH\
+eader}`+`<div cl\
+ass='msg'>`+`<di\
+v class='msg-tim\
+eline'>${primary\
+Html}${toolWrap}\
+</div>`+`<div cl\
+ass='msg-tool-ex\
+tra'></div>`+`<d\
+iv class='msg-ex\
+tra'>${extras}</\
+div>`+`${actions\
+}${debug}`+`</di\
+v>`+`</div>`);}}\
+;\x0a\x0a/* data/js/ap\
+p/tool.js */\x0acla\
+ss ToolOutput{co\
+nstructor(scroll\
+Mgr=null,{templa\
+tes=null,rendere\
+r=null,findStatu\
+sHost=()=>null}=\
+{}){this.groups=\
+new ToolGroups(t\
+his);this.scroll\
+Mgr=scrollMgr;th\
+is.templates=tem\
+plates;this.rend\
+erer=renderer;th\
+is.findStatusHos\
+t=findStatusHost\
+;this._viewportA\
+nchorSeq=0;this.\
+_viewportAnchorT\
+imer=0;}\x0areconci\
+le(parent,desire\
+d){const wanted=\
+JSON.parse(desir\
+ed.getAttribute(\
+'data-tool-keys'\
+)||'[]');const s\
+ources=Array.fro\
+m(parent.querySe\
+lectorAll('.tool\
+-output[data-too\
+l-keys]')).filte\
+r(el=>(!wanted.l\
+ength&&el.id===d\
+esired.id)||JSON\
+.parse(el.getAtt\
+ribute('data-too\
+l-keys')||'[]').\
+some(key=>wanted\
+.includes(key)))\
+;const existing=\
+sources[0];if(!e\
+xisting)return d\
+esired.cloneNode\
+(true);const con\
+tent=this._conte\
+nt(existing);con\
+st expanded=sour\
+ces.some(el=>{co\
+nst body=this._c\
+ontent(el);retur\
+n body&&body.cla\
+ssList.contains(\
+'is-expanded');}\
+);const clone=de\
+sired.cloneNode(\
+true);for(const \
+pair of Array.fr\
+om(clone.querySe\
+lectorAll('[data\
+-tool-key]'))){c\
+onst old=sources\
+.flatMap(source=\
+>Array.from(sour\
+ce.querySelector\
+All('[data-tool-\
+key]'))).find(el\
+=>el.getAttribut\
+e('data-tool-key\
+')===pair.getAtt\
+ribute('data-too\
+l-key'));if(!old\
+)continue;for(co\
+nst selector of[\
+'.tool-output-re\
+quest-data','.to\
+ol-output-result\
+-data']){const n\
+extData=pair.que\
+rySelector(selec\
+tor),oldData=old\
+.querySelector(s\
+elector);if(!nex\
+tData||!oldData)\
+continue;const r\
+aw=el=>{const pa\
+yload=el.querySe\
+lector('[data-to\
+ol-raw]');if(pay\
+load)return payl\
+oad.getAttribute\
+('data-tool-raw'\
+);const pending=\
+el.querySelector\
+('[md-block-mark\
+down]');if(pendi\
+ng)return pendin\
+g.textContent;co\
+nst code=el.quer\
+ySelector('pre c\
+ode');return cod\
+e?this._codeMark\
+down(code.textCo\
+ntent):'';};if(r\
+aw(nextData)===r\
+aw(oldData))next\
+Data.replaceWith\
+(oldData);}\x0acons\
+t oldItem=old.cl\
+osest('.tool-out\
+put-item'),nextI\
+tem=pair.closest\
+('.tool-output-i\
+tem');if(nextIte\
+m&&((oldItem&&ol\
+dItem.querySelec\
+tor('[aria-expan\
+ded=\x22true\x22]'))||\
+(!oldItem&&expan\
+ded))){this._set\
+Expanded(nextIte\
+m.querySelector(\
+'.tool-group-con\
+tent'),true);nex\
+tItem.querySelec\
+tor('button').se\
+tAttribute('aria\
+-expanded','true\
+');nextItem.quer\
+ySelector('.tool\
+-output-arrow').\
+classList.add('t\
+oggle-expanded')\
+;}}\x0afor(const at\
 tr of Array.from\
-(newHeader.attri\
+(existing.attrib\
+utes))existing.r\
+emoveAttribute(a\
+ttr.name);for(co\
+nst attr of Arra\
+y.from(clone.att\
+ributes))existin\
+g.setAttribute(a\
+ttr.name,attr.va\
+lue);const oldHe\
+ader=this.direct\
+Child(existing,'\
+.tool-output-tog\
+gle');const newH\
+eader=this.direc\
+tChild(clone,'.t\
+ool-output-toggl\
+e');if(oldHeader\
+&&newHeader){old\
+Header.onclick=n\
+ull;for(const at\
+tr of Array.from\
+(oldHeader.attri\
 butes))oldHeader\
-.setAttribute(at\
-tr.name,attr.val\
-ue);for(const ch\
-ild of Array.fro\
-m(newHeader.chil\
-dren)){const old\
-Child=Array.from\
-(oldHeader.child\
-ren).find(el=>el\
-.className===chi\
-ld.className);if\
-(!oldChild)conti\
-nue;if(oldChild.\
-textContent!==ch\
-ild.textContent)\
-oldChild.textCon\
-tent=child.textC\
-ontent;child.rep\
-laceWith(oldChil\
-d);}\x0aoldHeader.r\
-eplaceChildren(.\
-..Array.from(new\
-Header.childNode\
-s));newHeader.re\
-placeWith(oldHea\
-der);}\x0aconst new\
-Content=this._co\
-ntent(clone);if(\
-content&&newCont\
-ent){const body=\
-this._contentBod\
-y(content);body.\
-replaceChildren(\
-...Array.from(th\
-is._contentBody(\
-newContent).chil\
-dNodes));newCont\
-ent.replaceWith(\
-content);}\x0aexist\
-ing.replaceChild\
-ren(...Array.fro\
-m(clone.childNod\
-es));if(expanded\
-){this._setExpan\
-ded(this._conten\
-t(existing),true\
-);existing.query\
-Selector('button\
-').setAttribute(\
-'aria-expanded',\
-'true');existing\
-.querySelector('\
-.tool-output-arr\
-ow').classList.a\
-dd('toggle-expan\
-ded');}\x0afor(cons\
-t duplicate of s\
-ources.slice(1))\
-duplicate.remove\
-();return existi\
-ng;}\x0asyncLive(pa\
-rentId,calls){co\
-nst host=this.fi\
-ndStatusHost(par\
-entId,false);if(\
-!host||!calls.le\
-ngth)return;cons\
-t status=Array.f\
-rom(host.timelin\
-e.querySelectorA\
-ll('.workflow-st\
-atus')).reverse(\
-).find(el=>el.da\
-taset.statusKind\
-==='tool');if(!s\
-tatus)return;con\
-st shell=documen\
-t.createElement(\
-'div');shell.inn\
-erHTML=this.temp\
-lates.tools.rend\
-erToolOutputWrap\
-per({id:`live-${\
-parentId}`,extra\
-:{tool_calls:cal\
-ls,tool_output_v\
-isible:true}});c\
-onst desired=she\
-ll.firstElementC\
-hild;desired.set\
-Attribute('data-\
-live-tools','1')\
-;desired.classLi\
-st.add('tool-out\
-put-live');const\
- output=this.rec\
-oncile(host.time\
-line,desired);ou\
-tput.querySelect\
-or('button').onc\
-lick=()=>this.to\
-ggle(`live-${par\
-entId}`);status.\
-classList.add('l\
-ive-tool-status'\
-);if(!output.isC\
-onnected)status.\
-appendChild(outp\
-ut);status.style\
-.display=status.\
-contains(output)\
-?'':'none';this.\
-renderer.renderP\
-endingMarkdown(o\
-utput);}\x0adirectC\
-hild(parent,sele\
-ctor){if(!parent\
-||!parent.childr\
-en)return null;c\
-onst children=Ar\
-ray.from(parent.\
-children);for(le\
-t i=0;i<children\
-.length;i++){con\
-st child=childre\
-n[i];try{if(chil\
-d.matches(select\
-or))return child\
-;}catch(_){}}\x0are\
-turn null;}\x0ashow\
-Loader(){return;\
-}\x0ahideLoader(){c\
-onst elements=do\
-cument.querySele\
-ctorAll('.msg-bo\
-t');if(elements.\
-length>0)element\
-s.forEach(el=>{c\
-onst s=el.queryS\
-elector('.spinne\
-r');if(s)s.style\
-.display='none';\
-});}\x0abegin(){thi\
-s.showLoader();}\
-\x0aend(){this.hide\
-Loader();}\x0aenabl\
-e(){const els=th\
-is._mutableOutpu\
-ts();if(els.leng\
-th)els[els.lengt\
-h-1].style.displ\
-ay='block';}\x0adis\
-able(){const els\
-=this._mutableOu\
-tputs();if(els.l\
-ength)els[els.le\
-ngth-1].style.di\
-splay='none';}\x0aa\
-ppend(content){t\
+.removeAttribute\
+(attr.name);for(\
+const attr of Ar\
+ray.from(newHead\
+er.attributes))o\
+ldHeader.setAttr\
+ibute(attr.name,\
+attr.value);for(\
+const child of A\
+rray.from(newHea\
+der.children)){c\
+onst oldChild=Ar\
+ray.from(oldHead\
+er.children).fin\
+d(el=>el.classNa\
+me===child.class\
+Name);if(!oldChi\
+ld)continue;if(o\
+ldChild.textCont\
+ent!==child.text\
+Content)oldChild\
+.textContent=chi\
+ld.textContent;c\
+hild.replaceWith\
+(oldChild);}\x0aold\
+Header.replaceCh\
+ildren(...Array.\
+from(newHeader.c\
+hildNodes));newH\
+eader.replaceWit\
+h(oldHeader);}\x0ac\
+onst newContent=\
+this._content(cl\
+one);if(content&\
+&newContent){con\
+st body=this._co\
+ntentBody(conten\
+t);body.replaceC\
+hildren(...Array\
+.from(this._cont\
+entBody(newConte\
+nt).childNodes))\
+;newContent.repl\
+aceWith(content)\
+;}\x0aexisting.repl\
+aceChildren(...A\
+rray.from(clone.\
+childNodes));if(\
+expanded){this._\
+setExpanded(this\
+._content(existi\
+ng),true);existi\
+ng.querySelector\
+('button').setAt\
+tribute('aria-ex\
+panded','true');\
+existing.querySe\
+lector('.tool-ou\
+tput-arrow').cla\
+ssList.add('togg\
+le-expanded');}\x0a\
+for(const duplic\
+ate of sources.s\
+lice(1))duplicat\
+e.remove();retur\
+n existing;}\x0asyn\
+cLive(parentId,c\
+alls){const host\
+=this.findStatus\
+Host(parentId,fa\
+lse);if(!host||!\
+calls.length)ret\
+urn;const status\
+=Array.from(host\
+.timeline.queryS\
+electorAll('.wor\
+kflow-status')).\
+reverse().find(e\
+l=>el.dataset.st\
+atusKind==='tool\
+');if(!status)re\
+turn;const shell\
+=document.create\
+Element('div');s\
+hell.innerHTML=t\
+his.templates.to\
+ols.renderToolOu\
+tputWrapper({id:\
+`live-${parentId\
+}`,extra:{tool_c\
+alls:calls,tool_\
+output_visible:t\
+rue}});const des\
+ired=shell.first\
+ElementChild;des\
+ired.setAttribut\
+e('data-live-too\
+ls','1');desired\
+.classList.add('\
+tool-output-live\
+');const output=\
+this.reconcile(h\
+ost.timeline,des\
+ired);output.que\
+rySelector('butt\
+on').onclick=()=\
+>this.toggle(`li\
+ve-${parentId}`)\
+;status.classLis\
+t.add('live-tool\
+-status');if(!ou\
+tput.isConnected\
+)status.appendCh\
+ild(output);stat\
+us.style.display\
+=status.contains\
+(output)?'':'non\
+e';this.renderer\
+.renderPendingMa\
+rkdown(output);}\
+\x0adirectChild(par\
+ent,selector){if\
+(!parent||!paren\
+t.children)retur\
+n null;const chi\
+ldren=Array.from\
+(parent.children\
+);for(let i=0;i<\
+children.length;\
+i++){const child\
+=children[i];try\
+{if(child.matche\
+s(selector))retu\
+rn child;}catch(\
+_){}}\x0areturn nul\
+l;}\x0ashowLoader()\
+{return;}\x0ahideLo\
+ader(){const ele\
+ments=document.q\
+uerySelectorAll(\
+'.msg-bot');if(e\
+lements.length>0\
+)elements.forEac\
+h(el=>{const s=e\
+l.querySelector(\
+'.spinner');if(s\
+)s.style.display\
+='none';});}\x0abeg\
+in(){this.showLo\
+ader();}\x0aend(){t\
 his.hideLoader()\
-;this.enable();c\
+;}\x0aenable(){cons\
+t els=this._muta\
+bleOutputs();if(\
+els.length)els[e\
+ls.length-1].sty\
+le.display='bloc\
+k';}\x0adisable(){c\
 onst els=this._m\
 utableOutputs();\
-if(els.length){c\
-onst contentEl=t\
-his._content(els\
-[els.length-1]);\
-if(!contentEl)re\
-turn;const resul\
-ts=contentEl.que\
-rySelectorAll('.\
-tool-output-resu\
-lt-data');const \
-resultEl=results\
-.length?results[\
-results.length-1\
-]:null;if(result\
-El){const next=t\
-his._resultRaw(r\
-esultEl)+(conten\
-t==null?'':Strin\
-g(content));this\
+if(els.length)el\
+s[els.length-1].\
+style.display='n\
+one';}\x0aappend(co\
+ntent){this.hide\
+Loader();this.en\
+able();const els\
+=this._mutableOu\
+tputs();if(els.l\
+ength){const con\
+tentEl=this._con\
+tent(els[els.len\
+gth-1]);if(!cont\
+entEl)return;con\
+st results=conte\
+ntEl.querySelect\
+orAll('.tool-out\
+put-result-data'\
+);const resultEl\
+=results.length?\
+results[results.\
+length-1]:null;i\
+f(resultEl){cons\
+t next=this._res\
+ultRaw(resultEl)\
++(content==null?\
+'':String(conten\
+t));this._render\
+StructuredResult\
+(resultEl,next);\
+}else{this._cont\
+entBody(contentE\
+l).insertAdjacen\
+tHTML('beforeend\
+',content==null?\
+'':String(conten\
+t));}}}\x0aupdate(c\
+ontent){this.hid\
+eLoader();this.e\
+nable();const el\
+s=this._mutableO\
+utputs();if(els.\
+length){const co\
+ntentEl=this._co\
+ntent(els[els.le\
+ngth-1]);if(!con\
+tentEl)return;co\
+nst results=cont\
+entEl.querySelec\
+torAll('.tool-ou\
+tput-result-data\
+');const resultE\
+l=results.length\
+?results[results\
+.length-1]:null;\
+if(resultEl){thi\
+s._renderStructu\
+redResult(result\
+El,content);}els\
+e{this._contentB\
+ody(contentEl).i\
+nnerHTML=content\
+==null?'':String\
+(content);}}}\x0acl\
+ear(){this.hideL\
+oader();const el\
+s=this._mutableO\
+utputs();if(els.\
+length){const co\
+ntentEl=this._co\
+ntent(els[els.le\
+ngth-1]);if(!con\
+tentEl)return;co\
+nst results=cont\
+entEl.querySelec\
+torAll('.tool-ou\
+tput-result-data\
+');const resultE\
+l=results.length\
+?results[results\
+.length-1]:null;\
+if(resultEl)this\
 ._renderStructur\
 edResult(resultE\
-l,next);}else{th\
-is._contentBody(\
-contentEl).inser\
-tAdjacentHTML('b\
-eforeend',conten\
-t==null?'':Strin\
-g(content));}}}\x0a\
-update(content){\
-this.hideLoader(\
-);this.enable();\
-const els=this._\
-mutableOutputs()\
-;if(els.length){\
-const contentEl=\
-this._content(el\
-s[els.length-1])\
-;if(!contentEl)r\
-eturn;const resu\
-lts=contentEl.qu\
-erySelectorAll('\
-.tool-output-res\
-ult-data');const\
- resultEl=result\
-s.length?results\
-[results.length-\
-1]:null;if(resul\
-tEl){this._rende\
-rStructuredResul\
-t(resultEl,conte\
-nt);}else{this._\
-contentBody(cont\
-entEl).innerHTML\
-=content==null?'\
-':String(content\
-);}}}\x0aclear(){th\
-is.hideLoader();\
-const els=this._\
-mutableOutputs()\
-;if(els.length){\
-const contentEl=\
-this._content(el\
-s[els.length-1])\
-;if(!contentEl)r\
-eturn;const resu\
-lts=contentEl.qu\
-erySelectorAll('\
-.tool-output-res\
-ult-data');const\
- resultEl=result\
-s.length?results\
-[results.length-\
-1]:null;if(resul\
-tEl)this._render\
-StructuredResult\
-(resultEl,'');el\
-se this._content\
-Body(contentEl).\
-replaceChildren(\
-);}}\x0atoggleGroup\
-(id){const group\
-El=document.getE\
-lementById(Strin\
-g(id||''));if(!g\
-roupEl)return;co\
-nst content=this\
-.directChild(gro\
-upEl,'.tool-grou\
-p-content');if(!\
-content)return;c\
-onst header=this\
-.directChild(gro\
-upEl,'.tool-outp\
-ut-toggle.tool-g\
-roup-toggle');co\
-nst expanded=!co\
-ntent.classList.\
-contains('is-exp\
-anded');this._wi\
-thViewportAnchor\
-(header||groupEl\
-,()=>{this._setE\
-xpanded(content,\
-expanded);if(hea\
-der)header.setAt\
-tribute('aria-ex\
-panded',expanded\
-?'true':'false')\
-;const arrow=hea\
-der?header.query\
-Selector('.tool-\
-group-arrow'):nu\
-ll;if(arrow)arro\
-w.classList.togg\
-le('toggle-expan\
-ded',expanded);}\
-);}\x0atoggle(id){l\
-et outputEl=docu\
-ment.getElementB\
-yId('tool-output\
--'+id);if(!outpu\
-tEl){const el=do\
-cument.getElemen\
-tById('msg-bot-'\
-+id);if(!el)retu\
-rn;outputEl=el.q\
-uerySelector('.t\
-ool-output:not(.\
-tool-output-grou\
-p)');}\x0aif(!outpu\
-tEl)return;const\
- contentEl=this.\
-_content(outputE\
-l);if(!contentEl\
-)return;const he\
-aderEl=outputEl.\
-querySelector('.\
-tool-output-togg\
-le');const expan\
-ded=!contentEl.c\
-lassList.contain\
-s('is-expanded')\
-;this._withViewp\
-ortAnchor(header\
-El||outputEl,()=\
->{this._setExpan\
-ded(contentEl,ex\
-panded);if(heade\
-rEl)headerEl.set\
-Attribute('aria-\
-expanded',expand\
-ed?'true':'false\
-');const arrowEl\
-=outputEl.queryS\
-elector('.tool-o\
-utput-arrow')||o\
-utputEl.querySel\
-ector('.toggle-c\
-md-output img');\
-if(arrowEl)arrow\
-El.classList.tog\
-gle('toggle-expa\
-nded',expanded);\
-});}\x0a_withViewpo\
-rtAnchor(anchorE\
-l,mutate){if(typ\
-eof mutate!=='fu\
-nction')return;c\
-onst anchor=anch\
-orEl&&anchorEl.i\
-sConnected?ancho\
-rEl:null;const s\
-croller=(typeof \
-Utils!=='undefin\
-ed'&&Utils.SE)?U\
-tils.SE:(documen\
-t.scrollingEleme\
-nt||document.doc\
-umentElement);co\
-nst beforeTop=an\
-chor?anchor.getB\
-oundingClientRec\
-t().top:null;con\
-st scrollMgr=thi\
-s.scrollMgr;if(s\
-crollMgr&&typeof\
- scrollMgr.suspe\
-ndAutoFollow==='\
-function'){scrol\
-lMgr.suspendAuto\
-Follow();}\x0aconst\
- root=document.d\
-ocumentElement;i\
-f(root&&root.cla\
-ssList)root.clas\
-sList.add('tool-\
-viewport-anchor-\
-lock');mutate();\
-const seq=++this\
-._viewportAnchor\
-Seq;const correc\
-t=()=>{if(seq!==\
-this._viewportAn\
-chorSeq||!anchor\
-||!anchor.isConn\
-ected||beforeTop\
-==null||!scrolle\
-r)return;const d\
-elta=anchor.getB\
-oundingClientRec\
-t().top-beforeTo\
-p;if(Math.abs(de\
-lta)<=0.5)return\
-;const maxTop=Ma\
-th.max(0,Number(\
-scroller.scrollH\
-eight||0)-Number\
-(scroller.client\
-Height||0));cons\
-t target=Math.ma\
-x(0,Math.min(max\
-Top,Number(scrol\
-ler.scrollTop||0\
-)+delta));if(scr\
-ollMgr&&typeof s\
-crollMgr.markPro\
-grammaticScroll=\
-=='function'){sc\
-rollMgr.markProg\
-rammaticScroll(t\
-arget);}\x0atry{scr\
-oller.scrollTop=\
-target;}catch(_)\
-{}};try{requestA\
-nimationFrame(co\
-rrect);}catch(_)\
-{correct();}\x0aif(\
-this._viewportAn\
-chorTimer)clearT\
-imeout(this._vie\
-wportAnchorTimer\
-);this._viewport\
-AnchorTimer=setT\
-imeout(()=>{if(s\
-eq!==this._viewp\
-ortAnchorSeq)ret\
-urn;correct();if\
-(root&&root.clas\
-sList)root.class\
-List.remove('too\
-l-viewport-ancho\
-r-lock');this._v\
-iewportAnchorTim\
-er=0;if(scrollMg\
-r&&typeof scroll\
-Mgr.scheduleScro\
-llFabUpdate==='f\
-unction'){scroll\
-Mgr.scheduleScro\
-llFabUpdate();}}\
-,280);}\x0a_prepare\
-Collapsible(cont\
-entEl){if(!conte\
-ntEl)return null\
-;let inner=this.\
-directChild(cont\
-entEl,'.tool-col\
-lapse-inner');le\
-t body=inner?thi\
-s.directChild(in\
-ner,'.tool-colla\
-pse-body'):null;\
-if(!inner){inner\
-=document.create\
-Element('div');i\
-nner.className='\
-tool-collapse-in\
-ner';body=docume\
-nt.createElement\
-('div');body.cla\
-ssName='tool-col\
-lapse-body';whil\
-e(contentEl.firs\
-tChild)body.appe\
-ndChild(contentE\
-l.firstChild);in\
-ner.appendChild(\
-body);contentEl.\
-appendChild(inne\
-r);}else if(!bod\
-y){body=document\
-.createElement('\
-div');body.class\
-Name='tool-colla\
-pse-body';while(\
-inner.firstChild\
-)body.appendChil\
-d(inner.firstChi\
-ld);inner.append\
-Child(body);}\x0aif\
-(contentEl.style\
-&&contentEl.styl\
-e.display==='non\
-e'){contentEl.st\
-yle.removeProper\
-ty('display');vo\
-id contentEl.off\
-setHeight;}\x0aretu\
-rn body;}\x0a_setEx\
-panded(contentEl\
-,expanded){if(!c\
-ontentEl)return;\
-this._prepareCol\
-lapsible(content\
-El);contentEl.cl\
-assList.toggle('\
-is-expanded',!!e\
-xpanded);}\x0a_cont\
-ent(outputEl){if\
-(!outputEl)retur\
-n null;return ou\
-tputEl.querySele\
+l,'');else this.\
+_contentBody(con\
+tentEl).replaceC\
+hildren();}}\x0atog\
+gleGroup(id){con\
+st groupEl=docum\
+ent.getElementBy\
+Id(String(id||''\
+));if(!groupEl)r\
+eturn;const cont\
+ent=this.directC\
+hild(groupEl,'.t\
+ool-group-conten\
+t');if(!content)\
+return;const hea\
+der=this.directC\
+hild(groupEl,'.t\
+ool-output-toggl\
+e.tool-group-tog\
+gle');const expa\
+nded=!content.cl\
+assList.contains\
+('is-expanded');\
+this._withViewpo\
+rtAnchor(header|\
+|groupEl,()=>{th\
+is._setExpanded(\
+content,expanded\
+);if(header)head\
+er.setAttribute(\
+'aria-expanded',\
+expanded?'true':\
+'false');const a\
+rrow=header?head\
+er.querySelector\
+('.tool-group-ar\
+row'):null;if(ar\
+row)arrow.classL\
+ist.toggle('togg\
+le-expanded',exp\
+anded);});}\x0atogg\
+le(id){let outpu\
+tEl=document.get\
+ElementById('too\
+l-output-'+id);i\
+f(!outputEl){con\
+st el=document.g\
+etElementById('m\
+sg-bot-'+id);if(\
+!el)return;outpu\
+tEl=el.querySele\
 ctor('.tool-outp\
-ut-content, .con\
-tent');}\x0a_conten\
-tBody(contentEl)\
-{if(!contentEl)r\
-eturn null;const\
- inner=this.dire\
-ctChild(contentE\
-l,'.tool-collaps\
-e-inner');return\
-(inner&&this.dir\
-ectChild(inner,'\
-.tool-collapse-b\
-ody'))||inner||c\
-ontentEl;}\x0a_muta\
-bleOutputs(){con\
-st outputs=Array\
-.from(document.q\
-uerySelectorAll(\
-'.tool-output'))\
-;return outputs.\
-filter((el)=>{if\
-(!el||!el.classL\
-ist)return false\
-;if(el.classList\
-.contains('agent\
--workflow-output\
-'))return false;\
-if(el.classList.\
-contains('tool-o\
-utput-group'))re\
-turn false;try{i\
-f(el.closest('.a\
-gent-workflow-ou\
-tput'))return fa\
-lse;}catch(_){}\x0a\
-return true;});}\
-\x0a_formatPayload(\
-value){if(value=\
-=null)return'';c\
-onst raw=String(\
-value);const tri\
-mmed=raw.trim();\
-if(!trimmed)retu\
-rn'';try{return \
-JSON.stringify(J\
-SON.parse(trimme\
-d),null,2);}catc\
-h(_){return raw;\
-}}\x0a_codeMarkdown\
-(value){const te\
-xt=this._formatP\
-ayload(value);if\
-(!text)return'';\
-let maxTicks=0;c\
-onst runs=text.m\
-atch(/`+/g);if(r\
-uns)runs.forEach\
-(run=>{maxTicks=\
-Math.max(maxTick\
-s,run.length);})\
-;const fence='`'\
-.repeat(Math.max\
-(3,maxTicks+1));\
-return`${fence}j\
-son\x5cn${text}\x5cn${\
-fence}`;}\x0a_resul\
-tRaw(resultEl){i\
+ut:not(.tool-out\
+put-group)');}\x0ai\
+f(!outputEl)retu\
+rn;const content\
+El=this._content\
+(outputEl);if(!c\
+ontentEl)return;\
+const headerEl=o\
+utputEl.querySel\
+ector('.tool-out\
+put-toggle');con\
+st expanded=!con\
+tentEl.classList\
+.contains('is-ex\
+panded');this._w\
+ithViewportAncho\
+r(headerEl||outp\
+utEl,()=>{this._\
+setExpanded(cont\
+entEl,expanded);\
+if(headerEl)head\
+erEl.setAttribut\
+e('aria-expanded\
+',expanded?'true\
+':'false');const\
+ arrowEl=outputE\
+l.querySelector(\
+'.tool-output-ar\
+row')||outputEl.\
+querySelector('.\
+toggle-cmd-outpu\
+t img');if(arrow\
+El)arrowEl.class\
+List.toggle('tog\
+gle-expanded',ex\
+panded);});}\x0a_wi\
+thViewportAnchor\
+(anchorEl,mutate\
+){if(typeof muta\
+te!=='function')\
+return;const anc\
+hor=anchorEl&&an\
+chorEl.isConnect\
+ed?anchorEl:null\
+;const scroller=\
+(typeof Utils!==\
+'undefined'&&Uti\
+ls.SE)?Utils.SE:\
+(document.scroll\
+ingElement||docu\
+ment.documentEle\
+ment);const befo\
+reTop=anchor?anc\
+hor.getBoundingC\
+lientRect().top:\
+null;const scrol\
+lMgr=this.scroll\
+Mgr;if(scrollMgr\
+&&typeof scrollM\
+gr.suspendAutoFo\
+llow==='function\
+'){scrollMgr.sus\
+pendAutoFollow()\
+;}\x0aconst root=do\
+cument.documentE\
+lement;if(root&&\
+root.classList)r\
+oot.classList.ad\
+d('tool-viewport\
+-anchor-lock');m\
+utate();const se\
+q=++this._viewpo\
+rtAnchorSeq;cons\
+t correct=()=>{i\
+f(seq!==this._vi\
+ewportAnchorSeq|\
+|!anchor||!ancho\
+r.isConnected||b\
+eforeTop==null||\
+!scroller)return\
+;const delta=anc\
+hor.getBoundingC\
+lientRect().top-\
+beforeTop;if(Mat\
+h.abs(delta)<=0.\
+5)return;const m\
+axTop=Math.max(0\
+,Number(scroller\
+.scrollHeight||0\
+)-Number(scrolle\
+r.clientHeight||\
+0));const target\
+=Math.max(0,Math\
+.min(maxTop,Numb\
+er(scroller.scro\
+llTop||0)+delta)\
+);if(scrollMgr&&\
+typeof scrollMgr\
+.markProgrammati\
+cScroll==='funct\
+ion'){scrollMgr.\
+markProgrammatic\
+Scroll(target);}\
+\x0atry{scroller.sc\
+rollTop=target;}\
+catch(_){}};try{\
+requestAnimation\
+Frame(correct);}\
+catch(_){correct\
+();}\x0aif(this._vi\
+ewportAnchorTime\
+r)clearTimeout(t\
+his._viewportAnc\
+horTimer);this._\
+viewportAnchorTi\
+mer=setTimeout((\
+)=>{if(seq!==thi\
+s._viewportAncho\
+rSeq)return;corr\
+ect();if(root&&r\
+oot.classList)ro\
+ot.classList.rem\
+ove('tool-viewpo\
+rt-anchor-lock')\
+;this._viewportA\
+nchorTimer=0;if(\
+scrollMgr&&typeo\
+f scrollMgr.sche\
+duleScrollFabUpd\
+ate==='function'\
+){scrollMgr.sche\
+duleScrollFabUpd\
+ate();}},280);}\x0a\
+_prepareCollapsi\
+ble(contentEl){i\
+f(!contentEl)ret\
+urn null;let inn\
+er=this.directCh\
+ild(contentEl,'.\
+tool-collapse-in\
+ner');let body=i\
+nner?this.direct\
+Child(inner,'.to\
+ol-collapse-body\
+'):null;if(!inne\
+r){inner=documen\
+t.createElement(\
+'div');inner.cla\
+ssName='tool-col\
+lapse-inner';bod\
+y=document.creat\
+eElement('div');\
+body.className='\
+tool-collapse-bo\
+dy';while(conten\
+tEl.firstChild)b\
+ody.appendChild(\
+contentEl.firstC\
+hild);inner.appe\
+ndChild(body);co\
+ntentEl.appendCh\
+ild(inner);}else\
+ if(!body){body=\
+document.createE\
+lement('div');bo\
+dy.className='to\
+ol-collapse-body\
+';while(inner.fi\
+rstChild)body.ap\
+pendChild(inner.\
+firstChild);inne\
+r.appendChild(bo\
+dy);}\x0aif(content\
+El.style&&conten\
+tEl.style.displa\
+y==='none'){cont\
+entEl.style.remo\
+veProperty('disp\
+lay');void conte\
+ntEl.offsetHeigh\
+t;}\x0areturn body;\
+}\x0a_setExpanded(c\
+ontentEl,expande\
+d){if(!contentEl\
+)return;this._pr\
+epareCollapsible\
+(contentEl);cont\
+entEl.classList.\
+toggle('is-expan\
+ded',!!expanded)\
+;}\x0a_content(outp\
+utEl){if(!output\
+El)return null;r\
+eturn outputEl.q\
+uerySelector('.t\
+ool-output-conte\
+nt, .content');}\
+\x0a_contentBody(co\
+ntentEl){if(!con\
+tentEl)return nu\
+ll;const inner=t\
+his.directChild(\
+contentEl,'.tool\
+-collapse-inner'\
+);return(inner&&\
+this.directChild\
+(inner,'.tool-co\
+llapse-body'))||\
+inner||contentEl\
+;}\x0a_mutableOutpu\
+ts(){const outpu\
+ts=Array.from(do\
+cument.querySele\
+ctorAll('.tool-o\
+utput'));return \
+outputs.filter((\
+el)=>{if(!el||!e\
+l.classList)retu\
+rn false;if(el.c\
+lassList.contain\
+s('agent-workflo\
+w-output'))retur\
+n false;if(el.cl\
+assList.contains\
+('tool-output-gr\
+oup'))return fal\
+se;try{if(el.clo\
+sest('.agent-wor\
+kflow-output'))r\
+eturn false;}cat\
+ch(_){}\x0areturn t\
+rue;});}\x0a_format\
+Payload(value){i\
+f(value==null)re\
+turn'';const raw\
+=String(value);c\
+onst trimmed=raw\
+.trim();if(!trim\
+med)return'';try\
+{return JSON.str\
+ingify(JSON.pars\
+e(trimmed),null,\
+2);}catch(_){ret\
+urn raw;}}\x0a_code\
+Markdown(value){\
+const text=this.\
+_formatPayload(v\
+alue);if(!text)r\
+eturn'';let maxT\
+icks=0;const run\
+s=text.match(/`+\
+/g);if(runs)runs\
+.forEach(run=>{m\
+axTicks=Math.max\
+(maxTicks,run.le\
+ngth);});const f\
+ence='`'.repeat(\
+Math.max(3,maxTi\
+cks+1));return`$\
+{fence}json\x5cn${t\
+ext}\x5cn${fence}`;\
+}\x0a_resultRaw(res\
+ultEl){if(!resul\
+tEl)return'';if(\
+Object.prototype\
+.hasOwnProperty.\
+call(resultEl,'_\
+toolRaw')){retur\
+n String(resultE\
+l._toolRaw||'');\
+}\x0aconst payload=\
+resultEl.querySe\
+lector('[data-to\
+ol-raw]');if(pay\
+load)return payl\
+oad.getAttribute\
+('data-tool-raw'\
+);const code=res\
+ultEl.querySelec\
+tor('.code-wrapp\
+er pre code');if\
+(code)return cod\
+e.textContent||'\
+';const pending=\
+resultEl.querySe\
+lector('[md-bloc\
+k-markdown]');if\
+(pending){const \
+src=pending.text\
+Content||'';cons\
+t match=src.matc\
+h(/^(`{3,})json[\
+^\x5cn]*\x5cn([\x5cs\x5cS]*?\
+)\x5cn\x5c1\x5cs*$/i);if(\
+match)return mat\
+ch[2];return src\
+;}\x0areturn result\
+El.textContent||\
+'';}\x0a_renderStru\
+cturedResult(res\
+ultEl,content){i\
 f(!resultEl)retu\
-rn'';if(Object.p\
-rototype.hasOwnP\
-roperty.call(res\
-ultEl,'_toolRaw'\
-)){return String\
-(resultEl._toolR\
-aw||'');}\x0aconst \
-payload=resultEl\
-.querySelector('\
-[data-tool-raw]'\
-);if(payload)ret\
-urn payload.getA\
-ttribute('data-t\
-ool-raw');const \
-code=resultEl.qu\
-erySelector('.co\
-de-wrapper pre c\
-ode');if(code)re\
-turn code.textCo\
-ntent||'';const \
-pending=resultEl\
-.querySelector('\
-[md-block-markdo\
-wn]');if(pending\
-){const src=pend\
-ing.textContent|\
-|'';const match=\
-src.match(/^(`{3\
-,})json[^\x5cn]*\x5cn(\
-[\x5cs\x5cS]*?)\x5cn\x5c1\x5cs*\
-$/i);if(match)re\
-turn match[2];re\
-turn src;}\x0aretur\
-n resultEl.textC\
-ontent||'';}\x0a_re\
-nderStructuredRe\
-sult(resultEl,co\
-ntent){if(!resul\
-tEl)return;const\
- envelope=conten\
-t&&typeof conten\
-t==='object'?con\
-tent:null;const \
-raw=envelope?Str\
-ing(envelope.raw\
-||''):(content==\
-null?'':String(c\
-ontent));const h\
-asContent=raw.tr\
-im()!=='';result\
-El._toolRaw=raw;\
-const responseSe\
-ction=resultEl.c\
-losest('.tool-ou\
-tput-response-se\
-ction');if(respo\
-nseSection)respo\
-nseSection.style\
-.display=hasCont\
-ent?'':'none';re\
-sultEl.replaceCh\
-ildren();if(!has\
-Content)return;c\
-onst responseLab\
-el=(typeof windo\
-w!=='undefined'&\
-&window.LOCALE_T\
-OOL_RESPONSE)?St\
-ring(window.LOCA\
-LE_TOOL_RESPONSE\
-):'Output';if(th\
-is.templates&&th\
-is.templates.too\
-ls){resultEl.inn\
-erHTML=this.temp\
-lates.tools._ren\
-derToolCode(raw,\
-responseLabel,en\
-velope&&envelope\
-.friendly);}else\
-{const md=docume\
-nt.createElement\
-('div');md.setAt\
-tribute('md-bloc\
-k-markdown','1')\
-;md.setAttribute\
-('data-code-head\
-er',responseLabe\
-l);md.textConten\
-t=this._codeMark\
-down(raw);result\
-El.appendChild(m\
-d);}\x0atry{const r\
-enderer=this.ren\
-derer;if(rendere\
-r&&typeof render\
-er.renderPending\
-Markdown==='func\
-tion'){const pen\
-ding=renderer.re\
-nderPendingMarkd\
-own(resultEl);if\
-(pending&&typeof\
- pending.catch==\
-='function')pend\
-ing.catch(()=>{}\
-);}}catch(_){}}}\
-;\x0a\x0a/* data/js/ap\
-p/ui.js */\x0aclass\
- UIManager{updat\
-eCSS(styles){let\
- style=document.\
-getElementById('\
-app-style');if(!\
-style){style=doc\
-ument.createElem\
-ent('style');sty\
-le.id='app-style\
-';document.head.\
-appendChild(styl\
-e);}\x0astyle.textC\
-ontent=styles;}\x0a\
-ensureStickyHead\
-erStyle(){let st\
-yle=document.get\
-ElementById('cod\
-e-sticky-style')\
-;if(style)return\
-;style=document.\
-createElement('s\
-tyle');style.id=\
-'code-sticky-sty\
-le';style.textCo\
-ntent=['html, bo\
-dy { scroll-beha\
-vior: auto !impo\
-rtant; overflow-\
-anchor: none !im\
-portant; }','#co\
-ntainer, #contai\
-ner * { overflow\
--anchor: none !i\
-mportant; }','.c\
-ode-wrapper { po\
+rn;const envelop\
+e=content&&typeo\
+f content==='obj\
+ect'?content:nul\
+l;const raw=enve\
+lope?String(enve\
+lope.raw||''):(c\
+ontent==null?'':\
+String(content))\
+;const hasConten\
+t=raw.trim()!=='\
+';resultEl._tool\
+Raw=raw;const re\
+sponseSection=re\
+sultEl.closest('\
+.tool-output-res\
+ponse-section');\
+if(responseSecti\
+on)responseSecti\
+on.style.display\
+=hasContent?'':'\
+none';resultEl.r\
+eplaceChildren()\
+;if(!hasContent)\
+return;const res\
+ponseLabel=(type\
+of window!=='und\
+efined'&&window.\
+LOCALE_TOOL_RESP\
+ONSE)?String(win\
+dow.LOCALE_TOOL_\
+RESPONSE):'Outpu\
+t';if(this.templ\
+ates&&this.templ\
+ates.tools){resu\
+ltEl.innerHTML=t\
+his.templates.to\
+ols._renderToolC\
+ode(raw,response\
+Label,envelope&&\
+envelope.friendl\
+y);}else{const m\
+d=document.creat\
+eElement('div');\
+md.setAttribute(\
+'md-block-markdo\
+wn','1');md.setA\
+ttribute('data-c\
+ode-header',resp\
+onseLabel);md.te\
+xtContent=this._\
+codeMarkdown(raw\
+);resultEl.appen\
+dChild(md);}\x0atry\
+{const renderer=\
+this.renderer;if\
+(renderer&&typeo\
+f renderer.rende\
+rPendingMarkdown\
+==='function'){c\
+onst pending=ren\
+derer.renderPend\
+ingMarkdown(resu\
+ltEl);if(pending\
+&&typeof pending\
+.catch==='functi\
+on')pending.catc\
+h(()=>{});}}catc\
+h(_){}}};\x0a\x0a/* da\
+ta/js/app/ui.js \
+*/\x0aclass UIManag\
+er{updateCSS(sty\
+les){let style=d\
+ocument.getEleme\
+ntById('app-styl\
+e');if(!style){s\
+tyle=document.cr\
+eateElement('sty\
+le');style.id='a\
+pp-style';docume\
+nt.head.appendCh\
+ild(style);}\x0asty\
+le.textContent=s\
+tyles;}\x0aensureSt\
+ickyHeaderStyle(\
+){let style=docu\
+ment.getElementB\
+yId('code-sticky\
+-style');if(styl\
+e)return;style=d\
+ocument.createEl\
+ement('style');s\
+tyle.id='code-st\
+icky-style';styl\
+e.textContent=['\
+html, body { scr\
+oll-behavior: au\
+to !important; o\
+verflow-anchor: \
+none !important;\
+ }','#container,\
+ #container * { \
+overflow-anchor:\
+ none !important\
+; }','.code-wrap\
+per { position: \
+relative; }','.c\
+ode-wrapper .cod\
+e-header-wrapper\
+ { position: sti\
+cky; top: var(--\
+code-header-stic\
+ky-top, -2px); z\
+-index: 2; box-s\
+hadow: 0 1px 0 r\
+gba(0,0,0,.06); \
+}','.code-wrappe\
+r pre { overflow\
+: visible; margi\
+n-top: 0; }','.c\
+ode-wrapper pre \
+code { display: \
+block; white-spa\
+ce: pre; max-hei\
+ght: 100dvh; ove\
+rflow: auto;',' \
+ overscroll-beha\
+vior: contain; -\
+webkit-overflow-\
+scrolling: touch\
+; overflow-ancho\
+r: none; scrollb\
+ar-gutter: stabl\
+e both-edges; sc\
+roll-behavior: a\
+uto; }','#_loade\
+r_.hidden { disp\
+lay: none !impor\
+tant; opacity: 0\
+; visibility: hi\
+dden !important;\
+ pointer-events:\
+ none !important\
+; }','#_loader_.\
+reserved { displ\
+ay: block !impor\
+tant; opacity: 0\
+; visibility: hi\
+dden !important;\
+ pointer-events:\
+ none !important\
+; }','#_loader_.\
+visible { displa\
+y: block; opacit\
+y: 1; visibility\
+: visible; point\
+er-events: auto;\
+ }','.msg-box.ms\
+g-user .msg { po\
 sition: relative\
-; }','.code-wrap\
-per .code-header\
--wrapper { posit\
-ion: sticky; top\
-: var(--code-hea\
-der-sticky-top, \
--2px); z-index: \
-2; box-shadow: 0\
- 1px 0 rgba(0,0,\
-0,.06); }','.cod\
-e-wrapper pre { \
-overflow: visibl\
-e; margin-top: 0\
-; }','.code-wrap\
-per pre code { d\
-isplay: block; w\
-hite-space: pre;\
- max-height: 100\
-dvh; overflow: a\
-uto;','  overscr\
-oll-behavior: co\
-ntain; -webkit-o\
-verflow-scrollin\
-g: touch; overfl\
-ow-anchor: none;\
- scrollbar-gutte\
-r: stable both-e\
-dges; scroll-beh\
-avior: auto; }',\
-'#_loader_.hidde\
-n { display: non\
-e !important; op\
-acity: 0; visibi\
-lity: hidden !im\
-portant; pointer\
--events: none !i\
-mportant; }','#_\
-loader_.reserved\
- { display: bloc\
-k !important; op\
-acity: 0; visibi\
-lity: hidden !im\
-portant; pointer\
--events: none !i\
-mportant; }','#_\
-loader_.visible \
-{ display: block\
-; opacity: 1; vi\
-sibility: visibl\
-e; pointer-event\
-s: auto; }','.ms\
-g-box.msg-user .\
-msg { position: \
-relative; }','.m\
-sg-box.msg-user \
-.msg > .uc-conte\
-nt { display: bl\
-ock; overflow: v\
-isible; }','.msg\
--box.msg-user .m\
-sg > .uc-content\
-.uc-collapsed {'\
-,'  max-height: \
-var(--user-msg-c\
-ollapse-max-h, 3\
-50px);','  overf\
-low: hidden;',' \
- -webkit-mask-im\
+; }','.msg-box.m\
+sg-user .msg > .\
+uc-content { dis\
+play: block; ove\
+rflow: visible; \
+}','.msg-box.msg\
+-user .msg > .uc\
+-content.uc-coll\
+apsed {','  max-\
+height: var(--us\
+er-msg-collapse-\
+max-h, 350px);',\
+'  overflow: hid\
+den;','  -webkit\
+-mask-image: lin\
+ear-gradient(to \
+bottom, rgba(0,0\
+,0,1) calc(100% \
+- var(--uc-fade-\
+height, 64px)), \
+rgba(0,0,0,0) 10\
+0%);','  mask-im\
 age: linear-grad\
 ient(to bottom, \
 rgba(0,0,0,1) ca\
@@ -143850,1356 +143964,1349 @@ lc(100% - var(--\
 uc-fade-height, \
 64px)), rgba(0,0\
 ,0,0) 100%);',' \
- mask-image: lin\
-ear-gradient(to \
-bottom, rgba(0,0\
-,0,1) calc(100% \
-- var(--uc-fade-\
-height, 64px)), \
-rgba(0,0,0,0) 10\
-0%);','  -webkit\
--mask-size: 100%\
- 100%;','  mask-\
-size: 100% 100%;\
-','  -webkit-mas\
-k-repeat: no-rep\
-eat;','  mask-re\
-peat: no-repeat;\
-','}','.msg-box.\
-msg-user .msg > \
-.uc-content.uc-e\
-xpanded {','  -w\
-ebkit-mask-image\
-: none;','  mask\
--image: none;','\
-}','.msg-box.msg\
--user .msg > .uc\
--toggle { displa\
-y: none; margin-\
-top: 8px; text-a\
-lign: center; cu\
-rsor: pointer; u\
-ser-select: none\
-; }','.msg-box.m\
-sg-user .msg > .\
-uc-toggle.visibl\
-e { display: blo\
-ck; }','.msg-box\
-.msg-user .msg >\
- .uc-toggle img \
-{ width: var(--u\
-c-toggle-icon-si\
-ze, 26px); heigh\
-t: var(--uc-togg\
-le-icon-size, 26\
-px); opacity: .8\
-; }','.msg-box.m\
-sg-user .msg > .\
-uc-toggle:hover \
-img { opacity: 1\
-; }','.code-wrap\
-per .code-header\
--action.code-hea\
-der-copy,','.cod\
-e-wrapper .code-\
-header-action.co\
-de-header-collap\
-se { display: in\
-line-flex; align\
--items: center; \
-border-radius: 6\
-px; padding: 2px\
-; line-height: 0\
-; border: 1px so\
-lid transparent;\
- transition: tra\
-nsform .15s ease\
-, background-col\
-or .15s ease, bo\
-rder-color .15s \
-ease; }','.code-\
-wrapper .code-he\
-ader-action.code\
--header-copy:hov\
-er,','.code-wrap\
-per .code-header\
--action.code-hea\
-der-collapse:hov\
-er { transform: \
-scale(1.06); bor\
-der-color: var(-\
--copy-btn-border\
-, rgba(0,0,0,.08\
-)); }','.code-wr\
-apper .code-head\
-er-action.copied\
- { background: v\
-ar(--copy-btn-bg\
--copied, rgba(15\
-0,150,150,.12));\
- border-color: v\
-ar(--copy-btn-bo\
-rder-copied, rgb\
-a(150,150,150,.3\
-5)); animation: \
-msg-copy-pop .25\
-s ease; }','@key\
-frames msg-copy-\
-pop { 0%{ transf\
-orm: scale(1); }\
- 60%{ transform:\
- scale(1.1); } 1\
-00%{ transform: \
-scale(1); } }'].\
-join('\x5cn');docum\
-ent.head.appendC\
-hild(style);}\x0ato\
-ggleExtraItems(b\
-utton){if(!butto\
-n)return;const l\
-ist=button.close\
-st?button.closes\
-t('.extra-items-\
-list'):null;if(!\
-list)return;cons\
-t hidden=list.qu\
-erySelector('.ex\
-tra-items-hidden\
-');if(!hidden)re\
-turn;const isHid\
-den=hidden.style\
-.display==='none\
-'||getComputedSt\
-yle(hidden).disp\
-lay==='none';hid\
-den.style.displa\
-y=isHidden?'bloc\
-k':'none';button\
-.setAttribute('a\
-ria-expanded',is\
-Hidden?'true':'f\
-alse');const arr\
-ow=button.queryS\
-elector('.extra-\
-items-toggle-arr\
-ow');if(arrow)ar\
-row.classList.to\
-ggle('toggle-exp\
-anded',isHidden)\
-;const label=but\
-ton.querySelecto\
-r('.extra-items-\
-toggle-label');i\
-f(label){if(!but\
-ton.dataset.coll\
-apsedLabel){butt\
-on.dataset.colla\
-psedLabel=label.\
-textContent||'';\
-}\x0aconst lessLabe\
-l=(typeof window\
-!=='undefined'&&\
-window.LOCALE_LE\
-SS)?String(windo\
-w.LOCALE_LESS):'\
-Less';label.text\
-Content=isHidden\
-?lessLabel:butto\
-n.dataset.collap\
-sedLabel;}\x0aconst\
- expandTitle=(ty\
-peof window!=='u\
-ndefined'&&windo\
-w.LOCALE_EXPAND)\
-?String(window.L\
-OCALE_EXPAND):'E\
-xpand';const col\
-lapseTitle=(type\
-of window!=='und\
-efined'&&window.\
-LOCALE_COLLAPSE)\
-?String(window.L\
-OCALE_COLLAPSE):\
-'Collapse';butto\
-n.setAttribute('\
-title',isHidden?\
-collapseTitle:ex\
-pandTitle);}\x0aena\
-bleEditIcons(){d\
-ocument.body&&do\
-cument.body.clas\
-sList.add('displ\
-ay-edit-icons');\
-}\x0adisableEditIco\
-ns(){document.bo\
-dy&&document.bod\
-y.classList.remo\
-ve('display-edit\
--icons');}\x0aenabl\
-eTimestamp(){doc\
+ -webkit-mask-si\
+ze: 100% 100%;',\
+'  mask-size: 10\
+0% 100%;','  -we\
+bkit-mask-repeat\
+: no-repeat;',' \
+ mask-repeat: no\
+-repeat;','}','.\
+msg-box.msg-user\
+ .msg > .uc-cont\
+ent.uc-expanded \
+{','  -webkit-ma\
+sk-image: none;'\
+,'  mask-image: \
+none;','}','.msg\
+-box.msg-user .m\
+sg > .uc-toggle \
+{ display: none;\
+ margin-top: 8px\
+; text-align: ce\
+nter; cursor: po\
+inter; user-sele\
+ct: none; }','.m\
+sg-box.msg-user \
+.msg > .uc-toggl\
+e.visible { disp\
+lay: block; }','\
+.msg-box.msg-use\
+r .msg > .uc-tog\
+gle img { width:\
+ var(--uc-toggle\
+-icon-size, 26px\
+); height: var(-\
+-uc-toggle-icon-\
+size, 26px); opa\
+city: .8; }','.m\
+sg-box.msg-user \
+.msg > .uc-toggl\
+e:hover img { op\
+acity: 1; }','.c\
+ode-wrapper .cod\
+e-header-action.\
+code-header-copy\
+,','.code-wrappe\
+r .code-header-a\
+ction.code-heade\
+r-collapse { dis\
+play: inline-fle\
+x; align-items: \
+center; border-r\
+adius: 6px; padd\
+ing: 2px; line-h\
+eight: 0; border\
+: 1px solid tran\
+sparent; transit\
+ion: transform .\
+15s ease, backgr\
+ound-color .15s \
+ease, border-col\
+or .15s ease; }'\
+,'.code-wrapper \
+.code-header-act\
+ion.code-header-\
+copy:hover,','.c\
+ode-wrapper .cod\
+e-header-action.\
+code-header-coll\
+apse:hover { tra\
+nsform: scale(1.\
+06); border-colo\
+r: var(--copy-bt\
+n-border, rgba(0\
+,0,0,.08)); }','\
+.code-wrapper .c\
+ode-header-actio\
+n.copied { backg\
+round: var(--cop\
+y-btn-bg-copied,\
+ rgba(150,150,15\
+0,.12)); border-\
+color: var(--cop\
+y-btn-border-cop\
+ied, rgba(150,15\
+0,150,.35)); ani\
+mation: msg-copy\
+-pop .25s ease; \
+}','@keyframes m\
+sg-copy-pop { 0%\
+{ transform: sca\
+le(1); } 60%{ tr\
+ansform: scale(1\
+.1); } 100%{ tra\
+nsform: scale(1)\
+; } }'].join('\x5cn\
+');document.head\
+.appendChild(sty\
+le);}\x0atoggleExtr\
+aItems(button){i\
+f(!button)return\
+;const list=butt\
+on.closest?butto\
+n.closest('.extr\
+a-items-list'):n\
+ull;if(!list)ret\
+urn;const hidden\
+=list.querySelec\
+tor('.extra-item\
+s-hidden');if(!h\
+idden)return;con\
+st isHidden=hidd\
+en.style.display\
+==='none'||getCo\
+mputedStyle(hidd\
+en).display==='n\
+one';hidden.styl\
+e.display=isHidd\
+en?'block':'none\
+';button.setAttr\
+ibute('aria-expa\
+nded',isHidden?'\
+true':'false');c\
+onst arrow=butto\
+n.querySelector(\
+'.extra-items-to\
+ggle-arrow');if(\
+arrow)arrow.clas\
+sList.toggle('to\
+ggle-expanded',i\
+sHidden);const l\
+abel=button.quer\
+ySelector('.extr\
+a-items-toggle-l\
+abel');if(label)\
+{if(!button.data\
+set.collapsedLab\
+el){button.datas\
+et.collapsedLabe\
+l=label.textCont\
+ent||'';}\x0aconst \
+lessLabel=(typeo\
+f window!=='unde\
+fined'&&window.L\
+OCALE_LESS)?Stri\
+ng(window.LOCALE\
+_LESS):'Less';la\
+bel.textContent=\
+isHidden?lessLab\
+el:button.datase\
+t.collapsedLabel\
+;}\x0aconst expandT\
+itle=(typeof win\
+dow!=='undefined\
+'&&window.LOCALE\
+_EXPAND)?String(\
+window.LOCALE_EX\
+PAND):'Expand';c\
+onst collapseTit\
+le=(typeof windo\
+w!=='undefined'&\
+&window.LOCALE_C\
+OLLAPSE)?String(\
+window.LOCALE_CO\
+LLAPSE):'Collaps\
+e';button.setAtt\
+ribute('title',i\
+sHidden?collapse\
+Title:expandTitl\
+e);}\x0aenableEditI\
+cons(){document.\
+body&&document.b\
+ody.classList.ad\
+d('display-edit-\
+icons');}\x0adisabl\
+eEditIcons(){doc\
 ument.body&&docu\
 ment.body.classL\
-ist.add('display\
--timestamp');}\x0ad\
-isableTimestamp(\
-){document.body&\
-&document.body.c\
-lassList.remove(\
-'display-timesta\
-mp');}\x0aenableBlo\
-cks(){document.b\
-ody&&document.bo\
-dy.classList.add\
-('display-blocks\
-');}\x0adisableBloc\
-ks(){document.bo\
+ist.remove('disp\
+lay-edit-icons')\
+;}\x0aenableTimesta\
+mp(){document.bo\
 dy&&document.bod\
-y.classList.remo\
-ve('display-bloc\
-ks');}};\x0a\x0a/* dat\
-a/js/app/user.js\
- */\x0aclass UserCo\
-llapseManager{co\
-nstructor(cfg){t\
-his.cfg=cfg||{};\
-this.threshold=U\
-tils.g('USER_MSG\
-_COLLAPSE_HEIGHT\
-_PX',350);this._\
-processed=new Se\
-t();this._remeas\
-ureTimer=null;th\
-is._fontsReadySc\
-heduled=false;}\x0a\
-_icons(){const I\
-=(this.cfg&&this\
-.cfg.ICONS)||{};\
-return{expand:I.\
-EXPAND||'',colla\
-pse:I.COLLAPSE||\
-''};}\x0a_labels(){\
-const L=(this.cf\
-g&&this.cfg.LOCA\
-LE)||{};return{e\
-xpand:L.EXPAND||\
-'Expand',collaps\
-e:L.COLLAPSE||'C\
-ollapse'};}\x0a_aft\
-erLayout(fn){try\
-{if(typeof runti\
-me!=='undefined'\
-&&runtime.raf&&t\
-ypeof runtime.ra\
-f.schedule==='fu\
-nction'){const k\
-ey={t:'UC:afterL\
-ayout',i:Math.ra\
-ndom()};runtime.\
-raf.schedule(key\
-,()=>{try{fn&&fn\
-();}catch(_){}},\
-'UserCollapse',0\
-);return;}}catch\
-(_){}\x0atry{reques\
-tAnimationFrame(\
-()=>{try{fn&&fn(\
-);}catch(_){}});\
-}catch(_){setTim\
-eout(()=>{try{fn\
-&&fn();}catch(__\
-){}},0);}}\x0a_scro\
-llToggleIntoView\
-(toggleEl){if(!t\
-oggleEl||!toggle\
-El.isConnected)r\
-eturn;try{if(run\
-time&&runtime.sc\
-rollMgr){runtime\
-.scrollMgr.userI\
-nteracted=true;r\
-untime.scrollMgr\
-.autoFollow=fals\
-e;}}catch(_){}\x0at\
-his._afterLayout\
-(()=>{try{if(tog\
-gleEl.scrollInto\
-View){try{toggle\
-El.scrollIntoVie\
-w({block:'neares\
-t',inline:'neare\
-st',behavior:'in\
-stant'});}catch(\
-_){toggleEl.scro\
-llIntoView(false\
-);}}}catch(_){}}\
-);}\x0a_ensureStruc\
-ture(msg){if(!ms\
-g||!msg.isConnec\
-ted)return null;\
-let content=msg.\
-querySelector('.\
-uc-content');if(\
-!content){conten\
-t=document.creat\
-eElement('div');\
-content.classNam\
-e='uc-content';c\
-onst frag=docume\
-nt.createDocumen\
-tFragment();whil\
-e(msg.firstChild\
-)frag.appendChil\
-d(msg.firstChild\
-);content.append\
-Child(frag);msg.\
-appendChild(cont\
-ent);}\x0alet toggl\
-e=msg.querySelec\
-tor('.uc-toggle'\
-);if(!toggle){co\
-nst icons=this._\
-icons();const la\
-bels=this._label\
-s();toggle=docum\
-ent.createElemen\
-t('div');toggle.\
-className='uc-to\
-ggle';toggle.tab\
-Index=0;toggle.s\
-etAttribute('rol\
-e','button');tog\
-gle.setAttribute\
-('aria-expanded'\
-,'false');toggle\
-.title=labels.ex\
-pand;const img=d\
-ocument.createEl\
-ement('img');img\
-.className='uc-t\
-oggle-icon';img.\
-alt=labels.expan\
-d;img.src=icons.\
-expand;img.width\
-=26;img.height=2\
-6;toggle.appendC\
-hild(img);toggle\
-.addEventListene\
-r('click',(ev)=>\
-{ev.preventDefau\
-lt();ev.stopProp\
-agation();this.t\
-oggleFromToggle(\
-toggle);});toggl\
-e.addEventListen\
-er('keydown',(ev\
-)=>{if(ev.key===\
-'Enter'||ev.key=\
-==' '){ev.preven\
-tDefault();ev.st\
-opPropagation();\
-this.toggleFromT\
-oggle(toggle);}}\
-,{passive:false}\
-);msg.appendChil\
-d(toggle);}\x0athis\
-._processed.add(\
-msg);msg.dataset\
-.ucInit='1';retu\
-rn{content,toggl\
-e};}\x0a_ensureElli\
-psisEl(msg,conte\
-ntEl){const cont\
-ent=contentEl||(\
-msg&&msg.querySe\
-lector('.uc-cont\
-ent'));if(!conte\
-nt)return null;t\
-ry{const legacy=\
-content.querySel\
-ector('.uc-ellip\
-sis');if(legacy&\
-&legacy.parentNo\
-de){legacy.paren\
-tNode.removeChil\
-d(legacy);}}catc\
-h(_){}\x0areturn nu\
-ll;}\x0a_showEllips\
-is(msg,contentEl\
-){this._ensureEl\
-lipsisEl(msg,con\
-tentEl);}\x0a_hideE\
-llipsis(msg){thi\
-s._ensureEllipsi\
-sEl(msg,null);}\x0a\
-_scheduleStableR\
-emeasure(){if(th\
-is._remeasureTim\
-er!==null){try{c\
-learTimeout(this\
+y.classList.add(\
+'display-timesta\
+mp');}\x0adisableTi\
+mestamp(){docume\
+nt.body&&documen\
+t.body.classList\
+.remove('display\
+-timestamp');}\x0ae\
+nableBlocks(){do\
+cument.body&&doc\
+ument.body.class\
+List.add('displa\
+y-blocks');}\x0adis\
+ableBlocks(){doc\
+ument.body&&docu\
+ment.body.classL\
+ist.remove('disp\
+lay-blocks');}};\
+\x0a\x0a/* data/js/app\
+/user.js */\x0aclas\
+s UserCollapseMa\
+nager{constructo\
+r(cfg){this.cfg=\
+cfg||{};this.thr\
+eshold=Utils.g('\
+USER_MSG_COLLAPS\
+E_HEIGHT_PX',350\
+);this._processe\
+d=new Set();this\
 ._remeasureTimer\
-);}catch(_){}}\x0ac\
-onst remeasure=(\
-)=>{this._remeas\
-ureTimer=null;th\
-is._afterLayout(\
-()=>this._afterL\
-ayout(()=>this.r\
-emeasureAll()));\
-};this._remeasur\
-eTimer=setTimeou\
-t(remeasure,80);\
-if(!this._fontsR\
-eadyScheduled){t\
-his._fontsReadyS\
-cheduled=true;tr\
-y{if(document.fo\
-nts&&document.fo\
-nts.ready&&typeo\
-f document.fonts\
-.ready.then==='f\
-unction'){docume\
+=null;this._font\
+sReadyScheduled=\
+false;}\x0a_icons()\
+{const I=(this.c\
+fg&&this.cfg.ICO\
+NS)||{};return{e\
+xpand:I.EXPAND||\
+'',collapse:I.CO\
+LLAPSE||''};}\x0a_l\
+abels(){const L=\
+(this.cfg&&this.\
+cfg.LOCALE)||{};\
+return{expand:L.\
+EXPAND||'Expand'\
+,collapse:L.COLL\
+APSE||'Collapse'\
+};}\x0a_afterLayout\
+(fn){try{if(type\
+of runtime!=='un\
+defined'&&runtim\
+e.raf&&typeof ru\
+ntime.raf.schedu\
+le==='function')\
+{const key={t:'U\
+C:afterLayout',i\
+:Math.random()};\
+runtime.raf.sche\
+dule(key,()=>{tr\
+y{fn&&fn();}catc\
+h(_){}},'UserCol\
+lapse',0);return\
+;}}catch(_){}\x0atr\
+y{requestAnimati\
+onFrame(()=>{try\
+{fn&&fn();}catch\
+(_){}});}catch(_\
+){setTimeout(()=\
+>{try{fn&&fn();}\
+catch(__){}},0);\
+}}\x0a_scrollToggle\
+IntoView(toggleE\
+l){if(!toggleEl|\
+|!toggleEl.isCon\
+nected)return;tr\
+y{if(runtime&&ru\
+ntime.scrollMgr)\
+{runtime.scrollM\
+gr.userInteracte\
+d=true;runtime.s\
+crollMgr.autoFol\
+low=false;}}catc\
+h(_){}\x0athis._aft\
+erLayout(()=>{tr\
+y{if(toggleEl.sc\
+rollIntoView){tr\
+y{toggleEl.scrol\
+lIntoView({block\
+:'nearest',inlin\
+e:'nearest',beha\
+vior:'instant'})\
+;}catch(_){toggl\
+eEl.scrollIntoVi\
+ew(false);}}}cat\
+ch(_){}});}\x0a_ens\
+ureStructure(msg\
+){if(!msg||!msg.\
+isConnected)retu\
+rn null;let cont\
+ent=msg.querySel\
+ector('.uc-conte\
+nt');if(!content\
+){content=docume\
+nt.createElement\
+('div');content.\
+className='uc-co\
+ntent';const fra\
+g=document.creat\
+eDocumentFragmen\
+t();while(msg.fi\
+rstChild)frag.ap\
+pendChild(msg.fi\
+rstChild);conten\
+t.appendChild(fr\
+ag);msg.appendCh\
+ild(content);}\x0al\
+et toggle=msg.qu\
+erySelector('.uc\
+-toggle');if(!to\
+ggle){const icon\
+s=this._icons();\
+const labels=thi\
+s._labels();togg\
+le=document.crea\
+teElement('div')\
+;toggle.classNam\
+e='uc-toggle';to\
+ggle.tabIndex=0;\
+toggle.setAttrib\
+ute('role','butt\
+on');toggle.setA\
+ttribute('aria-e\
+xpanded','false'\
+);toggle.title=l\
+abels.expand;con\
+st img=document.\
+createElement('i\
+mg');img.classNa\
+me='uc-toggle-ic\
+on';img.alt=labe\
+ls.expand;img.sr\
+c=icons.expand;i\
+mg.width=26;img.\
+height=26;toggle\
+.appendChild(img\
+);toggle.addEven\
+tListener('click\
+',(ev)=>{ev.prev\
+entDefault();ev.\
+stopPropagation(\
+);this.toggleFro\
+mToggle(toggle);\
+});toggle.addEve\
+ntListener('keyd\
+own',(ev)=>{if(e\
+v.key==='Enter'|\
+|ev.key===' '){e\
+v.preventDefault\
+();ev.stopPropag\
+ation();this.tog\
+gleFromToggle(to\
+ggle);}},{passiv\
+e:false});msg.ap\
+pendChild(toggle\
+);}\x0athis._proces\
+sed.add(msg);msg\
+.dataset.ucInit=\
+'1';return{conte\
+nt,toggle};}\x0a_en\
+sureEllipsisEl(m\
+sg,contentEl){co\
+nst content=cont\
+entEl||(msg&&msg\
+.querySelector('\
+.uc-content'));i\
+f(!content)retur\
+n null;try{const\
+ legacy=content.\
+querySelector('.\
+uc-ellipsis');if\
+(legacy&&legacy.\
+parentNode){lega\
+cy.parentNode.re\
+moveChild(legacy\
+);}}catch(_){}\x0ar\
+eturn null;}\x0a_sh\
+owEllipsis(msg,c\
+ontentEl){this._\
+ensureEllipsisEl\
+(msg,contentEl);\
+}\x0a_hideEllipsis(\
+msg){this._ensur\
+eEllipsisEl(msg,\
+null);}\x0a_schedul\
+eStableRemeasure\
+(){if(this._reme\
+asureTimer!==nul\
+l){try{clearTime\
+out(this._remeas\
+ureTimer);}catch\
+(_){}}\x0aconst rem\
+easure=()=>{this\
+._remeasureTimer\
+=null;this._afte\
+rLayout(()=>this\
+._afterLayout(()\
+=>this.remeasure\
+All()));};this._\
+remeasureTimer=s\
+etTimeout(remeas\
+ure,80);if(!this\
+._fontsReadySche\
+duled){this._fon\
+tsReadyScheduled\
+=true;try{if(doc\
+ument.fonts&&doc\
+ument.fonts.read\
+y&&typeof docume\
 nt.fonts.ready.t\
-hen(()=>{this._a\
-fterLayout(()=>t\
-his.remeasureAll\
-());}).catch(()=\
->{});}}catch(_){\
-}}}\x0aapply(root){\
-const scope=root\
-||document;let l\
-ist;if(scope.nod\
-eType===1)list=s\
-cope.querySelect\
-orAll('.msg-box.\
-msg-user .msg');\
-else list=docume\
-nt.querySelector\
-All('.msg-box.ms\
-g-user .msg');if\
-(!list||!list.le\
-ngth)return;for(\
-let i=0;i<list.l\
-ength;i++){const\
- msg=list[i];con\
-st st=this._ensu\
-reStructure(msg)\
-;if(!st)continue\
-;this._update(ms\
-g,st.content,st.\
-toggle);}\x0athis._\
-scheduleStableRe\
-measure();}\x0a_upd\
-ate(msg,contentE\
-l,toggleEl){cons\
-t c=contentEl||(\
-msg&&msg.querySe\
-lector('.uc-cont\
-ent'));if(!msg||\
-!c)return;if(thi\
-s.threshold===0|\
-|this.threshold=\
-=='0'){const t=t\
-oggleEl||msg.que\
+hen==='function'\
+){document.fonts\
+.ready.then(()=>\
+{this._afterLayo\
+ut(()=>this.reme\
+asureAll());}).c\
+atch(()=>{});}}c\
+atch(_){}}}\x0aappl\
+y(root){const sc\
+ope=root||docume\
+nt;let list;if(s\
+cope.nodeType===\
+1)list=scope.que\
+rySelectorAll('.\
+msg-box.msg-user\
+ .msg');else lis\
+t=document.query\
+SelectorAll('.ms\
+g-box.msg-user .\
+msg');if(!list||\
+!list.length)ret\
+urn;for(let i=0;\
+i<list.length;i+\
++){const msg=lis\
+t[i];const st=th\
+is._ensureStruct\
+ure(msg);if(!st)\
+continue;this._u\
+pdate(msg,st.con\
+tent,st.toggle);\
+}\x0athis._schedule\
+StableRemeasure(\
+);}\x0a_update(msg,\
+contentEl,toggle\
+El){const c=cont\
+entEl||(msg&&msg\
+.querySelector('\
+.uc-content'));i\
+f(!msg||!c)retur\
+n;if(this.thresh\
+old===0||this.th\
+reshold==='0'){c\
+onst t=toggleEl|\
+|msg.querySelect\
+or('.uc-toggle')\
+;const labels=th\
+is._labels();c.c\
+lassList.remove(\
+'uc-collapsed');\
+c.classList.remo\
+ve('uc-expanded'\
+);msg.dataset.uc\
+State='expanded'\
+;this._hideEllip\
+sis(msg);if(t){t\
+.classList.remov\
+e('visible');t.s\
+etAttribute('ari\
+a-expanded','fal\
+se');t.title=lab\
+els.expand;const\
+ img=t.querySele\
+ctor('img');if(i\
+mg){img.alt=labe\
+ls.expand;}}\x0aret\
+urn;}\x0ac.classLis\
+t.remove('uc-col\
+lapsed');c.class\
+List.remove('uc-\
+expanded');const\
+ fullHeight=Math\
+.ceil(c.scrollHe\
+ight);const labe\
+ls=this._labels(\
+);const icons=th\
+is._icons();cons\
+t t=toggleEl||ms\
+g.querySelector(\
+'.uc-toggle');if\
+(fullHeight>this\
+.threshold){if(t\
+)t.classList.add\
+('visible');cons\
+t desired=msg.da\
+taset.ucState||'\
+collapsed';const\
+ expand=(desired\
+==='expanded');i\
+f(expand){c.clas\
+sList.add('uc-ex\
+panded');this._h\
+ideEllipsis(msg)\
+;}else{c.classLi\
+st.add('uc-colla\
+psed');this._sho\
+wEllipsis(msg,c)\
+;}\x0aif(t){const i\
+mg=t.querySelect\
+or('img');if(img\
+){if(expand){img\
+.src=icons.colla\
+pse;img.alt=labe\
+ls.collapse;}els\
+e{img.src=icons.\
+expand;img.alt=l\
+abels.expand;}}\x0a\
+t.setAttribute('\
+aria-expanded',e\
+xpand?'true':'fa\
+lse');t.title=ex\
+pand?labels.coll\
+apse:labels.expa\
+nd;}}else{c.clas\
+sList.remove('uc\
+-collapsed');c.c\
+lassList.remove(\
+'uc-expanded');m\
+sg.dataset.ucSta\
+te='expanded';th\
+is._hideEllipsis\
+(msg);if(t){t.cl\
+assList.remove('\
+visible');t.setA\
+ttribute('aria-e\
+xpanded','false'\
+);t.title=labels\
+.expand;}}}\x0atogg\
+leFromToggle(tog\
+gleEl){const msg\
+=toggleEl&&toggl\
+eEl.closest?togg\
+leEl.closest('.m\
+sg-box.msg-user \
+.msg'):null;if(!\
+msg)return;this.\
+toggle(msg);}\x0ato\
+ggle(msg){if(!ms\
+g||!msg.isConnec\
+ted)return;const\
+ c=msg.querySele\
+ctor('.uc-conten\
+t');if(!c)return\
+;const t=msg.que\
 rySelector('.uc-\
 toggle');const l\
 abels=this._labe\
-ls();c.classList\
-.remove('uc-coll\
-apsed');c.classL\
-ist.remove('uc-e\
-xpanded');msg.da\
-taset.ucState='e\
-xpanded';this._h\
-ideEllipsis(msg)\
-;if(t){t.classLi\
-st.remove('visib\
-le');t.setAttrib\
+ls();const icons\
+=this._icons();c\
+onst isCollapsed\
+=c.classList.con\
+tains('uc-collap\
+sed');if(isColla\
+psed){c.classLis\
+t.remove('uc-col\
+lapsed');c.class\
+List.add('uc-exp\
+anded');msg.data\
+set.ucState='exp\
+anded';this._hid\
+eEllipsis(msg);i\
+f(t){t.setAttrib\
 ute('aria-expand\
-ed','false');t.t\
-itle=labels.expa\
-nd;const img=t.q\
-uerySelector('im\
-g');if(img){img.\
-alt=labels.expan\
-d;}}\x0areturn;}\x0ac.\
-classList.remove\
-('uc-collapsed')\
-;c.classList.rem\
-ove('uc-expanded\
-');const fullHei\
-ght=Math.ceil(c.\
-scrollHeight);co\
-nst labels=this.\
-_labels();const \
-icons=this._icon\
-s();const t=togg\
-leEl||msg.queryS\
-elector('.uc-tog\
-gle');if(fullHei\
-ght>this.thresho\
-ld){if(t)t.class\
-List.add('visibl\
-e');const desire\
-d=msg.dataset.uc\
-State||'collapse\
-d';const expand=\
-(desired==='expa\
-nded');if(expand\
-){c.classList.ad\
-d('uc-expanded')\
-;this._hideEllip\
-sis(msg);}else{c\
-.classList.add('\
-uc-collapsed');t\
-his._showEllipsi\
-s(msg,c);}\x0aif(t)\
-{const img=t.que\
-rySelector('img'\
-);if(img){if(exp\
-and){img.src=ico\
-ns.collapse;img.\
-alt=labels.colla\
-pse;}else{img.sr\
-c=icons.expand;i\
-mg.alt=labels.ex\
-pand;}}\x0at.setAtt\
-ribute('aria-exp\
-anded',expand?'t\
-rue':'false');t.\
-title=expand?lab\
-els.collapse:lab\
-els.expand;}}els\
-e{c.classList.re\
-move('uc-collaps\
-ed');c.classList\
-.remove('uc-expa\
-nded');msg.datas\
-et.ucState='expa\
-nded';this._hide\
-Ellipsis(msg);if\
-(t){t.classList.\
-remove('visible'\
-);t.setAttribute\
-('aria-expanded'\
-,'false');t.titl\
-e=labels.expand;\
-}}}\x0atoggleFromTo\
-ggle(toggleEl){c\
-onst msg=toggleE\
-l&&toggleEl.clos\
-est?toggleEl.clo\
-sest('.msg-box.m\
-sg-user .msg'):n\
-ull;if(!msg)retu\
-rn;this.toggle(m\
-sg);}\x0atoggle(msg\
-){if(!msg||!msg.\
-isConnected)retu\
-rn;const c=msg.q\
-uerySelector('.u\
-c-content');if(!\
-c)return;const t\
-=msg.querySelect\
-or('.uc-toggle')\
-;const labels=th\
-is._labels();con\
-st icons=this._i\
-cons();const isC\
-ollapsed=c.class\
-List.contains('u\
-c-collapsed');if\
-(isCollapsed){c.\
-classList.remove\
-('uc-collapsed')\
-;c.classList.add\
-('uc-expanded');\
-msg.dataset.ucSt\
-ate='expanded';t\
-his._hideEllipsi\
-s(msg);if(t){t.s\
-etAttribute('ari\
-a-expanded','tru\
-e');t.title=labe\
-ls.collapse;cons\
-t img=t.querySel\
-ector('img');if(\
-img){img.src=ico\
-ns.collapse;img.\
-alt=labels.colla\
-pse;}}}else{c.cl\
-assList.remove('\
-uc-expanded');c.\
-classList.add('u\
-c-collapsed');ms\
-g.dataset.ucStat\
-e='collapsed';th\
-is._showEllipsis\
-(msg,c);if(t){t.\
-setAttribute('ar\
-ia-expanded','fa\
-lse');t.title=la\
-bels.expand;cons\
-t img=t.querySel\
-ector('img');if(\
-img){img.src=ico\
-ns.expand;img.al\
-t=labels.expand;\
-}\x0athis._scrollTo\
-ggleIntoView(t);\
-}}}\x0aremeasureAll\
-(){const arr=Arr\
-ay.from(this._pr\
-ocessed||[]);for\
-(let i=0;i<arr.l\
-ength;i++){const\
- msg=arr[i];if(!\
-msg||!msg.isConn\
-ected){this._pro\
-cessed.delete(ms\
-g);continue;}\x0ath\
-is._update(msg);\
-}}};\x0a\x0a/* data/js\
-/app/utils.js */\
-\x0aclass Utils{sta\
-tic g(name,dflt)\
-{return(typeof w\
-indow[name]!=='u\
-ndefined')?windo\
-w[name]:dflt;}\x0as\
-tatic now(){retu\
-rn(typeof perfor\
-mance!=='undefin\
-ed'&&performance\
-.now)?performanc\
-e.now():Date.now\
-();}\x0astatic esca\
-peHtml(s){const \
-d=Utils._escDiv|\
-|(Utils._escDiv=\
-document.createE\
-lement('div'));d\
-.textContent=Str\
-ing(s??'');retur\
-n d.innerHTML;}\x0a\
-static escapeHtm\
-lAttr(s){return \
-Utils.escapeHtml\
-(s).replace(/\x22/g\
-,'&quot;').repla\
-ce(/'/g,'&#39;')\
-;}\x0astatic decode\
-MentionValue(s){\
-return String(s?\
-?'').replace(/&l\
-t;/g,'<').replac\
-e(/&gt;/g,'>').r\
-eplace(/&quot;/g\
-,'\x22').replace(/&\
-#x27;|&#39;/g,\x22'\
-\x22).replace(/&amp\
-;/g,'&');}\x0astati\
-c renderMentionT\
-ext(s){const raw\
-=String(s??'');c\
-onst re=/<(attac\
-hment|file_conte\
-xt)>([\x5cs\x5cS]*?)<\x5c\
-/\x5c1>|<conversati\
-on\x5cb([^>]*)>([\x5cs\
-\x5cS]*?)<\x5c/convers\
-ation>/gi;let ou\
-t='';let last=0;\
-let match;while(\
-(match=re.exec(r\
-aw))!==null){out\
-+=Utils.escapeHt\
-ml(raw.slice(las\
-t,match.index));\
-if(match[1]){con\
-st kind=String(m\
-atch[1]||'').toL\
-owerCase();const\
- value=Utils.dec\
-odeMentionValue(\
-match[2]||'');le\
-t label=value;if\
-(kind==='file_co\
-ntext'){let norm\
-alized=value.rep\
-lace(/\x5c\x5c/g,'/');\
-const lower=norm\
-alized.toLowerCa\
-se();const prefi\
-x='%workdir%/dat\
-a/';if(lower.sta\
-rtsWith(prefix))\
-normalized=norma\
-lized.slice(pref\
-ix.length);else \
-if(lower==='%wor\
-kdir%/data')norm\
-alized='data/';e\
-lse if(lower.sta\
-rtsWith('data/')\
-)normalized=norm\
-alized.slice(5);\
-label=normalized\
-||value;}\x0aconst \
-cls=(kind==='att\
-achment')?'menti\
-on-attachment':'\
-mention-file-con\
-text';out+=`<spa\
-n class=\x22mention\
--anchor ${cls}\x22 \
-title=\x22${Utils.e\
-scapeHtmlAttr(va\
-lue)}\x22>@${Utils.\
-escapeHtml(label\
-)}</span>`;}else\
-{const attrs=Str\
-ing(match[3]||''\
-);const idMatch=\
-attrs.match(/\x5cbi\
-d\x5cs*=\x5cs*([\x22'])(.\
-*?)\x5c1/i);const t\
-itleMatch=attrs.\
-match(/\x5cbtitle\x5cs\
-*=\x5cs*([\x22'])(.*?)\
-\x5c1/i);const id=U\
+ed','true');t.ti\
+tle=labels.colla\
+pse;const img=t.\
+querySelector('i\
+mg');if(img){img\
+.src=icons.colla\
+pse;img.alt=labe\
+ls.collapse;}}}e\
+lse{c.classList.\
+remove('uc-expan\
+ded');c.classLis\
+t.add('uc-collap\
+sed');msg.datase\
+t.ucState='colla\
+psed';this._show\
+Ellipsis(msg,c);\
+if(t){t.setAttri\
+bute('aria-expan\
+ded','false');t.\
+title=labels.exp\
+and;const img=t.\
+querySelector('i\
+mg');if(img){img\
+.src=icons.expan\
+d;img.alt=labels\
+.expand;}\x0athis._\
+scrollToggleInto\
+View(t);}}}\x0areme\
+asureAll(){const\
+ arr=Array.from(\
+this._processed|\
+|[]);for(let i=0\
+;i<arr.length;i+\
++){const msg=arr\
+[i];if(!msg||!ms\
+g.isConnected){t\
+his._processed.d\
+elete(msg);conti\
+nue;}\x0athis._upda\
+te(msg);}}};\x0a\x0a/*\
+ data/js/app/uti\
+ls.js */\x0aclass U\
+tils{static g(na\
+me,dflt){return(\
+typeof window[na\
+me]!=='undefined\
+')?window[name]:\
+dflt;}\x0astatic no\
+w(){return(typeo\
+f performance!==\
+'undefined'&&per\
+formance.now)?pe\
+rformance.now():\
+Date.now();}\x0asta\
+tic escapeHtml(s\
+){const d=Utils.\
+_escDiv||(Utils.\
+_escDiv=document\
+.createElement('\
+div'));d.textCon\
+tent=String(s??'\
+');return d.inne\
+rHTML;}\x0astatic e\
+scapeHtmlAttr(s)\
+{return Utils.es\
+capeHtml(s).repl\
+ace(/\x22/g,'&quot;\
+').replace(/'/g,\
+'&#39;');}\x0astati\
+c decodeMentionV\
+alue(s){return S\
+tring(s??'').rep\
+lace(/&lt;/g,'<'\
+).replace(/&gt;/\
+g,'>').replace(/\
+&quot;/g,'\x22').re\
+place(/&#x27;|&#\
+39;/g,\x22'\x22).repla\
+ce(/&amp;/g,'&')\
+;}\x0astatic render\
+MentionText(s){c\
+onst raw=String(\
+s??'');const re=\
+/<(attachment|fi\
+le_context)>([\x5cs\
+\x5cS]*?)<\x5c/\x5c1>|<co\
+nversation\x5cb([^>\
+]*)>([\x5cs\x5cS]*?)<\x5c\
+/conversation>/g\
+i;let out='';let\
+ last=0;let matc\
+h;while((match=r\
+e.exec(raw))!==n\
+ull){out+=Utils.\
+escapeHtml(raw.s\
+lice(last,match.\
+index));if(match\
+[1]){const kind=\
+String(match[1]|\
+|'').toLowerCase\
+();const value=U\
 tils.decodeMenti\
-onValue(idMatch?\
-idMatch[2]:'');c\
-onst title=Utils\
-.decodeMentionVa\
-lue(titleMatch?t\
-itleMatch[2]:'')\
-;const label=tit\
-le||id;if(label)\
-{out+=`<span cla\
-ss=\x22mention-anch\
-or mention-conve\
-rsation\x22 title=\x22\
-#${Utils.escapeH\
-tmlAttr(id)}\x22>@$\
+onValue(match[2]\
+||'');let label=\
+value;if(kind===\
+'file_context'){\
+let normalized=v\
+alue.replace(/\x5c\x5c\
+/g,'/');const lo\
+wer=normalized.t\
+oLowerCase();con\
+st prefix='%work\
+dir%/data/';if(l\
+ower.startsWith(\
+prefix))normaliz\
+ed=normalized.sl\
+ice(prefix.lengt\
+h);else if(lower\
+==='%workdir%/da\
+ta')normalized='\
+data/';else if(l\
+ower.startsWith(\
+'data/'))normali\
+zed=normalized.s\
+lice(5);label=no\
+rmalized||value;\
+}\x0aconst cls=(kin\
+d==='attachment'\
+)?'mention-attac\
+hment':'mention-\
+file-context';ou\
+t+=`<span class=\
+\x22mention-anchor \
+${cls}\x22 title=\x22$\
 {Utils.escapeHtm\
-l(label)}</span>\
-`;}else{out+=Uti\
-ls.escapeHtml(ma\
-tch[0]);}}\x0alast=\
-re.lastIndex;}\x0ao\
-ut+=Utils.escape\
-Html(raw.slice(l\
-ast));return out\
-.replace(/\x5cr?\x5cn/\
-g,'<br>');}\x0astat\
-ic countNewlines\
-(s){if(!s)return\
- 0;let c=0,i=-1;\
-while((i=s.index\
-Of('\x5cn',i+1))!==\
--1)c++;return c;\
-}\x0astatic reEscap\
-e(s){return Stri\
-ng(s).replace(/[\
-.*+?^${}()|[\x5c]\x5c\x5c\
-]/g,'\x5c\x5c$&');}\x0ast\
-atic idle(fn,tim\
-eout){if('reques\
-tIdleCallback'in\
- window)return r\
-equestIdleCallba\
-ck(fn,{timeout:t\
-imeout||800});re\
-turn setTimeout(\
-fn,50);}\x0astatic \
-cancelIdle(id){t\
-ry{if('cancelIdl\
-eCallback'in win\
-dow)cancelIdleCa\
-llback(id);else \
-clearTimeout(id)\
-;}catch(_){}}\x0ast\
-atic get SE(){re\
-turn document.sc\
-rollingElement||\
-document.documen\
-tElement;}\x0astati\
-c utf8Decode(byt\
-es){if(!Utils._t\
-d)Utils._td=new \
-TextDecoder('utf\
--8');return Util\
-s._td.decode(byt\
-es);}};\x0a\x0a/* data\
-/js/app/runtime.\
-js */\x0aclass Runt\
-ime{constructor(\
-){this.cfg=new C\
-onfig();this.log\
-ger=new Logger(t\
-his.cfg);this.do\
-m=new DOMRefs();\
-this.customMarku\
-p=new CustomMark\
-up(this.cfg,this\
-.logger);this.ra\
-f=new RafManager\
-(this.cfg);try{t\
-his.logger.bindR\
-af(this.raf);}ca\
-tch(_){}\x0athis.as\
-ync=new AsyncRun\
-ner(this.cfg,thi\
-s.raf);this.rend\
-erer=new Markdow\
-nRenderer(this.c\
-fg,this.customMa\
-rkup,this.logger\
-,this.async,this\
-.raf);this.math=\
-new MathRenderer\
-(this.cfg,this.r\
-af,this.async);t\
-his.codeScroll=n\
-ew CodeScrollSta\
-te(this.cfg,this\
-.raf);this.highl\
-ighter=new Highl\
-ighter(this.cfg,\
-this.codeScroll,\
-this.raf);this.s\
-crollMgr=new Scr\
-ollManager(this.\
-cfg,this.dom,thi\
-s.raf);this.temp\
-lates=new NodeTe\
-mplateEngine(thi\
-s.cfg,this.logge\
-r);this.toolOutp\
-ut=new ToolOutpu\
-t(this.scrollMgr\
-,{templates:this\
-.templates,rende\
-rer:this.rendere\
-r,findStatusHost\
-:(parentId,creat\
-e)=>this.workflo\
-ws.workflowMessa\
-geHost(parentId,\
-create)});this.l\
-oading=new Loadi\
-ng(this.dom);thi\
-s.nodes=new Node\
-sManager(this.do\
-m,this.renderer,\
-this.highlighter\
-,this.math,this.\
-toolOutput,this.\
-templates);this.\
-bridge=new Bridg\
-eManager(this.cf\
-g,this.logger);t\
-his.ui=new UIMan\
-ager();this.stre\
-am=new StreamEng\
-ine(this.cfg,thi\
-s.dom,this.rende\
-rer,this.math,th\
-is.highlighter,t\
-his.codeScroll,t\
-his.scrollMgr,th\
-is.raf,this.asyn\
-c,this.logger);t\
-his.streamQ=new \
-StreamQueue(this\
-.cfg,this.stream\
+lAttr(value)}\x22>@\
+${Utils.escapeHt\
+ml(label)}</span\
+>`;}else{const a\
+ttrs=String(matc\
+h[3]||'');const \
+idMatch=attrs.ma\
+tch(/\x5cbid\x5cs*=\x5cs*\
+([\x22'])(.*?)\x5c1/i)\
+;const titleMatc\
+h=attrs.match(/\x5c\
+btitle\x5cs*=\x5cs*([\x22\
+'])(.*?)\x5c1/i);co\
+nst id=Utils.dec\
+odeMentionValue(\
+idMatch?idMatch[\
+2]:'');const tit\
+le=Utils.decodeM\
+entionValue(titl\
+eMatch?titleMatc\
+h[2]:'');const l\
+abel=title||id;i\
+f(label){out+=`<\
+span class=\x22ment\
+ion-anchor menti\
+on-conversation\x22\
+ title=\x22#${Utils\
+.escapeHtmlAttr(\
+id)}\x22>@${Utils.e\
+scapeHtml(label)\
+}</span>`;}else{\
+out+=Utils.escap\
+eHtml(match[0]);\
+}}\x0alast=re.lastI\
+ndex;}\x0aout+=Util\
+s.escapeHtml(raw\
+.slice(last));re\
+turn out.replace\
+(/\x5cr?\x5cn/g,'<br>'\
+);}\x0astatic count\
+Newlines(s){if(!\
+s)return 0;let c\
+=0,i=-1;while((i\
+=s.indexOf('\x5cn',\
+i+1))!==-1)c++;r\
+eturn c;}\x0astatic\
+ reEscape(s){ret\
+urn String(s).re\
+place(/[.*+?^${}\
+()|[\x5c]\x5c\x5c]/g,'\x5c\x5c$\
+&');}\x0astatic idl\
+e(fn,timeout){if\
+('requestIdleCal\
+lback'in window)\
+return requestId\
+leCallback(fn,{t\
+imeout:timeout||\
+800});return set\
+Timeout(fn,50);}\
+\x0astatic cancelId\
+le(id){try{if('c\
+ancelIdleCallbac\
+k'in window)canc\
+elIdleCallback(i\
+d);else clearTim\
+eout(id);}catch(\
+_){}}\x0astatic get\
+ SE(){return doc\
+ument.scrollingE\
+lement||document\
+.documentElement\
+;}\x0astatic utf8De\
+code(bytes){if(!\
+Utils._td)Utils.\
+_td=new TextDeco\
+der('utf-8');ret\
+urn Utils._td.de\
+code(bytes);}};\x0a\
+\x0a/* data/js/app/\
+runtime.js */\x0acl\
+ass Runtime{cons\
+tructor(){this.c\
+fg=new Config();\
+this.logger=new \
+Logger(this.cfg)\
+;this.dom=new DO\
+MRefs();this.cus\
+tomMarkup=new Cu\
+stomMarkup(this.\
+cfg,this.logger)\
+;this.raf=new Ra\
+fManager(this.cf\
+g);try{this.logg\
+er.bindRaf(this.\
+raf);}catch(_){}\
+\x0athis.async=new \
+AsyncRunner(this\
+.cfg,this.raf);t\
+his.renderer=new\
+ MarkdownRendere\
+r(this.cfg,this.\
+customMarkup,thi\
+s.logger,this.as\
+ync,this.raf);th\
+is.math=new Math\
+Renderer(this.cf\
+g,this.raf,this.\
+async);this.code\
+Scroll=new CodeS\
+crollState(this.\
+cfg,this.raf);th\
+is.highlighter=n\
+ew Highlighter(t\
+his.cfg,this.cod\
+eScroll,this.raf\
+);this.scrollMgr\
+=new ScrollManag\
+er(this.cfg,this\
+.dom,this.raf);t\
+his.templates=ne\
+w NodeTemplateEn\
+gine(this.cfg,th\
+is.logger);this.\
+toolOutput=new T\
+oolOutput(this.s\
+crollMgr,{templa\
+tes:this.templat\
+es,renderer:this\
+.renderer,findSt\
+atusHost:(parent\
+Id,create)=>this\
+.workflows.workf\
+lowMessageHost(p\
+arentId,create)}\
+);this.loading=n\
+ew Loading(this.\
+dom);this.nodes=\
+new NodesManager\
+(this.dom,this.r\
+enderer,this.hig\
+hlighter,this.ma\
+th,this.toolOutp\
+ut,this.template\
+s);this.bridge=n\
+ew BridgeManager\
+(this.cfg,this.l\
+ogger);this.ui=n\
+ew UIManager();t\
+his.stream=new S\
+treamEngine(this\
+.cfg,this.dom,th\
+is.renderer,this\
+.math,this.highl\
+ighter,this.code\
+Scroll,this.scro\
+llMgr,this.raf,t\
+his.async,this.l\
+ogger);this.stre\
+amQ=new StreamQu\
+eue(this.cfg,thi\
+s.stream,this.sc\
+rollMgr,this.raf\
+);this.events=ne\
+w EventManager(t\
+his.cfg,this.dom\
 ,this.scrollMgr,\
-this.raf);this.e\
-vents=new EventM\
-anager(this.cfg,\
-this.dom,this.sc\
-rollMgr,this.hig\
-hlighter,this.co\
-deScroll,this.to\
-olOutput,this.br\
-idge,()=>this.st\
-ream.code.active\
-Code);try{this.s\
-tream.fences.set\
-CustomFenceSpecs\
-(this.customMark\
-up.getSourceFenc\
-eSpecs());}catch\
-(_){}\x0athis.data=\
-new DataReceiver\
-(this.cfg,this.t\
-emplates,this.no\
-des,this.scrollM\
-gr);this.tips=nu\
-ll;this.streamin\
-g=new RuntimeStr\
-eaming(this);thi\
-s.workflows=new \
-RuntimeWorkflows\
-(this);this.part\
-ials=new Runtime\
-Partials(this);t\
-his.timeline=new\
- RuntimeTimeline\
-(this);this.turn\
-s=new RuntimeTur\
-ns(this);this.mu\
-tations=new Runt\
-imeMutations(thi\
-s);this.messages\
-=new RuntimeMess\
-ages(this);this.\
-view=new Runtime\
-View(this);this.\
-renderer.hooks.o\
-bserveNewCode=(r\
-oot,opts)=>this.\
-highlighter.obse\
-rveNewCode(root,\
-opts,this.stream\
-.code.activeCode\
-);this.renderer.\
-hooks.observeMsg\
-Boxes=(root)=>th\
-is.highlighter.o\
-bserveMsgBoxes(r\
-oot,(box)=>{this\
-.highlighter.obs\
-erveNewCode(box,\
-{deferLastIfStre\
-aming:true,minLi\
-nesForLast:this.\
-cfg.PROFILE_CODE\
-.minLinesForHL,m\
-inCharsForLast:t\
-his.cfg.PROFILE_\
-CODE.minCharsFor\
-HL},this.stream.\
-code.activeCode)\
-;this.codeScroll\
-.initScrollableB\
-locks(box);});th\
-is.renderer.hook\
-s.scheduleMathRe\
-nder=(root)=>{co\
-nst mm=getMathMo\
-de();if(mm==='id\
-le')this.math.sc\
-hedule(root);els\
-e if(mm==='alway\
-s')this.math.sch\
-edule(root,0,tru\
-e);};this.render\
-er.hooks.scanVis\
-ibleCodes=(root)\
-=>this.highlight\
-er.scanVisibleCo\
-desInRoot(root,t\
-his.stream.code.\
-activeCode||null\
-);this.renderer.\
-hooks.codeScroll\
-Init=(root)=>thi\
-s.codeScroll.ini\
-tScrollableBlock\
-s(root);}\x0ainit()\
-{this.highlighte\
-r.initHLJS();thi\
-s.dom.init();thi\
-s.ui.ensureStick\
-yHeaderStyle();t\
-his.tips=new Tip\
-sManager(this.do\
-m);this.events.i\
-nstall();this.br\
-idge.initQWebCha\
-nnel(this.cfg.PI\
-D,(bridge)=>{con\
-st onChunk=(name\
-,chunk,type)=>th\
-is.streaming.onC\
-hunk(name,chunk,\
-type);const onNo\
-de=(payload)=>th\
-is.messages.appe\
-ndNode(payload);\
-const onNodeRepl\
-ace=(payload)=>t\
-his.messages.rep\
-laceNodes(payloa\
-d);const onNodeI\
-nput=(html)=>thi\
-s.messages.appen\
-dToInput(html);t\
-his.bridge.conne\
-ct(onChunk,onNod\
-e,onNodeReplace,\
-onNodeInput);try\
-{this.logger.bin\
-dBridge(this.bri\
-dge.bridge||this\
-.bridge);}catch(\
-_){}});this.rend\
-erer.init();try{\
-const pendingMar\
-kdown=this.rende\
-rer.renderPendin\
-gMarkdown(docume\
-nt);const virtua\
-lize=()=>{try{th\
-is.scrollMgr.vir\
-tualization.sche\
-duleMessageVirtu\
-alizationRefresh\
-();}catch(_){}};\
-if(pendingMarkdo\
-wn&&typeof pendi\
-ngMarkdown.then=\
-=='function')pen\
-dingMarkdown.the\
-n(virtualize);el\
-se virtualize();\
-}catch(_){try{th\
-is.scrollMgr.vir\
-tualization.sche\
-duleMessageVirtu\
-alizationRefresh\
-();}catch(__){}}\
-\x0athis.highlighte\
-r.observeMsgBoxe\
-s(document,(box)\
-=>{this.highligh\
+this.highlighter\
+,this.codeScroll\
+,this.toolOutput\
+,this.bridge,()=\
+>this.stream.cod\
+e.activeCode);tr\
+y{this.stream.fe\
+nces.setCustomFe\
+nceSpecs(this.cu\
+stomMarkup.getSo\
+urceFenceSpecs()\
+);}catch(_){}\x0ath\
+is.data=new Data\
+Receiver(this.cf\
+g,this.templates\
+,this.nodes,this\
+.scrollMgr);this\
+.tips=null;this.\
+streaming=new Ru\
+ntimeStreaming(t\
+his);this.workfl\
+ows=new RuntimeW\
+orkflows(this);t\
+his.partials=new\
+ RuntimePartials\
+(this);this.time\
+line=new Runtime\
+Timeline(this);t\
+his.turns=new Ru\
+ntimeTurns(this)\
+;this.mutations=\
+new RuntimeMutat\
+ions(this);this.\
+messages=new Run\
+timeMessages(thi\
+s);this.view=new\
+ RuntimeView(thi\
+s);this.renderer\
+.hooks.observeNe\
+wCode=(root,opts\
+)=>this.highligh\
 ter.observeNewCo\
-de(box,{deferLas\
-tIfStreaming:tru\
-e,minLinesForLas\
-t:this.cfg.PROFI\
-LE_CODE.minLines\
-ForHL,minCharsFo\
-rLast:this.cfg.P\
-ROFILE_CODE.minC\
-harsForHL},this.\
-stream.code.acti\
-veCode);this.cod\
-eScroll.initScro\
-llableBlocks(box\
-);});this.highli\
-ghter.observeNew\
-Code(document,{d\
-eferLastIfStream\
-ing:true,minLine\
-sForLast:this.cf\
-g.PROFILE_CODE.m\
-inLinesForHL,min\
-CharsForLast:thi\
-s.cfg.PROFILE_CO\
-DE.minCharsForHL\
-},this.stream.co\
-de.activeCode);t\
-his.highlighter.\
-scheduleScanVisi\
-bleCodes(this.st\
-ream.code.active\
-Code);this.tips.\
-cycle();this.scr\
-ollMgr.updateScr\
-ollFab(true);}\x0ac\
-leanup(){this.ti\
-ps.cleanup();try\
-{this.bridge.dis\
-connect();}catch\
-(_){}\x0athis.event\
-s.cleanup();this\
-.highlighter.cle\
-anup();this.math\
-.cleanup();this.\
-streamQ.clear();\
-this.dom.cleanup\
-();}};\x0a\x0a/* data/\
-js/app/bootstrap\
-.js */\x0awindow.__\
-collapsed_idx=wi\
-ndow.__collapsed\
-_idx||[];const r\
-untime=new Runti\
-me();document.ad\
-dEventListener('\
-DOMContentLoaded\
-',()=>runtime.in\
-it());Object.def\
-ineProperty(wind\
-ow,'SE',{get(){r\
-eturn Utils.SE;}\
-});window.beginS\
-tream=(chunk,pre\
-serveParentId=nu\
-ll)=>runtime.str\
-eaming.beginStre\
-am(chunk,preserv\
-eParentId);windo\
-w.bindStreamOwne\
-r=(msgId)=>runti\
-me.streaming.bin\
-dStreamOwner(msg\
-Id);window.endSt\
-ream=()=>runtime\
-.streaming.endSt\
-ream();window.ap\
-plyStream=(name,\
-chunk)=>runtime.\
-streaming.applyS\
-tream(name,chunk\
-);window.appendS\
-tream=(name,chun\
-k)=>runtime.stre\
-aming.appendStre\
-am(name,chunk);w\
-indow.appendStre\
-amTyped=(type,na\
-me,chunk)=>runti\
-me.streaming.onC\
-hunk(name,chunk,\
-type);window.nex\
-tStream=()=>runt\
-ime.streaming.ne\
-xtStream();windo\
-w.clearStream=()\
-=>runtime.stream\
-ing.clearStream(\
-);window.appendP\
-artialStream=(pa\
-rentId,partId,ch\
-unk,begin,agentN\
-ame)=>runtime.pa\
-rtials.appendPar\
-tialStream(paren\
-tId,partId,chunk\
-,begin,agentName\
-);window.bindWor\
-kflowStream=(par\
-entId,nameHeader\
-,records,partId,\
-agentName)=>runt\
-ime.workflows.bi\
-ndWorkflowStream\
-(parentId,nameHe\
-ader,records,par\
-tId,agentName);w\
-indow.setAgentSt\
-atus=(text,paren\
-tId,statusId,own\
-er)=>runtime.wor\
-kflows.setAgentS\
-tatus(text,paren\
-tId,statusId,own\
-er);window.clear\
-AgentStatus=(par\
-entId)=>runtime.\
-workflows.clearA\
-gentStatus(paren\
-tId);window.setT\
-oolStatus=(names\
-,parentId,status\
-Id)=>runtime.wor\
-kflows.setToolSt\
-atus(names,paren\
-tId,statusId);wi\
-ndow.clearToolSt\
-atus=(parentId,i\
-mmediate=true)=>\
-runtime.workflow\
-s.clearToolStatu\
-s(parentId,immed\
-iate);window.fre\
-ezeWorkflowStatu\
-s=(parentId,kind\
-)=>runtime.workf\
-lows.freezeWorkf\
-lowStatus(parent\
-Id,kind);window.\
-begin=(msgId='')\
-=>runtime.turns.\
-begin(msgId);win\
-dow.end=(msgId='\
-')=>runtime.turn\
-s.end(msgId);win\
-dow.appendNode=(\
-payload)=>runtim\
-e.messages.appen\
-dNode(payload);w\
-indow.replaceNod\
-es=(payload)=>ru\
-ntime.messages.r\
-eplaceNodes(payl\
-oad);window.appe\
-ndToInput=(html)\
-=>runtime.messag\
+de(root,opts,thi\
+s.stream.code.ac\
+tiveCode);this.r\
+enderer.hooks.ob\
+serveMsgBoxes=(r\
+oot)=>this.highl\
+ighter.observeMs\
+gBoxes(root,(box\
+)=>{this.highlig\
+hter.observeNewC\
+ode(box,{deferLa\
+stIfStreaming:tr\
+ue,minLinesForLa\
+st:this.cfg.PROF\
+ILE_CODE.minLine\
+sForHL,minCharsF\
+orLast:this.cfg.\
+PROFILE_CODE.min\
+CharsForHL},this\
+.stream.code.act\
+iveCode);this.co\
+deScroll.initScr\
+ollableBlocks(bo\
+x);});this.rende\
+rer.hooks.schedu\
+leMathRender=(ro\
+ot)=>{const mm=g\
+etMathMode();if(\
+mm==='idle')this\
+.math.schedule(r\
+oot);else if(mm=\
+=='always')this.\
+math.schedule(ro\
+ot,0,true);};thi\
+s.renderer.hooks\
+.scanVisibleCode\
+s=(root)=>this.h\
+ighlighter.scanV\
+isibleCodesInRoo\
+t(root,this.stre\
+am.code.activeCo\
+de||null);this.r\
+enderer.hooks.co\
+deScrollInit=(ro\
+ot)=>this.codeSc\
+roll.initScrolla\
+bleBlocks(root);\
+}\x0ainit(){this.hi\
+ghlighter.initHL\
+JS();this.dom.in\
+it();this.ui.ens\
+ureStickyHeaderS\
+tyle();this.tips\
+=new TipsManager\
+(this.dom);this.\
+events.install()\
+;this.bridge.ini\
+tQWebChannel(thi\
+s.cfg.PID,(bridg\
+e)=>{const onChu\
+nk=(name,chunk,t\
+ype)=>this.strea\
+ming.onChunk(nam\
+e,chunk,type);co\
+nst onNode=(payl\
+oad)=>this.messa\
+ges.appendNode(p\
+ayload);const on\
+NodeReplace=(pay\
+load)=>this.mess\
+ages.replaceNode\
+s(payload);const\
+ onNodeInput=(ht\
+ml)=>this.messag\
 es.appendToInput\
-(html);window.cl\
-earNodes=()=>run\
-time.messages.cl\
-earNodes();windo\
-w.clearInput=()=\
->runtime.message\
-s.clearInput();w\
-indow.clearOutpu\
-t=()=>runtime.me\
-ssages.clearOutp\
-ut();window.clea\
-rLive=()=>runtim\
-e.messages.clear\
-Live();window.ap\
-pendToolOutput=(\
-c)=>runtime.tool\
-Output.append(c)\
-;window.updateTo\
-olOutput=(c)=>ru\
-ntime.toolOutput\
-.update(c);windo\
-w.clearToolOutpu\
-t=()=>runtime.to\
-olOutput.clear()\
-;window.beginToo\
-lOutput=()=>runt\
-ime.view.beginTo\
-olOutput();windo\
-w.endToolOutput=\
-()=>runtime.tool\
-Output.end();win\
-dow.enableToolOu\
-tput=()=>runtime\
-.toolOutput.enab\
-le();window.disa\
-bleToolOutput=()\
-=>runtime.toolOu\
-tput.disable();w\
-indow.toggleTool\
-Output=(id)=>run\
-time.toolOutput.\
-toggle(id);windo\
-w.toggleToolGrou\
-p=(id)=>runtime.\
-toolOutput.toggl\
-eGroup(id);windo\
-w.toggleExtraIte\
-ms=(button)=>run\
-time.ui.toggleEx\
-traItems(button)\
-;window.appendEx\
-tra=(id,c)=>runt\
-ime.nodes.append\
-Extra(id,c,runti\
-me.scrollMgr);wi\
-ndow.removeNode=\
-(id)=>runtime.no\
-des.removeNode(i\
-d,runtime.scroll\
-Mgr);window.remo\
-veNodesFromId=(i\
-d)=>runtime.node\
-s.removeNodesFro\
-mId(id,runtime.s\
-crollMgr);window\
-.replaceLive=(c)\
+(html);this.brid\
+ge.connect(onChu\
+nk,onNode,onNode\
+Replace,onNodeIn\
+put);try{this.lo\
+gger.bindBridge(\
+this.bridge.brid\
+ge||this.bridge)\
+;}catch(_){}});t\
+his.renderer.ini\
+t();try{const pe\
+ndingMarkdown=th\
+is.renderer.rend\
+erPendingMarkdow\
+n(document);cons\
+t virtualize=()=\
+>{try{this.scrol\
+lMgr.virtualizat\
+ion.scheduleMess\
+ageVirtualizatio\
+nRefresh();}catc\
+h(_){}};if(pendi\
+ngMarkdown&&type\
+of pendingMarkdo\
+wn.then==='funct\
+ion')pendingMark\
+down.then(virtua\
+lize);else virtu\
+alize();}catch(_\
+){try{this.scrol\
+lMgr.virtualizat\
+ion.scheduleMess\
+ageVirtualizatio\
+nRefresh();}catc\
+h(__){}}\x0athis.hi\
+ghlighter.observ\
+eMsgBoxes(docume\
+nt,(box)=>{this.\
+highlighter.obse\
+rveNewCode(box,{\
+deferLastIfStrea\
+ming:true,minLin\
+esForLast:this.c\
+fg.PROFILE_CODE.\
+minLinesForHL,mi\
+nCharsForLast:th\
+is.cfg.PROFILE_C\
+ODE.minCharsForH\
+L},this.stream.c\
+ode.activeCode);\
+this.codeScroll.\
+initScrollableBl\
+ocks(box);});thi\
+s.highlighter.ob\
+serveNewCode(doc\
+ument,{deferLast\
+IfStreaming:true\
+,minLinesForLast\
+:this.cfg.PROFIL\
+E_CODE.minLinesF\
+orHL,minCharsFor\
+Last:this.cfg.PR\
+OFILE_CODE.minCh\
+arsForHL},this.s\
+tream.code.activ\
+eCode);this.high\
+lighter.schedule\
+ScanVisibleCodes\
+(this.stream.cod\
+e.activeCode);th\
+is.tips.cycle();\
+this.scrollMgr.u\
+pdateScrollFab(t\
+rue);}\x0acleanup()\
+{this.tips.clean\
+up();try{this.br\
+idge.disconnect(\
+);}catch(_){}\x0ath\
+is.events.cleanu\
+p();this.highlig\
+hter.cleanup();t\
+his.math.cleanup\
+();this.streamQ.\
+clear();this.dom\
+.cleanup();}};\x0a\x0a\
+/* data/js/app/b\
+ootstrap.js */\x0aw\
+indow.__collapse\
+d_idx=window.__c\
+ollapsed_idx||[]\
+;const runtime=n\
+ew Runtime();doc\
+ument.addEventLi\
+stener('DOMConte\
+ntLoaded',()=>ru\
+ntime.init());Ob\
+ject.definePrope\
+rty(window,'SE',\
+{get(){return Ut\
+ils.SE;}});windo\
+w.beginStream=(c\
+hunk,preservePar\
+entId=null)=>run\
+time.streaming.b\
+eginStream(chunk\
+,preserveParentI\
+d);window.bindSt\
+reamOwner=(msgId\
+)=>runtime.strea\
+ming.bindStreamO\
+wner(msgId);wind\
+ow.endStream=()=\
+>runtime.streami\
+ng.endStream();w\
+indow.applyStrea\
+m=(name,chunk)=>\
+runtime.streamin\
+g.applyStream(na\
+me,chunk);window\
+.appendStream=(n\
+ame,chunk)=>runt\
+ime.streaming.ap\
+pendStream(name,\
+chunk);window.ap\
+pendStreamTyped=\
+(type,name,chunk\
+)=>runtime.strea\
+ming.onChunk(nam\
+e,chunk,type);wi\
+ndow.nextStream=\
+()=>runtime.stre\
+aming.nextStream\
+();window.clearS\
+tream=()=>runtim\
+e.streaming.clea\
+rStream();window\
+.appendPartialSt\
+ream=(parentId,p\
+artId,chunk,begi\
+n,agentName)=>ru\
+ntime.partials.a\
+ppendPartialStre\
+am(parentId,part\
+Id,chunk,begin,a\
+gentName);window\
+.bindWorkflowStr\
+eam=(parentId,na\
+meHeader,records\
+,partId,agentNam\
+e)=>runtime.work\
+flows.bindWorkfl\
+owStream(parentI\
+d,nameHeader,rec\
+ords,partId,agen\
+tName);window.se\
+tAgentStatus=(te\
+xt,parentId,stat\
+usId,owner)=>run\
+time.workflows.s\
+etAgentStatus(te\
+xt,parentId,stat\
+usId,owner);wind\
+ow.clearAgentSta\
+tus=(parentId)=>\
+runtime.workflow\
+s.clearAgentStat\
+us(parentId);win\
+dow.setToolStatu\
+s=(names,parentI\
+d,statusId)=>run\
+time.workflows.s\
+etToolStatus(nam\
+es,parentId,stat\
+usId);window.cle\
+arToolStatus=(pa\
+rentId,immediate\
+=true)=>runtime.\
+workflows.clearT\
+oolStatus(parent\
+Id,immediate);wi\
+ndow.freezeWorkf\
+lowStatus=(paren\
+tId,kind)=>runti\
+me.workflows.fre\
+ezeWorkflowStatu\
+s(parentId,kind)\
+;window.begin=(m\
+sgId='')=>runtim\
+e.turns.begin(ms\
+gId);window.end=\
+(msgId='')=>runt\
+ime.turns.end(ms\
+gId);window.appe\
+ndNode=(payload)\
 =>runtime.messag\
-es.replaceLive(c\
-);window.updateF\
-ooter=(c)=>runti\
-me.view.updateFo\
-oter(c);window.e\
-nableEditIcons=(\
-)=>runtime.ui.en\
-ableEditIcons();\
-window.disableEd\
-itIcons=()=>runt\
-ime.ui.disableEd\
-itIcons();window\
-.enableTimestamp\
-=()=>runtime.ui.\
-enableTimestamp(\
-);window.disable\
-Timestamp=()=>ru\
-ntime.ui.disable\
-Timestamp();wind\
-ow.enableBlocks=\
-()=>runtime.ui.e\
-nableBlocks();wi\
-ndow.disableBloc\
-ks=()=>runtime.u\
-i.disableBlocks(\
-);window.updateC\
-SS=(s)=>runtime.\
-ui.updateCSS(s);\
-window.getScroll\
-Position=()=>run\
-time.view.getScr\
-ollPosition();wi\
-ndow.setScrollPo\
-sition=(pos)=>ru\
-ntime.view.setSc\
-rollPosition(pos\
-);window.showLoa\
-ding=(delayMs=0,\
-waitForInput=fal\
-se)=>runtime.loa\
-ding.show(delayM\
-s,waitForInput);\
-window.hideLoadi\
-ng=(reserveSpace\
-=false)=>runtime\
-.loading.hide(re\
-serveSpace);wind\
-ow.restoreCollap\
-sedCode=(root)=>\
-runtime.renderer\
-.restoreCollapse\
-dCode(root);wind\
-ow.scrollToTopUs\
-er=()=>runtime.s\
-crollMgr.scrollT\
-oTopUser();windo\
-w.scrollToBottom\
-User=()=>runtime\
-.scrollMgr.scrol\
-lToBottomUser();\
-window.showTips=\
-()=>runtime.tips\
-.show();window.h\
-ideTips=()=>runt\
-ime.tips.hide();\
-window.getCustom\
-MarkupRules=()=>\
-runtime.customMa\
-rkup.getRules();\
-window.setCustom\
-MarkupRules=(rul\
-es)=>runtime.vie\
-w.setCustomMarku\
-pRules(rules);wi\
-ndow.__pygpt_cle\
-anup=()=>runtime\
-.cleanup();windo\
-w.setAgentWorkin\
-g=(parentId,data\
-)=>runtime.workf\
-lows.setAgentWor\
-king(parentId,da\
-ta);window.clear\
-AgentWorking=()=\
->runtime.workflo\
-ws.clearAgentWor\
-king();window.sy\
-ncLiveTools=(par\
-entId,calls)=>ru\
+es.appendNode(pa\
+yload);window.re\
+placeNodes=(payl\
+oad)=>runtime.me\
+ssages.replaceNo\
+des(payload);win\
+dow.appendToInpu\
+t=(html)=>runtim\
+e.messages.appen\
+dToInput(html);w\
+indow.clearNodes\
+=()=>runtime.mes\
+sages.clearNodes\
+();window.clearI\
+nput=()=>runtime\
+.messages.clearI\
+nput();window.cl\
+earOutput=()=>ru\
+ntime.messages.c\
+learOutput();win\
+dow.clearLive=()\
+=>runtime.messag\
+es.clearLive();w\
+indow.appendTool\
+Output=(c)=>runt\
+ime.toolOutput.a\
+ppend(c);window.\
+updateToolOutput\
+=(c)=>runtime.to\
+olOutput.update(\
+c);window.clearT\
+oolOutput=()=>ru\
 ntime.toolOutput\
-.syncLive(parent\
-Id,calls);\x0a\
+.clear();window.\
+beginToolOutput=\
+()=>runtime.view\
+.beginToolOutput\
+();window.endToo\
+lOutput=()=>runt\
+ime.toolOutput.e\
+nd();window.enab\
+leToolOutput=()=\
+>runtime.toolOut\
+put.enable();win\
+dow.disableToolO\
+utput=()=>runtim\
+e.toolOutput.dis\
+able();window.to\
+ggleToolOutput=(\
+id)=>runtime.too\
+lOutput.toggle(i\
+d);window.toggle\
+ToolGroup=(id)=>\
+runtime.toolOutp\
+ut.toggleGroup(i\
+d);window.toggle\
+ExtraItems=(butt\
+on)=>runtime.ui.\
+toggleExtraItems\
+(button);window.\
+appendExtra=(id,\
+c)=>runtime.node\
+s.appendExtra(id\
+,c,runtime.scrol\
+lMgr);window.rem\
+oveNode=(id)=>ru\
+ntime.nodes.remo\
+veNode(id,runtim\
+e.scrollMgr);win\
+dow.removeNodesF\
+romId=(id)=>runt\
+ime.nodes.remove\
+NodesFromId(id,r\
+untime.scrollMgr\
+);window.replace\
+Live=(c)=>runtim\
+e.messages.repla\
+ceLive(c);window\
+.updateFooter=(c\
+)=>runtime.view.\
+updateFooter(c);\
+window.enableEdi\
+tIcons=()=>runti\
+me.ui.enableEdit\
+Icons();window.d\
+isableEditIcons=\
+()=>runtime.ui.d\
+isableEditIcons(\
+);window.enableT\
+imestamp=()=>run\
+time.ui.enableTi\
+mestamp();window\
+.disableTimestam\
+p=()=>runtime.ui\
+.disableTimestam\
+p();window.enabl\
+eBlocks=()=>runt\
+ime.ui.enableBlo\
+cks();window.dis\
+ableBlocks=()=>r\
+untime.ui.disabl\
+eBlocks();window\
+.updateCSS=(s)=>\
+runtime.ui.updat\
+eCSS(s);window.g\
+etScrollPosition\
+=()=>runtime.vie\
+w.getScrollPosit\
+ion();window.set\
+ScrollPosition=(\
+pos)=>runtime.vi\
+ew.setScrollPosi\
+tion(pos);window\
+.showLoading=(de\
+layMs=0,waitForI\
+nput=false)=>run\
+time.loading.sho\
+w(delayMs,waitFo\
+rInput);window.h\
+ideLoading=(rese\
+rveSpace=false)=\
+>runtime.loading\
+.hide(reserveSpa\
+ce);window.resto\
+reCollapsedCode=\
+(root)=>runtime.\
+renderer.restore\
+CollapsedCode(ro\
+ot);window.scrol\
+lToTopUser=()=>r\
+untime.scrollMgr\
+.scrollToTopUser\
+();window.scroll\
+ToBottomUser=()=\
+>runtime.scrollM\
+gr.scrollToBotto\
+mUser();window.s\
+howTips=()=>runt\
+ime.tips.show();\
+window.hideTips=\
+()=>runtime.tips\
+.hide();window.g\
+etCustomMarkupRu\
+les=()=>runtime.\
+customMarkup.get\
+Rules();window.s\
+etCustomMarkupRu\
+les=(rules)=>run\
+time.view.setCus\
+tomMarkupRules(r\
+ules);window.__p\
+ygpt_cleanup=()=\
+>runtime.cleanup\
+();window.setAge\
+ntWorking=(paren\
+tId,data)=>runti\
+me.workflows.set\
+AgentWorking(par\
+entId,data);wind\
+ow.clearAgentWor\
+king=()=>runtime\
+.workflows.clear\
+AgentWorking();w\
+indow.syncLiveTo\
+ols=(parentId,ca\
+lls)=>runtime.to\
+olOutput.syncLiv\
+e(parentId,calls\
+);\x0a\
 "
 
 qt_resource_name = b"\
@@ -145495,9 +145602,9 @@ qt_resource_struct = b"\
 \x00\x00\x09\x5c\x00\x00\x00\x00\x00\x01\x00\x1d-\x02\
 \x00\x00\x00\xf4\x00\x00\x00\x00\x00\x01\x00\x10\xf8\x15\
 \x00\x00\x08\xac\x00\x00\x00\x00\x00\x01\x00\x1a\xe5n\
-\x00\x00\x0aR\x00\x00\x00\x00\x00\x01\x00\x1eEz\
+\x00\x00\x0aR\x00\x00\x00\x00\x00\x01\x00\x1eI\x17\
 \x00\x00\x07\xf0\x00\x00\x00\x00\x00\x01\x00\x16\x08r\
-\x00\x00\x0a\x9e\x00\x00\x00\x00\x00\x01\x00\x1ei\x99\
+\x00\x00\x0a\x9e\x00\x00\x00\x00\x00\x01\x00\x1em6\
 \x00\x00\x05\xa4\x00\x00\x00\x00\x00\x01\x00\x14?\x91\
 \x00\x00\x08J\x00\x00\x00\x00\x00\x01\x00\x1a\x84\xd1\
 \x00\x00\x01\x0e\x00\x00\x00\x00\x00\x01\x00\x11\x150\
@@ -145536,7 +145643,7 @@ qt_resource_struct = b"\
 \x00\x00\x09\xb2\x00\x00\x00\x00\x00\x01\x00\x1djL\
 \x00\x00\x076\x00\x00\x00\x00\x00\x01\x00\x15J\xe8\
 \x00\x00\x03D\x00\x00\x00\x00\x00\x01\x00\x13\x04\xd9\
-\x00\x00\x0at\x00\x00\x00\x00\x00\x01\x00\x1e[\xff\
+\x00\x00\x0at\x00\x00\x00\x00\x00\x01\x00\x1e_\x9c\
 \x00\x00\x00\xb4\x00\x00\x00\x00\x00\x01\x00\x10\xc4\xff\
 \x00\x00\x05\x12\x00\x00\x00\x00\x00\x01\x00\x14\x0eb\
 \x00\x00\x04\xd2\x00\x00\x00\x00\x00\x01\x00\x13\xbe\xc4\

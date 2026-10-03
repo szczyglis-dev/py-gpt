@@ -79,6 +79,7 @@ class ScrollManager {
 	}
 
 	noteUserScroll(deltaY = 0) {
+		this.userScrollAnimation = null;
 		const dir = deltaY < 0 ? -1 : (deltaY > 0 ? 1 : 0);
 		if (dir < 0) {
 			this.suspendAutoFollow();
@@ -173,17 +174,40 @@ class ScrollManager {
 	}
 
 	scrollToTopUser() {
-		this.suspendAutoFollow();
-		const el = Utils.SE;
-		this.markProgrammaticScroll(0);
-		try { el.scrollTop = 0; } catch (_) {
-			try { el.scrollTo({ top: 0, behavior: 'instant' }); } catch (__) {}
-		}
-		this.lastScrollTop = Number(el.scrollTop || 0);
+		this._animateUserScroll(false);
 	}
 
 	scrollToBottomUser() {
-		this.resumeAutoFollow(true);
+		this._animateUserScroll(true);
+	}
+
+	_animateUserScroll(toBottom) {
+		this.suspendAutoFollow();
+		const el = Utils.SE;
+		const start = Number(el.scrollTop || 0);
+		const token = {};
+		this.userScrollAnimation = token;
+		const started = performance.now();
+		const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const duration = reduced ? 0 : 450;
+		const step = (now) => {
+			if (this.userScrollAnimation !== token) return;
+			if (this.pointerScrollActive) { this.userScrollAnimation = null; return; }
+			const progress = duration ? Math.min(1, (now - started) / duration) : 1;
+			const eased = 1 - Math.pow(1 - progress, 3);
+			const target = toBottom ? Math.max(0, el.scrollHeight - el.clientHeight) : 0;
+			const top = start + (target - start) * eased;
+			this.markProgrammaticScroll(top);
+			el.scrollTop = top;
+			this.lastScrollTop = Number(el.scrollTop || 0);
+			if (progress < 1) requestAnimationFrame(step);
+			else {
+				this.userScrollAnimation = null;
+				if (toBottom) this.resumeAutoFollow(true);
+				this.scheduleScrollFabUpdate();
+			}
+		};
+		requestAnimationFrame(step);
 	}
 
 	// ========================================
