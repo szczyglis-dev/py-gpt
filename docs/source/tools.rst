@@ -28,9 +28,6 @@ Notepad
 
 The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
 
-.. image:: images/v2_notepad.png
-   :width: 600
-
 Painter
 -------
 
@@ -52,17 +49,11 @@ Calendar
 
 Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting ``Set label color`` option. By clicking on a particular day of the week, conversations from that day will be displayed.
 
-.. image:: images/v2_calendar.png
-   :width: 800
-
 
 Indexer
 -------
 
 This tool allows indexing of local files or directories and external web content to a vector database, which can then be selected through the ``RAG`` selector in Chat and other supported workflows. Using this tool, you can manage local indexes and add new data with built-in ``LlamaIndex`` integration. Project conversations can also use an isolated ``Current project`` index; see :doc:`indexing` for project-aware file and context indexing.
-
-.. image:: images/v2_tool_indexer.png
-   :width: 800
 
 
 Media Player
@@ -88,9 +79,6 @@ The editor context menu contains global tab settings:
 * **Tab width** - sets the shared tab/indent width from 1 to 8 columns. Default: ``4``.
 * **Convert indentation to spaces/tabs** - rewrites indentation in the current document without changing the global preference.
 * **Word wrap** - toggles wrapping of long lines. Default: disabled. This is an application-wide editor preference and is shared by the Text Editor, Files editor and Canvas source editor.
-
-These preferences are stored in ``config.json`` as ``filesystem.text_editor.tabs.indent_spaces``, ``filesystem.text_editor.tabs.width`` and ``filesystem.text_editor.word_wrap``.
-
 
 Transcribe Audio/Video Files
 -----------------------------
@@ -138,10 +126,6 @@ Canvas
 The **Canvas** tool is a persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can render generated HTML/CSS/JavaScript, open external webpages, support scoped interaction, annotations, screenshots, DOM inspection, iterative live editing, and retrieve the user's current Painter drawing as runtime model input through ``get_user_painter_image``. Enable the plugin to expose the model-callable Canvas tools; the global ``Tools`` switch is not required.
 
 See :doc:`canvas` for the feature overview and :ref:`plugin-canvas-web-html` for the complete tool and configuration reference.
-
-.. warning::
-
-   Treat untrusted webpages and scripts with the same caution as other browser content.
 
 Agent Workflow
 --------------

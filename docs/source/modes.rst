@@ -18,9 +18,19 @@ PyGPT, in this and other modes, can use native SDKs provided by popular AI provi
    - Google GenAI SDK
    - xAI SDK
 
-The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options on the right. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
+The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
 
 .. image:: images/v2_mode_chat.png
+   :width: 800
+
+Toolbox expanded:
+
+.. image:: images/v2_mode_chat2.png
+   :width: 800
+
+Right column expanded (split screen):
+
+.. image:: images/v2_mode_chat3.png
    :width: 800
 
 At the bottom of the chat window, PyGPT also shows an estimated number of tokens that will be sent to the model, as well as the number of tokens used for each generated response.

@@ -18,7 +18,7 @@ Release: **2.8.38** | build: **2026-10-03** | Python: **>=3.10, <3.14**
 
 Beyond chat, PyGPT includes Agents with Chat, Orchestrator and Swarm workflows, Agent Skills, plugins and MCP connectors, RAG, files and attachments, Python/IPython and system tools, web search, vision and camera input, image and video generation, Computer use, realtime voice, speech input/output, memory, automation, and external integrations. Models can use local and remote tools, work with files, call APIs, and control the desktop or browser when enabled.
 
-**Screenshots** (version `2.8.29`, build `2026-09-22`):
+**Screenshots** (version `2.9.0`, build `2026-10-03`):
 
 Dark theme:
 ![v2_main](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main.png)
@@ -364,9 +364,17 @@ Currently built-in native clients:
 - Google GenAI SDK
 - xAI SDK
 
-The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options on the right. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
+The main window is divided into several sections: tabs at the top, the main chat area in the center, the user input at the bottom, conversation history on the left, and the Toolbox with additional tools and options. PyGPT also supports split-screen mode, allowing you to work with multiple conversations side by side.
 
 ![v2_mode_chat](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat.png)
+
+Toolbox expanded:
+
+![v2_mode_chat2](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat2.png)
+
+Right column expanded (split screen):
+
+![v2_mode_chat3](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_mode_chat3.png)
 
 At the bottom of the chat window, PyGPT also shows an estimated number of tokens that will be sent to the model, as well as the number of tokens used for each generated response.
 
@@ -699,9 +707,7 @@ The model can generate the HTML/CSS/JavaScript, open the Canvas, render the anim
 
 ![v3_canvas](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/canvas.png)
 
-You can also combine Canvas with live drawing in Painter to create a seamless end-to-end workflow. For example, you can sketch a reference image in Painter, ask the model to retrieve it directly from Painter and use it as input for the task, and then have the final interactive result displayed in Canvas — as shown in the video below:
-
-https://github.com/user-attachments/assets/d954c4e6-9ad9-4bbb-8065-dc0a0a2f9f36
+You can also combine Canvas with live drawing in Painter to create a seamless end-to-end workflow. For example, you can sketch a reference image in Painter, ask the model to retrieve it directly from Painter and use it as input for the task, and then have the final interactive result displayed in Canvas.
 
 Canvas can also work as a browser workspace. It can open external websites, navigate pages, inspect and interact with DOM elements, and use either the built-in Chromium/QWebEngine runtime or the optional Playwright sandbox. For local web projects, the plugin can start a lightweight loopback-only HTML server, open the served site in Canvas, and then test or modify it interactively.
 
@@ -926,7 +932,7 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **Attachments**
 
-Attach files directly in the chat input. Attachments always use **Full context**: extracted content is sent as **ADDITIONAL CONTEXT** after the user's text and is saved with that message. Providers that rebuild conversation history include it with the original user message. Attachments are not indexed during upload and belong only to the conversation where they were uploaded. The input has no Attachments or Uploaded tabs.
+Attach files directly in the chat input. Attachments always use **Full context**: extracted content is sent as **ADDITIONAL CONTEXT** after the user's text and is saved with that message. Providers that rebuild conversation history include it with the original user message. Attachments are not indexed during upload and belong only to the conversation where they were uploaded.
 
 ![v2_file_input](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_file_input.png)
 
@@ -1989,8 +1995,6 @@ PyGPT features several useful tools, including:
 
 The application has a built-in notepad, divided into several tabs. This can be useful for storing information in a convenient way, without the need to open an external text editor. The content of the notepad is automatically saved whenever the content changes.
 
-![v2_notepad](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_notepad.png)
-
 ## Painter
 
 Using the `Painter` tool, you can create quick sketches and submit them to the model for analysis. You can also edit opened from disk or captured from camera images, for example, by adding elements like arrows or outlines to objects. Additionally, you can capture screenshots from the system - the captured image is placed in the drawing tool and attached to the query being sent.
@@ -2005,15 +2009,9 @@ To capture the screenshot just click on the `Ask with screenshot` option in a tr
 
 Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting `Set label color`. By clicking on a particular day of the week, conversations from that day will be displayed.
 
-![v2_calendar](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_calendar.png)
-
-
 ## Indexer
 
-
 This tool allows indexing of local files or directories and external web content to a vector database, which can then be selected through the **RAG** selector in Chat and other supported workflows. Using this tool, you can manage local indexes and add new data with built-in `LlamaIndex` integration.
-
-![v2_tool_indexer](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_tool_indexer.png)
 
 ## Media Player
 
@@ -2063,8 +2061,6 @@ Enables translation between multiple languages using an AI model.
 ## Canvas
 
 The **Canvas** tool is the persistent Chromium/QWebEngine browser and interactive rendering surface used by the **Canvas (inline)** plugin. It can display generated HTML/CSS/JavaScript, open external webpages, support scoped browser interaction, annotations, screenshots, DOM inspection, and live iterative editing. Enable the **Canvas (inline)** plugin to expose its model-callable tools; the global **Tools** switch is not required. See the [Canvas](#canvas) section above for an overview.
-
-Treat untrusted webpages and scripts with the same caution as other browser content.
 
 ## Agent Workflow
 
