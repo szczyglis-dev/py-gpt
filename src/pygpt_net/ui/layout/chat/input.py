@@ -12,7 +12,7 @@
 from PySide6.QtCore import Qt, QSize, QTimer, QPoint
 from PySide6.QtGui import QIcon, QAction, QActionGroup
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QMenu, \
-    QGridLayout, QSizePolicy
+    QGridLayout, QSizePolicy, QLabel
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.layout.chat.attachments import Attachments
@@ -456,10 +456,10 @@ class Input:
 
         self.window.ui.plugin_addon['audio.output.bar'] = OutputBar(self.window)
         status_layout = self.status.setup()
-        status_layout.setContentsMargins(4, 0, 0, 5)
+        status_layout.setContentsMargins(4, 0, 0, 0)
 
         bottom_row = QGridLayout()
-        bottom_row.setContentsMargins(0, 4, 2, 2)
+        bottom_row.setContentsMargins(0, 4, 2, 5)
         bottom_row.setHorizontalSpacing(6)
         bottom_row.addWidget(
             self.window.ui.plugin_addon['audio.output.bar'],
@@ -474,6 +474,9 @@ class Input:
         right_controls.setContentsMargins(0, 0, 0, 0)
         right_controls.setSpacing(12)
         right_controls.addLayout(status_layout, 1)
+        right_controls.addWidget(nodes['status.agent'], alignment=Qt.AlignVCenter)
+        nodes['status.mode_preset'] = ChatStatusLabel('')
+        right_controls.addWidget(nodes['status.mode_preset'], alignment=Qt.AlignVCenter)
         right_controls.addWidget(nodes['input.counter'], alignment=Qt.AlignVCenter)
         right_controls.addWidget(self._setup_status_counters(), alignment=Qt.AlignVCenter)
         right_controls.addWidget(icons, alignment=Qt.AlignRight | Qt.AlignVCenter)
@@ -494,6 +497,16 @@ class Input:
         # this global footer visible while independently hiding chat metadata.
         nodes['chat.footer'] = QWidget()
         nodes['chat.footer'].setLayout(footer_layout)
+        # Center the content inside labels too: aligning the label widget alone
+        # leaves pixmaps/text at the top when its height exceeds their size.
+        for label in nodes['chat.footer'].findChildren(QLabel):
+            label.setAlignment((label.alignment() & Qt.AlignHorizontal_Mask) | Qt.AlignVCenter)
+            label.setContentsMargins(0, 0, 0, 0)
+            label.setFixedHeight(20)
+            label.setStyleSheet('padding-top: 0px; padding-bottom: 0px; margin-top: 0px; margin-bottom: 0px;')
+        nodes['input.counter'].setContentsMargins(0, 3, 0, 0)
+        nodes['status.mode_preset'].setContentsMargins(0, 4, 0, 0)
+        self.window.controller.ui.update_status_mode_preset()
 
         layout = QVBoxLayout()
         layout.addWidget(nodes['chat.footer'])
@@ -602,7 +615,7 @@ class Input:
         widget = QWidget()
         widget.setObjectName('global-status-counters')
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(0, 0, 0, 5)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(self.STATUS_ITEM_SPACING)
         for key in ('chat.plugins', 'chat.mcp', 'chat.skills',
                     'chat.annotations', 'inline.vision'):
@@ -618,7 +631,7 @@ class Input:
         widget.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
 
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(4, 0, 4, 7)
+        layout.setContentsMargins(4, 0, 4, 0)
         layout.setSpacing(5)
         layout.addWidget(nodes['icon.plain'], alignment=Qt.AlignVCenter)
         layout.addWidget(nodes['icon.video.capture'], alignment=Qt.AlignVCenter)

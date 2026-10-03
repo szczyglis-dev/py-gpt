@@ -57,7 +57,7 @@ class Presets:
 
     def on_changed(self):
         """Handle change event"""
-        pass
+        self.window.controller.ui.update_status_mode_preset()
 
     def is_bot(self) -> bool:
         """

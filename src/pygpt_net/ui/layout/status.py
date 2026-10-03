@@ -52,7 +52,6 @@ class Status:
 
         layout = QHBoxLayout()
         layout.addWidget(nodes['anim.loading.status'])
-        layout.addWidget(nodes['status.agent'])
         layout.addWidget(nodes['status'].setup(), 1)
         layout.addWidget(nodes['global.stop'])
         layout.setAlignment(Qt.AlignRight | Qt.AlignVCenter)

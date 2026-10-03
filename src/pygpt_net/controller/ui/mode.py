@@ -48,6 +48,7 @@ class Mode:
         """Update mode, model, preset and rest of the toolbox"""
 
         mode = self.window.core.config.get("mode")
+        self.window.controller.ui.update_status_mode_preset()
         model = self.window.core.config.get("model")
 
         ui_nodes = self.window.ui.nodes

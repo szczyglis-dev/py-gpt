@@ -156,6 +156,17 @@ class UI:
         ctrl.assistant.refresh()
         ctrl.idx.refresh()
 
+    def update_status_mode_preset(self):
+        label = self.window.ui.nodes.get('status.mode_preset')
+        if label is None:
+            return
+        mode = self.window.core.config.get('mode')
+        text = trans('mode.' + mode) if mode else ''
+        preset = self.window.controller.presets.get_current()
+        if preset is not None and preset.name and preset.name != '*':
+            text += ' | ' + preset.name
+        label.setText(text)
+
     def format_tokens(self, num: int) -> str:
         """
         Format tokens

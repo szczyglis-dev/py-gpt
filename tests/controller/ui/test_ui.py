@@ -127,3 +127,23 @@ def test_update_ctx_label_not_allowed(mock_window):
     mock_window.ui.nodes['chat.label'].setText = MagicMock()
     ui.update_ctx_label()
     mock_window.ui.nodes['chat.label'].setText.assert_called_with('')
+
+
+def test_status_mode_preset_omits_default_and_updates_selected(mock_window, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setattr('pygpt_net.controller.ui.ui.trans', lambda key: {'mode.chat': 'Czat', 'mode.agent': 'Agent'}[key])
+    label = MagicMock()
+    mock_window.ui.nodes = {'status.mode_preset': label}
+    mock_window.core.config = MagicMock()
+    mock_window.core.config.get.return_value = 'chat'
+    mock_window.controller.presets.get_current.return_value = SimpleNamespace(name='*')
+    ui = UI(mock_window)
+    ui.update_status_mode_preset()
+    label.setText.assert_called_with('Czat')
+    mock_window.controller.presets.get_current.return_value = SimpleNamespace(name='Coder')
+    ui.update_status_mode_preset()
+    label.setText.assert_called_with('Czat | Coder')
+    mock_window.core.config.get.return_value = 'agent'
+    mock_window.controller.presets.get_current.return_value = None
+    ui.update_status_mode_preset()
+    label.setText.assert_called_with('Agent')
