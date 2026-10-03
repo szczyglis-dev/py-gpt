@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtWidgets import QTabWidget, QMenu, QWidget, QStyle
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QAction, QIcon
 
 from pygpt_net.utils import trans
@@ -146,42 +146,82 @@ class ChatComposer(QWidget):
     """Single chat input with compatibility hooks for legacy tab controllers.
 
     Attachment lists remain controller-owned state, never selectable pages.
-    The optional image negative prompt is displayed inline below the input.
+    Media mode exposes a compact normal/negative prompt switch.
     """
 
     def __init__(self, window, page, extra):
         super().__init__(window)
-        from PySide6.QtWidgets import QVBoxLayout
+        from PySide6.QtWidgets import QVBoxLayout, QTabBar, QStackedWidget
         self._page = page
+        self.window = window
         self._extra = extra
+        self._extra_enabled = False
+        self._prompt_tabs = QTabBar(self)
+        self._prompt_tabs.setExpanding(False)
+        self._prompt_tabs.addTab(trans('input.tab'))
+        self._prompt_tabs.addTab(trans('input.tab.extra.negative_prompt'))
+        self._prompt_tabs.hide()
+        self._stack = QStackedWidget(self)
+        self._stack.addWidget(page)
+        self._stack.addWidget(extra)
+        self._prompt_tabs.currentChanged.connect(self._stack.setCurrentIndex)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addWidget(page)
-        layout.addWidget(extra)
-        extra.hide()
+        layout.addWidget(self._prompt_tabs)
+        layout.addWidget(self._stack)
 
     def currentIndex(self):
-        return 0
+        return 4 if self._stack.currentIndex() == 1 else 0
 
     def currentWidget(self):
-        return self._page
+        return self._stack.currentWidget()
 
     def setCurrentIndex(self, index):
-        pass
+        self._prompt_tabs.setCurrentIndex(1 if index == 4 and self._extra_enabled else 0)
 
     def isTabVisible(self, index):
-        return index == 0 or (index == 4 and not self._extra.isHidden())
+        return index == 0 or (index == 4 and self._extra_enabled)
 
     def setTabVisible(self, index, visible):
         if index == 4:
-            self._extra.setVisible(visible)
+            self._extra_enabled = bool(visible)
+            self._prompt_tabs.setVisible(visible)
+            if not visible:
+                self.setCurrentIndex(0)
+            self.layout().invalidate()
+            self.updateGeometry()
+            if self.window is not None:
+                QTimer.singleShot(0, self._refresh_input_height)
+
+    def _refresh_input_height(self):
+        nodes = self.window.ui.nodes
+        root = nodes.get('input.root')
+        if root is not None:
+            if self._extra_enabled:
+                if not hasattr(self, '_root_minimum_before_media'):
+                    self._root_minimum_before_media = root.minimumHeight()
+                # The responsive composer positions its content manually;
+                # minimumSizeHint alone does not constrain the outer pane.
+                band = getattr(nodes['input'], '_attachment_row_height', 0)
+                root.setMinimumHeight(max(root.minimumSizeHint().height(),
+                                          135 + self._prompt_tabs.sizeHint().height() + band))
+            elif hasattr(self, '_root_minimum_before_media'):
+                root.setMinimumHeight(self._root_minimum_before_media)
+                del self._root_minimum_before_media
+        for key in ('input.container', 'input.root'):
+            widget = nodes.get(key)
+            if widget is not None:
+                widget.updateGeometry()
+        nodes['input'].fit_to_content()
 
     def setTabText(self, index, text):
-        pass
+        if index in (0, 4):
+            self._prompt_tabs.setTabText(1 if index == 4 else 0, text)
 
     def set_compact_tab_count(self, index, count=0):
         pass
 
     def retranslate_compact_tabs(self):
-        pass
+        self.setTabText(0, trans('input.tab'))
+        self.setTabText(4, trans('input.tab.extra.negative_prompt'))

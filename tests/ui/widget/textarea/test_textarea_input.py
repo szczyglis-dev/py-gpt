@@ -310,6 +310,8 @@ def test_auto_height_fits_draft_and_caps_growth(text, doc_height, current, windo
     splitter.sizes.return_value = [1000-current, current]
     container = MagicMock()
     container.height.return_value = current
+    container.minimumSizeHint.return_value.height.return_value = 105
+    container.minimumHeight.return_value = 0
     widget = SimpleNamespace(
         _auto_updating=False, _splitter_resize_in_progress=False,
         _user_adjusting_splitter=False, _auto_max_ratio=0.4,

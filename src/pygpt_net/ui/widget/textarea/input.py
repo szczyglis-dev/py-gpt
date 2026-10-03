@@ -2635,7 +2635,7 @@ class ChatInput(QTextEdit):
         doc_margin = float(self.document().documentMargin())
         min_viewport_h = int(math.ceil(2.0 * doc_margin + line_h))
         # Respect current minimum size hint to avoid jitter on some styles
-        min_hint = max(self.minimumSizeHint().height(), 0)
+        min_hint = max(self.minimumSizeHint().height(), self.minimumHeight(), 0)
         attachment_min = (getattr(self, "_attachment_base_minimum_height", 0)
                           + getattr(self, "_attachment_row_height", 0)) if getattr(self, "_attachment_row_height", 0) else 0
         return max(min_hint, min_viewport_h + non_viewport_h, attachment_min)
@@ -2684,7 +2684,11 @@ class ChatInput(QTextEdit):
         # Container overhead above the inner QTextEdit
         container_overhead = max(0, container.height() - self.height())
         needed_container_h = needed_input_h + container_overhead
-        min_container_h = min_input_h + container_overhead
+        # Manually positioned composer children can briefly retain their old
+        # height when media mode reveals its prompt tabs. Include the layout's
+        # real minimum instead of relying only on that stale geometry.
+        min_container_h = max(min_input_h + container_overhead,
+                              container.minimumSizeHint().height(), container.minimumHeight())
 
         # Max cap by window fraction
         try:
