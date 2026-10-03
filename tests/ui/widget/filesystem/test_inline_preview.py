@@ -290,11 +290,11 @@ def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
     panel.show()
     wait()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
-    assert color.name() == '#a6e22e'
+    assert color.name() == '#aaa0c7'
     panel.setStyleSheet('QPlainTextEdit { background: #ffffff; color: #202020; }')
     wait()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
-    assert color.name() == '#0000ff'
+    assert color.name() == '#6e6693'
     panel.close()
     panel.deleteLater()
     wait()

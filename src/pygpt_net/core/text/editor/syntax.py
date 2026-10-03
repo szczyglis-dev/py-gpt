@@ -13,8 +13,41 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
 from pygments import lex
 from pygments.lexers import TextLexer, get_lexer_for_filename
-from pygments.styles import get_style_by_name
+from pygments.style import Style
+from pygments.token import Token, Comment, Keyword, Name, String, Number, Operator, Punctuation, Generic, Error
 from pygments.util import ClassNotFound
+
+
+class SoftLightStyle(Style):
+    """Muted editor colors with readable contrast on light surfaces."""
+    styles = {
+        Token: '#30343b', Comment: 'italic #7a838d',
+        Keyword: '#87628b', Keyword.Constant: '#587b9b',
+        Name: '#30343b', Name.Builtin: '#587b9b',
+        Name.Function: '#6e6693', Name.Class: '#577f82',
+        Name.Namespace: '#587b9b', Name.Decorator: '#6e6693',
+        Name.Attribute: '#8d6c4b', Name.Variable: '#8d6c4b',
+        String: '#5d805e', Number: '#95754e',
+        Operator: '#707780', Punctuation: '#707780',
+        Generic.Heading: '#587b9b', Generic.Inserted: '#5d805e',
+        Generic.Deleted: '#a36363', Error: '#a36363',
+    }
+
+
+class SoftDarkStyle(Style):
+    """Matching restrained palette for dark surfaces."""
+    styles = {
+        Token: '#d1d4d9', Comment: 'italic #858d98',
+        Keyword: '#b59abb', Keyword.Constant: '#91abc4',
+        Name: '#d1d4d9', Name.Builtin: '#91abc4',
+        Name.Function: '#aaa0c7', Name.Class: '#91b4b5',
+        Name.Namespace: '#91abc4', Name.Decorator: '#aaa0c7',
+        Name.Attribute: '#c0a283', Name.Variable: '#c0a283',
+        String: '#a2b89b', Number: '#c0aa87',
+        Operator: '#a6abb3', Punctuation: '#a6abb3',
+        Generic.Heading: '#91abc4', Generic.Inserted: '#a2b89b',
+        Generic.Deleted: '#c49a9a', Error: '#c49a9a',
+    }
 
 
 class SyntaxHighlighter(QSyntaxHighlighter):
@@ -59,7 +92,7 @@ class SyntaxHighlighter(QSyntaxHighlighter):
             return
         self._signature = signature
         self.formats = {}
-        style = get_style_by_name('monokai' if dark else 'default')
+        style = SoftDarkStyle if dark else SoftLightStyle
         self.spans = {}
         line, column = 0, 0
         for token, value in lex(self.document().toPlainText(), self.lexer):
