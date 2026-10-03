@@ -566,7 +566,6 @@ class Files:
             root = self.window.core.filesystem.get_data_dir()
             self.window.ui.nodes['output_files'].directory = root
             self.window.ui.nodes['output_files'].update_view()
-            self.window.ui.nodes['output_files'].path_label.setText(root)
         self.window.ui.nodes['output_files'].model.update_idx_status(data)
         try:
             self.window.ui.nodes['output_files'].refresh_empty_state()

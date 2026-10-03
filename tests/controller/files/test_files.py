@@ -75,3 +75,21 @@ def test_open_in_file_manager(mock_window):
     files.open_in_file_manager = MagicMock()
     files.open_dir('test')
     files.open_in_file_manager.assert_called_once_with('test', False)
+
+
+def test_reload_explorer_without_removed_workdir_label():
+    from types import SimpleNamespace
+    explorer = SimpleNamespace(directory='/old', index_data=None,
+                               update_view=MagicMock(), model=MagicMock(),
+                               refresh_empty_state=MagicMock())
+    window = SimpleNamespace(
+        ui=SimpleNamespace(nodes={'output_files': explorer}),
+        core=SimpleNamespace(tabs=MagicMock(), filesystem=MagicMock()),
+    )
+    window.core.filesystem.get_data_dir.return_value = '/new/workdir'
+    Files(window).update_explorer(reload=True)
+    assert explorer.directory == '/new/workdir'
+    explorer.update_view.assert_called_once_with()
+    explorer.model.update_idx_status.assert_called_once_with({})
+    explorer.refresh_empty_state.assert_called_once_with()
+    window.core.tabs.refresh_files_tooltips.assert_called_once_with()

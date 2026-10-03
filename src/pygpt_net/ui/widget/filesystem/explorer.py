@@ -748,19 +748,7 @@ class FileExplorer(QWidget):
         self.btn_swap.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.btn_swap.clicked.connect(self.toggle_columns)
 
-        self.path_label = QLabel(self.directory, self)
-        self.path_label.setTextFormat(Qt.PlainText)
-        path_font = self.path_label.font()
-        path_font.setBold(True)
-        self.path_label.setFont(path_font)
-        self.path_label.setMaximumHeight(40)
-        self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        self.path_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        self.path_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.path_label.setMinimumWidth(0)
-        self.path_label.setToolTip(self.directory)
-
-        self.footer_layout = header
+        self.controls_layout = header
         self.layout = QVBoxLayout()
 
         self.preview = PreviewPanel(self.window, self.directory, self)
@@ -795,12 +783,19 @@ class FileExplorer(QWidget):
         files_layout.addWidget(self.files_stack)
         self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.setChildrenCollapsible(False)
+        self._columns_resize_timer = QTimer(self)
+        self._columns_resize_timer.setSingleShot(True)
+        self._columns_resize_timer.timeout.connect(self._resize_columns)
+        self.splitter.installEventFilter(self)
         self.splitter.addWidget(self.files_panel)
         self.splitter.addWidget(self.preview)
         self.columns_swapped = self._load_columns_swap()
         self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
         self.preview.layout.removeWidget(self.preview.breadcrumbs_widget)
-        self.layout.addWidget(self.preview.breadcrumbs_widget)
+        breadcrumbs_row = QHBoxLayout()
+        breadcrumbs_row.addWidget(self.preview.breadcrumbs_widget, 1)
+        breadcrumbs_row.addLayout(header)
+        self.layout.addLayout(breadcrumbs_row)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.treeView.clicked.connect(self.on_tree_clicked)
@@ -815,7 +810,6 @@ class FileExplorer(QWidget):
         self.model.directoryLoaded.connect(self.refresh_empty_state)
         self.refresh_empty_state()
 
-        self.layout.addLayout(header)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
@@ -907,21 +901,25 @@ class FileExplorer(QWidget):
         except Exception:
             return False
 
-    def _rebuild_footer(self, swapped: bool):
-        """Keep Files controls on the left and the workdir path on the right."""
-        self.footer_layout.setContentsMargins(20, 0, 0, 0)
-        while self.footer_layout.count():
-            self.footer_layout.takeAt(0)
+    def _rebuild_controls(self):
+        """Keep Files actions on the right of the shared breadcrumbs row."""
+        self.controls_layout.setContentsMargins(0, 0, 0, 0)
+        while self.controls_layout.count():
+            self.controls_layout.takeAt(0)
+        for widget in (self.btn_upload, self.btn_open, self.btn_swap, self.btn_options):
+            self.controls_layout.addWidget(widget)
 
-        controls = (self.btn_upload, self.btn_open, self.btn_swap, self.btn_options)
-        for widget in controls:
-            self.footer_layout.addWidget(widget)
-        self.footer_layout.addWidget(self.path_label, 1)
-        self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+    def _resize_columns(self):
+        """Allocate one third to files, with a 220 px minimum."""
+        available = max(0, self.splitter.width() - self.splitter.handleWidth())
+        files_size = max(self.files_panel.minimumWidth(), round(available / 3))
+        preview_size = max(0, available - files_size)
+        sizes = [preview_size, files_size] if self.columns_swapped else [files_size, preview_size]
+        self.splitter.setSizes(sizes)
 
     def _apply_columns_layout(self, swapped: bool, preserve_sizes: bool = True):
         """Apply list/preview order and the matching footer order immediately."""
-        files_size, preview_size = 400, 600
+        files_size, preview_size = 300, 600
         if preserve_sizes:
             try:
                 sizes = self.splitter.sizes()
@@ -936,18 +934,19 @@ class FileExplorer(QWidget):
         if swapped:
             self.splitter.insertWidget(0, self.preview)
             self.splitter.insertWidget(1, self.files_panel)
-            self.splitter.setStretchFactor(0, 3)
-            self.splitter.setStretchFactor(1, 2)
+            self.splitter.setStretchFactor(0, 2)
+            self.splitter.setStretchFactor(1, 1)
             self.splitter.setSizes([preview_size, files_size])
         else:
             self.splitter.insertWidget(0, self.files_panel)
             self.splitter.insertWidget(1, self.preview)
-            self.splitter.setStretchFactor(0, 2)
-            self.splitter.setStretchFactor(1, 3)
+            self.splitter.setStretchFactor(0, 1)
+            self.splitter.setStretchFactor(1, 2)
             self.splitter.setSizes([files_size, preview_size])
 
         self.columns_swapped = swapped
-        self._rebuild_footer(swapped)
+        self._rebuild_controls()
+        self._columns_resize_timer.start(0)
 
     def toggle_columns(self):
         """Swap Files columns in runtime and persist the selected order."""
@@ -985,7 +984,6 @@ class FileExplorer(QWidget):
         self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
         self.btn_swap.setToolTip(trans('files.columns.swap'))
         self.btn_options.retranslate()
-        self.path_label.setText(self.directory)
         self.search.setPlaceholderText(trans('files.search.placeholder'))
         self.searching_text = trans('files.search.searching')
         self.empty_files.retranslate()
@@ -1043,6 +1041,8 @@ class FileExplorer(QWidget):
         :param source: source
         :param event: event
         """
+        if source is getattr(self, 'splitter', None) and event.type() == QEvent.Resize:
+            self._columns_resize_timer.start(0)
         if event.type() == event.Type.FocusIn:
             if self.tab is not None:
                 col_idx = self.tab.column_idx
@@ -1079,8 +1079,6 @@ class FileExplorer(QWidget):
             self.directory = self.preview.root
             return
         self.empty_files.set_target_dir(self.directory)
-        self.path_label.setText(self.directory)
-        self.path_label.setToolTip(self.directory)
         self.model.beginResetModel()
         self.model.setRootPath(self.directory)
         self.model.endResetModel()

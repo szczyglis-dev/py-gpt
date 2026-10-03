@@ -44,7 +44,7 @@ class CtxMain:
         layout = QVBoxLayout()
         layout.addWidget(ctx)
 
-        layout.addWidget(self.window.ui.nodes['tip.toolbox.ctx'])
+        self.window.ui.nodes['tip.toolbox.ctx'].hide()
         layout.addWidget(video)
         layout.setContentsMargins(5, 5, 2, 5)
 
