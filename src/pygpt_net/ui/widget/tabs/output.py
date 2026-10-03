@@ -697,14 +697,6 @@ class OutputTabs(QTabWidget):
         menu = QMenu(self)
         menu.setAttribute(Qt.WA_DeleteOnClose, True)
 
-        add_chat = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.chat'), menu)
-        add_chat.triggered.connect(
-            lambda: self.add_tab(index, column_idx, Tab.TAB_CHAT)
-        )
-        add_notepad = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.notepad'), menu)
-        add_notepad.triggered.connect(
-            lambda: self.add_tab(index, column_idx, Tab.TAB_NOTEPAD)
-        )
         edit = QAction(icon(ICON_PATH_EDIT), trans('action.rename'), menu)
         edit.triggered.connect(
             lambda: self.rename_tab(index, column_idx)
@@ -717,11 +709,6 @@ class OutputTabs(QTabWidget):
         move_left.triggered.connect(
             lambda: self.window.controller.tabs.move_tab(index, column_idx, 0)
         )
-
-        menu.addAction(add_chat)
-        menu.addAction(add_notepad)
-
-        self.window.controller.tools.append_tab_menu(self, menu, index, column_idx, self)
 
         menu.addAction(edit)
 
