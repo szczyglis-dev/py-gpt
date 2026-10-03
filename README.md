@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.37** | build: **2026-10-01** | Python: **>=3.10, <3.14**
+Release: **2.8.38** | build: **2026-10-03** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -2533,6 +2533,17 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.8.38 (2026-10-03)**
+
+- Improved attachment handling and attachments display.
+- Optimized and improved Computer Use, fixed the Computer Use flow in agents, and added a full-screen indicator while Computer Use is active.
+- Added support for Markdown (.md) files in the Files preview.
+- Added a new File Preview add-on type, allowing support for additional file formats to be extended through add-ons.
+- Added GPT-6.1 Sol model.
+- Added a "Group models by provider" option.
+- Added a "Show tools in agents" option.
+- Other UI/UX improvements and fixes.
 
 **2.8.37 (2026-10-01)**
 

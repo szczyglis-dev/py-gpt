@@ -2,7 +2,7 @@
 
 REM Set variables
 SET CurrentDir=%CD%
-SET ProductVersion=2.8.37
+SET ProductVersion=2.8.38
 SET SIGNTOOL=C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool
 
 REM Build app

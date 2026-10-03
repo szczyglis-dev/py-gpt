@@ -16,6 +16,7 @@ import os
 import re
 from datetime import datetime
 from copy import copy
+from PySide6.QtCore import QUrl
 from pygpt_net.item.render_attachment import AttachmentPath, attachment_paths
 
 from typing import Optional, Tuple
@@ -311,7 +312,7 @@ class Messages:
                 "timestamp": ctx.input_timestamp if hasattr(ctx, "input_timestamp") else None,
                 "time_label": datetime.fromtimestamp(ctx.input_timestamp).strftime("%H:%M") if ctx.input_timestamp else "",
                 "edit_title": trans("ctx.extra.edit"),
-                "edit_icon": "file://" + os.path.join(self.renderer.window.core.config.get_app_path(), "data", "icons", "edit.svg").replace("\\", "/"),
+                "edit_icon": QUrl.fromLocalFile(os.path.join(self.renderer.window.core.config.get_app_path(), "data", "icons", "edit.svg")).toString(),
             }
             if history_date_label:
                 block.input["date_label"] = history_date_label

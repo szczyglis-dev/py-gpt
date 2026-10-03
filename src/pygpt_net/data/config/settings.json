@@ -2761,6 +2761,20 @@
         "advanced": false,
         "tab": "general"
     },
+    "security.computer.show_warning": {
+        "section": "security",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.security.computer.show_warning",
+        "description": "settings.security.computer.show_warning.desc",
+        "value": true,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "tab": "computer_use"
+    },
     "security.computer.halt_insecure": {
         "section": "security",
         "type": "bool",

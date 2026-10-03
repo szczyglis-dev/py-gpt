@@ -2,8 +2,10 @@
 import json
 from pathlib import Path
 
+from pygpt_net.config import Config
+
 APP_SCRIPT_FILES = tuple(json.loads(
-    (Path(__file__).resolve().parents[3] / "data/js/app/manifest.json").read_text(encoding="utf-8")
+    (Path(Config().get_app_path()) / "data/js/app/manifest.json").read_text(encoding="utf-8")
 ))
 
 

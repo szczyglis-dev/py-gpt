@@ -8,7 +8,7 @@ REM https://github.com/wixtoolset/wix3/releases/tag/wix3141rtm
 REM Set variables
 SET SourceDir=%CD%\..\dist\Windows
 SET InstallerOutputFolder=%CD%\..\dist
-SET ProductVersion=2.8.37
+SET ProductVersion=2.8.38
 SET ProductUpgradeCode=3FCD39F6-4965-4B51-A185-FC6E53CA431B
 SET WIX=C:\Program Files (x86)\WiX Toolset v3.14
 SET SIGNTOOL=C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool
@@ -25,7 +25,7 @@ IF EXIST "%SourceDir%\_internal\.ms_store" (
 )
 
 REM 1. Generate the components file using heat.exe
-"%WIX%\bin\heat.exe" dir "%SourceDir%" -ag -sfrag -srd -sreg -scom -var var.SourceDir -dr INSTALLDIR -cg PYGPTFiles -t "%~dp0installer_files.xslt" -out PYGPTFiles.wxs
+"%WIX%\bin\heat.exe" dir "%SourceDir%" -ag -sfrag -srd -sreg -scom -var var.SourceDir -dr INSTALLDIR -cg PYGPTFiles -out PYGPTFiles.wxs
 if errorlevel 1 goto :failed
 
 REM 2. Compile
@@ -38,7 +38,9 @@ REM 2. Compile
 if errorlevel 1 goto :failed
 
 REM 3. Link
+REM Harvested files use file key paths in AppData, without per-file registry markers or directory cleanup.
 "%WIX%\bin\light.exe" ^
+  -sice:ICE38 -sice:ICE64 ^
   -ext "%WIX%\bin\WixUIExtension.dll" ^
   -ext "%WIX%\bin\WixUtilExtension.dll" ^
   -dSourceDir="%SourceDir%" ^

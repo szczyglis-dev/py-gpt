@@ -117,6 +117,9 @@ class Patch:
                 updated = migrate_addons_to_application_base(self.window) or updated
 
             if old < parse_version("2.8.38"):
+                if "security.computer.show_warning" not in data:
+                    data["security.computer.show_warning"] = True
+                    updated = True
                 if "model.group_providers" not in data:
                     data["model.group_providers"] = False
                     updated = True

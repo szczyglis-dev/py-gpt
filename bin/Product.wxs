@@ -12,7 +12,7 @@
     <Property Id="PYGPT_LAUNCH" Value="1" />
 
     <!-- Launch the installed PyGPT executable when Finish is clicked and the checkbox is checked. -->
-    <Property Id="WixShellExecTarget" Value="[#PygptExe]" />
+    <CustomAction Id="SetLaunchTarget" Property="WixShellExecTarget" Value="[INSTALLDIR]pygpt.exe" />
     <CustomAction Id="LaunchPyGPT" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
 
     <UI>
@@ -38,10 +38,11 @@
           <Condition Action="show">WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT AND NOT Installed</Condition>
         </Control>
       </Dialog>
+      <Publish Dialog="PyGPTExitDialog" Control="Finish" Event="DoAction" Value="SetLaunchTarget" Order="1">PYGPT_LAUNCH = 1 AND NOT Installed</Publish>
       <Publish Dialog="PyGPTExitDialog"
                Control="Finish"
                Event="DoAction"
-               Value="LaunchPyGPT">PYGPT_LAUNCH = 1 AND NOT Installed</Publish>
+               Value="LaunchPyGPT" Order="2">PYGPT_LAUNCH = 1 AND NOT Installed</Publish>
       <Publish Dialog="PyGPTExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
     </UI>
     <!-- The standard WixUI success sequence rows are explicitly overridable. -->
@@ -80,7 +81,7 @@
 
   <Fragment>
   <DirectoryRef Id="INSTALLDIR">
-    <Component Id="ApplicationComponent" Guid="4CF9C2F7-4051-4735-9932-5BF70E6FDFF0">
+    <Component Id="ApplicationComponent" Guid="F7FB8DC8-0C02-41F3-B9C3-A3EC9429D574">
       <!-- pygpt.exe is owned once, by the harvested PYGPTFiles component. -->
       <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" Target="[INSTALLDIR]pygpt.exe" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" />
       <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" Target="[INSTALLDIR]pygpt.exe" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" />

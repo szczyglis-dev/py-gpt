@@ -1,3 +1,14 @@
+2.8.38 (2026-10-03)
+
+- Improved attachment handling and attachments display.
+- Optimized and improved Computer Use, fixed the Computer Use flow in agents, and added a full-screen indicator while Computer Use is active.
+- Added support for Markdown (.md) files in the Files preview.
+- Added a new File Preview add-on type, allowing support for additional file formats to be extended through add-ons.
+- Added GPT-6.1 Sol model.
+- Added a "Group models by provider" option.
+- Added a "Show tools in agents" option.
+- Other UI/UX improvements and fixes.
+
 2.8.37 (2026-10-01)
 
 - Added SHA-256 integrity verification for public trusted Add-ons, including manifest/registry hash pinning and validation during installation.

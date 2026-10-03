@@ -9,5 +9,5 @@
 # Updated Date: 2025.07.13 01:00:00                  #
 # ================================================== #
 
-MODEL_DEFAULT = "gpt-4o"
+MODEL_DEFAULT = "gpt-5.6-luna"
 MODEL_DEFAULT_MINI = "gpt-4o-mini"

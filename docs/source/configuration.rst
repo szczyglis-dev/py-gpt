@@ -738,6 +738,8 @@ General
 Computer use
 ^^^^^^^^^^^^
 
+* ``Show computer use warning``: Displays the warning badge and a green overlay frame around the screen while Computer Use controls the host computer. Applies only to non-sandbox execution. Disabling it hides both indicators without changing execution permissions. Configuration key: ``security.computer.show_warning``. Default: True.
+
 * ``Halt on potentially unsafe operation``: Non-sandbox only. When enabled, Computer Use pauses before an operation that the API provider flags as requiring user confirmation. PyGPT displays a warning in the chat and waits until the user types ``continue``. The paused mouse/keyboard action is executed only after that confirmation, and only then is the provider safety check acknowledged back to the API. When disabled, provider safety checks are acknowledged automatically as before. Sandbox execution is not affected. Default: True.
 
 Linux
