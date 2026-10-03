@@ -2443,6 +2443,15 @@ class ChatInput(QTextEdit):
         return bar.height() + 10 if bar is not None and not bar.isHidden() else 0
 
     def _refresh_record_bar(self):
+        bar = getattr(self, 'record_bar', None)
+        recording_visible = bar is not None and not bar.isHidden()
+        if recording_visible:
+            if not hasattr(self, '_scroll_policy_before_recording'):
+                self._scroll_policy_before_recording = self.verticalScrollBarPolicy()
+            self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        elif hasattr(self, '_scroll_policy_before_recording'):
+            self.setVerticalScrollBarPolicy(self._scroll_policy_before_recording)
+            del self._scroll_policy_before_recording
         self._apply_margins()
         self._position_record_bar()
 
