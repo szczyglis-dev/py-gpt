@@ -802,3 +802,9 @@ QTabBar#outputTabs::tab {{ padding-top: 6px; padding-bottom: 12px; }}
 /* Files breadcrumb hierarchy. */
 QPushButton[fileBreadcrumb="true"] {{ color: #aaaaaa; }}
 QPushButton[fileBreadcrumb="true"][currentBreadcrumb="true"] {{ color: #ffffff; }}
+
+/* Keep the active Mode option readable while hovered. */
+QMenu#modeSelectorMenu::item:checked,
+QMenu#modeSelectorMenu::item:checked:selected {{
+  color: #ffffff;
+}}
