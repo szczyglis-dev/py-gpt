@@ -233,8 +233,6 @@ class Painter:
         # At high zoom the proportional thumb can become only a few pixels
         # tall. Give it a usable minimum size without changing theme colors.
         ui.painter_scroll.setStyleSheet("""
-            QScrollBar:vertical { width: 12px; }
-            QScrollBar:horizontal { height: 12px; }
             QScrollBar::handle:vertical { min-height: 32px; }
             QScrollBar::handle:horizontal { min-width: 32px; }
         """)

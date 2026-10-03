@@ -172,6 +172,9 @@ class Calendar:
         :param day: day
         """
         search_string = '@date({:04d}-{:02d}-{:02d})'.format(year, month, day)
+        toggle = self.window.ui.nodes.get('ctx.search.toggle')
+        if toggle is not None:
+            toggle.setChecked(True)
         self.window.controller.ctx.append_search_string(search_string)
 
     def save_all(self):
@@ -189,4 +192,3 @@ class Calendar:
     def reload(self):
         """Reload calendar"""
         self.setup()
-
