@@ -47,7 +47,7 @@ class Tabs:
         self.pids = {}  # pid: Tab data
         self.icons = {
             Tab.TAB_CHAT: ":/icons/chat1.svg",
-            Tab.TAB_NOTEPAD: ":/icons/paste.svg",
+            Tab.TAB_NOTEPAD: ":/icons/note1.svg",
             Tab.TAB_FILES: ":/icons/folder_filled.svg",
             Tab.TAB_TOOL_PAINTER: ":/icons/brush.svg",
             Tab.TAB_TOOL_CALENDAR: ":/icons/calendar.svg",

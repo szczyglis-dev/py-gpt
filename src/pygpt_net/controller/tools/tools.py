@@ -9,7 +9,7 @@
 # Updated Date: 2026.09.24 11:00:00                  #
 # ================================================== #
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QTabWidget, QMenu
@@ -29,7 +29,7 @@ class Tools:
         self.tab_tools = {
             'tools.files': ['files', 'folder_filled', Tab.TAB_FILES],
             'tools.calendar': ['calendar', 'calendar', Tab.TAB_TOOL_CALENDAR],
-            'tools.notepad': ['notepad', 'paste', Tab.TAB_NOTEPAD],
+            'tools.notepad': ['notepad', 'note1', Tab.TAB_NOTEPAD],
             'tools.painter': ['painter', 'brush', Tab.TAB_TOOL_PAINTER],
         }
 
@@ -96,7 +96,7 @@ class Tools:
             idx: int,
             column_idx: int,
             caller: QTabWidget = None
-    ) -> QMenu:
+    ) -> Optional[QMenu]:
         """
         Append tab menu
 
@@ -105,9 +105,9 @@ class Tools:
         :param idx: tab index
         :param column_idx: column index
         :param caller: caller widget (default: None)
-        :return: tab add submenu
+        :return: tab add submenu, or None when no tools can be added
         """
-        submenu = menu.addMenu(QIcon(":/icons/add.svg"), trans("action.tab.add.tool"))
+        submenu = None
         tools = self.window.tools.get_all()
         for id in tools:
             tool = tools[id]
@@ -120,6 +120,8 @@ class Tools:
                 existing = self.window.controller.tabs.get_first_tab_by_tool(id)
                 if existing is not None:
                     continue
+            if submenu is None:
+                submenu = menu.addMenu(QIcon(":/icons/add.svg"), trans("action.tab.add.tool"))
             icon = tool.tab_icon
             title = trans(tool.tab_title)
             if hasattr(parent, 'add_tab'):

@@ -31,7 +31,9 @@ class ModePopupCombo(SeparatorComboBox):
             self._popup_menu.close()
         menu = QMenu(self)
         menu.setObjectName('modeSelectorMenu')
-        menu.setFixedWidth(self.width())
+        # Keep the selector width as a minimum; let QMenu measure translated
+        # labels and styled padding so longer mode names remain fully visible.
+        menu.setMinimumWidth(self.width())
         # Checked state supplies the current-row background; no indicator is drawn.
         menu.setStyleSheet('QMenu#modeSelectorMenu { margin: 0; padding: 0; }'
                            'QMenu#modeSelectorMenu::item { padding: 10px 24px 10px 27px; }'

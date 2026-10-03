@@ -523,6 +523,7 @@ class Mapping:
         tooltips['ctx.search.toggle'] = 'ctx.list.search.placeholder'
         tooltips['toolbar.home'] = 'output.tab.chat'
         tooltips['toolbar.files'] = 'output.tab.files'
+        tooltips['toolbar.notepad'] = 'output.tab.notepad'
         tooltips['toolbar.painter'] = 'output.tab.painter'
         tooltips['toolbar.toolbox'] = 'toolbar.toolbox'
         tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'

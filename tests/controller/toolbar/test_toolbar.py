@@ -71,7 +71,7 @@ def test_toolbox_toggle_animates_and_hides_splitter_handle(qapp):
     window.close()
 
 
-@pytest.mark.parametrize('action, tab_type', [('files', 2), ('painter', 3)])
+@pytest.mark.parametrize('action, tab_type', [('files', 2), ('notepad', 1), ('painter', 3)])
 @pytest.mark.parametrize('split, selected_type, collapse', [
     (True, None, False), (False, 2, False), (True, 0, False),
     (True, 'same', True),

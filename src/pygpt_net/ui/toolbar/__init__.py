@@ -18,6 +18,7 @@ class LeftToolbar(QWidget):
         actions = (
             ('home', 'home.svg', 'output.tab.chat'),
             ('files', 'folder.svg', 'output.tab.files'),
+            ('notepad', 'note1.svg', 'output.tab.notepad'),
             ('painter', 'brush.svg', 'output.tab.painter'),
         )
         for name, icon, tooltip in actions:

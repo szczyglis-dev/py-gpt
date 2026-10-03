@@ -490,7 +490,7 @@ QWidget#ComboPopupWindow {{
 .layout-input,
 .layout-input:focus {{
   border-top-right-radius: {APP_RADIUS};
-  border-top-left-radius: 0px;
+  border-top-left-radius: {APP_RADIUS};
   border-bottom-right-radius: {APP_RADIUS};
   border-bottom-left-radius: {APP_RADIUS};
   background-color: #ededed;
