@@ -319,6 +319,7 @@ class Custom:
             if stop_btn is not None:
                 stop_btn.setToolTip(trans('input.btn.stop'))
             input_node.update_reasoning_effort()
+            input_node.update_tools_selector()
             input_node.refresh_right_bar()
         except (AttributeError, KeyError):
             pass

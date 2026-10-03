@@ -128,6 +128,7 @@ class ChatInput(QTextEdit):
         self._bottom_left_icon_keys = set()  # controls pinned to the row's left edge
         self._right_text_buttons = set()  # non-icon buttons embedded in the right bar
         self._reasoning_effort_menu = None
+        self._tools_menu = None
 
         self._init_icon_bar()
         # Initialize the shared bottom actions row. It contains a left group
@@ -164,16 +165,11 @@ class ChatInput(QTextEdit):
             callback=self.action_toggle_mic,
             visible=False,
         )
-        # Add the web-search toggle next to Attach on the bottom-left.
-        self.add_bottom_left_icon(
-            key="web",
-            icon=self.ICON_WEB_OFF,
-            alt_icon=self.ICON_WEB_ON,
-            tooltip=trans('icon.remote_tool.web.disabled'),
-            alt_tooltip=trans('icon.remote_tool.web.enabled'),
-            callback=self.action_toggle_web,
-            visible=True,
-        )
+        self._bottom_left_icon_keys.add('web')
+        tools_button = self.add_right_button('web', '', callback=self.action_tools_menu)
+        tools_button.setObjectName('chatInputTools')
+        tools_button.setFlat(True)
+        self.update_tools_selector()
 
         # Apply initial margins (top padding + left icon space + dedicated
         # bottom controls row when any right-side controls are visible).
@@ -1194,6 +1190,72 @@ class ChatInput(QTextEdit):
         except Exception:
             pass
         self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
+
+    def update_tools_selector(self):
+        button = self._icons_right.get('web')
+        if button is None:
+            return
+        state = bool(self.window.core.config.get('cmd', False))
+        label = trans('input.tools.enabled' if state else 'input.tools.disabled')
+        button.setText(f'{label}  ▴')
+        button.setToolTip(trans('input.tools.header'))
+        self._icon_meta_right['web']['tooltip'] = trans('input.tools.header')
+        self._fit_right_text_button(button)
+        self._update_icon_bar_geometry_right()
+        self._apply_margins()
+
+    def set_tools_enabled(self, enabled):
+        self.window.ui.nodes['cmd.enabled'].box.setChecked(enabled)
+        self.update_tools_selector()
+
+    def set_web_enabled(self, enabled):
+        remote = self.window.controller.chat.remote_tools
+        if bool(remote.enabled_global['web_search']) != enabled:
+            remote.toggle('web_search')
+
+    def action_tools_menu(self):
+        if self._tools_menu is not None:
+            self._tools_menu.close()
+        menu = QMenu(self)
+        menu.setObjectName('chatInputToolsMenu')
+        if os.name == 'nt':
+            menu.setAttribute(Qt.WA_TranslucentBackground, False)
+            menu.setWindowFlag(Qt.FramelessWindowHint, True)
+        else:
+            menu.setAttribute(Qt.WA_TranslucentBackground, True)
+        sections = (
+            ('input.tools', bool(self.window.core.config.get('cmd', False)), self.set_tools_enabled),
+            ('input.internet', bool(self.window.controller.chat.remote_tools.enabled_global['web_search']), self.set_web_enabled),
+        )
+        for prefix, current, callback in sections:
+            if prefix == 'input.internet':
+                menu.addSeparator()
+            header = QAction(trans(prefix + '.header'), menu)
+            header.setEnabled(False)
+            font = header.font()
+            font.setBold(True)
+            header.setFont(font)
+            menu.addAction(header)
+            group = QActionGroup(menu)
+            group.setExclusive(True)
+            for enabled in (True, False):
+                action = QAction(trans(prefix + ('.enabled' if enabled else '.disabled')), menu)
+                action.setCheckable(True)
+                action.setChecked(enabled == current)
+                group.addAction(action)
+                action.triggered.connect(lambda checked=False, value=enabled, setter=callback: setter(value))
+                menu.addAction(action)
+        self._tools_menu = menu
+        menu.aboutToHide.connect(self._clear_tools_menu)
+        menu.adjustSize()
+        button = self._icons_right['web']
+        menu.popup(button.mapToGlobal(QPoint(0, -menu.sizeHint().height())))
+
+    def _clear_tools_menu(self):
+        menu = self._tools_menu
+        self._tools_menu = None
+        if menu is not None:
+            menu.deleteLater()
 
     def action_toggle_web(self):
         """Toggle web search (button click)."""

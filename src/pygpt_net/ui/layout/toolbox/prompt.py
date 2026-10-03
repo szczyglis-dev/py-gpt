@@ -64,11 +64,8 @@ class Prompt:
         box.toggled.connect(w.controller.chat.common.toggle_cmd)
         box.setToolTip(trans('cmd.tip'))
 
-        header_widget = QWidget()
-        header_layout = QHBoxLayout(header_widget)
-        header_layout.addStretch(1)
-        header_layout.addWidget(nodes['cmd.enabled'])
-        header_layout.setContentsMargins(5, 0, 5, 0)
+        nodes['cmd.enabled'].hide()
+        box.toggled.connect(lambda _: nodes['input'].update_tools_selector())
 
         option = w.controller.presets.editor.get_option('prompt')
         nodes['preset.prompt'] = PromptTextarea(w, 'preset', 'prompt', option)
@@ -147,7 +144,6 @@ class Prompt:
         # registered as a hover section.
         prompt_section = QWidget()
         prompt_section_layout = QVBoxLayout(prompt_section)
-        prompt_section_layout.addWidget(header_widget)
         prompt_section_layout.addWidget(nodes['preset.prompt'])
         prompt_section_layout.addWidget(nodes['tip.toolbox.prompt'])
         prompt_section_layout.setContentsMargins(0, 0, 0, 0)

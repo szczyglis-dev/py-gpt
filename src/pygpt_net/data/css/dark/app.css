@@ -679,6 +679,7 @@ QPushButton#chatInputModel {{
   margin-right: 0px;
 }}
 
+QPushButton#chatInputTools,
 QPushButton#chatInputReasoningEffort {{
   font-size: 13px;
   padding-left: 2px;
@@ -688,6 +689,7 @@ QPushButton#chatInputReasoningEffort {{
   color: #9b9b9b;
 }}
 
+QPushButton#chatInputTools:hover,
 QPushButton#chatInputReasoningEffort:hover {{
   color: #b0b0b0;
 }}
