@@ -412,6 +412,18 @@ class RuntimeContext:
     def shared_context(self) -> str:
         parts: List[str] = []
         ctx = self.runtime.context.ctx
+        store = getattr(self.runtime, "memory_store", None)
+        if store is not None and ctx is not None:
+            history = store.attachment_history(ctx)
+        else:
+            history = getattr(self.runtime.context, "history", None) or []
+        for item in history:
+            if (item is not ctx and getattr(item, "hidden_input", None)
+                    and not getattr(item, "internal", False)):
+                parts.append(
+                    f'<attachment_history turn_id="{getattr(item, "id", "")}">\n'
+                    f'{item.final_input}\n</attachment_history>'
+                )
         if ctx is not None and ctx.hidden_input:
             parts.append(str(ctx.hidden_input))
 

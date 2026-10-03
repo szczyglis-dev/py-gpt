@@ -50,8 +50,6 @@ class UI:
         self._last_chat_model = None
         self._last_chat_label = None
 
-        # Cache for Input tab tooltip to avoid redundant updates
-        self._last_input_tab_tooltip = None
         self._input_extra_tab_idx = 4
 
     def setup(self):
@@ -215,22 +213,6 @@ class UI:
         if tooltip != self._last_input_counter_tooltip:
             ui_nodes['input.counter'].setToolTip(tooltip)
             self._last_input_counter_tooltip = tooltip
-
-        # Update Input tab tooltip with live "<chars> chars (~<tokens> tokens)" string
-        try:
-            tabs = self.window.ui.tabs.get('input')
-        except Exception:
-            tabs = None
-
-        if tabs is not None:
-            try:
-                tooltip = trans("input.tab.tooltip").format(chars=short_num(len(raw_text)), tokens=short_num(input_tokens))
-            except Exception:
-                tooltip = ""
-            #tooltip = f"{short_num(len(raw_text))} chars (~{short_num(input_tokens)} tokens)"
-            if tooltip != self._last_input_tab_tooltip:
-                tabs.setTabToolTip(0, tooltip)
-                self._last_input_tab_tooltip = tooltip
 
     def store_state(self):
         """Store UI state"""

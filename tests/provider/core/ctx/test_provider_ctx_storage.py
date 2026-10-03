@@ -334,6 +334,8 @@ def test_unpack_item(mock_window):
         'meta_id': 1,
         'external_id': 'external_id',
         'input': 'input',
+        'hidden_input': 'ADDITIONAL CONTEXT: invoice recipient ACME',
+        'hidden_output': 'hidden response',
         'output': 'output',
         'input_name': 'input_name',
         'output_name': 'output_name',
@@ -367,6 +369,9 @@ def test_unpack_item(mock_window):
     assert item.meta_id == 1
     assert item.external_id == 'external_id'
     assert item.input == 'input'
+    assert item.hidden_input == 'ADDITIONAL CONTEXT: invoice recipient ACME'
+    assert item.final_input == 'input\n\nADDITIONAL CONTEXT: invoice recipient ACME'
+    assert item.hidden_output == 'hidden response'
     assert item.output == 'output'
     assert item.input_name == 'input_name'
     assert item.output_name == 'output_name'

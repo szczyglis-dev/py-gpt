@@ -439,3 +439,37 @@ def test_main_function_agent_promotes_runtime_image_blocks_after_tool_result(tmp
     assert user_msg.role == MessageRole.USER
     assert isinstance(user_msg.blocks[0], TextBlock)
     assert image in user_msg.blocks[1:]
+
+
+def test_previous_attachment_is_available_to_primary_and_new_worker_without_upload():
+    from pygpt_net.item.ctx import CtxItem, CtxMeta
+    from pygpt_net.core.agents_v2.memory import OrchestratorMemoryStore
+    from pygpt_net.core.agents_v2.execution.worker import WorkerExecution
+    from tests.core.agents_v2.test_agents_v2_memory_store import make_window
+    runtime = bare_runtime()
+    runtime.window = make_window()
+    previous = CtxItem()
+    previous.id = 1
+    previous.input = "Read invoice"
+    previous.hidden_input = "ADDITIONAL CONTEXT: recipient ACME; amount 8200 PLN"
+    previous.output = "8200 PLN"
+    previous.additional_ctx = [{"uuid": "invoice", "type": "local_file"}]
+    current = CtxItem()
+    current.id = 2
+    current.meta = CtxMeta()
+    current.meta.id = 11
+    current.input = "Who is the recipient?"
+    runtime.context.ctx = current
+    runtime.window.core.ctx.provider.load.return_value = [previous, current]
+    runtime.window.core.ctx.provider.load.side_effect = None
+    runtime.memory_store = OrchestratorMemoryStore(runtime.window)
+    runtime.shared_context_text = runtime.inputs.shared_context()
+    history = runtime.memory_store.load_history(current)
+    assert history[0].content == previous.final_input
+    assert "recipient ACME" in runtime.shared_context_text
+    assert previous.final_input in runtime.shared_context_text
+    assert current.input not in runtime.shared_context_text
+    state = SimpleNamespace(id="new-worker", name="Recipient checker", memory=object())
+    kwargs = WorkerExecution(runtime, MagicMock())._prepare_input(state, current.input)
+    assert "recipient ACME" in kwargs["user_msg"].content
+    assert kwargs["memory"] is state.memory

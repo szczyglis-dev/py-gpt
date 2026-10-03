@@ -151,6 +151,8 @@ def unpack_item(
     item.id = unpack_var(row['id'], 'int')
     item.images = attachment_paths(unpack_item_value(row['images_json']))
     item.input = row['input']
+    item.hidden_input = row.get('hidden_input')
+    item.hidden_output = row.get('hidden_output')
     item.input_name = row['input_name']
     item.input_timestamp = unpack_var(row['input_ts'], 'int')
     item.input_tokens = unpack_var(row['input_tokens'], 'int')

@@ -106,11 +106,7 @@ class Context:
 
     def is_project_share_enabled(self, meta: Optional[CtxMeta] = None) -> bool:
         """Return whether project-wide attachment sharing is enabled for meta."""
-        return bool(
-            meta is not None
-            and meta.group is not None
-            and self.window.core.config.get("ctx.attachment.project_share", False)
-        )
+        return False
 
     def get_meta_items(self, meta: Optional[CtxMeta]) -> list:
         """Return attachments visible for the given context under current sharing policy."""
@@ -473,6 +469,8 @@ class Context:
         :param real_path: real path
         :return: Dict with attachment data
         """
+        # Uploads always extract full content; indexes are managed separately.
+        auto_index = False
         if self.is_verbose():
             if self.is_project_share_enabled(meta):
                 print("Uploading for project ID: {}".format(meta.group.id))

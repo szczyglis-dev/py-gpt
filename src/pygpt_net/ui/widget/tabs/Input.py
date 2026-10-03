@@ -141,3 +141,47 @@ class InputTabs(QTabWidget):
         else:
             self.window.controller.attachment.clear()
         self._context_tab_index = None
+
+class ChatComposer(QWidget):
+    """Single chat input with compatibility hooks for legacy tab controllers.
+
+    Attachment lists remain controller-owned state, never selectable pages.
+    The optional image negative prompt is displayed inline below the input.
+    """
+
+    def __init__(self, window, page, extra):
+        super().__init__(window)
+        from PySide6.QtWidgets import QVBoxLayout
+        self._page = page
+        self._extra = extra
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(page)
+        layout.addWidget(extra)
+        extra.hide()
+
+    def currentIndex(self):
+        return 0
+
+    def currentWidget(self):
+        return self._page
+
+    def setCurrentIndex(self, index):
+        pass
+
+    def isTabVisible(self, index):
+        return index == 0 or (index == 4 and not self._extra.isHidden())
+
+    def setTabVisible(self, index, visible):
+        if index == 4:
+            self._extra.setVisible(visible)
+
+    def setTabText(self, index, text):
+        pass
+
+    def set_compact_tab_count(self, index, count=0):
+        pass
+
+    def retranslate_compact_tabs(self):
+        pass

@@ -10,15 +10,9 @@ You can use your own files (for example, to analyze them) during any conversatio
 
 **Attachments**
 
-.. warning::
+Attach files directly in the chat input. Attachments always use **Full context**: extracted content is sent as **ADDITIONAL CONTEXT** after the user's text and is saved with that message. When a provider rebuilds conversation history, the content is included with its original user message. Uploading attachments does not index them.
 
-   **Important**: When using ``Full context`` mode, the entire content of the file is included in the prompt, which can result in high token usage each time. If you want to reduce the number of tokens used, instead use the ``RAG`` option, which will only query the indexed attachment in the vector database to provide additional context.
-
-**PyGPT** makes it simple for users to upload files and send them to the model for tasks like analysis, similar to attaching files in ``ChatGPT``. There's a separate ``Attachments`` tab next to the text input area specifically for managing file uploads. 
-
-
-.. tip::
-   Project-wide attachment sharing is optional. Enable ``Settings -> Files and attachments -> General -> Make attachments available in the whole project`` to make attachments added in one chat available to all chats in the same project. The option is disabled by default; when disabled, attachments remain available only in the chat where they were added.
+Attachments belong only to the conversation in which they were uploaded. The input has no Attachments or Uploaded tabs.
 
 .. image:: images/v2_file_input.png
    :width: 800
@@ -42,7 +36,7 @@ For non-conversation mentions, the ``@`` syntax is also a user-interface referen
 
    Mentioning a workdir file or directory does **not** automatically read its contents into the prompt. It identifies the exact path the user is referring to. The model still needs an available file/tool path (for example ``Files I/O``), RAG/index access, or another supported mechanism to inspect that file. Attachment mentions continue to use the normal attachment-processing rules described below. Conversation-ID mentions are different: PyGPT explicitly retrieves query-focused context from the referenced conversation database entry before the request is sent.
 
-You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and can be converted into text and/or indexed for use as additional context. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
+You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and are converted into text for use as additional context. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
 Text-based types:
 
@@ -71,15 +65,13 @@ Archives:
 Native file upload
 ^^^^^^^^^^^^^^^^^^
 
-In the ``Attachments`` tab you can enable **Prefer native file upload when supported**. The option is disabled by default.
+In ``Settings -> Files and attachments -> General`` you can enable **Prefer native file upload when supported**. The option is disabled by default.
 
 When enabled, PyGPT tries to upload each supported attachment directly through the selected provider's native file API instead of reading the file locally and appending its extracted content to the prompt. Native upload is selected only when it is supported by the current provider, model, file type, and file size. The native upload path is available for supported OpenAI, Google Gemini, Anthropic, and xAI configurations.
 
-For an attachment that is successfully uploaded natively, this path overrides the selected attachment context mode (``Full context``, ``RAG``, or ``Summary``) for that particular file. The file is not read into the local additional-context pipeline. If native upload is not supported or the upload fails, PyGPT automatically falls back to the standard local attachment-processing path.
+For an attachment uploaded natively, the original file is sent instead of locally extracted text. If native upload is unavailable or fails, PyGPT falls back to local Full context processing.
 
 Archive files such as ZIP and TAR are a special case. PyGPT unpacks the archive locally first and evaluates every extracted file separately. Supported members can be uploaded natively, while unsupported members continue through the standard local-processing path. This means a single archive can contain both native and locally processed attachments.
-
-Files sent through the native path are marked with the ``(Native)`` suffix in the uploaded attachments list.
 
 .. note::
 
@@ -89,32 +81,14 @@ Files sent through the native path are marked with the ``(Native)`` suffix in th
 
    To inspect native-upload activity in the console, enable ``Settings -> Debug -> Log attachments usage to console``. Messages such as ``Uploading native attachment: ...`` are printed only when attachment logging is enabled.
 
-Attachment context modes
-^^^^^^^^^^^^^^^^^^^^^^^^
+Attachment context
+^^^^^^^^^^^^^^^^^^
 
-The content from the uploaded attachments will be used in the current conversation and will be available throughout (per context). There are 3 modes available for working with additional context from attachments:
-
-- ``Full context``: Provides best results. This mode attaches the entire content of the read file to the user's prompt. This process happens in the background and may require a large number of tokens if you uploaded extensive content.
-
-- ``RAG``: The indexed attachment will only be queried in real-time using LlamaIndex. This operation does not require any additional tokens, but it may not provide access to the full content of the file 1:1.
-
-- ``Summary``: When queried, an additional query will be generated in the background and executed by a separate model to summarize the content of the attachment and return the required information to the main model. You can change the model used for summarization in the settings under the ``Files and attachments`` section.
-
-In the ``RAG`` and ``Summary`` mode, you can enable an additional setting by going to ``Settings -> Files and attachments -> RAG -> Use history in RAG query``. This allows for better preparation of queries for RAG. When this option is turned on, the entire conversation context is considered, rather than just the user's last query. This allows for better searching of the index for additional context. In the ``RAG limit`` option, you can set a limit on how many recent entries in a discussion should be considered (``0 = no limit, default: 3``).
+Full context is always used for local attachments. Large attachments can consume many tokens, including when their original message is replayed in conversation history. For selective retrieval, index files separately and use the conversation's RAG tools.
 
 **Images as Additional Context**
 
 Files such as jpg, png, and similar images are a special case. By default, images are not used as additional context; they are analyzed in real-time using a vision model. If you want to use them as additional context instead, you must enable the "Allow images as additional context" option in the settings: ``Files and attachments -> Allow images as additional context``.
-
-**Uploading larger files and auto-index**
-
-To use the ``RAG`` mode, the file must be indexed in the vector database. This occurs automatically at the time of upload if the ``Auto-index on upload`` option in the ``Attachments`` tab is enabled. When uploading large files, such indexing might take a while - therefore, if you are using the ``Full context`` option, which does not use the index, you can disable the ``Auto-index`` option to speed up the upload of the attachment. In this case, it will only be indexed when the ``RAG`` option is called for the first time, and until then, attachment will be available in the form of ``Full context`` and ``Summary``.
-
-**Embeddings**
-
-When using RAG to query attachments, the documents are indexed into a temporary vector store. The query model is configured in ``Config -> Settings -> Files and attachments -> RAG -> Model for RAG queries``. Embedding configuration is shared with the rest of RAG under ``Config -> Settings -> Indexes / RAG -> Embeddings``.
-
-``Default embedding models`` maps each model provider to its default embedding model and is used for file indexing, conversation-context indexing, and attachments. For attachment RAG, PyGPT first tries the mapping that matches the RAG query model's provider; if no mapping is available, it falls back to the global ``Embeddings provider`` and its default model. Credentials and endpoints are inherited from the selected provider's normal global settings, including runtime custom providers. ``Global embeddings provider **kwargs`` and ``Global embeddings provider ENV vars`` in **Advanced** are optional overrides and normally remain empty. ``Embeddings timeout`` controls embedding request timeout and defaults to 60 seconds.
 
 Downloading files
 -----------------

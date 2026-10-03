@@ -307,6 +307,15 @@ class OrchestratorMemoryStore:
         items = [entry[2] for entry in projected]
         return self.window.core.context_manager.filter_agents_v2_items(items, master_ctx)
 
+    def attachment_history(self, master_ctx: CtxItem) -> List[CtxItem]:
+        """Restore attachment-bearing user turns for newly delegated workers."""
+        return [
+            item for item in self._projected_items(
+                master_ctx, exclude_source_id=self._row_id(master_ctx),
+            )
+            if getattr(item, "hidden_input", None)
+        ]
+
     def count_history_tokens(
             self,
             master_ctx: CtxItem,

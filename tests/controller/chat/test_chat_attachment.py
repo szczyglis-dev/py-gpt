@@ -139,19 +139,12 @@ class TestAttachment:
         assert att.has("any") is False
 
     def test_setup(self, dummy_window):
-        dummy_window.core.config.get = MagicMock(return_value=Attachment.MODE_FULL_CONTEXT)
         att = Attachment(dummy_window)
-        att.setup()
-        dummy_window.ui.nodes['input.attachments.ctx.mode.full'].setChecked.assert_called_with(True)
-        dummy_window.core.config.get = MagicMock(return_value=Attachment.MODE_QUERY_CONTEXT)
-        att.setup()
-        dummy_window.ui.nodes['input.attachments.ctx.mode.query'].setChecked.assert_called_with(True)
-        dummy_window.core.config.get = MagicMock(return_value=Attachment.MODE_QUERY_CONTEXT_SUMMARY)
-        att.setup()
-        dummy_window.ui.nodes['input.attachments.ctx.mode.query_summary'].setChecked.assert_called_with(True)
-        dummy_window.core.config.get = MagicMock(return_value=Attachment.MODE_DISABLED)
-        att.setup()
-        dummy_window.ui.nodes['input.attachments.ctx.mode.off'].setChecked.assert_called_with(True)
+        for saved_mode in ("full", "query", "summary", "disabled"):
+            dummy_window.core.config.get = MagicMock(return_value=saved_mode)
+            att.setup()
+            assert att.mode == Attachment.MODE_FULL_CONTEXT
+            dummy_window.core.config.set.assert_called_with("ctx.attachment.mode", "full")
 
     def test_reload(self, dummy_window):
         att = Attachment(dummy_window)
@@ -334,7 +327,8 @@ class TestAttachment:
         dummy_meta.group = group
         dummy_window.core.attachments.context.is_project_share_enabled.return_value = True
         att.append_to_meta(dummy_meta, item)
-        assert group.additional_ctx == [item]
+        assert group.additional_ctx is None
+        assert dummy_meta.additional_ctx == [item]
         assert dummy_meta.additional_ctx_current[-1] == item
 
     def test_upload_web(self, dummy_window, dummy_meta):
@@ -360,7 +354,7 @@ class TestAttachment:
     def test_get_mode(self, dummy_window):
         att = Attachment(dummy_window)
         att.mode = "custom"
-        assert att.get_mode() == "custom"
+        assert att.get_mode() == "full"
 
     def test_get_context(self, dummy_window):
         att = Attachment(dummy_window)
@@ -514,7 +508,7 @@ class TestAttachment:
         att = Attachment(dummy_window)
         att.mode = Attachment.MODE_FULL_CONTEXT
         tokens = att.get_current_tokens()
-        assert tokens == 5
+        assert tokens == 0
 
     def test_handle_upload_error(self, dummy_window):
         att = Attachment(dummy_window)
@@ -546,7 +540,7 @@ class TestAttachment:
         att.window.core.config.save = MagicMock()
         att.window.controller.ui.update_tokens = MagicMock()
         att.switch_mode("new")
-        assert att.mode == "new"
-        att.window.core.config.set.assert_called_with("ctx.attachment.mode", "new")
+        assert att.mode == "full"
+        att.window.core.config.set.assert_called_with("ctx.attachment.mode", "full")
         att.window.core.config.save.assert_called_once()
         att.window.controller.ui.update_tokens.assert_called_once()

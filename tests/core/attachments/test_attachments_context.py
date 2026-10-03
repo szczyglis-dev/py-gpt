@@ -178,7 +178,7 @@ def test_upload(mock_window):
                 meta,
                 attachment,
                 "prompt",
-                auto_index=False,
+                auto_index=True,
                 real_path = "test_real_path"
             )
             assert result["name"] == "test_path"
@@ -186,6 +186,7 @@ def test_upload(mock_window):
             assert result["path"] == "test_path"
             assert result["real_path"] == "test_real_path"
             assert result["indexed"] == False
+            context.index_attachment.assert_not_called()
 
 
 def test_read_content(mock_window):
@@ -472,3 +473,31 @@ def test_read_content_flattens_durable_mentions_before_forwarding_loader_prompt(
         path="test_path",
         loader_kwargs={"prompt": "open doc.txt and %workdir%/data/src/app.py"},
     )
+
+
+def test_current_context_excludes_old_and_project_attachments(mock_window, tmp_path, monkeypatch):
+    meta = CtxMeta()
+    from pygpt_net.item.ctx import CtxGroup
+    meta.group = CtxGroup()
+    old = {"uuid": "old", "name": "old.txt", "type": "local_file", "path": "old.txt"}
+    new = {"uuid": "new", "name": "new.txt", "type": "local_file", "path": "new.txt"}
+    shared = {"uuid": "shared", "name": "shared.txt", "type": "local_file", "path": "shared.txt"}
+    meta.additional_ctx = [old, new]
+    meta.additional_ctx_current = [new]
+    meta.group.additional_ctx = [shared]
+    monkeypatch.setattr(mock_window.core.config, "get", MagicMock(return_value=True))
+    context = Context(mock_window)
+    context.get_dir = MagicMock(return_value=str(tmp_path))
+    for item in (old, new, shared):
+        folder = tmp_path / item["uuid"]
+        folder.mkdir()
+        (folder / (item["uuid"] + ".txt")).write_text(item["uuid"] + " content")
+    ctx = CtxItem()
+    ctx.meta = meta
+    assert context.is_project_share_enabled(meta) is False
+    content = context.get_context_text(ctx, only_current=True)
+    assert "new content" in content
+    assert "old content" not in content
+    assert "shared content" not in content
+    meta.additional_ctx_current = []
+    assert context.get_context_text(ctx, only_current=True) == ""

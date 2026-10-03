@@ -71,6 +71,9 @@ class WorkerExecution:
             shared_hint = (
                 "\n\nThis workflow has shared user attachments/context. Use shared_context for extracted text/manifest; "
                 "image inputs from the current turn are also attached to this task when the selected model supports them."
+                "\n\n<shared_attachment_context>\n"
+                + self.runtime.shared_context_text
+                + "\n</shared_attachment_context>"
             )
         worker_input = self.runtime.inputs.message(f"Task from {self.runtime.main_agent_name}:\n{task}{shared_hint}")
         self.runtime.verbose.log("WORKER INPUT", worker_input, actor=state.id)
@@ -156,4 +159,3 @@ class WorkerExecution:
         self.runtime.artifacts.collect_from_llm(getattr(state.agent, "llm", None), state)
         self.runtime.artifacts.collect(state.tool_ctx, state)
         self.store_output(state)
-

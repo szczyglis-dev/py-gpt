@@ -50,12 +50,9 @@ class Attachment:
         else:
             self.window.ui.nodes['attachments.capture_clear'].setChecked(False)
 
-        #  auto-index
-        if self.window.core.config.has('attachments_auto_index') \
-                and self.window.core.config.get('attachments_auto_index'):
-            self.window.ui.nodes['attachments.auto_index'].setChecked(True)
-        else:
-            self.window.ui.nodes['attachments.auto_index'].setChecked(False)
+        self.window.core.config.set('attachments_auto_index', False)
+        self.window.ui.nodes['attachments.auto_index'].setChecked(False)
+        self.window.ui.nodes['attachments.auto_index'].setEnabled(False)
 
         self.window.core.attachments.load()
         self.update()
@@ -542,7 +539,7 @@ class Attachment:
 
         :param value: value of the checkbox
         """
-        self.window.core.config.set('attachments_auto_index', value)
+        self.window.core.config.set('attachments_auto_index', False)
 
     def is_capture_clear(self) -> bool:
         """

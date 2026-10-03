@@ -223,3 +223,18 @@ def test_unpack_response_audio_without_audio(dummy_window, dummy_ctx):
     assert dummy_ctx.input_tokens == 9
     assert dummy_ctx.output_tokens == 10
     assert dummy_ctx.total_tokens == 19
+
+def test_attachment_context_replays_with_original_user_message(dummy_window, dummy_model):
+    first = CtxItem()
+    first.input = "Analyze file"
+    first.hidden_input = "ADDITIONAL CONTEXT: file text"
+    first.output = "Analysis"
+    dummy_window.core.config.get = MagicMock(side_effect=lambda key, default=None: {
+        "use_context": True, "max_total_tokens": 4096, "func_call.native": False,
+    }.get(key, default))
+    dummy_window.core.ctx.get_history.return_value = [first]
+    messages = Chat(dummy_window).build("Follow up", "System", dummy_model, history=[first])
+    users = [message for message in messages if message["role"] == "user"]
+    assert users[0]["content"] == "Analyze file\n\nADDITIONAL CONTEXT: file text"
+    assert users[1]["content"] == "Follow up"
+    assert all("ADDITIONAL CONTEXT" not in str(message["content"]) for message in messages if message["role"] == "system")

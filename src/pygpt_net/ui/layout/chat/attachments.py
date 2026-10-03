@@ -131,15 +131,6 @@ class Attachments:
         menu.addAction(header)
         menu.addSeparator()
 
-        auto_index = nodes.get('attachments.auto_index')
-        if auto_index is not None:
-            self._add_check_action(
-                menu,
-                trans('attachments.auto_index'),
-                auto_index.isChecked(),
-                lambda checked=False, node=auto_index: node.setChecked(bool(checked)),
-            )
-
         send_clear = nodes.get('attachments.send_clear')
         if send_clear is not None:
             self._add_check_action(

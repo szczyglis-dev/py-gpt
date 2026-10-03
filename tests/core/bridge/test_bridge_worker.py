@@ -179,7 +179,7 @@ def test_handle_additional_context_agent_mode_sets_hidden_input():
     assert ctx.ctx.hidden_input == "ADCTX"
 
 
-def test_handle_additional_context_full_mode_no_hidden_input():
+def test_handle_additional_context_full_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
     worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
@@ -190,7 +190,7 @@ def test_handle_additional_context_full_mode_no_hidden_input():
     worker.mode = None
     worker.handle_additional_context()
     assert worker.context.prompt.endswith("\n\nADCTX")
-    assert ctx.ctx.hidden_input is None
+    assert ctx.ctx.hidden_input == "ADCTX"
 
 
 def test_cleanup_disconnect_and_reset():
@@ -354,3 +354,52 @@ def test_run_gpt_call_result_emits_ok_or_error():
     assert isinstance(event, KernelEvent)
     assert event.name == "kernel.response.failed"
     mock_response.reset_mock()
+
+@pytest.mark.parametrize("mode", ["chat", "agent", "agent_llama", "agent_openai", "agent_v2", "research", "computer", "vision", "completion"])
+def test_attachment_context_is_durable_per_turn_in_every_mode(mode):
+    from pygpt_net.item.ctx import CtxItem
+    attachment = AttachmentStub(context_value="ADDITIONAL CONTEXT: file contents", mode_value="full")
+    attachment.get_context = Mock(side_effect=lambda ctx, history, only_current=False: attachment._context)
+    attachment.bind_current_to_ctx = Mock()
+    worker = BridgeWorker()
+    worker.mode = mode
+    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    item = CtxItem()
+    item.meta = CtxMeta()
+    item.input = "Analyze this file"
+    worker.context = SimpleNamespace(ctx=item, prompt=item.input, history=[], system_prompt="System instructions")
+    worker.handle_additional_context()
+    assert item.input == "Analyze this file"
+    assert item.hidden_input == attachment._context
+    assert item.final_input == worker.context.prompt
+    assert worker.context.system_prompt == "System instructions"
+    attachment.get_context.assert_called_with(item, [], only_current=True)
+    # Retrying the same request must not duplicate the attached text.
+    worker.handle_additional_context()
+    assert item.final_input.count(attachment._context) == 1
+    assert worker.context.prompt.count(attachment._context) == 1
+    stored = CtxItem()
+    stored.from_dict(item.to_dict())
+    assert stored.final_input == item.final_input
+    attachment._context = ""
+    next_item = CtxItem()
+    next_item.meta = item.meta
+    next_item.input = "Next question"
+    worker.context = SimpleNamespace(ctx=next_item, prompt=next_item.input, history=[stored])
+    worker.handle_additional_context()
+    assert next_item.hidden_input is None
+    assert worker.context.prompt == "Next question"
+    assert stored.hidden_input == "ADDITIONAL CONTEXT: file contents"
+
+
+def test_attachment_hidden_input_survives_agents_v2_to_chat_history():
+    from pygpt_net.core.ctx.ctx import Ctx
+    from pygpt_net.item.ctx import CtxItem
+    item = CtxItem()
+    item.input = "Analyze this file"
+    item.hidden_input = "ADDITIONAL CONTEXT: file contents"
+    item.additional_ctx = [{"uuid": "file", "name": "file.txt", "type": "local_file"}]
+    item.output = "Analysis"
+    compact = Ctx._compact_agents_v2_history_item(SimpleNamespace(), item)
+    assert compact.final_input == item.final_input
+    assert compact.output == "Analysis"

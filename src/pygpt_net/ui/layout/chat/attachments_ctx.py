@@ -52,50 +52,6 @@ class AttachmentsCtx:
         self._options_state_holder = QWidget(self.window)
         self._options_state_holder.hide()
 
-        self.window.ui.nodes['input.attachments.ctx.mode.label'] = HelpLabel(
-            trans('attachments.ctx.label'),
-            self._options_state_holder,
-        )
-        self.window.ui.nodes['input.attachments.ctx.mode.full'] = QRadioButton(
-            trans('attachments.ctx.mode.full'),
-            self._options_state_holder,
-        )
-        self.window.ui.nodes['input.attachments.ctx.mode.full'].clicked.connect(
-            lambda: self.window.controller.chat.attachment.switch_mode(
-                self.window.controller.chat.attachment.MODE_FULL_CONTEXT
-            ))
-        self.window.ui.nodes['input.attachments.ctx.mode.query'] = QRadioButton(
-            trans('attachments.ctx.mode.query'),
-            self._options_state_holder,
-        )
-        self.window.ui.nodes['input.attachments.ctx.mode.query'].clicked.connect(
-            lambda: self.window.controller.chat.attachment.switch_mode(
-                self.window.controller.chat.attachment.MODE_QUERY_CONTEXT
-            ))
-        self.window.ui.nodes['input.attachments.ctx.mode.query_summary'] = QRadioButton(
-            trans('attachments.ctx.mode.summary'),
-            self._options_state_holder,
-        )
-        self.window.ui.nodes['input.attachments.ctx.mode.query_summary'].clicked.connect(
-            lambda: self.window.controller.chat.attachment.switch_mode(
-                self.window.controller.chat.attachment.MODE_QUERY_CONTEXT_SUMMARY
-            ))
-        self.window.ui.nodes['input.attachments.ctx.mode.off'] = QRadioButton(
-            trans('attachments.ctx.mode.off'),
-            self._options_state_holder,
-        )
-        self.window.ui.nodes['input.attachments.ctx.mode.off'].clicked.connect(
-            lambda: self.window.controller.chat.attachment.switch_mode(
-                self.window.controller.chat.attachment.MODE_DISABLED
-            ))
-
-        self.window.ui.nodes['input.attachments.native_upload'] = QCheckBox(
-            trans('attachments.ctx.native_upload'),
-            self._options_state_holder,
-        )
-        self.window.ui.nodes['input.attachments.native_upload'].toggled.connect(
-            lambda enabled: self.window.controller.chat.attachment.toggle_native_upload(enabled)
-        )
         self.window.ui.nodes['attachments_ctx.btn.options'] = ButtonPopupMenu(
             self.window,
             menu_builder=self._build_options_menu,
@@ -176,36 +132,9 @@ class AttachmentsCtx:
         menu.addAction(header)
         menu.addSeparator()
 
-        group = QButtonGroup(menu)
-        group.setExclusive(True)
-        ctrl = self.window.controller.chat.attachment
-        modes = (
-            ('input.attachments.ctx.mode.full', 'attachments.ctx.mode.full', ctrl.MODE_FULL_CONTEXT),
-            ('input.attachments.ctx.mode.query', 'attachments.ctx.mode.query', ctrl.MODE_QUERY_CONTEXT),
-            ('input.attachments.ctx.mode.query_summary', 'attachments.ctx.mode.summary', ctrl.MODE_QUERY_CONTEXT_SUMMARY),
-            ('input.attachments.ctx.mode.off', 'attachments.ctx.mode.off', ctrl.MODE_DISABLED),
-        )
-        for node_key, locale_key, mode in modes:
-            node = nodes.get(node_key)
-            if node is None:
-                continue
-            self._add_persistent_radio(
-                menu,
-                group,
-                trans(locale_key),
-                node.isChecked(),
-                lambda key=node_key, value=mode: self._select_mode(key, value),
-            )
-
-        menu.addSeparator()
-        native_upload = nodes.get('input.attachments.native_upload')
-        if native_upload is not None:
-            self._add_persistent_checkbox(
-                menu,
-                trans('attachments.ctx.native_upload'),
-                native_upload.isChecked(),
-                lambda checked=False, node=native_upload: node.setChecked(bool(checked)),
-            )
+        full = QAction(trans('attachments.ctx.mode.full'), menu)
+        full.setEnabled(False)
+        menu.addAction(full)
 
     def setup_attachments(self):
         """Setup attachments uploaded list"""

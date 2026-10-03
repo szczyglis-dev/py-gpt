@@ -30,7 +30,7 @@ from pygpt_net.utils import trans
 
 class Attachment(QObject):
 
-    MODE_FULL_CONTEXT = 'full'  # attach full context to system prompt
+    MODE_FULL_CONTEXT = 'full'  # attach full context to the uploading user message
     MODE_QUERY_CONTEXT = 'query'  # query context only
     MODE_QUERY_CONTEXT_SUMMARY = 'summary'  # summary full context and attach summary to system prompt
     MODE_DISABLED = 'disabled'  # disabled
@@ -197,15 +197,8 @@ class Attachment(QObject):
 
     def setup(self):
         """Setup attachments"""
-        self.mode = self.window.core.config.get("ctx.attachment.mode", self.MODE_FULL_CONTEXT)
-        if self.mode == self.MODE_QUERY_CONTEXT:
-            self.window.ui.nodes['input.attachments.ctx.mode.query'].setChecked(True)
-        elif self.mode == self.MODE_QUERY_CONTEXT_SUMMARY:
-            self.window.ui.nodes['input.attachments.ctx.mode.query_summary'].setChecked(True)
-        elif self.mode == self.MODE_FULL_CONTEXT:
-            self.window.ui.nodes['input.attachments.ctx.mode.full'].setChecked(True)
-        elif self.mode == self.MODE_DISABLED:
-            self.window.ui.nodes['input.attachments.ctx.mode.off'].setChecked(True)
+        self.mode = self.MODE_FULL_CONTEXT
+        self.window.core.config.set("ctx.attachment.mode", self.MODE_FULL_CONTEXT)
 
         self.native_upload = bool(self.window.core.config.get("ctx.attachment.native_upload", False))
         node = self.window.ui.nodes.get('input.attachments.native_upload')
@@ -266,10 +259,8 @@ class Attachment(QObject):
         """
         self.uploaded = False
         self.window.core.attachments.native.reset()
-        auto_index = self.window.core.config.get("attachments_auto_index", False)
+        auto_index = False
         attachments = self.window.core.attachments.get_all(mode, only_files=True)
-        if self.mode != self.MODE_QUERY_CONTEXT:
-            auto_index = False  # disable auto index for full context and summary modes
 
         if self.is_verbose() and len(attachments) > 0:
             print(f"\nUploading attachments...\nWork Mode: {mode}")
@@ -457,16 +448,6 @@ class Attachment(QObject):
         :param meta: CtxMeta instance
         :param item: Attachment item
         """
-        if self.window.core.attachments.context.is_project_share_enabled(meta):
-            if meta.group.additional_ctx is None:
-                meta.group.additional_ctx = []
-            if meta.group.additional_ctx_current is None:
-                meta.group.additional_ctx_current = []
-            meta.group.additional_ctx.append(item)
-            if meta.additional_ctx_current is None:
-                meta.additional_ctx_current = []
-            meta.additional_ctx_current.append(item)
-            return
         if meta.additional_ctx is None:
             meta.additional_ctx = []
         if meta.additional_ctx_current is None:
@@ -523,7 +504,7 @@ class Attachment(QObject):
 
         :return: Additional context append mode
         """
-        return self.mode
+        return self.MODE_FULL_CONTEXT
 
     def get_context(
             self,
@@ -546,7 +527,7 @@ class Attachment(QObject):
         self.window.core.attachments.context.reset()  # reset used files and urls
 
         # get additional context from attachments
-        content = self.window.core.attachments.context.get_context(self.mode, ctx, history, only_current=only_current)
+        content = self.window.core.attachments.context.get_context(self.MODE_FULL_CONTEXT, ctx, history, only_current=only_current)
 
         if content:
             if self.is_verbose():
@@ -831,23 +812,9 @@ class Attachment(QObject):
 
         :return: Current attachments tokens
         """
-        if self.mode != self.MODE_FULL_CONTEXT:
-            return 0
-        meta = self.window.core.ctx.get_current_meta()
-        if meta is None:
-            return 0
-        if not self.has_context(meta):
-            return 0
-        tokens = 0
-        for item in self.window.core.attachments.context.get_all(meta):
-            if item.get("active", True) is False:
-                continue
-            if "tokens" in item:
-                try:
-                    tokens += int(item["tokens"])
-                except Exception as e:
-                    pass
-        return tokens
+        # Extracted text is already counted in the original history message's
+        # final_input. It is no longer appended separately to each new request.
+        return 0
 
     @Slot(object)
     def handle_upload_error(self, error: Exception):
@@ -892,7 +859,7 @@ class Attachment(QObject):
 
         :param mode: context mode
         """
-        self.mode = mode
-        self.window.core.config.set("ctx.attachment.mode", mode)
+        self.mode = self.MODE_FULL_CONTEXT
+        self.window.core.config.set("ctx.attachment.mode", self.MODE_FULL_CONTEXT)
         self.window.core.config.save()
         self.window.controller.ui.update_tokens()

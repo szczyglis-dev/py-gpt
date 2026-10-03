@@ -1917,7 +1917,8 @@ class Ctx:
         Cross-mode history therefore exposes only the user-visible turn: the
         original user input plus the authoritative final Agents v2 answer.  For
         an interrupted turn without a final answer we keep textual partials as a
-        best-effort fallback, but never the hidden RAG input or tool protocol.
+        best-effort fallback, without replaying the tool protocol. Hidden input
+        is retained only for turns with user attachments.
         """
         clone = copy.copy(item)
         clone.parts = []
@@ -1935,7 +1936,8 @@ class Ctx:
         clone.msg_id = None
         clone.response = None
         clone.thread = None
-        clone.hidden_input = None
+        # User attachment text belongs to the visible turn across mode changes.
+        clone.hidden_input = item.hidden_input if item.additional_ctx else None
         clone.hidden_output = None
         clone.input = item.input
 

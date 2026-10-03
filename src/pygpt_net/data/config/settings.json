@@ -390,6 +390,15 @@
         "advanced": false,
         "tab": "general"
     },
+    "ctx.attachment.native_upload": {
+        "section": "files",
+        "type": "bool",
+        "label": "attachments.ctx.native_upload",
+        "description": "attachments.ctx.native_upload.desc",
+        "value": false,
+        "advanced": false,
+        "tab": "general"
+    },
     "ctx.attachment.img": {
         "section": "files",
         "type": "bool",
@@ -403,116 +412,6 @@
         "step": null,
         "advanced": false,
         "tab": "general"
-    },
-    "ctx.attachment.project_share": {
-        "section": "files",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.attachment.project_share",
-        "description": "settings.ctx.attachment.project_share.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "general"
-    },
-    "ctx.attachment.append_once": {
-        "section": "files",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.attachment.append_once",
-        "description": "settings.ctx.attachment.append_once.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "general"
-    },
-    "ctx.attachment.auto_append": {
-        "section": "files",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.attachment.auto_append",
-        "description": "settings.ctx.attachment.auto_append.desc",
-        "value": false,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "general"
-    },
-    "ctx.attachment.summary.model": {
-        "section": "files",
-        "type": "combo",
-        "use": "models",
-        "use_params": {
-            "mode": [
-                "chat"
-            ]
-        },
-        "slider": false,
-        "label": "settings.ctx.attachment.summary.model",
-        "description": "settings.ctx.attachment.summary.model.desc",
-        "value": "gpt-4o-mini",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "rag"
-    },
-    "ctx.attachment.query.model": {
-        "section": "files",
-        "type": "combo",
-        "use": "models",
-        "use_params": {
-            "mode": [
-                "chat"
-            ]
-        },
-        "slider": false,
-        "label": "settings.ctx.attachment.query.model",
-        "description": "settings.ctx.attachment.query.model.desc",
-        "value": "gpt-4o-mini",
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "rag"
-    },
-    "ctx.attachment.rag.history": {
-        "section": "files",
-        "type": "bool",
-        "slider": false,
-        "label": "settings.ctx.attachment.rag.history",
-        "description": "settings.ctx.attachment.rag.history.desc",
-        "value": true,
-        "min": null,
-        "max": null,
-        "multiplier": null,
-        "step": null,
-        "advanced": false,
-        "tab": "rag"
-    },
-    "ctx.attachment.rag.history.max_items": {
-        "section": "files",
-        "type": "int",
-        "slider": true,
-        "label": "settings.ctx.attachment.rag.history.max_items",
-        "description": "settings.ctx.attachment.rag.history.max_items.desc",
-        "value": 5,
-        "min": 0,
-        "max": 100,
-        "multiplier": 1,
-        "step": 1,
-        "advanced": false,
-        "tab": "rag"
     },
     "download.dir": {
         "section": "files",

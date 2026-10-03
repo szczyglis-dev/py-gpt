@@ -26,7 +26,7 @@ from pygpt_net.ui.widget.audio.output import AudioOutput
 from pygpt_net.ui.widget.element.labels import (
     HelpLabel, ChatStatusLabel, IconLabel, StatusIconCounter, StatusIconLabel,
 )
-from pygpt_net.ui.widget.tabs.Input import InputTabs
+from pygpt_net.ui.widget.tabs.Input import ChatComposer
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.input_extra import ExtraInput
 from pygpt_net.utils import trans
@@ -261,35 +261,23 @@ class Input:
         files_uploaded = self.setup_attachments_uploaded()
         files_ctx = self.setup_attachments_ctx()
 
-        # Create footer metadata/capability nodes before the tab widget.
+        # Create footer metadata/capability nodes before the composer.
         self._setup_footer_nodes()
 
-        self.window.ui.tabs['input'] = InputTabs(self.window)
+        self.window.ui.tabs['input'] = ChatComposer(self.window, input, input_extra)
         tabs = self.window.ui.tabs['input']
         tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
-        tabs.addTab(input, '')
-        tabs.addTab(files, '')
-        tabs.addTab(files_uploaded, '')
-        tabs.addTab(files_ctx, '')
-        tabs.addTab(input_extra, trans('input.tab.extra'))
-        tabs.currentChanged.connect(self.update_min_height)
-
-        tabs.setTabIcon(0, QIcon(":/icons/chat1.svg"))
-        upload_icon = QIcon(":/icons/upload.svg")
-        tabs.setTabIcon(1, QIcon(":/icons/attachment.svg"))
-        tabs.setTabIcon(2, upload_icon)
-        tabs.setTabIcon(3, upload_icon)
-        tabs.set_compact_tab_count(0, 0)
-        tabs.set_compact_tab_count(1, 0)
-        tabs.set_compact_tab_count(2, 0)
-        tabs.set_compact_tab_count(3, 0)
-
+        # Keep legacy controller nodes initialized, but expose only the chat
+        # composer. Removed pages have no tab and cannot be selected.
+        for page in (files, files_uploaded, files_ctx):
+            page.setParent(tabs)
+            page.hide()
         self.window.ui.plugin_addon['audio.input.bar'] = InputRecordWidget(self.window)
-        tabs.set_header_widget(self.window.ui.plugin_addon['audio.input.bar'])
 
         content = QWidget()
         content_layout = QVBoxLayout(content)
         content_layout.addLayout(self.setup_header())
+        content_layout.addWidget(self.window.ui.plugin_addon['audio.input.bar'])
         content_layout.addWidget(tabs)
         # Chat metadata (plugins / context counter) and edit controls
         # belong to the responsive composer and therefore stay aligned with

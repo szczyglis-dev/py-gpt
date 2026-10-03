@@ -772,9 +772,8 @@ class ContextManager:
     def build_snapshot(self, items: Iterable) -> str:
         chunks = []
         for item in items or []:
-            # Do not persist hidden_input (RAG payload / one-turn runtime
-            # context) into continuation memory. Preserve the user's durable
-            # message and the useful assistant/workflow state only.
+            # Include durable hidden attachment context with its original user
+            # message so continuation notes can retain it after compaction.
             user = str(getattr(item, "final_input", None) or "").strip()
             assistant = self._assistant_snapshot(item)
             if not user and not assistant:

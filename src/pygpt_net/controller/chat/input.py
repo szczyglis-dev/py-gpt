@@ -341,8 +341,8 @@ class Input:
             return
 
         # Start a fresh per-turn attachment scope before processing files from
-        # the input list. Conversation/project attachments remain active for
-        # model context, but only items introduced after this reset belong to
+        # the input list. Earlier attachments stay in their original history
+        # messages; only items introduced after this reset belong to
         # the message being sent now.
         self.window.controller.chat.attachment.begin_turn(request_meta)
 

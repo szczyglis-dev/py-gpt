@@ -420,7 +420,7 @@ def test_ctx_meta_integrity_uses_timestamp_values():
     assert item.archived is False
 
 
-def test_ctx_meta_additional_ctx_prefers_group_and_can_reset_remove():
+def test_ctx_meta_additional_ctx_stays_local_and_can_reset_remove():
     meta = CtxMeta()
     local = {"name": "local.txt"}
     group_item = {"name": "group.txt"}
@@ -433,13 +433,13 @@ def test_ctx_meta_additional_ctx_prefers_group_and_can_reset_remove():
     group.additional_ctx = [group_item]
     meta.group = group
     assert meta.has_additional_ctx() is True
-    assert meta.get_additional_ctx() is group.additional_ctx
-    assert meta.get_attachment_names() == ["group.txt"]
+    assert meta.get_additional_ctx() == [local]
+    assert meta.get_attachment_names() == ["local.txt"]
 
     meta.remove_additional_ctx(group_item)
-    assert group.additional_ctx == []
+    assert group.additional_ctx == [group_item]
     meta.reset_additional_ctx()
-    assert group.additional_ctx == []
+    assert group.additional_ctx == [group_item]
 
     meta.group = None
     meta.additional_ctx = [local]

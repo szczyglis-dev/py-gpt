@@ -280,12 +280,6 @@ class Mapping:
         nodes['attachments_uploaded.sync.tip'] = 'attachments_uploaded.sync.tip'
 
         nodes['tip.input.attachments.ctx'] = 'tip.input.attachments.ctx'
-        nodes['input.attachments.ctx.mode.label'] = 'attachments.ctx.label'
-        nodes['input.attachments.ctx.mode.full'] = 'attachments.ctx.mode.full'
-        nodes['input.attachments.ctx.mode.query'] = 'attachments.ctx.mode.query'
-        nodes['input.attachments.ctx.mode.query_summary'] = 'attachments.ctx.mode.summary'
-        nodes['input.attachments.ctx.mode.off'] = 'attachments.ctx.mode.off'
-        nodes['input.attachments.native_upload'] = 'attachments.ctx.native_upload'
 
         # filesystem
         nodes['idx.btn.db.index_all'] = 'settings.llama.extra.btn.idx_db_all'

@@ -235,26 +235,6 @@ class BridgeWorker(QRunnable):
         self.window.dispatch(event)
         self.context.system_prompt = event.data['value']
 
-    def allowed_single_append(self, context) -> bool:
-        """Check if only single append of additional context is allowed for current mode and provider"""
-        if context is None or context.model is None:
-            return False
-        allowed_modes = [MODE_CHAT, MODE_RESEARCH, MODE_COMPUTER]
-        if context.model.provider == "openai":
-            use_responses_api = self.window.core.api.openai.responses.is_enabled(
-                context.model,
-                context.mode,
-                context.parent_mode,
-                context.is_expert_call,
-                context.preset
-            )
-            if use_responses_api and context.mode in allowed_modes:
-                return True
-        elif context.model.provider == "x_ai":
-            if not context.model.id.startswith("grok-3") and context.mode in allowed_modes:
-                return True
-        return False
-
     def handle_additional_context(self):
         """Append additional context"""
         ctx = self.context.ctx
@@ -262,43 +242,19 @@ class BridgeWorker(QRunnable):
             return
         if ctx.meta is None:
             return
+        if getattr(ctx, "internal", False) or getattr(ctx, "turn_continuation", False):
+            return
         if not self.window.controller.chat.attachment.has_context(ctx.meta):
             return
 
         attachment = self.window.controller.chat.attachment
-        project_initial = bool(
-            self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
-            and attachment.is_initial_turn(ctx, self.context.history)
-        )
-
-        # determine if only current attachment content should be appended
-        only_current = self.window.core.config.get("ctx.attachment.append_once", False)  # force single append
-        auto_detect = self.window.core.config.get("ctx.attachment.auto_append", True) # auto-detect if allowed
-        if not only_current and auto_detect:
-            if self.allowed_single_append(self.context):
-                only_current = True
-
-        # A new conversation inside a shared project has no locally uploaded
-        # ``additional_ctx_current`` yet.  For append-once providers expose the
-        # existing project attachments on the first turn only; subsequent turns
-        # rely on provider conversation continuity.
-        if only_current and project_initial:
-            attachment.include_project_attachments_in_current(ctx.meta)
-
-        ad_context = attachment.get_context(
-            ctx,
-            self.context.history,
-            only_current=only_current
-        )
-        # UI/history association is intentionally narrower than model context:
-        # only attachments sent in this turn are rendered under the message,
-        # except that the first turn of a shared project shows the project's
-        # already available attachments once.
-        attachment.bind_current_to_ctx(ctx, include_project=project_initial)
-        ad_mode = self.window.controller.chat.attachment.get_mode()
+        # Attachments belong to the uploading turn. History providers replay
+        # hidden_input; Responses providers retain that same user message.
+        ad_context = attachment.get_context(ctx, self.context.history, only_current=True)
+        attachment.bind_current_to_ctx(ctx)
         if ad_context:
-            self.context.prompt += f"\n\n{ad_context}"  # append to input text
-            if (ad_mode == self.window.controller.chat.attachment.MODE_QUERY_CONTEXT
-                    or self.mode in [MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2]):
-                ctx.hidden_input = ad_context  # store for future use, only if query context
-                # if full context or summary, then whole extra context will be applied to current input
+            hidden = ctx.hidden_input or ""
+            if ad_context not in hidden:
+                ctx.hidden_input = "\n\n".join(filter(None, [hidden, ad_context]))
+            if ad_context not in self.context.prompt:
+                self.context.prompt = f"{self.context.prompt}\n\n{ad_context}"

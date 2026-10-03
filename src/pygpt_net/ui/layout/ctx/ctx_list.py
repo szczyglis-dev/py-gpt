@@ -468,13 +468,7 @@ class CtxList:
                 )
                 section_added = True
 
-            # Project attachment marker is meaningful only when project-wide
-            # sharing is enabled. With per-chat attachments, the project row
-            # must stay clean even if old shared metadata still exists.
-            project_share = bool(
-                self.window.core.config.get("ctx.attachment.project_share", False)
-            )
-            is_attachment = project_share and group.has_additional_ctx()
+            is_attachment = False
             group_name = group.name
             group_item = GroupItem(self._folder_icon, group_name, group.id)
             group_item.hasAttachments = is_attachment
@@ -656,13 +650,8 @@ class CtxList:
         label = data.label
         is_important = data.important
         in_group = bool(data.group)
-        project_share = bool(
-            self.window.core.config.get("ctx.attachment.project_share", False)
-        )
-        if in_group and not project_share:
-            is_attachment = bool(data.additional_ctx)
-        else:
-            is_attachment = data.has_additional_ctx()
+        project_share = False
+        is_attachment = False
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name

@@ -222,24 +222,9 @@ General
 
 * ``Allow images as additional context``: Allows images attached to earlier context items to be reused as additional visual context in later model requests. Disable it when images should be considered only in the message where they were explicitly attached. Default: False.
 
-* ``Make attachments available in the whole project``: When enabled, attachments added to a chat in a project are available in all chats in that project. When disabled, attachments remain available only in the chat where they were added. Default: False.
-
-* ``Append attachment only once (mode: always)``: If enabled, the sent attachment will be appended once to the sending message, rather than appended every time to the input prompt as additional context. Force mode - affects all models. Default: False.
-
-* ``Append attachment only once (mode: only if available, auto-detect)``: If enabled, the sent attachment will be appended once to the sending message, if the selected model and API handle the storage of sent messages on the server side. This may optimize token usage by sending attachments only once. Default: True.
+* ``Prefer native file upload when supported``: Sends supported files through the selected provider's native file API. Unsupported files and failed uploads fall back to local Full context. Default: False.
 
 * ``Directory for file downloads``: Chooses the subdirectory under the active runtime ``data`` directory where files downloaded by PyGPT tools and integrations are saved. For a project with a custom data workdir, the subdirectory is created below that project directory; otherwise it is relative to the shared profile ``data`` directory. Default: ``download``.
-
-RAG
-^^^
-
-* ``Model for attachment content summary``: Model to use when generating a summary for the content of a file when the Summary option is selected. Default: gpt-4o-mini.
-
-* ``Model for RAG queries``: Model used to prepare and execute RAG queries when the RAG option is selected. Default: gpt-4o-mini.
-
-* ``Use history in RAG query``: When enabled, the content of the entire conversation will be used when preparing a query if mode is RAG or Summary. Default: True.
-
-* ``RAG limit``: Only if the option 'Use history in RAG query' is enabled. Specify the limit of how many recent entries in the conversation will be used when generating a query for RAG. 0 = no limit. Default: 3.
 
 Chats
 ~~~~~

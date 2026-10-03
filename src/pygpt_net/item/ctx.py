@@ -915,53 +915,23 @@ class CtxMeta:
 
         :return: True if additional context data is present
         """
-        if self.additional_ctx:
-            return True
-        if self.group and self.group.additional_ctx:
-            return True
-        return False
+        return bool(self.additional_ctx)
 
     def get_additional_ctx(self) -> list:
-        """
-        Get additional context data
-
-        :return: list
-        """
-        if self.group and self.group.additional_ctx:
-            return self.group.additional_ctx
+        """Return attachments belonging to this conversation."""
         return self.additional_ctx or []
 
     def reset_additional_ctx(self):
-        """Delete additional context data"""
-        if self.group:
-            self.group.additional_ctx = []
-        else:
-            self.additional_ctx = []
+        """Clear this conversation's attachments."""
+        self.additional_ctx = []
 
     def remove_additional_ctx(self, item: dict):
-        """
-        Remove additional context data item
-
-        :param item: dict
-        """
-        if self.group:
-            lst = self.group.additional_ctx
-            if item in lst:
-                lst.remove(item)
-        else:
-            lst = self.additional_ctx
-            if item in lst:
-                lst.remove(item)
+        """Remove an attachment from this conversation."""
+        if item in (self.additional_ctx or []):
+            self.additional_ctx.remove(item)
 
     def get_attachment_names(self) -> list:
-        """
-        Get attachment names
-
-        :return: list
-        """
-        if self.group:
-            if self.group.additional_ctx:
-                return self.group.get_attachment_names()
+        """Return names of this conversation's attachments."""
         return get_additional_ctx_display_names(self.additional_ctx)
 
     def to_dict(self) -> dict:
