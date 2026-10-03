@@ -293,6 +293,8 @@ def test_translator_current_output_and_handle_save_as(tmp_path):
 
 def test_translator_as_tab_setup_dialogs_and_lang_mappings(tmp_path):
     tool = _tool(tmp_path)
+    assert tool.as_tab(object()) is None
+    tool.allow_tab = True
     tab = object(); dialog_tool = MagicMock(); inner = MagicMock(); dialog_tool.as_tab.return_value = inner
     tab_widget = MagicMock(); tool.load_config = MagicMock()
     with patch("pygpt_net.tools.translator.tool.Tool", return_value=dialog_tool), \

@@ -127,6 +127,13 @@ class Tools:
         for id in self.tools:
             self.tools[id].setup_theme()
 
+    def get_dialog_tool(self, dialog_type: str):
+        """Find the policy owner of a static dialog or dynamic dialog type."""
+        for tool in self.tools.values():
+            if dialog_type == tool.dialog_id or dialog_type in tool.dialog_types:
+                return tool
+        return None
+
     def get_instance(
             self,
             type_id: str,
@@ -139,7 +146,17 @@ class Tools:
         :param dialog_id: dialog instance ID
         :return: BaseDialog instance or None
         """
+        owner = self.get_dialog_tool(type_id)
+        if owner is not None:
+            dialog_id = owner.resolve_dialog_id(dialog_id)
+            if dialog_id is None:
+                return None
+            if dialog_id in self.window.ui.dialog:
+                return self.window.ui.dialog[dialog_id]
         for id in self.tools:
+            tool = self.tools[id]
+            if not tool.can_open_dialog():
+                continue
             instance = self.tools[id].get_instance(type_id, dialog_id)
             if instance is not None:
                 return instance

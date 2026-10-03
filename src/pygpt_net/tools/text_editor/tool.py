@@ -16,7 +16,7 @@ from typing import Dict, Optional
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, ToolMenuAction
 from pygpt_net.tools.text_editor.ui.dialogs import DialogSpawner
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
@@ -31,6 +31,12 @@ class TextEditor(BaseTool):
         """
         super(TextEditor, self).__init__(*args, **kwargs)
         self.id = "editor"
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = True
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_types = ('text_editor',)
         self.width = 800
         self.height = 500
         self.instance_id = 0
@@ -136,6 +142,8 @@ class TextEditor(BaseTool):
         :param force: force open new instance
         """
         # pre-check if file can be opened as text
+        if not self.can_open_dialog():
+            return None
         if file:
             try:
                 with open(file, "r", encoding="utf-8") as f:
@@ -154,6 +162,8 @@ class TextEditor(BaseTool):
             # new instance id
             id = 'file_tmp_editor_' + str(self.instance_id)
             self.instance_id += 1
+
+        id = self.resolve_dialog_id(id)
 
         self.window.ui.dialogs.open_instance(
             id,
@@ -273,7 +283,7 @@ class TextEditor(BaseTool):
             checkable=False,
         )
         actions["text.editor"].triggered.connect(
-            lambda: self.open()
+            self.on_menu_action
         )
         return actions
 
@@ -289,6 +299,8 @@ class TextEditor(BaseTool):
         :param dialog_id: dialog instance ID
         :return dialog instance
         """
+        if not self.can_open_dialog():
+            return None
         if type_id == "text_editor":
             return self.spawner.setup(dialog_id)
 

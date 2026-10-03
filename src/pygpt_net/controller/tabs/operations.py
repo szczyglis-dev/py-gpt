@@ -56,10 +56,13 @@ class TabOperations:
         idx = int(idx)
 
         if type == Tab.TAB_TOOL and tool_id:
+            tool = self.window.tools.get(tool_id)
+            if tool is None or not tool.can_open_tab():
+                return None
             existing = self.get_first_tab_by_tool(tool_id)
             if existing is not None:
                 tool = self.window.tools.get(tool_id)
-                if tool is not None and getattr(tool, "single_instance", False):
+                if not tool.allows_multiple_tabs():
                     if activate and (existing.column_idx != 1 or self.is_split_screen_enabled()):
                         self.activate_tab(existing)
                     return existing

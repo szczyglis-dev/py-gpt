@@ -15,7 +15,7 @@ from typing import Dict
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog
 
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, ToolMenuAction
 from pygpt_net.tools.audio_transcriber.ui.dialogs import AudioTranscribe
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
@@ -31,6 +31,12 @@ class AudioTranscriber(BaseTool):
         """
         super(AudioTranscriber, self).__init__(*args, **kwargs)
         self.id = "transcriber"
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_id = 'audio.transcribe'
         self.opened = False
         self.video_extensions = ["mp4", "avi", "mov", "mkv", "webm"]
         self.dialog = None  # dialog
@@ -72,6 +78,8 @@ class AudioTranscriber(BaseTool):
 
     def open(self):
         """Open transcriber"""
+        if not self.can_open_dialog():
+            return None
         self.window.ui.nodes['audio.transcribe.status'].setText("")
         self.window.ui.dialogs.open('audio.transcribe', width=800, height=600)
         self.opened = True
@@ -270,7 +278,7 @@ class AudioTranscriber(BaseTool):
             checkable=False,
         )
         actions["audio.transcribe"].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 

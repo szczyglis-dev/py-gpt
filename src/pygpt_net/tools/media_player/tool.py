@@ -17,7 +17,7 @@ from typing import Dict
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QMessageBox, QFileDialog
 
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, ToolMenuAction
 from pygpt_net.tools.media_player.ui.dialogs import VideoPlayer
 from pygpt_net.utils import trans
 
@@ -31,6 +31,12 @@ class MediaPlayer(BaseTool):
         """
         super(MediaPlayer, self).__init__(*args, **kwargs)
         self.id = "player"
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_id = 'video_player'
         self.opened = False
         self.dialog = None
         self.initialized = False
@@ -135,6 +141,8 @@ class MediaPlayer(BaseTool):
                 )
     def open(self):
         """Open player window"""
+        if not self.can_open_dialog():
+            return None
         self.lazy_setup()
         self.window.ui.dialogs.open('video_player', width=800, height=600)
         self.window.video_player.force_resize()
@@ -186,7 +194,7 @@ class MediaPlayer(BaseTool):
             checkable=False,
         )
         actions["media.player"].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 

@@ -14,6 +14,7 @@ def _widget(dialogs=None):
         tools=MagicMock(),
         screen=MagicMock(),
     )
+    window.tools.get_dialog_tool.return_value = None
     return SimpleNamespace(window=window)
 
 
@@ -139,3 +140,28 @@ def test_open_instance_creates_missing_tool_instance_and_registers_it():
     dialog.resize.assert_called_once_with(500, 300)
     geometry.moveCenter.assert_called_once_with("center")
     dialog.show.assert_called_once()
+
+
+def test_tool_policy_blocks_static_and_dynamic_dialogs():
+    from pygpt_net.tools.base import BaseTool
+    tool = BaseTool(); tool.allow_dialog = False
+    dialog = MagicMock()
+    widget = _widget({'blocked': dialog})
+    widget.window.tools.get_dialog_tool.return_value = tool
+    Dialogs.open(widget, 'blocked')
+    Dialogs.open_instance(widget, 'new', type='blocked')
+    dialog.show.assert_not_called()
+    widget.window.tools.get_instance.assert_not_called()
+
+
+def test_single_dialog_policy_reuses_existing_window():
+    from pygpt_net.tools.base import BaseTool
+    tool = BaseTool()
+    tool.resolve_dialog_id('first')
+    dialog = MagicMock()
+    widget = _widget({'first': dialog})
+    widget.window.tools.get_dialog_tool.return_value = tool
+    Dialogs.open_instance(widget, 'second', type='test')
+    widget.window.tools.get_instance.assert_not_called()
+    dialog.show.assert_called_once()
+    assert 'second' not in widget.window.ui.dialog

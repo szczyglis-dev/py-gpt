@@ -518,3 +518,21 @@ def test_move_tab(tabs_instance, fake_window):
     assert fake_tab.column_idx == 1
     assert new_column.count() == original_count + 1
     assert fake_tab.child in new_column._tabs
+
+def test_core_tool_creation_uses_registered_capabilities():
+    from types import SimpleNamespace
+    from pygpt_net.tools.base import BaseTool
+    tool = BaseTool()
+    tool.id = 'configurable'
+    tool.allow_tab = True
+    tool.multi_tab = False
+    window = SimpleNamespace(tools=SimpleNamespace(get=lambda tool_id: tool))
+    core = Tabs(window)
+    tab = Tab(); tab.type = Tab.TAB_TOOL; tab.tool_id = tool.id; tab.pid = 1
+    core.pids[1] = tab
+    assert core._get_existing_single_instance_tool(Tab.TAB_TOOL, tool.id) is tab
+    tool.multi_tab = True
+    assert core._get_existing_single_instance_tool(Tab.TAB_TOOL, tool.id) is None
+    tool.allow_tab = False
+    with pytest.raises(ValueError, match='does not allow tabs'):
+        core._get_existing_single_instance_tool(Tab.TAB_TOOL, tool.id)

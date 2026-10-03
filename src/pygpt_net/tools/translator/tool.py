@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QFileDialog, QWidget, QApplication
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
-from pygpt_net.tools.base import BaseTool, TabWidget
+from pygpt_net.tools.base import BaseTool, TabWidget, ToolMenuAction
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.worker import Worker
@@ -44,8 +44,12 @@ class Translator(BaseTool):
         """
         super(Translator, self).__init__(*args, **kwargs)
         self.id = "translator"
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
         self.dialog_id = "translator"
-        self.has_tab = False
         self.tab_title = "menu.tools.translator"
         self.tab_icon = ":/icons/translate.svg"
         self.opened = False
@@ -369,6 +373,8 @@ class Translator(BaseTool):
 
     def open(self):
         """Open HTML canvas dialog"""
+        if not self.can_open_dialog():
+            return None
         if not self.opened:
             self.opened = True
             self.auto_opened = False
@@ -455,7 +461,7 @@ class Translator(BaseTool):
             checkable=False,
         )
         actions[id].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 
@@ -467,6 +473,8 @@ class Translator(BaseTool):
         :return: Tab widget instance
         """
 
+        if not self.can_open_tab():
+            return None
         tool = Tool(window=self.window, tool=self)  # dialog
         tool_widget = tool.as_tab()  # ToolWidget
         widget = TabWidget()

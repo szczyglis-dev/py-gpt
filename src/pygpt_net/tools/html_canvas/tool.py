@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QFileDialog, QWidget
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
-from pygpt_net.tools.base import BaseTool, TabWidget
+from pygpt_net.tools.base import BaseTool, TabWidget, ToolMenuAction
 from pygpt_net.utils import trans
 
 from .ui.dialogs import Tool
@@ -35,8 +35,12 @@ class HtmlCanvas(BaseTool):
         """
         super(HtmlCanvas, self).__init__(*args, **kwargs)
         self.id = "html_canvas"
+        self.allow_tab = True
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.TAB_IF_EXISTS
         self.dialog_id = "html_canvas"
-        self.has_tab = True
         self.tab_title = "menu.tools.html_canvas"
         self.tab_icon = ":/icons/code.svg"
         self.opened = False
@@ -215,6 +219,8 @@ class HtmlCanvas(BaseTool):
 
         :param load: Load output data
         """
+        if not self.can_open_dialog():
+            return None
         if not self.opened:
             self.opened = True
             self.auto_opened = False
@@ -232,13 +238,13 @@ class HtmlCanvas(BaseTool):
         """
         if not self.window.core.config.get("layout.canvas.auto_open", True):
             return
-        if self.window.controller.tabs.is_current_tool(self.id):
+        if self.can_open_tab() and self.window.controller.tabs.is_current_tool(self.id):
             tool_col = self.window.controller.tabs.get_tool_column(self.id)
             current_col = self.window.controller.tabs.get_current_column_idx()
             if tool_col == 1 and tool_col != current_col:
                 self.window.controller.tabs.enable_split_screen(True)  # enable split screen
             return # do not open if already opened in tab
-        elif self.window.controller.tabs.is_tool(self.id):
+        elif self.can_open_tab() and self.window.controller.tabs.is_tool(self.id):
             tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
             if tab:
                 tool_col = tab.column_idx
@@ -343,7 +349,7 @@ class HtmlCanvas(BaseTool):
             checkable=False,
         )
         actions["html_canvas"].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 
@@ -355,6 +361,8 @@ class HtmlCanvas(BaseTool):
         :return: Tab widget instance
         """
 
+        if not self.can_open_tab():
+            return None
         tool = Tool(window=self.window, tool=self)  # dialog
         tool_widget = tool.as_tab()  # ToolWidget
         widget = TabWidget()

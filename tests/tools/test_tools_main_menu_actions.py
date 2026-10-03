@@ -33,7 +33,7 @@ from pygpt_net.tools.web_browser.tool import WebBrowser
 def test_tool_setup_menu_builds_action_and_routes_trigger(module_name, cls, action_key, callback_name):
     action = MagicMock()
     callback = MagicMock()
-    obj = SimpleNamespace(window=object())
+    obj = SimpleNamespace(window=object(), on_menu_action=callback)
     setattr(obj, callback_name, callback)
 
     with patch(f"{module_name}.QAction", return_value=action) as action_cls, \

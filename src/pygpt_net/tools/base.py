@@ -11,6 +11,7 @@
 
 from typing import Optional, Dict, Any, Callable
 import weakref
+from enum import Enum
 
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QAction
@@ -21,6 +22,13 @@ from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
+
+class ToolMenuAction(Enum):
+    ALWAYS_DIALOG = 'always_dialog'
+    ALWAYS_TAB = 'always_tab'
+    DIALOG_IF_TAB_EXISTS = 'dialog_if_tab_exists'
+    TAB_IF_EXISTS = 'tab_if_exists'
+
 
 class BaseTool(QObject, LocaleDomain):
     def __init__(self, *args, **kwargs):
@@ -35,10 +43,102 @@ class BaseTool(QObject, LocaleDomain):
         self.init_locale_domain()
         self.window = None
         self.id = ""
-        self.has_tab = False
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_id = ''
+        self.dialog_types = ()
+        self.dialog_opener = 'open'
+        self._single_dialog_id = None
         self.tab_title = ""
         self.tab_icon = ":/icons/build.svg"
         self._lang_mappings = []
+
+    @property
+    def has_tab(self):
+        """Compatibility alias; all policy lives in allow_tab."""
+        return self.allow_tab
+
+    @has_tab.setter
+    def has_tab(self, value):
+        self.allow_tab = bool(value)
+
+    @property
+    def single_instance(self):
+        return not self.multi_tab
+
+    @single_instance.setter
+    def single_instance(self, value):
+        self.multi_tab = not bool(value)
+
+    def can_open_tab(self):
+        return self.allow_tab
+
+    def can_open_dialog(self):
+        return self.allow_dialog
+
+    def allows_multiple_tabs(self):
+        return self.allow_tab and self.multi_tab
+
+    def allows_multiple_dialogs(self):
+        return self.allow_dialog and self.multi_dialog
+
+    def existing_tab(self):
+        if self.window is None:
+            return None
+        return self.window.controller.tabs.get_first_tab_by_tool(self.id)
+
+    def can_add_tab(self):
+        return self.can_open_tab() and (self.multi_tab or self.existing_tab() is None)
+
+    def can_add_dialog(self):
+        """Whether opening may create a new window instead of reusing one."""
+        if not self.can_open_dialog():
+            return False
+        if self.multi_dialog or self.window is None:
+            return True
+        dialog_id = self.dialog_id or self._single_dialog_id
+        return not dialog_id or dialog_id not in self.window.ui.dialog
+
+    def resolve_dialog_id(self, requested):
+        """Select a stable dialog identity for single-dialog tools."""
+        if not self.can_open_dialog():
+            return None
+        if self.multi_dialog:
+            return requested
+        if self._single_dialog_id is None:
+            self._single_dialog_id = requested
+        return self._single_dialog_id
+
+    def open_tab(self):
+        if not self.can_open_tab():
+            return None
+        return self.window.controller.tabs.open_or_activate(Tab.TAB_TOOL, self.id)
+
+    def open_dialog(self):
+        if not self.can_open_dialog():
+            return None
+        dialog = self.window.ui.dialog.get(self.dialog_id or self._single_dialog_id)
+        if not self.multi_dialog and dialog is not None and dialog.isVisible():
+            dialog.raise_()
+            dialog.activateWindow()
+            return dialog
+        return getattr(self, self.dialog_opener)()
+
+    def on_menu_action(self, checked=False):
+        policy = self.on_menu_click
+        if policy == ToolMenuAction.ALWAYS_TAB:
+            return self.open_tab()
+        if policy == ToolMenuAction.ALWAYS_DIALOG:
+            return self.open_dialog()
+        exists = self.existing_tab() is not None
+        if policy == ToolMenuAction.DIALOG_IF_TAB_EXISTS:
+            return self.open_dialog() if exists else self.open_tab()
+        if policy == ToolMenuAction.TAB_IF_EXISTS:
+            return self.open_tab() if exists else self.open_dialog()
+        raise ValueError(f'Unsupported tool menu policy: {policy}')
 
     def setup(self):
         """Setup tool"""

@@ -41,8 +41,8 @@ def test_tools_get_tab_tools_returns_controller_mapping():
 def test_tools_append_tab_menu_adds_only_tools_with_tabs():
     window = MagicMock()
     window.tools.get_all.return_value = {
-        "terminal": SimpleNamespace(has_tab=True, tab_icon=":/terminal.svg", tab_title="tool.terminal"),
-        "hidden": SimpleNamespace(has_tab=False, tab_icon=":/hidden.svg", tab_title="tool.hidden"),
+        "terminal": SimpleNamespace(can_add_tab=lambda: True, tab_icon=":/terminal.svg", tab_title="tool.terminal"),
+        "hidden": SimpleNamespace(can_add_tab=lambda: False, tab_icon=":/hidden.svg", tab_title="tool.hidden"),
     }
     tools = Tools(window)
     parent = MagicMock()

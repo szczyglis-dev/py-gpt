@@ -53,7 +53,7 @@ def test_append_reuses_single_instance_tool_and_activation_rules(tabs_env):
     tabs, window = tabs_env.tabs, tabs_env.window
     existing = tabs_env.make_tab(pid=9, idx=0, column_idx=0, type=Tab.TAB_TOOL, tool_id="canvas")
     tabs.get_first_tab_by_tool = MagicMock(return_value=existing)
-    window.tools.get.return_value = SimpleNamespace(single_instance=True)
+    window.tools.get.return_value = SimpleNamespace(can_open_tab=lambda: True, allows_multiple_tabs=lambda: False)
     tabs.activate_tab = MagicMock()
 
     assert tabs.append(Tab.TAB_TOOL, tool_id="canvas") is existing

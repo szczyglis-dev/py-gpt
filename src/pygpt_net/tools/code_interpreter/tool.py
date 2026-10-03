@@ -19,7 +19,7 @@ from PySide6.QtWidgets import QWidget
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.tools.base import BaseTool, TabWidget
+from pygpt_net.tools.base import BaseTool, TabWidget, ToolMenuAction
 from pygpt_net.tools.code_interpreter.ui.dialogs import Tool
 from pygpt_net.core.events import Event, KernelEvent, BaseEvent, RenderEvent
 from pygpt_net.item.ctx import CtxItem
@@ -38,8 +38,12 @@ class CodeInterpreter(BaseTool):
         """
         super(CodeInterpreter, self).__init__(*args, **kwargs)
         self.id = "interpreter"
-        self.has_tab = True
-        self.single_instance = True
+        self.allow_tab = True
+        self.allow_dialog = True
+        self.multi_tab = False
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.TAB_IF_EXISTS
+        self.dialog_id = 'interpreter'
         self.tab_title = "menu.tools.interpreter"
         self.tab_icon = ":/icons/code.svg"
         self.opened = False
@@ -614,6 +618,8 @@ class CodeInterpreter(BaseTool):
 
     def open(self):
         """Open interpreter dialog"""
+        if not self.can_open_dialog():
+            return None
         self.opened = True
         self.auto_opened = False
         self.load_history()
@@ -633,13 +639,13 @@ class CodeInterpreter(BaseTool):
 
     def auto_open(self):
         """Auto open dialog or tab"""
-        if self.window.controller.tabs.is_current_tool(self.id):
+        if self.can_open_tab() and self.window.controller.tabs.is_current_tool(self.id):
             tool_col = self.window.controller.tabs.get_tool_column(self.id)
             current_col = self.window.controller.tabs.get_current_column_idx()
             if tool_col == 1 and tool_col != current_col:
                 self.window.controller.tabs.enable_split_screen(True)  # enable split screen
             return # do not open if already opened in tab
-        elif self.window.controller.tabs.is_tool(self.id):
+        elif self.can_open_tab() and self.window.controller.tabs.is_tool(self.id):
             tab = self.window.controller.tabs.get_first_tab_by_tool(self.id)
             if tab:
                 tool_col = tab.column_idx
@@ -773,7 +779,7 @@ class CodeInterpreter(BaseTool):
             checkable=False,
         )
         actions["interpreter"].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 
@@ -784,6 +790,8 @@ class CodeInterpreter(BaseTool):
         :param tab: Parent Tab instance
         :return: Tab widget instance
         """
+        if not self.can_open_tab():
+            return None
         tool = Tool(window=self.window, tool=self)  # dialog
         tool_widget = tool.as_tab()  # ToolWidget
         widget = TabWidget()

@@ -289,6 +289,9 @@ class Dialogs:
         :param width: dialog width
         :param height: dialog height
         """
+        tool = self.window.tools.get_dialog_tool(id)
+        if tool is not None and not tool.can_open_dialog():
+            return
         if id not in self.window.ui.dialog:
             return
         dialog = self.window.ui.dialog[id]
@@ -318,6 +321,11 @@ class Dialogs:
         :param height: dialog height
         :param type: dialog type
         """
+        tool = self.window.tools.get_dialog_tool(type)
+        if tool is not None:
+            id = tool.resolve_dialog_id(id)
+            if id is None:
+                return
         if id not in self.window.ui.dialog:
             dialog_instance = self.window.tools.get_instance(type, id)
             if dialog_instance:

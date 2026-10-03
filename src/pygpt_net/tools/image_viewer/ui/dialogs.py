@@ -12,7 +12,6 @@
 from PySide6.QtCore import Qt, QPoint, QSize, QEvent
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
-    QMenuBar,
     QVBoxLayout,
     QHBoxLayout,
     QSizePolicy,
@@ -69,7 +68,7 @@ class DialogSpawner:
         row.addWidget(scroll)
 
         layout = QVBoxLayout()
-        # remove extra outer margins to bring the toolbar closer to the top/menu bar
+        # remove extra outer margins to bring the toolbar closer to the top
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
@@ -105,8 +104,6 @@ class ImageViewerDialog(BaseDialog):
         self.window = window
         self.id = id
         self.disable_geometry_store = False
-        self.menu_bar = None
-        self.file_menu = None
         self.actions = {}
         self.source = None
         self.pixmap = None
@@ -117,10 +114,8 @@ class ImageViewerDialog(BaseDialog):
         self._last_target_size = None
 
         # icons
-        self._icon_add = QIcon(":/icons/add.svg")
         self._icon_folder = QIcon(":/icons/folder.svg")
         self._icon_save = QIcon(":/icons/save.svg")
-        self._icon_logout = QIcon(":/icons/logout.svg")
 
         # toolbar icons
         self._icon_prev = QIcon(":/icons/back.svg")
@@ -163,7 +158,6 @@ class ImageViewerDialog(BaseDialog):
 
         :param layout: layout
         """
-        layout.setMenuBar(self.setup_menu())
         self.setLayout(layout)
 
     def resizeEvent(self, event):
@@ -204,49 +198,6 @@ class ImageViewerDialog(BaseDialog):
                 if key != self._last_src_key or target_size != self._last_target_size:
                     self._apply_width_fit(src, target_size)
         super(ImageViewerDialog, self).resizeEvent(event)
-
-    def setup_menu(self) -> QMenuBar:
-        """
-        Setup dialog menu
-
-        :return: QMenuBar
-        """
-        self.menu_bar = QMenuBar(self)
-        self.menu_bar.setNativeMenuBar(False)
-        self.file_menu = self.menu_bar.addMenu(trans("menu.file"))
-
-        self.actions["new"] = QAction(self._icon_add, trans("action.new"), self)
-        self.actions["new"].triggered.connect(
-            lambda checked=False: self.window.tools.get("viewer").new()
-        )
-
-        self.actions["open"] = QAction(self._icon_folder, trans("action.open"), self)
-        self.actions["open"].triggered.connect(
-            lambda checked=False: self.window.tools.get("viewer").open_file(self.id, auto_close=True)
-        )
-
-        self.actions["open_new"] = QAction(self._icon_folder, trans("action.open_new_window"), self)
-        self.actions["open_new"].triggered.connect(
-            lambda checked=False: self.window.tools.get("viewer").open_file(self.id, auto_close=False)
-        )
-
-        self.actions["save_as"] = QAction(self._icon_save, trans("action.save_as"), self)
-        self.actions["save_as"].triggered.connect(
-            lambda checked=False: self.window.tools.get("viewer").save_by_id(self.id)
-        )
-
-        self.actions["exit"] = QAction(self._icon_logout, trans("menu.file.exit"), self)
-        self.actions["exit"].triggered.connect(
-            lambda checked=False: self.window.tools.get("viewer").close_preview(self.id)
-        )
-
-        self.file_menu.addAction(self.actions["new"])
-        self.file_menu.addAction(self.actions["open"])
-        self.file_menu.addAction(self.actions["open_new"])
-        self.file_menu.addAction(self.actions["save_as"])
-        self.file_menu.addAction(self.actions["exit"])
-
-        return self.menu_bar
 
     def setup_toolbar(self) -> QFrame:
         """

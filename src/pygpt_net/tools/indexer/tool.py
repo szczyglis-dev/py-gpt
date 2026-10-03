@@ -17,7 +17,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtGui import QAction, QIcon, QTextCursor
 from sqlalchemy import text
 
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, ToolMenuAction
 from pygpt_net.utils import trans
 
 from .ui.dialogs import DialogBuilder
@@ -32,6 +32,12 @@ class IndexerTool(BaseTool):
         """
         super(IndexerTool, self).__init__(*args, **kwargs)
         self.id = "indexer"  # unique tool id
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_id = 'tool.indexer'
         self.dialog = None
         self.opened = False
         self.current_idx = "base"
@@ -54,6 +60,8 @@ class IndexerTool(BaseTool):
 
     def open(self):
         """Open dialog window"""
+        if not self.can_open_dialog():
+            return None
         self.window.ui.dialogs.open('tool.indexer', width=800, height=600)
         self.opened = True
         self.refresh()
@@ -503,7 +511,7 @@ class IndexerTool(BaseTool):
             checkable=False,
         )
         actions["indexer"].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 

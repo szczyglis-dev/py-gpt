@@ -17,7 +17,7 @@ from PySide6.QtWidgets import QWidget
 from pygpt_net.core.events import BaseEvent, RenderEvent
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.types import MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, ToolMenuAction
 from pygpt_net.utils import trans
 
 from .ui.dialogs import Tool
@@ -33,8 +33,12 @@ class AgentWorkflow(BaseTool):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.id = "agent_workflow"
-        self.has_tab = True
-        self.single_instance = True
+        self.allow_tab = True
+        self.allow_dialog = True
+        self.multi_tab = False
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_id = 'agent_workflow'
         self.tab_title = "menu.tools.agent_workflow"
         self.tab_icon = ":/icons/router.svg"
         self.opened = False
@@ -53,6 +57,8 @@ class AgentWorkflow(BaseTool):
 
     def show_on_first_agent_run(self) -> bool:
         """Reveal Agent Workflow in column 2 once, when the first user-facing agent run starts."""
+        if not self.can_open_tab():
+            return False
         cfg = self.window.core.config
         if cfg.get("mode") not in (MODE_AGENT_LLAMA, MODE_AGENT_OPENAI, MODE_AGENT_V2):
             return False
@@ -90,6 +96,8 @@ class AgentWorkflow(BaseTool):
         return True
 
     def open(self):
+        if not self.can_open_dialog():
+            return None
         self.opened = True
         self.window.ui.dialogs.open("agent_workflow", width=900, height=650)
         self.dialog.widget.reload()
@@ -111,7 +119,7 @@ class AgentWorkflow(BaseTool):
             self.window,
             checkable=False,
         )
-        action.triggered.connect(self.toggle)
+        action.triggered.connect(self.on_menu_action)
         return {"agent_workflow": action}
 
     def setup_dialogs(self):
@@ -119,6 +127,8 @@ class AgentWorkflow(BaseTool):
         self.dialog.setup()
 
     def as_tab(self, tab: Tab) -> QWidget:
+        if not self.can_open_tab():
+            return None
         widget = WorkflowWidget(self.window, self)
         widget.set_tab(tab)
         return widget

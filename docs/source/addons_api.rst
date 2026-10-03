@@ -1329,17 +1329,21 @@ Only override the hooks your tool actually needs. ``setup()``, ``post_setup()``,
 Creating a tab-capable tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Set ``has_tab = True``, provide ``tab_title``/``tab_icon`` and override ``as_tab(tab)`` to return the ``QWidget`` mounted in a PyGPT tool tab. The application controls tab creation and passes the tab descriptor to your method.
+Set ``allow_tab = True``, provide ``tab_title``/``tab_icon`` and override ``as_tab(tab)`` to return the ``QWidget`` mounted in a PyGPT tool tab. The application controls tab creation and passes the tab descriptor to your method.
 
 .. code-block:: python
 
    from PySide6.QtWidgets import QLabel
+   from pygpt_net.tools.base import BaseTool, ToolMenuAction
 
    class ExampleTabTool(BaseTool):
        def __init__(self):
            super().__init__()
            self.id = "example_tab"
-           self.has_tab = True
+           self.allow_tab = True
+           self.allow_dialog = False
+           self.multi_tab = False
+           self.on_menu_click = ToolMenuAction.ALWAYS_TAB
            self.tab_title = "Example"
            self.tab_icon = ":/icons/build.svg"
 
@@ -1347,6 +1351,68 @@ Set ``has_tab = True``, provide ``tab_title``/``tab_icon`` and override ``as_tab
            return QLabel("Example tool content")
 
 For dynamically created Qt controls that must follow runtime language changes, use ``add_lang_mapping()`` after creating the object instead of maintaining a separate translation refresh mechanism.
+
+Presentation policy: tabs, dialogs and menu actions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configure presentation in the constructor after ``super().__init__()``. These fields are the single source of truth for the Tools menu, tab-add menus, dialog creation and restored tabs.
+
+.. list-table:: Presentation fields
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Field
+     - Default
+     - Meaning
+   * - ``allow_tab``
+     - ``False``
+     - Permit a tool tab; implement ``as_tab(tab)``.
+   * - ``allow_dialog``
+     - ``True``
+     - Permit a dialog; implement the dialog opener.
+   * - ``multi_tab``
+     - ``True``
+     - Permit multiple tabs across both columns. If false, existing tabs are reused.
+   * - ``multi_dialog``
+     - ``False``
+     - Permit independent dialog identities. If false, reuse the existing dialog.
+   * - ``on_menu_click``
+     - ``ALWAYS_DIALOG``
+     - A ``ToolMenuAction`` enum value controlling the menu action.
+   * - ``dialog_id``
+     - ``''``
+     - Static dialog key in ``self.window.ui.dialog``.
+   * - ``dialog_types``
+     - ``()``
+     - Type IDs handled by a dynamic dialog factory.
+   * - ``dialog_opener``
+     - ``'open'``
+     - Name of the no-argument method called to open a dialog.
+
+Import ``ToolMenuAction`` from ``pygpt_net.tools.base`` and connect the menu action with ``action.triggered.connect(self.on_menu_action)``. The supported policies are:
+
+.. list-table:: ``ToolMenuAction``
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Value
+     - Behavior
+   * - ``ALWAYS_DIALOG``
+     - Open or focus a dialog.
+   * - ``ALWAYS_TAB``
+     - Open or focus the tool tab.
+   * - ``DIALOG_IF_TAB_EXISTS``
+     - Open a dialog when a tool tab exists; otherwise open a tab.
+   * - ``TAB_IF_EXISTS``
+     - Focus an existing tool tab; otherwise open a dialog.
+
+The selected surface must be allowed; a forbidden surface does not fall back to another surface. Multiple-instance flags permit creation, but your implementation must also create independent widgets/windows.
+
+Use ``can_open_tab()`` and ``can_open_dialog()`` to check permitted surfaces, and ``can_add_tab()`` / ``can_add_dialog()`` to check whether a new instance may be created. A singleton can still be opened or focused when creation of another instance is prohibited. ``allows_multiple_tabs()`` and ``allows_multiple_dialogs()`` include the corresponding permission flag. ``existing_tab()`` returns the first existing tab or ``None``.
+
+``open_tab()`` and ``open_dialog()`` enforce presentation permissions. Also guard direct custom opener/factory calls with the corresponding ``can_open_*()`` method. Register static dialogs under ``dialog_id`` in ``self.window.ui.dialog`` so existing windows can be focused and counted. For dynamic dialogs, declare ``dialog_types``, implement ``get_instance()`` and call ``resolve_dialog_id(requested_id)`` before looking up or creating a window. It returns ``None`` when dialogs are disabled, preserves independent IDs for multiple dialogs and selects one stable ID for a singleton.
+
+The legacy ``has_tab`` property aliases ``allow_tab``; ``single_instance`` aliases ``not multi_tab``. New Add-ons should use the presentation fields and methods above. See ``examples/addons/tools/example_tool`` for a runnable singleton-dialog example with a policy-aware menu action.
 
 Lifecycle hooks in practice
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -27,15 +27,6 @@ class Tabs:
     # number of columns
     NUM_COLS = 2
 
-    # These tools are application-wide singletons. Keep the invariant even
-    # during early profile restore, before the tool registry is guaranteed to
-    # be fully available.
-    EARLY_SINGLE_INSTANCE_TOOL_IDS = {
-        "web_browser",
-        "agent_workflow",
-        "interpreter",
-    }
-
     def __init__(self, window=None):
         """
         Tabs core
@@ -73,11 +64,11 @@ class Tabs:
             return None
         tools = getattr(self.window, "tools", None)
         tool = tools.get(tool_id) if tools is not None else None
-        # Selected application-wide tools are known singletons even during very
-        # early profile restore, before the tool registry is guaranteed to be
-        # ready. Other tools opt in through ``single_instance``.
-        if (tool_id not in self.EARLY_SINGLE_INSTANCE_TOOL_IDS
-                and (tool is None or not getattr(tool, "single_instance", False))):
+        if tool is None:
+            return None
+        if not tool.can_open_tab():
+            raise ValueError(f'Tool {tool_id} does not allow tabs')
+        if tool.allows_multiple_tabs():
             return None
         for tab in self.pids.values():
             if tab.type == Tab.TAB_TOOL and tab.tool_id == tool_id:
@@ -291,6 +282,10 @@ class Tabs:
 
         :param data: Tab data
         """
+        if data.get('type') == Tab.TAB_TOOL and data.get('tool_id'):
+            tool = self.window.tools.get(data['tool_id'])
+            if tool is not None and not tool.can_open_tab():
+                return None
         existing = self._get_existing_single_instance_tool(data.get("type"), data.get("tool_id"))
         if existing is not None:
             return existing

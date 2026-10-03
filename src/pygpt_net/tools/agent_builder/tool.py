@@ -16,7 +16,7 @@ from typing import Dict
 from PySide6 import QtCore
 from PySide6.QtGui import QAction, QIcon
 
-from pygpt_net.tools.base import BaseTool
+from pygpt_net.tools.base import BaseTool, ToolMenuAction
 from pygpt_net.utils import trans
 
 from pygpt_net.core.node_editor.types import (
@@ -32,6 +32,12 @@ class AgentBuilder(BaseTool):
     def __init__(self, *args, **kwargs):
         super(AgentBuilder, self).__init__(*args, **kwargs)
         self.id = "agent_builder"
+        self.allow_tab = False
+        self.allow_dialog = True
+        self.multi_tab = True
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
+        self.dialog_id = 'agent.builder'
         self.opened = False
         self.dialog = None  # dialog
         self.initialized = False
@@ -90,6 +96,8 @@ class AgentBuilder(BaseTool):
 
     def open(self):
         """Open dialog"""
+        if not self.can_open_dialog():
+            return None
         self.dialog = Builder(self.window, tool=self)
         self.dialog.setup()
         # Defer restore to allow previous deleteLater() to be processed
@@ -373,7 +381,7 @@ class AgentBuilder(BaseTool):
             checkable=False,
         )
         actions["agent.builder"].triggered.connect(
-            lambda: self.toggle()
+            self.on_menu_action
         )
         return actions
 

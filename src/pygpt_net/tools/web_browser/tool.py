@@ -31,7 +31,7 @@ from pygpt_net.ui.widget.textarea.annotations import AnnotationMixin
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.types.canvas import CanvasSearchEngine
 from pygpt_net.core.text.utils import output_clean_html, output_html2text
-from pygpt_net.tools.base import BaseTool, TabWidget
+from pygpt_net.tools.base import BaseTool, TabWidget, ToolMenuAction
 from pygpt_net.utils import trans
 
 from .ui.dialogs import Tool
@@ -203,9 +203,12 @@ body {
     def __init__(self, *args, **kwargs):
         super(WebBrowser, self).__init__(*args, **kwargs)
         self.id = "web_browser"
+        self.allow_tab = True
+        self.allow_dialog = False
+        self.multi_tab = False
+        self.multi_dialog = False
+        self.on_menu_click = ToolMenuAction.ALWAYS_TAB
         self.dialog_id = "web_browser"
-        self.has_tab = True
-        self.single_instance = True
         self.tab_title = "menu.tools.canvas_html"
         self.tab_icon = ":/icons/grid.svg"
         self.opened = False
@@ -760,6 +763,8 @@ body {
 
     def open(self, load: bool = True):
         """Open/focus the single Canvas tab in the second column."""
+        if not self.can_open_tab():
+            return None
         self._ensure_surface()
         tabs = self.window.controller.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
@@ -790,7 +795,7 @@ body {
         Tools -> Canvas always uses ``open()`` and is unaffected by the setting.
         """
         self._ensure_surface()
-        if not self._auto_open_enabled():
+        if not self.can_open_tab() or not self._auto_open_enabled():
             return "hidden"
 
         tabs = self.window.controller.tabs
@@ -823,6 +828,8 @@ body {
         URL.  If Canvas is already visible, preserve the user's active column.
         """
         self._ensure_surface()
+        if not self.can_open_tab():
+            return 'hidden'
         tabs = self.window.controller.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
 
@@ -878,7 +885,7 @@ body {
             self.window,
             checkable=False,
         )
-        actions["web_browser"].triggered.connect(lambda: self.open())
+        actions["web_browser"].triggered.connect(self.on_menu_action)
         return actions
 
     def get_lang_mappings(self) -> Dict[str, Dict]:
@@ -901,6 +908,8 @@ body {
         return {"closed": "tab", "session_alive": True}
 
     def as_tab(self, tab: Tab) -> QWidget:
+        if not self.can_open_tab():
+            return None
         tool = Tool(window=self.window, tool=self, surface_kind="tab")
         tool_widget = tool.as_tab()
         widget = TabWidget()

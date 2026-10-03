@@ -111,15 +111,11 @@ class Tools:
         tools = self.window.tools.get_all()
         for id in tools:
             tool = tools[id]
-            if not tool.has_tab:
+            if not tool.can_add_tab():
                 continue
             # Do not offer an action that cannot create anything. Single-instance
             # tools (e.g. Canvas, Agent Workflow and Python/OS) disappear from
             # Add tool as soon as their application-wide tab already exists.
-            if getattr(tool, "single_instance", False):
-                existing = self.window.controller.tabs.get_first_tab_by_tool(id)
-                if existing is not None:
-                    continue
             if submenu is None:
                 submenu = menu.addMenu(QIcon(":/icons/add.svg"), trans("action.tab.add.tool"))
             icon = tool.tab_icon
