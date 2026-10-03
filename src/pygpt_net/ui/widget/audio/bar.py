@@ -355,6 +355,7 @@ class InputRecordWidget(QWidget):
         self.setMaximumHeight(20)
 
         self.elapsed = QLabel("00:00", self)
+        self.elapsed.setStyleSheet("background: transparent; border: none;")
         self.elapsed.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         self.elapsed.setFixedWidth(62)
         self.elapsed.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)

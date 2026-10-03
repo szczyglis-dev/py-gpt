@@ -2388,6 +2388,33 @@ class ChatInput(QTextEdit):
             y = max(fw, self.height() - fw - row_h)
             self._icon_bar_right.setGeometry(x, y, width, row_h)
 
+    def install_record_bar(self, bar):
+        self.record_bar = bar
+        bar.setParent(self)
+        bar.hide()
+        bar.installEventFilter(self)
+
+    def eventFilter(self, watched, event):
+        if watched is getattr(self, 'record_bar', None) and event.type() in (QEvent.Show, QEvent.Hide):
+            QTimer.singleShot(0, self._refresh_record_bar)
+        return super().eventFilter(watched, event)
+
+    def _record_bar_height(self):
+        bar = getattr(self, 'record_bar', None)
+        # 8 px above the meter, 2 px between it and the controls.
+        return bar.height() + 10 if bar is not None and not bar.isHidden() else 0
+
+    def _refresh_record_bar(self):
+        self._apply_margins()
+        self._position_record_bar()
+
+    def _position_record_bar(self):
+        bar = getattr(self, 'record_bar', None)
+        if bar is not None:
+            y = self.height() - self.frameWidth() - self._right_row_height() - self._record_bar_height() + 8
+            bar.setGeometry(12, max(0, y), max(0, self.width() - 24), bar.height())
+            bar.raise_()
+
     def install_attachment_strip(self):
         from pygpt_net.ui.widget.textarea.attachments import InputAttachments
         self.attachment_strip = InputAttachments(self.window, self)
@@ -2465,7 +2492,7 @@ class ChatInput(QTextEdit):
 
         # Bottom controls live in their own full-width row, so only the regular
         # text inset is needed on the right.
-        bottom_space = self._right_row_height()
+        bottom_space = self._right_row_height() + self._record_bar_height()
         self.setViewportMargins(
             left_space,
             self._text_top_padding + getattr(self, "_attachment_row_height", 0),
@@ -2493,6 +2520,7 @@ class ChatInput(QTextEdit):
         """Resize event keeps the icon bar in place."""
         super().resizeEvent(event)
         self._position_attachment_strip()
+        self._position_record_bar()
         try:
             self._reposition_icon_bar()
         except Exception:

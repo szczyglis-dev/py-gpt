@@ -273,11 +273,11 @@ class Input:
             page.setParent(tabs)
             page.hide()
         self.window.ui.plugin_addon['audio.input.bar'] = InputRecordWidget(self.window)
+        self.window.ui.nodes['input'].install_record_bar(self.window.ui.plugin_addon['audio.input.bar'])
 
         content = QWidget()
         content_layout = QVBoxLayout(content)
         content_layout.addLayout(self.setup_header())
-        content_layout.addWidget(self.window.ui.plugin_addon['audio.input.bar'])
         content_layout.addWidget(tabs)
         # Chat metadata (plugins / context counter) and edit controls
         # belong to the responsive composer and therefore stay aligned with
