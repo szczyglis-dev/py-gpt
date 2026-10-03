@@ -77,7 +77,7 @@ class Plugin(BasePlugin):
         if tool is None:
             return
 
-        tool.clear_browser_history()
+        tool.history.clear()
         self.window.update_status(
             trans("delete_history.cleared", domain="plugin.canvas_web")
         )
@@ -103,7 +103,7 @@ class Plugin(BasePlugin):
         elif name == Event.PLUGIN_SETTINGS_CHANGED:
             tool = self.window.tools.get("web_browser") if self.window is not None else None
             if tool is not None:
-                tool.apply_browser_history_settings()
+                tool.history.apply_settings()
 
     def has_conversation_annotations(self, ctx=None):
         """Canvas retrieval must not compete with chat/file feedback in the prompt."""

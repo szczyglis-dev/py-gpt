@@ -15,7 +15,10 @@ def _widget():
     scroll.viewport.return_value = viewport
 
     tool = SimpleNamespace(
-        detach_surface=MagicMock(),
+        viewport=SimpleNamespace(
+            detach_surface=MagicMock(),
+            request_viewport_policy=MagicMock(),
+        ),
         runtime_call=MagicMock(),
         open_address=MagicMock(),
         current_state=MagicMock(return_value={
@@ -23,10 +26,9 @@ def _widget():
             "can_go_back": False,
             "can_go_forward": True,
         }),
-        get_browser_history_entries=MagicMock(return_value=[
+        history=SimpleNamespace(entries=MagicMock(return_value=[
             {"url": "https://example.com", "title": "Example"},
-        ]),
-        request_viewport_policy=MagicMock(),
+        ])),
     )
     window = SimpleNamespace(
         controller=SimpleNamespace(
@@ -66,7 +68,7 @@ def test_web_browser_widget_on_delete_disconnects_hooks_and_detaches_surface():
     ToolWidget.on_delete(obj)
 
     obj._disconnect_viewport_hooks.assert_called_once_with()
-    obj.tool.detach_surface.assert_called_once_with(obj)
+    obj.tool.viewport.detach_surface.assert_called_once_with(obj)
 
 
 def test_web_browser_widget_set_tab_and_open_url_use_persistent_runtime():
@@ -137,7 +139,7 @@ def test_web_browser_widget_viewport_sync_tracks_visible_runtime_area():
 
     ToolWidget._sync_runtime_viewport(obj)
 
-    obj.tool.request_viewport_policy.assert_called_once_with(
+    obj.tool.viewport.request_viewport_policy.assert_called_once_with(
         900,
         600,
         visible=True,
@@ -151,7 +153,7 @@ def test_web_browser_widget_viewport_sync_uses_hidden_policy_for_collapsed_colum
 
     ToolWidget._sync_runtime_viewport(obj)
 
-    obj.tool.request_viewport_policy.assert_called_once_with(visible=False, delay=0)
+    obj.tool.viewport.request_viewport_policy.assert_called_once_with(visible=False, delay=0)
 
 
 def test_web_browser_address_line_edit_enter_invokes_callback_and_accepts_event():
@@ -179,7 +181,7 @@ def test_source_is_applied_only_once_on_return_to_canvas():
     BrowserViewport.show_canvas(obj)
     BrowserViewport.show_canvas(obj)
 
-    obj.tool.apply_source_html.assert_called_once_with("<p>edited</p>", "https://example.com/")
+    obj.tool.document.apply_source.assert_called_once_with("<p>edited</p>", "https://example.com/")
 
 
 def test_source_highlighting_restores_debounce_after_initial_refresh():
@@ -189,3 +191,92 @@ def test_source_highlighting_restores_debounce_after_initial_refresh():
     SyntaxHighlighter._on_contents_change(obj, 10, 0, 1)
 
     obj.timer.start.assert_called_once_with(180)
+
+
+def test_canvas_tracks_clicks_in_replaced_render_children_without_consuming_input(qapp, monkeypatch):
+    from PySide6.QtTest import QTest
+    from PySide6.QtWidgets import QWidget, QPlainTextEdit
+    from pygpt_net.tools.web_browser.ui import widgets
+
+    class RenderChild(QWidget):
+        def __init__(self, parent):
+            super().__init__(parent)
+            self.clicks = 0
+            self.setFocusPolicy(Qt.StrongFocus)
+
+        def mousePressEvent(self, event):
+            self.clicks += 1
+            super().mousePressEvent(event)
+
+    # A lightweight WebEngine stand-in lets this test exercise native child
+    # replacement and mouse propagation without launching a Chromium process.
+    monkeypatch.setattr(widgets, 'BrowserOutput', lambda *args: QWidget())
+    monkeypatch.setattr(widgets, 'SourceEditor', lambda tool, parent: QPlainTextEdit(parent))
+    tool = MagicMock()
+    viewport = widgets.BrowserViewport(tool=tool)
+    viewport.show()
+    qapp.processEvents()
+    renderer = RenderChild(viewport.web)
+    renderer.resize(200, 100)
+    renderer.show()
+    renderer.setFocus()
+    qapp.processEvents()
+    tool.viewport.on_user_interaction.reset_mock()
+
+    # Focus is already on this child: clicking must still select its runtime.
+    QTest.mouseClick(renderer, Qt.LeftButton)
+    assert renderer.clicks == 1
+    tool.viewport.on_user_interaction.assert_called()
+
+    renderer.deleteLater()
+    replacement = RenderChild(viewport.web)
+    replacement.resize(200, 100)
+    replacement.show()
+    qapp.processEvents()
+    tool.viewport.on_user_interaction.reset_mock()
+    QTest.mouseClick(replacement, Qt.LeftButton)
+    assert replacement.clicks == 1
+    tool.viewport.on_user_interaction.assert_called()
+    viewport.close()
+
+
+def test_canvas_sandbox_and_source_clicks_select_the_session(qapp, monkeypatch):
+    from PySide6.QtTest import QTest
+    from PySide6.QtWidgets import QWidget, QPlainTextEdit
+    from pygpt_net.tools.web_browser.ui import widgets
+
+    monkeypatch.setattr(widgets, 'BrowserOutput', lambda *args: QWidget())
+    monkeypatch.setattr(widgets, 'SourceEditor', lambda tool, parent: QPlainTextEdit(parent))
+    tool = MagicMock()
+    viewport = widgets.BrowserViewport(tool=tool)
+    viewport.show()
+    viewport.set_mode('playwright')
+    qapp.processEvents()
+    tool.viewport.on_user_interaction.reset_mock()
+    QTest.mouseClick(viewport.sandbox, Qt.LeftButton)
+    tool.viewport.on_user_interaction.assert_called()
+    assert viewport.sandbox.hasFocus()
+
+    viewport.show_source('<p>source</p>')
+    qapp.processEvents()
+    tool.viewport.on_user_interaction.reset_mock()
+    QTest.mouseClick(viewport.source.viewport(), Qt.LeftButton)
+    tool.viewport.on_user_interaction.assert_called()
+    assert viewport.source.hasFocus()
+    viewport.close()
+
+
+def test_canvas_outer_viewport_reports_clicks_separately_from_geometry(qapp):
+    from PySide6.QtCore import QEvent
+    from PySide6.QtWidgets import QWidget
+    from pygpt_net.tools.web_browser.ui.widgets import ViewportEventFilter
+
+    source = QWidget()
+    event_filter = ViewportEventFilter(source)
+    interacted, changed = MagicMock(), MagicMock()
+    event_filter.interacted.connect(interacted)
+    event_filter.changed.connect(changed)
+
+    assert event_filter.eventFilter(source, QEvent(QEvent.MouseButtonPress)) is False
+    interacted.assert_called_once_with()
+    changed.assert_not_called()

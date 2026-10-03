@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 19:30:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, Slot, QUrl, QObject, Signal, QSize, QPoint, QTimer, QEvent
@@ -54,7 +54,7 @@ def add_html_file_actions(menu, tool, parent):
         trans("ui.open_html", domain="plugin.canvas_web"),
         parent,
     )
-    open_html.triggered.connect(lambda: QTimer.singleShot(0, tool.open_html_file))
+    open_html.triggered.connect(lambda: QTimer.singleShot(0, tool.document.open_file))
     menu.addAction(open_html)
 
     save_html = QAction(
@@ -62,7 +62,7 @@ def add_html_file_actions(menu, tool, parent):
         trans("ui.save_html", domain="plugin.canvas_web"),
         parent,
     )
-    save_html.triggered.connect(lambda: QTimer.singleShot(0, tool.save_html_file))
+    save_html.triggered.connect(lambda: QTimer.singleShot(0, tool.document.save_file))
     menu.addAction(save_html)
 
 
@@ -98,16 +98,16 @@ class ToolWidget:
         self._disposed = False
 
     def on_open(self):
-        self.tool.attach_surface(self)
+        self.tool.viewport.attach_surface(self)
         self._sync_from_runtime()
         self.request_viewport_sync(immediate=True)
 
     def on_close(self):
-        self.tool.detach_surface(self)
+        self.tool.viewport.detach_surface(self)
 
     def on_delete(self):
         self._disconnect_viewport_hooks()
-        self.tool.detach_surface(self)
+        self.tool.viewport.detach_surface(self)
         if getattr(self.tool, "runtime_root", None) is not None:
             self.tool.runtime_root.release_runtime(self.tool)
 
@@ -229,7 +229,11 @@ class ToolWidget:
 
         self._viewport_filter = ViewportEventFilter(self.scroll)
         self._viewport_filter.changed.connect(self._on_viewport_geometry_changed)
+        self._viewport_filter.interacted.connect(self.tool.viewport.on_user_interaction)
         self.scroll.viewport().installEventFilter(self._viewport_filter)
+        self.nav_bar.installEventFilter(self._viewport_filter)
+        for child in self.nav_bar.findChildren(QWidget):
+            child.installEventFilter(self._viewport_filter)
 
         self._viewport_sync_timer = QTimer(self.scroll)
         self._viewport_sync_timer.setSingleShot(True)
@@ -242,7 +246,7 @@ class ToolWidget:
         self._layout = layout
         self._connect_viewport_hooks()
         if self.surface_kind == "tab":
-            self.tool.attach_surface(self)
+            self.tool.viewport.attach_surface(self)
         QTimer.singleShot(0, lambda: self.request_viewport_sync(immediate=True))
         QTimer.singleShot(80, lambda: self.request_viewport_sync(immediate=True))
         return layout
@@ -391,7 +395,7 @@ class ToolWidget:
         self._hide_address_history_popup()
         if self.address_bar is not None:
             self.address_bar.setText(state.get("url", ""))
-        self.update_address_history(self.tool.get_browser_history_entries())
+        self.update_address_history(self.tool.history.entries())
         if self.btn_back is not None:
             self.btn_back.setEnabled(bool(state.get("can_go_back")))
         if self.btn_next is not None:
@@ -500,7 +504,7 @@ class ToolWidget:
             return
         visible = self._column_visible()
         if not visible:
-            self.tool.request_viewport_policy(visible=False, delay=0)
+            self.tool.viewport.request_viewport_policy(visible=False, delay=0)
             return
 
         viewport = self.scroll.viewport()
@@ -508,7 +512,7 @@ class ToolWidget:
         height = int(viewport.height())
         if width <= 0 or height <= 0:
             return
-        self.tool.request_viewport_policy(width, height, visible=True, delay=0)
+        self.tool.viewport.request_viewport_policy(width, height, visible=True, delay=0)
 
     def _display_footer_enabled(self) -> bool:
         """Return whether Canvas footer overlays are enabled for the active profile."""
@@ -614,7 +618,7 @@ class BrowserOutput(HtmlOutput):
 
     def on_page_loaded(self, success):
         if self.tool is not None:
-            self.tool.on_qt_load_finished(bool(success))
+            self.tool.qt.on_load_finished(bool(success))
 
     def eventFilter(self, source, event):
         # QWebEngine gives keyboard focus to an internal render child, so F5
@@ -655,7 +659,7 @@ class BrowserOutput(HtmlOutput):
         add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
         show_source = QAction(QIcon(":/icons/code.svg"), trans("ui.show_source", domain="plugin.canvas_web"), self)
-        show_source.triggered.connect(self.tool.show_source)
+        show_source.triggered.connect(self.tool.document.show_source)
         menu.addAction(show_source)
         menu.addSeparator()
         back = QAction(trans("ui.back", domain="plugin.canvas_web"), self)
@@ -709,7 +713,7 @@ class SandboxView(QWidget):
     def mouseMoveEvent(self, event):
         if self.tool is not None:
             p = event.position()
-            self.tool.user_playwright_action("hover", {"x": int(p.x()), "y": int(p.y())})
+            self.tool.playwright.user_action("hover", {"x": int(p.x()), "y": int(p.y())})
         super().mouseMoveEvent(event)
 
     def mousePressEvent(self, event):
@@ -717,11 +721,11 @@ class SandboxView(QWidget):
         if self.tool is not None:
             p = event.position()
             if event.button() == Qt.RightButton:
-                self.tool.user_playwright_action("hover", {"x": int(p.x()), "y": int(p.y())})
+                self.tool.playwright.user_action("hover", {"x": int(p.x()), "y": int(p.y())})
                 event.accept()
                 return
             buttons = {Qt.LeftButton: "left", Qt.MiddleButton: "middle"}
-            self.tool.user_playwright_action("mouse_down", {
+            self.tool.playwright.user_action("mouse_down", {
                 "x": int(p.x()), "y": int(p.y()), "button": buttons.get(event.button(), "left")})
         super().mousePressEvent(event)
 
@@ -732,20 +736,20 @@ class SandboxView(QWidget):
         if self.tool is not None:
             p = event.position()
             buttons = {Qt.LeftButton: "left", Qt.MiddleButton: "middle"}
-            self.tool.user_playwright_action("mouse_up", {
+            self.tool.playwright.user_action("mouse_up", {
                 "x": int(p.x()), "y": int(p.y()), "button": buttons.get(event.button(), "left")})
         super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         if self.tool is not None and event.button() == Qt.LeftButton:
             p = event.position()
-            self.tool.user_playwright_action("click", {"x": int(p.x()), "y": int(p.y()), "count": 2})
+            self.tool.playwright.user_action("click", {"x": int(p.x()), "y": int(p.y()), "count": 2})
         super().mouseDoubleClickEvent(event)
 
     def wheelEvent(self, event):
         if self.tool is not None:
             delta = event.angleDelta()
-            self.tool.user_playwright_action("scroll", {"dx": -delta.x(), "dy": -delta.y()})
+            self.tool.playwright.user_action("scroll", {"dx": -delta.x(), "dy": -delta.y()})
         event.accept()
 
     def keyPressEvent(self, event):
@@ -763,11 +767,11 @@ class SandboxView(QWidget):
             text = event.text()
             has_command_modifier = bool(event.modifiers() & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))
             if event.key() in special_keys or has_command_modifier or not text:
-                key = self.tool.qt_key_to_playwright(event)
+                key = self.tool.viewport.qt_key_to_playwright(event)
                 if key:
-                    self.tool.user_playwright_action("key", {"key": key})
+                    self.tool.playwright.user_action("key", {"key": key})
             else:
-                self.tool.user_playwright_action("type_raw", {"text": text})
+                self.tool.playwright.user_action("type_raw", {"text": text})
         event.accept()
 
     def contextMenuEvent(self, event):
@@ -784,14 +788,14 @@ class SandboxView(QWidget):
         menu.addAction(annotate)
         copy_to_menu = self.tool.window.ui.context_menu.get_copy_to_menu(
             menu,
-            selected_text_provider=self.tool.get_selected_text,
+            selected_text_provider=self.tool.document.selected_text,
         )
         menu.addMenu(copy_to_menu)
         menu.addSeparator()
         add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
         show_source = QAction(QIcon(":/icons/code.svg"), trans("ui.show_source", domain="plugin.canvas_web"), self)
-        show_source.triggered.connect(self.tool.show_source)
+        show_source.triggered.connect(self.tool.document.show_source)
         menu.addAction(show_source)
         menu.exec_(event.globalPos())
 
@@ -828,7 +832,7 @@ class SourceEditor(TextEditor):
         add_html_file_actions(menu, self.tool, self)
         menu.addSeparator()
         back = QAction(QIcon(":/icons/fullscreen.svg"), trans("ui.back_to_canvas", domain="plugin.canvas_web"), self)
-        back.triggered.connect(self.tool.show_canvas)
+        back.triggered.connect(self.tool.document.show_canvas)
         menu.addAction(back)
         menu.addSeparator()
         self.add_word_wrap_action(menu)
@@ -860,6 +864,20 @@ class BrowserViewport(QWidget):
         self.layout.addWidget(self.source)
         self.layout.setCurrentWidget(self.web)
         self.set_resolution(1280, 800)
+        # WebEngine handles mouse input in transient render children. Observe
+        # those children as well as the sandbox/source views, including children
+        # created later when Chromium replaces its render widget.
+        self.installEventFilter(self)
+        for child in self.findChildren(QWidget):
+            child.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.ChildAdded and event.child().isWidgetType():
+            event.child().installEventFilter(self)
+        elif event.type() in (QEvent.MouseButtonPress, QEvent.FocusIn):
+            if self.tool is not None:
+                self.tool.viewport.on_user_interaction()
+        return super().eventFilter(source, event)
 
     def reset_session(self):
         """Clear all visible page/editor/frame state before a profile switch."""
@@ -912,16 +930,16 @@ class BrowserViewport(QWidget):
             return
         html = self.source.toPlainText()
         try:
-            self.tool.apply_source_html(html, self._source_base_url)
+            self.tool.document.apply_source(html, self._source_base_url)
             self.source.document().setModified(False)
         except Exception as exc:
             try:
-                self.tool._append_console("source", "error", str(exc))
+                self.tool.append_console("source", "error", str(exc))
             except Exception:
                 pass
 
     def set_resolution(self, width: int, height: int):
-        # Model/API resolution limits are enforced by WebBrowser._set_resolution.
+        # Model/API resolution limits are enforced by CanvasViewport.set_resolution.
         # The UI fitter may legitimately need a narrower pane while the user is
         # dragging the split-screen handle, so the QWidget itself must accept the
         # real available size all the way down to 1 px.
@@ -949,13 +967,16 @@ class BrowserViewport(QWidget):
 
 
 class ViewportEventFilter(QObject):
-    """Emit a compact signal whenever the QScrollArea viewport geometry changes."""
+    """Report viewport geometry changes and interactions with the surrounding UI."""
 
     changed = Signal()
+    interacted = Signal()
 
     def eventFilter(self, source, event):
         if event.type() in (QEvent.Resize, QEvent.Show):
             self.changed.emit()
+        elif event.type() in (QEvent.MouseButtonPress, QEvent.FocusIn):
+            self.interacted.emit()
         return super().eventFilter(source, event)
 
 

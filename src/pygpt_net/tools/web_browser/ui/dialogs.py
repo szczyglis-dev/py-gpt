@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.23 19:55:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QVBoxLayout
@@ -60,7 +60,7 @@ class CanvasDialog(BaseDialog):
         self.resize(1000, 700)
         self.frontend = Tool(window, runtime, surface_kind="dialog")
         self.setLayout(self.frontend.setup())
-        runtime.attach_surface(self.frontend.widget)
+        runtime.viewport.attach_surface(self.frontend.widget)
 
     def closeEvent(self, event):
         super().closeEvent(event)

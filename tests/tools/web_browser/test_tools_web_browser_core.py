@@ -1,8 +1,12 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from pygpt_net.core.tabs.tab import Tab
+from pygpt_net.core.types.canvas import CanvasSearchEngine
 from pygpt_net.tools.web_browser.tool import WebBrowser
+from pygpt_net.tools.web_browser.core.viewport import CanvasViewport
 
 
 def _tool():
@@ -35,17 +39,20 @@ def _tool():
         STATE_BUSY="busy",
     )
     tool.window = window
+    # Core tests use a mocked viewport; real load completion is covered by
+    # dedicated Qt backend tests and the WebEngine integration check.
+    tool.qt.load_html = MagicMock(side_effect=lambda html, base_url: tool.surface.web.setHtml(html, base_url))
     return tool
 
 
 def test_web_browser_defaults_setup_reload_and_dialog_id():
     tool = _tool()
     tool.update = MagicMock()
-    tool._load_browser_history = MagicMock()
+    tool.history.load = MagicMock()
 
     tool.setup()
 
-    tool._load_browser_history.assert_called_once_with()
+    tool.history.load.assert_called_once_with()
     tool.update.assert_called_once_with()
     assert tool.id == "web_browser"
     assert tool.has_tab is True
@@ -56,9 +63,9 @@ def test_web_browser_defaults_setup_reload_and_dialog_id():
     assert tool.get_dialog_id() == "web_browser"
 
     tool.update.reset_mock()
-    tool._load_browser_history.reset_mock()
+    tool.history.load.reset_mock()
     tool.on_reload()
-    tool._load_browser_history.assert_called_once_with()
+    tool.history.load.assert_called_once_with()
     tool.update.assert_called_once_with()
 
 
@@ -75,6 +82,45 @@ def test_web_browser_set_url_opens_surface_and_routes_to_canvas_runtime():
         {"url": "https://example.com", "__ui": True},
     )
     assert result == {"ok": True}
+
+
+@pytest.mark.parametrize("address", [
+    "https://example.com/page", "about:blank", "file:///tmp/page.html",
+    "example.com/page", "localhost:8080", "127.0.0.1:8080", "[::1]:8080",
+    "./page.html", "/tmp/page.html",
+])
+def test_address_bar_routes_direct_addresses_to_canvas(address):
+    tool = _tool()
+    tool.runtime_call = MagicMock(return_value={"ok": True})
+
+    assert tool.open_address(f"  {address}  ") == {"ok": True}
+
+    tool.runtime_call.assert_called_once_with(
+        "canvas_open", {"url": address, "__ui": True},
+    )
+
+
+def test_address_bar_routes_plain_text_to_configured_search_engine():
+    tool = _tool()
+    tool.search_engine = MagicMock(return_value=CanvasSearchEngine.DUCKDUCKGO)
+    tool.runtime_call = MagicMock(return_value={"ok": True})
+
+    assert tool.open_address("  canvas refactor & tests  ") == {"ok": True}
+
+    tool.runtime_call.assert_called_once_with(
+        "canvas_open",
+        {"url": "https://duckduckgo.com/?q=canvas+refactor+%26+tests", "__ui": True},
+    )
+
+
+def test_empty_address_bar_does_not_navigate():
+    tool = _tool()
+    tool.runtime_call = MagicMock()
+    tool.current_state = MagicMock(return_value={"url": "about:blank"})
+
+    assert tool.open_address("  ") == {"url": "about:blank"}
+
+    tool.runtime_call.assert_not_called()
 
 
 def _registered(tool, qapp, tab):
@@ -143,6 +189,45 @@ def test_web_browser_agent_surface_reveals_and_activates_selected_runtime(qapp):
     assert tool.ensure_agent_surface() == "tab"
     tool.window.controller.tabs.enable_split_screen.assert_called_once_with(update_switch=True)
     tool.window.controller.tabs.activate_tab.assert_called_once_with(tab, sync_context=False)
+
+
+def test_canvas_click_selects_runtime_and_column_without_reopening_surface(qapp):
+    from PySide6.QtWidgets import QWidget
+    tool = _tool()
+    first, second = tool.new_runtime(), tool.new_runtime()
+    tabs = tool.window.controller.tabs
+    first_tab = SimpleNamespace(idx=0, column_idx=0)
+    second_tab = SimpleNamespace(idx=0, column_idx=1)
+    first_widget, second_widget = QWidget(), QWidget()
+    tool.register_surface(first, first_widget, tab=first_tab)
+    tool.register_surface(second, second_widget, tab=second_tab)
+    tabs.get_tabs_by_tool.return_value = [first_tab, second_tab]
+    second.surface_owner = SimpleNamespace(tab=second_tab)
+    tool.mark_surface_used(first)
+
+    second.viewport.on_user_interaction()
+
+    assert tool.resolve_surface() is second
+    tabs.on_column_focus.assert_called_once_with(1)
+    tabs.append.assert_not_called()
+    tabs.activate_tab.assert_not_called()
+
+
+def test_canvas_dialog_click_selects_runtime_without_switching_tab_column(qapp):
+    from PySide6.QtWidgets import QWidget
+    tool = _tool()
+    runtime = tool.new_runtime()
+    dialog = QWidget()
+    dialog.show()
+    tool.register_surface(runtime, dialog, dialog_id='canvas.test')
+    runtime.surface_owner = SimpleNamespace(tab=None)
+    tool.window.controller.tabs.get_tabs_by_tool.return_value = []
+
+    runtime.viewport.on_user_interaction()
+
+    assert tool.resolve_surface() is runtime
+    tool.window.controller.tabs.on_column_focus.assert_not_called()
+    dialog.close()
 
 
 def test_web_browser_handle_save_as_cleans_and_defers_to_chat_save():
@@ -216,23 +301,23 @@ def test_source_edits_preserve_url_origin_and_reload_external_document():
             tool.surface = MagicMock()
             tool.surface._source_visible = False
             tool.ensure_visible_surface = MagicMock()
-            tool._ensure_playwright = MagicMock()
-            tool._start_server = MagicMock()
+            tool.playwright.ensure = MagicMock()
+            tool.preview.start = MagicMock()
             tool.server_url = "http://127.0.0.1:1234/"
             tool.pw_page = MagicMock()
-            tool._refresh_playwright_frame = MagicMock()
+            tool.playwright.refresh_frame = MagicMock()
             tool.current_state = MagicMock(return_value={})
             tool.current_url = MagicMock(return_value=url)
-            tool._notify_state = MagicMock()
-            tool._history_push({"kind": "url", "url": url})
+            tool.notify_state = MagicMock()
+            tool.history.push({"kind": "url", "url": url})
 
-            tool.apply_source_html("<p>first edit</p>", url)
-            tool.apply_source_html("<p>second edit</p>", url)
+            tool.document.apply_source("<p>first edit</p>", url)
+            tool.document.apply_source("<p>second edit</p>", url)
             assert tool.canvas_history[-1]["reload_url"] == url
             tool.surface.web.reset_mock()
             tool.pw_page.reset_mock()
 
-            tool._cmd_reload({})
+            tool.commands.reload({})
             assert tool.canvas_history[-1] == {"kind": "url", "url": url}
             if backend == "qt":
                 assert tool.surface.web.setUrl.call_args.args[0].toString() == url
@@ -247,13 +332,13 @@ def test_manual_html_with_http_base_reloads_committed_html():
     tool.surface = MagicMock()
     tool.surface._source_visible = False
     tool.current_url = MagicMock(return_value="https://example.com/")
-    tool._cmd_set_html = MagicMock(return_value={"ok": True})
-    tool._history_push({"kind": "html", "html": "<p>committed</p>",
+    tool.commands.set_html = MagicMock(return_value={"ok": True})
+    tool.history.push({"kind": "html", "html": "<p>committed</p>",
                         "base_url": "https://example.com/"})
 
-    tool._cmd_reload({})
+    tool.commands.reload({})
 
-    assert tool._cmd_set_html.call_args.args[0]["html"] == "<p>committed</p>"
+    assert tool.commands.set_html.call_args.args[0]["html"] == "<p>committed</p>"
     tool.surface.web.reload.assert_not_called()
 
 
@@ -264,7 +349,7 @@ def test_playwright_does_not_poll_frames_while_editing_source():
     tool.surface_owner = MagicMock()
     tool.surface = SimpleNamespace(_source_visible=True)
 
-    tool._poll_playwright_frame()
+    tool.playwright.poll_frame()
 
     tool.pw_page.screenshot.assert_not_called()
 
@@ -275,21 +360,21 @@ def test_plugin_commands_follow_last_used_runtime_and_fallback_after_close(qapp)
     tabs = tool.window.controller.tabs
     first_tab = SimpleNamespace(idx=0, column_idx=0)
     second_tab = SimpleNamespace(idx=1, column_idx=0)
-    first, second = tool._new_runtime(), tool._new_runtime()
+    first, second = tool.new_runtime(), tool.new_runtime()
     first_widget, second_widget = QWidget(), QWidget()
     tool.register_surface(first, first_widget, tab=first_tab)
     tool.register_surface(second, second_widget, tab=second_tab)
     tabs.get_tabs_by_tool.return_value = [first_tab, second_tab]
     tabs.get_current_tab.return_value = first_tab
-    first._runtime_call_local = MagicMock(return_value='first')
-    second._runtime_call_local = MagicMock(return_value='second')
+    first.commands.execute = MagicMock(return_value='first')
+    second.commands.execute = MagicMock(return_value='second')
     plugin = object()
     tool.mark_surface_used(second)
     for cmd in ('canvas_set_html', 'canvas_get_html', 'canvas_eval', 'canvas_screenshot',
                 'canvas_inspect', 'canvas_open', 'web_server_start'):
         assert tool.runtime_call(cmd, {'html': 'test'}, plugin=plugin) == 'second'
-    assert first._runtime_call_local.call_count == 0
-    assert second._runtime_call_local.call_count == 7
+    assert first.commands.execute.call_count == 0
+    assert second.commands.execute.call_count == 7
     tool.unregister_surface(second)
     assert tool.runtime_call('canvas_get_html', {}, plugin=plugin) == 'first'
     tabs.activate_tab.assert_called_with(first_tab, sync_context=False)
@@ -312,12 +397,13 @@ def test_canvas_html_and_navigation_state_are_independent_per_runtime(qapp):
     tabs = tool.window.controller.tabs
     runtimes, widgets, descriptors = [], [], []
     for index in range(2):
-        runtime = tool._new_runtime()
+        runtime = tool.new_runtime()
         tab = SimpleNamespace(idx=index, column_idx=0)
         widget = QWidget()
         runtime.surface = SimpleNamespace(web=MagicMock())
-        runtime._ensure_surface = MagicMock(return_value=runtime.surface)
-        runtime._eval = lambda script, runtime=runtime: runtime.runtime_html
+        runtime.viewport.ensure_surface = MagicMock(return_value=runtime.surface)
+        runtime.qt.eval = lambda script, runtime=runtime: runtime.runtime_html
+        runtime.qt.load_html = lambda html, base_url, runtime=runtime: runtime.surface.web.setHtml(html, base_url)
         tool.register_surface(runtime, widget, tab=tab)
         runtimes.append(runtime)
         widgets.append(widget)
@@ -350,7 +436,7 @@ def test_canvas_dialogs_have_independent_runtimes_and_are_removed_on_close(qapp)
     tool.attach(window)
     with patch('pygpt_net.tools.web_browser.ui.widgets.ToolWidget.setup',
                side_effect=lambda: QVBoxLayout()), \
-            patch.object(WebBrowser, 'attach_surface'):
+            patch.object(CanvasViewport, 'attach_surface'):
         first = tool.open_window()
         second = tool.open_window()
     assert first is not second
@@ -370,7 +456,7 @@ def test_canvas_dialogs_have_independent_runtimes_and_are_removed_on_close(qapp)
 def test_playwright_driver_is_shared_but_contexts_are_independent(qapp):
     import sys
     tool = _tool()
-    first, second = tool._new_runtime(), tool._new_runtime()
+    first, second = tool.new_runtime(), tool.new_runtime()
     driver = MagicMock()
     first_browser, second_browser = MagicMock(), MagicMock()
     driver.chromium.launch.side_effect = [first_browser, second_browser]
@@ -378,16 +464,16 @@ def test_playwright_driver_is_shared_but_contexts_are_independent(qapp):
     factory.return_value.start.return_value = driver
     module = SimpleNamespace(sync_playwright=factory)
     with patch.dict(sys.modules, {'playwright.sync_api': module}):
-        first._refresh_playwright_frame = MagicMock()
-        second._refresh_playwright_frame = MagicMock()
-        first._ensure_playwright()
-        second._ensure_playwright()
+        first.playwright.refresh_frame = MagicMock()
+        second.playwright.refresh_frame = MagicMock()
+        first.playwright.ensure()
+        second.playwright.ensure()
     factory.return_value.start.assert_called_once_with()
     assert first.pw is second.pw is driver
     assert first.pw_context is not second.pw_context
-    first._stop_playwright()
+    first.playwright.stop()
     driver.stop.assert_not_called()
-    second._stop_playwright()
+    second.playwright.stop()
     driver.stop.assert_called_once_with()
 
 
@@ -401,7 +487,7 @@ def test_annotation_delivery_clears_original_canvas_after_selection_changes(qapp
     tabs = tool.window.controller.tabs
     runtimes, widgets, descriptors = [], [], []
     for index in range(2):
-        runtime = tool._new_runtime()
+        runtime = tool.new_runtime()
         runtime.annotations = [dict(id=1, time=1, source='canvas_web', note=f'note {index}')]
         runtime._render_annotations = MagicMock()
         widget = QWidget()
@@ -421,3 +507,81 @@ def test_annotation_delivery_clears_original_canvas_after_selection_changes(qapp
     assert len(runtimes[0].annotations) == 1
     assert runtimes[1].annotations == []
     runtimes[1]._render_annotations.assert_called_once_with()
+
+
+def test_annotation_update_and_reload_use_latest_committed_html():
+    tool = _tool()
+    tool.surface = SimpleNamespace(web=MagicMock(), _source_visible=False)
+    tool.auto_open_enabled = lambda: False
+    tool.sandbox_enabled = lambda: False
+    old, new = '<canvas>cat</canvas>', '<canvas>cat with hat</canvas>'
+    tool.commands.set_html({'html': old})
+    tool.annotations = [dict(id=1, source='canvas_web', note='add a hat')]
+    tool.commands.set_html({'html': new})
+    tool.commands.reload({})
+
+    assert tool.surface.web.setHtml.call_args.args[0] == new
+    assert tool.canvas_history[-1]['html'] == new
+    assert len(tool.canvas_history) == 2
+    assert tool.annotations[0]['note'] == 'add a hat'
+
+
+def test_source_uses_committed_code_and_discards_stale_serialization_callback():
+    tool = _tool()
+    tool.surface = SimpleNamespace(web=MagicMock(), show_source=MagicMock(), _source_visible=False)
+    tool.current_url = lambda: 'https://example.com/'
+    tool.viewport.ensure_surface = MagicMock()
+    tool.history.push({'kind': 'url', 'url': 'https://example.com/'})
+    tool.document.show_source()
+    ready = tool.surface.web.page().runJavaScript.call_args.args[-1]
+    tool.auto_open_enabled = lambda: False
+    tool.sandbox_enabled = lambda: False
+    tool.commands.set_html({'html': '<canvas>new cat</canvas>'})
+    ready('<canvas>old cat and stale overlay</canvas>')
+    tool.surface.show_source.assert_not_called()
+
+    tool.document.show_source()
+    assert tool.surface.show_source.call_args.args[0] == '<canvas>new cat</canvas>'
+
+
+def test_aborted_qt_load_does_not_replace_html_history_or_render_annotation():
+    tool = _tool()
+    tool.surface = SimpleNamespace(web=MagicMock(), _source_visible=False)
+    tool.history.push({'kind': 'html', 'html': '<canvas>latest</canvas>'})
+    tool._history_loading = True
+    tool._render_annotations = MagicMock()
+    tool.notify_state = MagicMock()
+    tool.qt.on_load_finished(False)
+
+    assert tool._history_loading is True
+    assert tool.canvas_history[-1]['kind'] == 'html'
+    tool._render_annotations.assert_not_called()
+    tool.notify_state.assert_not_called()
+
+
+def test_hidden_qt_events_cannot_overwrite_playwright_document():
+    from PySide6.QtCore import QUrl
+    tool = _tool()
+    tool.backend = 'playwright'
+    tool.virtual_url = 'https://latest.example/'
+    tool.surface = SimpleNamespace(web=MagicMock())
+    tool._render_annotations = MagicMock()
+    tool.notify_state = MagicMock()
+    tool._history_loading = True
+    tool.history.on_qt_url_changed(QUrl('https://old.example/'))
+    tool.history.on_qt_title_changed('old page')
+    tool.qt.on_load_finished(True)
+
+    assert tool.virtual_url == 'https://latest.example/'
+    assert tool._history_loading is True
+    tool._render_annotations.assert_not_called()
+    tool.notify_state.assert_not_called()
+
+
+def test_model_update_resets_source_buffer_before_return_to_preview():
+    tool = _tool()
+    tool.auto_open_enabled = lambda: False
+    tool.sandbox_enabled = lambda: False
+    tool.surface = SimpleNamespace(web=MagicMock(), show_source=MagicMock(), _source_visible=True)
+    tool.commands.set_html({'html': '<canvas>with hat</canvas>'})
+    assert tool.surface.show_source.call_args.args[0] == '<canvas>with hat</canvas>'
