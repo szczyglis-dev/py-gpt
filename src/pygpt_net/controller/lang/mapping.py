@@ -168,7 +168,7 @@ class Mapping:
 
         # context
         nodes['ctx.label'] = 'ctx.list.label'
-        nodes['ctx.new'] = 'ctx.new'
+        nodes['ctx.new'] = 'ctx.new.chat'
 
         # toolbox
         nodes['prompt.mode.label'] = 'toolbox.mode.label'
@@ -526,6 +526,7 @@ class Mapping:
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
         tooltips['ctx.new'] = 'ctx.new.tooltip'
+        tooltips['ctx.search.toggle'] = 'ctx.list.search.placeholder'
         tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
         tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
         tooltips['layout.split'] = 'layout.split.tooltip'

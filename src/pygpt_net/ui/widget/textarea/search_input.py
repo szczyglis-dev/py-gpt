@@ -35,11 +35,6 @@ class CtxSearchInput(QLineEdit):
         self.addAction(self.clear_action, QLineEdit.TrailingPosition)
         self.clear_action.setVisible(False)
 
-        # search action - icon on the left
-        action = QAction(self)
-        action.setIcon(QIcon(":/icons/search.svg"))
-        self.addAction(action, QLineEdit.LeadingPosition)
-
         # timer to delay search_string_change
         self._search_timer = QTimer(self)
         self._search_timer.setSingleShot(True)

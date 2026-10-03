@@ -11,12 +11,12 @@
 
 from PySide6 import QtCore
 from PySide6.QtGui import QStandardItemModel, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget
 from datetime import datetime, timedelta
 
 from pygpt_net.item.ctx import CtxMeta, get_additional_ctx_display_names
 from pygpt_net.ui.layout.ctx.search_input import SearchInput
-from pygpt_net.ui.widget.element.button import NewCtxButton
+from pygpt_net.ui.widget.element.button import NewCtxButton, LabelButton
 from pygpt_net.ui.widget.element.labels import TitleLabel
 from pygpt_net.ui.widget.lists.context import ContextList, Item, GroupItem, SectionItem, ShowMoreItem
 from pygpt_net.utils import trans
@@ -64,7 +64,7 @@ class CtxList:
         widget = QWidget()
         widget.setContentsMargins(0, 0, 0, 0)
 
-        new_btn = NewCtxButton(trans('ctx.new'), self.window)
+        new_btn = NewCtxButton(trans('ctx.new.chat'), self.window)
         new_btn.setContentsMargins(0, 0, 0, 0)
         nodes['ctx.new'] = new_btn
 
@@ -77,9 +77,21 @@ class CtxList:
         search_input = self.search_input.setup()
 
         new_btn_row = QWidget()
-        new_btn_row_layout = QVBoxLayout(new_btn_row)
+        new_btn_row_layout = QHBoxLayout(new_btn_row)
         new_btn_row_layout.setContentsMargins(5, 0, 5, 0)
-        new_btn_row_layout.addWidget(new_btn)
+        new_btn_row_layout.addWidget(new_btn, 1)
+        search_btn = LabelButton()
+        search_btn.setIcon(QIcon(':/icons/search.svg'))
+        search_btn.setFixedWidth(36)
+        search_btn.setCheckable(True)
+        search_btn.setToolTip(trans('ctx.list.search.placeholder'))
+        nodes['ctx.search.toggle'] = search_btn
+        search_input.hide()
+        search_btn.toggled.connect(search_input.setVisible)
+        search_btn.toggled.connect(
+            lambda visible: nodes['ctx.search'].setFocus() if visible else None
+        )
+        new_btn_row_layout.addWidget(search_btn)
 
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)

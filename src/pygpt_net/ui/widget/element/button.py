@@ -89,13 +89,23 @@ class ButtonPopupMenu(QPushButton):
             menu.deleteLater()
 
 
-class NewCtxButton(QPushButton):
+class LabelButton(QPushButton):
+    """Borderless text or icon action styled by the current theme."""
+
+    def __init__(self, title='', parent=None):
+        super().__init__(title, parent)
+        self.setProperty('class', 'LabelButton')
+        self.setCursor(Qt.PointingHandCursor)
+
+
+class NewCtxButton(LabelButton):
     _icon_add = None
     _icon_folder_filled = None
 
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
+        self.setIcon(QIcon(":/icons/note1.svg"))
         self.setToolTip(trans('ctx.new.tooltip'))
         self.clicked.connect(lambda: self.window.controller.ctx.new(force=False))
 

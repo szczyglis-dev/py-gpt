@@ -799,3 +799,15 @@ NodeEditor {{
 #StatusBarTimer {{
   color: {APP_MUTED_TEXT_COLOR} !important;
 }}
+
+/* Borderless label actions */
+QPushButton[class="LabelButton"] {{
+  color: {APP_TEXT_COLOR};
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  padding: 8px;
+}}
+QPushButton[class="LabelButton"]:hover {{
+  background-color: rgba(128, 128, 128, 20);
+}}
