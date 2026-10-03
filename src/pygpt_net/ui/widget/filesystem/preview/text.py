@@ -34,6 +34,7 @@ class TextPreview(TextEditor):
             tabs=True,
         )
         self.setObjectName('filesPreviewText')
+        self.line_numbers.setProperty('transparent_background', True)
         self.setFrameShape(QFrame.NoFrame)
         self.setStyleSheet(self.styleSheet() + '\nQPlainTextEdit { border: none; }')
         self.annotation_timer = QTimer(self)

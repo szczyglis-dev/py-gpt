@@ -35,7 +35,7 @@ class PreviewPanel(QWidget):
         self.breadcrumbs = QHBoxLayout()
         crumbs = QWidget()
         crumbs.setLayout(self.breadcrumbs)
-        scroll = QScrollArea()
+        self.breadcrumbs_widget = scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setWidget(crumbs)
         scroll.setFixedHeight(52)

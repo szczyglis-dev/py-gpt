@@ -32,7 +32,9 @@ class LineNumbers(QWidget):
         editor = self.parentWidget()
         painter = QPainter(self)
         dark = editor.palette().base().color().lightness() < 128
-        painter.fillRect(event.rect(), QColor('#292b2e' if dark else '#f0f1f2'))
+        transparent = self.property('transparent_background') is True
+        background = editor.palette().base().color() if transparent else QColor('#292b2e' if dark else '#f0f1f2')
+        painter.fillRect(event.rect(), background)
         painter.setFont(self.number_font())
 
         cursor = editor.textCursor()
@@ -56,7 +58,7 @@ class LineNumbers(QWidget):
                         round(rect.height()),
                         QColor('#493f29' if dark else '#fff0cc'),
                     )
-                if current:
+                if current and not transparent:
                     painter.fillRect(
                         0,
                         round(rect.top()),

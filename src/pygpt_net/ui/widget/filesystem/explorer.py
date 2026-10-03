@@ -26,7 +26,6 @@ from .search import TreeSearch
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.element.button import ButtonPopupMenu
-from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
 
@@ -598,7 +597,7 @@ class EmptyFilesState(QWidget):
         self.setAcceptDrops(False)
         self.setCursor(Qt.PointingHandCursor)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        self.setMinimumWidth(320)
+        self.setMinimumWidth(220)
         self.setMaximumWidth(460)
 
         layout = QVBoxLayout(self)
@@ -764,8 +763,6 @@ class FileExplorer(QWidget):
         self.footer_layout = header
         self.layout = QVBoxLayout()
 
-        self.window.ui.nodes['tip.output.tab.files'] = HelpLabel(trans('tip.output.tab.files'), self.window)
-
         self.preview = PreviewPanel(self.window, self.directory, self)
         self.preview.directoryRequested.connect(self.navigate_directory)
 
@@ -779,8 +776,6 @@ class FileExplorer(QWidget):
         search_bar = QHBoxLayout()
         search_bar.addWidget(self.search, 1)
         search_bar.addWidget(self.search_status)
-        search_bar.addWidget(self.btn_upload)
-        search_bar.addWidget(self.btn_open)
 
         self.empty_files = EmptyFilesState(self.window, self.directory, self)
         self.empty_files_wrapper = QWidget(self)
@@ -793,6 +788,7 @@ class FileExplorer(QWidget):
         self.files_stack.addWidget(self.empty_files_wrapper)
 
         self.files_panel = EmptyFilesDropPanel(self, self)
+        self.files_panel.setMinimumWidth(220)
         files_layout = QVBoxLayout(self.files_panel)
         files_layout.setContentsMargins(0, 0, 0, 0)
         files_layout.addLayout(search_bar)
@@ -803,6 +799,8 @@ class FileExplorer(QWidget):
         self.splitter.addWidget(self.preview)
         self.columns_swapped = self._load_columns_swap()
         self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
+        self.preview.layout.removeWidget(self.preview.breadcrumbs_widget)
+        self.layout.addWidget(self.preview.breadcrumbs_widget)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.treeView.clicked.connect(self.on_tree_clicked)
@@ -818,7 +816,6 @@ class FileExplorer(QWidget):
         self.refresh_empty_state()
 
         self.layout.addLayout(header)
-        self.layout.addWidget(self.window.ui.nodes['tip.output.tab.files'])
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.layout)
 
@@ -826,6 +823,7 @@ class FileExplorer(QWidget):
         self.treeView.customContextMenuRequested.connect(self.openContextMenu)
         self.treeView.setColumnWidth(0, int(self.width() / 2))
 
+        self.treeView.setHeaderHidden(True)
         self.header = self.treeView.header()
         self.header.setContextMenuPolicy(Qt.CustomContextMenu)
         self.header.customContextMenuRequested.connect(self.header_context_menu)
@@ -910,26 +908,16 @@ class FileExplorer(QWidget):
             return False
 
     def _rebuild_footer(self, swapped: bool):
-        """Mirror the footer order to the current Files column order."""
+        """Keep Files controls on the left and the workdir path on the right."""
+        self.footer_layout.setContentsMargins(20, 0, 0, 0)
         while self.footer_layout.count():
             self.footer_layout.takeAt(0)
 
-        controls = (self.btn_swap, self.btn_options)
-        self.footer_layout.addWidget(self.path_label, 1)
+        controls = (self.btn_upload, self.btn_open, self.btn_swap, self.btn_options)
         for widget in controls:
             self.footer_layout.addWidget(widget)
-        self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        return
-        if swapped:
-            for widget in controls:
-                self.footer_layout.addWidget(widget)
-            self.footer_layout.addWidget(self.path_label, 1)
-            self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        else:
-            self.footer_layout.addWidget(self.path_label, 1)
-            for widget in controls:
-                self.footer_layout.addWidget(widget)
-            self.path_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.footer_layout.addWidget(self.path_label, 1)
+        self.path_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
     def _apply_columns_layout(self, swapped: bool, preserve_sizes: bool = True):
         """Apply list/preview order and the matching footer order immediately."""

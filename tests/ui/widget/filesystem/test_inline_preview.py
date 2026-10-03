@@ -233,7 +233,7 @@ def test_single_click_and_breadcrumb_navigation(app, tmp_path):
     QTest.mouseClick(explorer.treeView.viewport(), Qt.LeftButton,
                      pos=explorer.treeView.visualRect(index).center())
     assert explorer.preview.path == str(path)
-    buttons = explorer.preview.findChildren(QPushButton)
+    buttons = explorer.preview.breadcrumbs_widget.findChildren(QPushButton)
     next(button for button in buttons if button.toolTip() == '.').click()
     popup = explorer.preview._directory_popup
     wait(100)
