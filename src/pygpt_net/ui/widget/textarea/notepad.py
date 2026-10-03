@@ -96,7 +96,7 @@ class NotepadWidget(QWidget):
         layout.addWidget(self.textarea, 1)
         layout.addWidget(self.mic_container, 0)
         self.window.ui.nodes['tip.output.tab.notepad'].hide()
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(15, 0, 15, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
         self.setProperty('class', 'layout-notepad')

@@ -10,8 +10,8 @@
 # ================================================== #
 
 from PySide6.QtGui import QPixmap, QIcon
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QComboBox, QScrollArea, QLabel
-from PySide6.QtCore import QSize
+from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QRadioButton, QComboBox, QScrollArea, QLabel, QSizePolicy
+from PySide6.QtCore import QSize, Qt
 
 from pygpt_net.ui.widget.draw.painter import PainterWidget
 from pygpt_net.ui.widget.draw.modes import DRAW_MODE_TRANSLATION_KEYS, DRAW_MODE_ICONS
@@ -187,6 +187,8 @@ class Painter:
         """
         self.init()
         body = self.window.core.tabs.from_layout(self.setup_painter())
+        # from_layout resets margins; apply the painter's spacing afterwards.
+        body.layout().setContentsMargins(15, 0, 15, 0)
         self.window.ui.painter.bind_clipboard_shortcuts(body, self.window.ui.painter_scroll)
         body.append(self.window.ui.painter)
         return body
@@ -222,12 +224,28 @@ class Painter:
                 ui.painter_scroll.setWidget(ui.painter)
             ui.painter_scroll.setWidgetResizable(False)
 
+        # The zoomed canvas must not determine the containing tab's size.
+        # Keep both scrollbars inside the space allocated to the viewport.
+        ui.painter_scroll.setMinimumSize(0, 0)
+        ui.painter_scroll.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        ui.painter_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        ui.painter_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        # At high zoom the proportional thumb can become only a few pixels
+        # tall. Give it a usable minimum size without changing theme colors.
+        ui.painter_scroll.setStyleSheet("""
+            QScrollBar:vertical { width: 12px; }
+            QScrollBar:horizontal { height: 12px; }
+            QScrollBar::handle:vertical { min-height: 32px; }
+            QScrollBar::handle:horizontal { min-width: 32px; }
+        """)
+
         if nodes.get('tip.output.tab.draw') is None:
             nodes['tip.output.tab.draw'] = HelpLabel(trans('tip.output.tab.draw'), self.window)
+        nodes['tip.output.tab.draw'].setMinimumWidth(0)
 
         layout = QVBoxLayout()
         layout.addLayout(top)
-        layout.addWidget(ui.painter_scroll)
+        layout.addWidget(ui.painter_scroll, 1)
         layout.addWidget(nodes['tip.output.tab.draw'])
         layout.setContentsMargins(0, 0, 0, 0)
 
