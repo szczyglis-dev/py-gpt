@@ -86,9 +86,10 @@ class UI:
 
         # horizontal splitter
         self.splitters['main'] = QSplitter(Qt.Horizontal)
+        self.splitters['main'].addWidget(self.parts['toolbox'])  # hidden left toolbox
         self.splitters['main'].addWidget(self.parts['ctx'])  # contexts
         self.splitters['main'].addWidget(self.parts['chat'])  # chat box
-        self.splitters['main'].addWidget(self.parts['toolbox'])  # toolbox
+        self.parts['toolbox'].hide()
 
         # Keep side panes at the width selected by the user when the main
         # window changes size (especially Normal <-> Maximized).  Without an
@@ -96,8 +97,8 @@ class UI:
         # proportionally, which makes the context list and toolbox grow/shrink
         # together with the window.  The chat pane is the elastic center pane.
         self.splitters['main'].setStretchFactor(0, 0)
-        self.splitters['main'].setStretchFactor(1, 1)
-        self.splitters['main'].setStretchFactor(2, 0)
+        self.splitters['main'].setStretchFactor(1, 0)
+        self.splitters['main'].setStretchFactor(2, 1)
 
         # menus
         self.menus.setup()
@@ -148,9 +149,8 @@ class UI:
             total_width = self.window.ui.splitters['main'].size().width()
             if total_width > 0:
                 size_output = int(total_width * 0.75)
-                size_ctx = (total_width - size_output) / 2
-                size_toolbox = (total_width - size_output) / 2
-                self.window.ui.splitters['main'].setSizes([size_ctx, size_output, size_toolbox])
+                size_ctx = max(200, total_width - size_output)
+                self.window.ui.splitters['main'].setSizes([0, size_ctx, size_output])
             else:
                 QTimer.singleShot(0, set_initial_splitter_width)
         QTimer.singleShot(10, set_initial_splitter_width)

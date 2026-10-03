@@ -165,9 +165,12 @@ class Layout:
                             data[splitter] = previous[splitter]
                             continue
                 data[splitter] = splitter_widget.sizes()
+                if splitter == 'main' and data[splitter][0] > 0:
+                    config.set('layout.toolbox.width', data[splitter][0])
             except Exception:
                 pass
         config.set('layout.splitters', data)
+        config.set('layout.main.order', 'toolbox-first')
 
     def splitters_restore(self):
         """Restore splitters state"""
@@ -181,6 +184,11 @@ class Layout:
             if splitter_widget is None:
                 continue
             try:
+                if splitter == 'main' and len(sizes) == 3:
+                    if config.get('layout.main.order') != 'toolbox-first':
+                        sizes = [0, sizes[0], sizes[1] + sizes[2]]
+                    else:
+                        sizes = [0, sizes[1], sizes[2] + sizes[0]]
                 current = splitter_widget.sizes()
                 if current != sizes:
                     splitter_widget.setSizes(sizes)

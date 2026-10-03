@@ -30,6 +30,15 @@ class LeftToolbar(QWidget):
             window.ui.nodes['toolbar.' + name] = button
             layout.addWidget(button)
         layout.addStretch()
+        toolbox_button = LabelButton(parent=self)
+        toolbox_button.setIcon(QIcon(':/icons/build.svg'))
+        toolbox_button.setIconSize(QSize(24, 24))
+        toolbox_button.setFixedSize(40, 40)
+        toolbox_button.setCheckable(True)
+        toolbox_button.setToolTip(trans('toolbar.toolbox'))
+        toolbox_button.clicked.connect(window.controller.toolbar.toggle_toolbox)
+        window.ui.nodes['toolbar.toolbox'] = toolbox_button
+        layout.addWidget(toolbox_button)
 
     def paintEvent(self, event):
         painter = QPainter(self)

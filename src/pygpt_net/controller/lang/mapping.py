@@ -530,6 +530,7 @@ class Mapping:
         tooltips['toolbar.home'] = 'output.tab.chat'
         tooltips['toolbar.files'] = 'output.tab.files'
         tooltips['toolbar.painter'] = 'output.tab.painter'
+        tooltips['toolbar.toolbox'] = 'toolbar.toolbox'
         tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
         tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
         tooltips['layout.split'] = 'layout.split.tooltip'
