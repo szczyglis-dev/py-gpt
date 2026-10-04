@@ -11,6 +11,7 @@
 
 from PySide6.QtWidgets import QVBoxLayout
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 
 from pygpt_net.core.tabs.tab import Tab
@@ -56,7 +57,8 @@ class CanvasDialog(BaseDialog):
         self.manager = manager
         self._released = False
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowTitle("Web/Canvas")
+        manager.add_lang_mapping(self, "menu.tools.canvas_html", setter="setWindowTitle")
+        self.setWindowIcon(QIcon(manager.tab_icon))
         self.resize(1000, 700)
         self.frontend = Tool(window, runtime, surface_kind="dialog")
         self.setLayout(self.frontend.setup())

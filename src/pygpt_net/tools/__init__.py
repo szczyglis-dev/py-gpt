@@ -11,6 +11,7 @@
 
 from typing import Dict, Optional
 
+from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QAction
 
 from pygpt_net.ui.widget.dialog.base import BaseDialog
@@ -18,13 +19,16 @@ from pygpt_net.core.events import BaseEvent
 from .base import BaseTool
 
 
-class Tools:
+class Tools(QObject):
+    registered = Signal(object)
+
     def __init__(self, window=None):
         """
         Tools manager
 
         :param window: Window instance
         """
+        super().__init__()
         self.window = window
         self.tools = {}
         self.initialized = False
@@ -37,6 +41,7 @@ class Tools:
         """
         self.tools[tool.id] = tool
         self.tools[tool.id].attach(self.window)
+        self.registered.emit(tool)
 
     def get(self, id: str) -> BaseTool:
         """

@@ -60,3 +60,32 @@ frontends and disabled surface types do not participate in selection.
 Web/Canvas routes every plugin command through this API while UI callbacks stay
 bound to their own runtime. Each frontend has separate DOM, navigation,
 annotations, browser backend and local-server state; address history is shared.
+
+## Left toolbar
+
+Override `BaseTool.get_toolbar()` to return a list of `ToolToolbarItem` objects.
+The default is an empty list. Each item supplies an icon resource path, a title
+translation key and a zero-argument click handler:
+
+```python
+from pygpt_net.tools.base import ToolToolbarItem
+
+def get_toolbar(self):
+    return [ToolToolbarItem(
+        icon=':/icons/build.svg',
+        title='my_tool.title',
+        handler=self.open,
+    )]
+```
+
+The toolbar listens for tool registration, so entries are added even when the
+UI has already been constructed. Re-registering a tool replaces its buttons in
+place. Buttons appear after Home in tool registration order, and each tool's entries
+retain their list order. Files, Notepad and Painter register in that order;
+additional tools follow them. Toolbox stays at the bottom. No tab-creation
+policy filters toolbar entries, so tools may also provide dialog or custom
+commands. Titles use the owning tool's translation domain and update on language
+changes. An optional `id` gives additional entries a stable name; buttons are
+available as `window.ui.nodes['toolbar.<tool_id>']` for the first unnamed entry,
+or `toolbar.<tool_id>.<item_id>` for named entries (subsequent unnamed entries
+use their list index).

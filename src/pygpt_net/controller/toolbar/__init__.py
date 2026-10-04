@@ -24,15 +24,6 @@ class Toolbar:
     def home(self):
         return self.window.controller.tabs.open_or_activate(Tab.TAB_CHAT, create=False)
 
-    def files(self):
-        return self.toggle_tool(Tab.TAB_TOOL, "files")
-
-    def painter(self):
-        return self.toggle_tool(Tab.TAB_TOOL, "painter")
-
-    def notepad(self):
-        return self.toggle_tool(Tab.TAB_TOOL, "notepad")
-
     def toggle_tool(self, tab_type, tool_id=None):
         """Collapse a tool already selected on the right; otherwise reveal it."""
         tabs = self.window.controller.tabs

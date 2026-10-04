@@ -74,6 +74,7 @@ class WebBrowser(AnnotationMixin, BaseTool):
         self.annotation_bridge = CanvasAnnotations(self)
         self.id = "web_browser"
         self.allow_tab = True
+        self.hide_in_tab_tools = True
         self.allow_dialog = True
         self.multi_tab = True
         self.multi_dialog = True
@@ -82,7 +83,7 @@ class WebBrowser(AnnotationMixin, BaseTool):
         self.tab_title = "tool.web_browser.tab_title"
         self.dialog_opener = "open_window"
         self.runtime_root = None
-        self.tab_icon = ":/icons/grid.svg"
+        self.tab_icon = ":/icons/language.svg"
         self.opened = False
         self.dialog = None
         self.signals = ToolSignals()
@@ -329,10 +330,18 @@ class WebBrowser(AnnotationMixin, BaseTool):
             text = output_html2text(text)
         QTimer.singleShot(0, lambda: self.window.controller.chat.common.save_text(text, type))
 
+    def get_tab_menu(self, parent, idx, column_idx, caller):
+        action = QAction(QIcon(self.tab_icon), '', parent)
+        self.add_lang_mapping(action, 'action.tab.add.browser')
+        action.triggered.connect(
+            lambda checked=False: caller.add_tab(idx, column_idx, Tab.TAB_TOOL, self.id)
+        )
+        return [action]
+
     def setup_menu(self) -> Dict[str, QAction]:
         actions = {}
         actions["web_browser"] = QAction(
-            QIcon(":/icons/grid.svg"),
+            QIcon(self.tab_icon),
             trans("menu.tools.canvas_html"),
             self.window,
             checkable=False,

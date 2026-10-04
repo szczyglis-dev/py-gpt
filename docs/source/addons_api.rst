@@ -1373,6 +1373,9 @@ Configure presentation in the constructor after ``super().__init__()``. These fi
    * - ``multi_tab``
      - ``True``
      - Permit multiple tabs across both columns. If false, existing tabs are reused.
+   * - ``hide_in_tab_tools``
+     - ``False``
+     - Hide the automatic entry in the tab bar's [+] menu under Add Tool. Custom top-level actions, toolbar buttons and Tools-menu actions remain available.
    * - ``multi_dialog``
      - ``False``
      - Permit independent dialog identities. If false, reuse the existing dialog.
@@ -1408,16 +1411,121 @@ Import ``ToolMenuAction`` from ``pygpt_net.tools.base`` and connect the menu act
 
 The selected surface must be allowed; a forbidden surface does not fall back to another surface. Multiple-instance flags permit creation, but your implementation must also create independent widgets/windows.
 
-Use ``can_open_tab()`` and ``can_open_dialog()`` to check permitted surfaces, and ``can_add_tab()`` / ``can_add_dialog()`` to check whether a new instance may be created. A singleton can still be opened or focused when creation of another instance is prohibited. ``allows_multiple_tabs()`` and ``allows_multiple_dialogs()`` include the corresponding permission flag. ``existing_tab()`` returns the first existing tab or ``None``.
+Use ``can_open_tab()`` and ``can_open_dialog()`` to check permitted surfaces, and ``can_add_tab()`` / ``can_add_dialog()`` to check whether a new instance may be created. A singleton can still be opened or focused when creation of another instance is prohibited. ``allows_multiple_tabs()`` and ``allows_multiple_dialogs()`` include the corresponding permission flag. ``existing_tab()`` returns the preferred existing tab using the application-wide selection policy, or ``None``.
 
 ``open_tab()`` and ``open_dialog()`` enforce presentation permissions. Also guard direct custom opener/factory calls with the corresponding ``can_open_*()`` method. Register static dialogs under ``dialog_id`` in ``self.window.ui.dialog`` so existing windows can be focused and counted. For dynamic dialogs, declare ``dialog_types``, implement ``get_instance()`` and call ``resolve_dialog_id(requested_id)`` before looking up or creating a window. It returns ``None`` when dialogs are disabled, preserves independent IDs for multiple dialogs and selects one stable ID for a singleton.
 
 The legacy ``has_tab`` property aliases ``allow_tab``; ``single_instance`` aliases ``not multi_tab``. New Add-ons should use the presentation fields and methods above. See ``examples/addons/tools/example_tool`` for a runnable singleton-dialog example with a policy-aware menu action.
 
+Tab bar titles and context menus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tool tabs have two separate context menus: the **[+] menu** creates tabs, while the **existing tab menu** operates on a particular tab. These hooks belong to the tool; the tab bar does not need tool-specific branches.
+
+``get_tab_title(tab)``
+   Return the displayed title for a tab. The default translates ``self.tab_title``. Override it for document names or numbered instances. PyGPT calls it after ``as_tab(tab)``; the tab descriptor includes ``data_id``, ``column_idx`` and ``title``. A saved/custom user name (``tab.custom_name``) takes precedence.
+
+``get_tab_tooltip(tab)``
+   Return the tooltip text for a tool tab. The default returns ``tab.title`` or an empty string. Override it for metadata such as a document path. This hook computes text; if metadata changes while a tab is open, update the affected tab tooltip as part of your tool's refresh.
+
+``get_tab_menu(parent, idx, column_idx, caller)``
+   Return a list of ``QAction`` objects to insert at the top level of the **[+] menu**. The default returns ``[]``. ``parent`` is the menu: parent new actions to it. ``idx`` is the requested insertion position (``-2`` for the [+] menu), ``column_idx`` is the column that opened the menu, and ``caller`` exposes ``add_tab(idx, column_idx, Tab.TAB_TOOL, tool_id)``. Use these supplied values so an action creates its tab in the invoking column.
+
+``populate_tab_menu(menu, tab)``
+   Add actions directly to the context menu of an **existing tool tab**, before the standard tab controls. This hook returns nothing and does nothing by default. Parent actions to ``menu`` and use the supplied ``tab`` to target that instance, rather than looking up whichever tab happens to be active.
+
+By default, a tab-capable tool gets an automatic entry in **[+] → Add Tool**, using ``tab_title`` and ``tab_icon``. Set ``self.hide_in_tab_tools = True`` to replace that entry with your own top-level action without creating a duplicate. This flag only hides the automatic submenu entry; it does not disable tab creation or affect ``setup_menu()``, ``populate_tab_menu()`` or ``get_toolbar()``.
+
+Both the automatic submenu entry and ``get_tab_menu()`` are offered only when ``can_add_tab()`` is true. A singleton tool with an existing tab is therefore absent from the creation menu. Existing tabs can still be opened or focused through ``open_tab()``. Custom top-level actions appear after the fixed Add Chat action, in tool registration order and then in the order returned by each hook; the Add Tool submenu follows them.
+
+For example, a document tool can expose a top-level New document action and a tab-specific clear action:
+
+.. code-block:: python
+
+   from PySide6.QtGui import QAction, QIcon
+   from PySide6.QtWidgets import QPlainTextEdit
+   from pygpt_net.core.tabs.tab import Tab
+   from pygpt_net.tools.base import BaseTool, ToolMenuAction
+
+   class DocumentTool(BaseTool):
+       def __init__(self):
+           super().__init__()
+           self.id = "document_tool"
+           self.allow_tab = True
+           self.allow_dialog = False
+           self.multi_tab = True
+           self.hide_in_tab_tools = True
+           self.on_menu_click = ToolMenuAction.ALWAYS_TAB
+           self.tab_title = "document_tool.title"
+           self.tab_icon = ":/icons/note1.svg"
+
+       def as_tab(self, tab):
+           return QPlainTextEdit()
+
+       def get_tab_menu(self, parent, idx, column_idx, caller):
+           action = QAction(QIcon(self.tab_icon), "", parent)
+           self.add_lang_mapping(action, "document_tool.new")
+           action.triggered.connect(
+               lambda checked=False: caller.add_tab(
+                   idx, column_idx, Tab.TAB_TOOL, self.id
+               )
+           )
+           return [action]
+
+       def populate_tab_menu(self, menu, tab):
+           editor = tab.child.findChild(QPlainTextEdit)
+           action = QAction("", menu)
+           self.add_lang_mapping(action, "document_tool.clear")
+           action.triggered.connect(lambda checked=False: editor.clear())
+           menu.addAction(action)
+           menu.addSeparator()
+
+The built-in Notepad uses ``hide_in_tab_tools`` and ``get_tab_menu()`` to supply its Add a new notepad action. Add translation keys used by your actions to your Add-on's locale files; ``add_lang_mapping()`` uses the tool's translation domain and keeps live actions updated on language changes.
+
+Left toolbar entries
+~~~~~~~~~~~~~~~~~~~~
+
+Override ``get_toolbar()`` to return a list of ``ToolToolbarItem`` objects from ``pygpt_net.tools.base``. The default returns ``[]``. Each item has:
+
+.. list-table:: ``ToolToolbarItem`` fields
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Meaning
+   * - ``icon``
+     - Icon resource/path, for example ``':/icons/build.svg'``.
+   * - ``title``
+     - Translation key for the button tooltip, resolved in the tool's locale domain and refreshed on language changes.
+   * - ``handler``
+     - Zero-argument callable invoked when the button is clicked.
+   * - ``id``
+     - Optional stable entry ID (default ``''``), useful when the tool supplies multiple buttons.
+
+For a tab tool, a toolbar button can simply open or focus its existing tab:
+
+.. code-block:: python
+
+   from pygpt_net.tools.base import ToolToolbarItem
+
+   # Add this method to your BaseTool subclass:
+   def get_toolbar(self):
+       return [ToolToolbarItem(
+           icon=self.tab_icon,
+           title=self.tab_title,
+           handler=self.open_tab,
+       )]
+
+Return multiple items to provide additional actions. A toolbar entry does not require ``allow_tab`` and is not filtered by ``can_add_tab()`` or ``hide_in_tab_tools``: its handler may open a dialog or perform another UI command.
+
+Home remains a fixed button. Tool entries follow it in **tool registration order**, preserving each returned list's order. The built-in tools register Files, Notepad and Painter in that order; additional tools follow them. Toolbox remains fixed at the bottom. The toolbar listens for registration after UI construction as well, and re-registering the same tool ID replaces its buttons in place.
+
+The first unnamed button is available as ``self.window.ui.nodes['toolbar.<tool_id>']``. Named entries use ``toolbar.<tool_id>.<item_id>``; subsequent unnamed entries use their zero-based list index as the suffix. ``id`` controls this identifier, not display order. Toolbar buttons receive live tooltip mappings automatically; you do not need to add them to the global language mapping table.
+
 Selecting an independent runtime
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For tools with multiple independent frontends, register each runtime with ``register_surface(instance, widget, tab=tab)`` or ``register_surface(instance, dialog_widget, dialog_id=dialog_id)``. Route model operations through ``resolve_surface(create=True, activate=True)``. Selection prefers the last used live instance, then the currently active tab, other tabs in column/index order, and finally visible dialogs. Activation reveals the relevant column and selects the concrete tab without switching the conversation context, or focuses the dialog.
+For tools with multiple independent frontends, register each runtime with ``register_surface(instance, widget, tab=tab)`` or ``register_surface(instance, dialog_widget, dialog_id=dialog_id)``. Route model operations through ``resolve_surface(create=True, activate=True)``. Tab selection uses the application-wide policy: first a selected tab in an expanded, visible column, then a recently used/active tab, then the first existing tab in column/index order. When several tabs are selected and visible, the first in column/index order wins. A hidden recently used tab cannot override a visible selected one. Dialog frontends retain their own focus tracking: a recently used visible dialog is preferred when applicable, and another visible dialog is a fallback when no tab runtime is available. Activation reveals the relevant column and selects the concrete tab without switching the conversation context, or focuses the dialog.
 
 Override ``create_surface()`` to create and register a runtime when none is available. The resolver returns that runtime; without ``create=True`` it returns ``None`` if none exists. Use the latter for read-only context/annotation queries. Tab selection and mouse/focus events record recent usage; ``mark_surface_used(instance)`` also records explicit operations. Call ``unregister_surface(instance)`` and release runtime resources when disposing a frontend. Removed tabs, closed dialogs, deleted Qt widgets and forbidden surface types are excluded.
 
@@ -1490,6 +1598,21 @@ Full ``BaseTool`` method reference
    * - ``as_tab(tab)``
      - Return a QWidget to mount as an output tab.
      - Override for tab-capable tools.
+   * - ``get_tab_title(tab)``
+     - Return the displayed tab title; defaults to translated ``tab_title``.
+     - Override for document-specific titles.
+   * - ``get_tab_tooltip(tab)``
+     - Return tab tooltip metadata; defaults to its visible title.
+     - Override for tool-specific metadata.
+   * - ``get_tab_menu(parent, idx, column_idx, caller)``
+     - Return QActions for the top level of the [+] tab creation menu.
+     - Override to add custom creation actions.
+   * - ``populate_tab_menu(menu, tab)``
+     - Add actions to an existing tab's context menu.
+     - Override for actions on that concrete tab.
+   * - ``get_toolbar()``
+     - Return a list of ``ToolToolbarItem`` left toolbar entries.
+     - Override to add toolbar buttons.
    * - ``add_lang_mapping(target, key, setter='setText', domain=None, on_apply=None)``
      - Registers a live translation mapping for a private/dynamic Qt object.
      - Call after creating dynamic UI objects.

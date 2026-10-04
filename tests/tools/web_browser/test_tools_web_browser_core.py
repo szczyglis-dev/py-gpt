@@ -70,6 +70,7 @@ def test_web_browser_defaults_setup_reload_and_dialog_id():
     assert tool.allow_dialog is True
     assert tool.multi_dialog is True
     assert tool.tab_title == "tool.web_browser.tab_title"
+    assert tool.tab_icon == ":/icons/language.svg"
     assert tool.get_dialog_id() == "web_browser"
 
     tool.update.reset_mock()
@@ -452,6 +453,8 @@ def test_canvas_dialogs_have_independent_runtimes_and_are_removed_on_close(qapp)
         second = tool.open_window()
     assert first is not second
     assert len(window.ui.dialog) == 2
+    assert all(dialog.windowTitle() == "Canvas / Web browser" for dialog in window.ui.dialog.values())
+    assert all(not dialog.windowIcon().isNull() for dialog in window.ui.dialog.values())
     assert tool.resolve_surface() is second
     second_entry = next(entry for entry in tool._surfaces if entry['instance'] is second)
     second_entry['widget'].close()
@@ -596,3 +599,23 @@ def test_model_update_resets_source_buffer_before_return_to_preview():
     tool.surface = SimpleNamespace(web=MagicMock(), show_source=MagicMock(), _source_visible=True)
     tool.commands.set_html({'html': '<canvas>with hat</canvas>'})
     assert tool.surface.show_source.call_args.args[0] == '<canvas>with hat</canvas>'
+
+
+def test_browser_tab_add_menu_is_custom_and_targets_invoking_column(qapp):
+    from PySide6.QtWidgets import QMenu, QWidget
+    from pygpt_net.controller.tools.tools import Tools
+    tool = _tool()
+    tool.window.tools = SimpleNamespace(get_all=lambda: {tool.id: tool})
+    parent = QWidget()
+    menu = QMenu(parent)
+    caller = MagicMock()
+    assert tool.hide_in_tab_tools is True
+    assert Tools(tool.window).append_tab_menu(parent, menu, -2, 1, caller) is None
+    assert len(menu.actions()) == 1
+    action = menu.actions()[0]
+    assert action.text() == 'Add a browser tab'
+    assert action.parent() is menu
+    assert not action.icon().isNull()
+    action.trigger()
+    caller.add_tab.assert_called_once_with(-2, 1, Tab.TAB_TOOL, 'web_browser')
+    parent.close()

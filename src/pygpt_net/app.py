@@ -596,8 +596,8 @@ def run(**kwargs):
 
         # register base tools
         launcher.add_tool(IndexerTool())
-        launcher.add_tool(NotepadTool())
         launcher.add_tool(FilesTool())
+        launcher.add_tool(NotepadTool())
         launcher.add_tool(PainterTool())
         launcher.add_tool(MediaPlayerTool())
         launcher.add_tool(ImageViewerTool())

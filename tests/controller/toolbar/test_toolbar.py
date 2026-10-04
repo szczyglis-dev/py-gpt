@@ -91,7 +91,13 @@ def test_tool_buttons_collapse_only_the_selected_visible_right_tool(action, tab_
                                                if selected is not None else None)
     tabs.is_split_screen_enabled.return_value = split
     window = SimpleNamespace(controller=SimpleNamespace(tabs=tabs))
-    getattr(Toolbar(window), action)()
+    from pygpt_net.tools.files import Files
+    from pygpt_net.tools.notepad import Notepad
+    from pygpt_net.tools.painter import Painter
+    window.controller.toolbar = Toolbar(window)
+    tool = {'files': Files, 'notepad': Notepad, 'painter': Painter}[action]()
+    tool.window = window
+    tool.get_toolbar()[0].handler()
     if collapse:
         tabs.disable_split_screen.assert_called_once_with()
         tabs.open_or_activate.assert_not_called()

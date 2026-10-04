@@ -11,7 +11,7 @@
 """Notepad tool lifecycle and independent document frontends."""
 from PySide6.QtGui import QAction, QIcon
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.tools.base import BaseTool, ToolMenuAction
+from pygpt_net.tools.base import BaseTool, ToolMenuAction, ToolToolbarItem
 from pygpt_net.utils import trans
 from .core.documents import Documents
 from .core.storage import Storage
@@ -36,6 +36,12 @@ class Notepad(BaseTool):
     def attach(self, window):
         super().attach(window)
         self.storage.attach()
+
+    def get_toolbar(self):
+        return [ToolToolbarItem(
+            icon=self.tab_icon, title=self.tab_title,
+            handler=lambda: self.window.controller.toolbar.toggle_tool(Tab.TAB_TOOL, self.id),
+        )]
 
     def as_tab(self, tab):
         document = self.documents.create(tab.data_id)

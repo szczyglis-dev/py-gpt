@@ -118,6 +118,8 @@
         <file alias="repeat.svg">data/icons/repeat.svg</file>
         <file alias="replay.svg">data/icons/replay.svg</file>
         <file alias="resize.svg">data/icons/resize.svg</file>
+        <file alias="right_close.svg">data/icons/right_close.svg</file>
+        <file alias="right_double.svg">data/icons/right_double.svg</file>
         <file alias="robot.svg">data/icons/robot.svg</file>
         <file alias="router.svg">data/icons/router.svg</file>
         <file alias="save.svg">data/icons/save.svg</file>

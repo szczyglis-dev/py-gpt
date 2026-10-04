@@ -12,6 +12,7 @@
 from typing import Optional, Dict, Any, Callable
 import weakref
 from enum import Enum
+from dataclasses import dataclass
 
 from PySide6.QtCore import QObject, QEvent
 from PySide6.QtGui import QAction
@@ -28,6 +29,19 @@ class ToolMenuAction(Enum):
     ALWAYS_TAB = 'always_tab'
     DIALOG_IF_TAB_EXISTS = 'dialog_if_tab_exists'
     TAB_IF_EXISTS = 'tab_if_exists'
+
+
+@dataclass(frozen=True)
+class ToolToolbarItem:
+    """Left toolbar entry: icon resource, translation key and zero-argument callback.
+
+    id optionally names an entry when a tool provides multiple buttons.
+    """
+
+    icon: str
+    title: str
+    handler: Callable
+    id: str = ''
 
 
 class BaseTool(QObject, LocaleDomain):
@@ -272,6 +286,14 @@ class BaseTool(QObject, LocaleDomain):
     def get_tab_tooltip(self, tab):
         """Return tool-specific tab metadata; defaults to its visible title."""
         return tab.title or ''
+
+    def get_toolbar(self) -> list[ToolToolbarItem]:
+        """Return left toolbar entries in display order; empty by default.
+
+        Tools appear in registration order, after fixed navigation buttons.
+        Titles use this tool's translation domain and update on language change.
+        """
+        return []
 
     def get_tab_menu(self, parent, idx, column_idx, caller):
         """Return QActions for the top level of the tab bar's [+] menu.
