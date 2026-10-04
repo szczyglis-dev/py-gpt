@@ -500,7 +500,7 @@
       "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e"
     },
     "4": {
-      "column_idx": 1,
+      "column_idx": 0,
       "custom_name": false,
       "data_id": null,
       "idx": 4,
@@ -543,26 +543,26 @@
       "data_id": null,
       "idx": 2,
       "pid": 7,
-      "title": "Agent Workflow",
-      "title_source": "default",
-      "tool_id": "agent_workflow",
-      "tooltip": "Agent Workflow",
-      "type": 100,
-      "uuid": "7688f9fb-ef77-4cc3-b23f-60e3cb59c722"
-    },
-    "8": {
-      "column_idx": 1,
-      "custom_name": false,
-      "data_id": null,
-      "idx": 5,
-      "pid": 8,
       "title": "Terminal",
       "title_source": "default",
       "tool_id": "terminal",
       "tooltip": "",
       "type": 100,
       "uuid": "a744bb65-8895-4929-9480-2daf2f8b17ee"
-    }
+    },
+    "8": {
+      "column_idx": 1,
+      "custom_name": false,
+      "data_id": null,
+      "idx": 3,
+      "pid": 8,
+      "title": "Agent Workflow",
+      "title_source": "default",
+      "tool_id": "agent_workflow",
+      "tooltip": "Agent Workflow",
+      "type": 100,
+      "uuid": "7688f9fb-ef77-4cc3-b23f-60e3cb59c722"
+    }    
   },
   "terminal.font_size": 14,
   "theme": "dark",
