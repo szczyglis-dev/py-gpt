@@ -619,7 +619,7 @@ class PythonInput(QTextEdit):
         self.tool = tool
         self.widget = widget
         self.setAcceptRichText(False)
-        self.value = 12
+        self.value = 10
         self.max_font_size = 42
         self.min_font_size = 8
         self.setProperty('class', 'interpreter-input')
@@ -722,7 +722,7 @@ class PythonOutput(BaseCodeEditor):
         self.window = window
         self.tool = tool
         self.setReadOnly(True)
-        self.value = 12
+        self.value = 10
         self.max_font_size = 42
         self.min_font_size = 8
         self.setProperty('class', 'interpreter-output')

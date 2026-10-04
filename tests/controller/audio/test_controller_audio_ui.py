@@ -43,19 +43,25 @@ def test_audio_ui_widget_getters_cache_widgets_and_handle_missing_nodes():
 
 def test_audio_ui_volume_updates_are_mocked_and_output_does_not_move_during_recording():
     ctrl, _ = _ui()
-    bar = MagicMock()
-    ctrl.get_output_bar = MagicMock(return_value=bar)
+    input_bar = MagicMock()
+    record_bar = MagicMock()
+    output_bar = MagicMock()
+    ctrl.get_input_bar = MagicMock(return_value=input_bar)
+    ctrl.get_input_record_bar = MagicMock(return_value=record_bar)
+    ctrl.get_output_bar = MagicMock(return_value=output_bar)
 
     ctrl.on_input_volume_change(37)
-    bar.setLevel.assert_called_once_with(37)
+    input_bar.setLevel.assert_called_once_with(37)
+    record_bar.setLevel.assert_called_once_with(37)
+    output_bar.setLevel.assert_not_called()
 
     ctrl.recording = True
     ctrl.on_output_volume_change(80)
-    assert bar.setLevel.call_count == 1
+    output_bar.setLevel.assert_not_called()
 
     ctrl.recording = False
     ctrl.on_output_volume_change(80)
-    bar.setLevel.assert_called_with(80)
+    output_bar.setLevel.assert_called_once_with(80)
 
 
 def test_audio_ui_input_enable_disable_and_continuous_controls():
@@ -120,3 +126,25 @@ def test_audio_ui_noop_callbacks_are_safe():
     assert ctrl.on_output_disable() is None
     assert ctrl.on_output_end() is None
     assert ctrl.on_output_cancel() is None
+
+
+def test_ordinary_microphone_capture_shows_stop():
+    from pygpt_net.controller.chat.common import Common
+
+    ctrl, window = _ui()
+    window.controller.realtime.is_enabled.return_value = False
+    window.controller.realtime.is_response_active.return_value = False
+    window.controller.chat.input.locked = False
+    window.controller.chat.input.generating = False
+    window.controller.ctx.extra.is_editing.return_value = False
+    window.controller.tabs.is_chat_input_visible.return_value = True
+    window.ui.nodes['input.send_btn'] = MagicMock()
+    window.controller.chat.common = Common(window)
+
+    ctrl.on_input_begin('input')
+
+    assert ctrl.recording is True
+    assert window.controller.chat.input.locked is True
+    window.ui.nodes['input.send_btn'].setEnabled.assert_called_with(False)
+    window.ui.nodes['input'].set_icon_visible.assert_any_call('send', False)
+    window.ui.nodes['input'].set_icon_visible.assert_any_call('stop', True)

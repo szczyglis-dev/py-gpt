@@ -17,7 +17,7 @@ from typing import Optional, Dict, List, Any
 
 from pygpt_net.provider.core.plugin_preset.json_file import JsonFileProvider
 from pygpt_net.plugin.base.plugin import BasePlugin
-from pygpt_net.utils import trans
+from pygpt_net.utils import trans, register_locale_domain
 
 
 class Plugins:
@@ -106,8 +106,9 @@ class Plugins:
 
         :param plugin: plugin instance
         """
-        plugin.attach(self.window)
         plugin_id = plugin.id
+        self._register_locale_domain(plugin)
+        plugin.attach(self.window)
         self.plugins[plugin_id] = plugin
 
         if hasattr(plugin, 'options'):
@@ -142,6 +143,32 @@ class Plugins:
         except Exception as e:
             self.window.core.debug.log(e)
             print('Error while loading plugin options: {}'.format(plugin_id))
+
+    def _register_locale_domain(self, plugin: BasePlugin):
+        """Register the physical locale directory behind a plugin's logical domain."""
+        if not getattr(plugin, 'use_locale', False):
+            return
+
+        domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else None
+        path = plugin.get_locale_dir() if hasattr(plugin, 'get_locale_dir') else None
+
+        # Built-in plugins use one directory per plugin. Add-on plugins arrive
+        # here with their own domain/path already assigned by Extensions.
+        if not domain:
+            domain = f'plugin.{plugin.id}'
+        if not path and domain == f'plugin.{plugin.id}':
+            path = os.path.join(
+                self.window.core.config.get_app_path(),
+                'data', 'locale', 'plugin', plugin.id,
+            )
+
+        if hasattr(plugin, 'set_locale_domain'):
+            plugin.set_locale_domain(domain, path)
+        else:
+            plugin.locale_domain = domain
+            plugin.locale_dir = path
+        if path:
+            register_locale_domain(domain, path)
 
     def apply_all_options(self):
         """Apply all options to plugins. Tool config persists only enabled state."""
@@ -305,7 +332,7 @@ class Plugins:
         if name == trans_key:
             name = default
         if plugin.use_locale:
-            domain = f'plugin.{plugin_id}'
+            domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f'plugin.{plugin_id}'
             name = trans('plugin.name', domain=domain)
         return name
 
@@ -323,7 +350,7 @@ class Plugins:
         if tooltip == trans_key:
             tooltip = default
         if plugin.use_locale:
-            domain = f'plugin.{plugin_id}'
+            domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f'plugin.{plugin_id}'
             tooltip = trans('plugin.description', domain=domain)
         return tooltip
 
@@ -585,11 +612,16 @@ class Plugins:
             self.dump_locale(plugin, path)
 
     def dump_locales(self):
-        """Dump all locales"""
+        """Dump all locales using the per-plugin directory layout."""
         langs = ['en', 'pl']
-        base_path = os.path.join(self.window.core.config.get_app_path(), 'data', 'locale')
+        base_path = os.path.join(
+            self.window.core.config.get_app_path(), 'data', 'locale', 'plugin'
+        )
         for plugin_id, plugin in self.plugins.items():
-            domain = f'plugin.{plugin_id}'
+            locale_dir = plugin.get_locale_dir() if hasattr(plugin, 'get_locale_dir') else None
+            if not locale_dir:
+                locale_dir = os.path.join(base_path, plugin_id)
+            os.makedirs(locale_dir, exist_ok=True)
             for lang in langs:
-                path = os.path.join(base_path, f'{domain}.{lang}.ini')
+                path = os.path.join(locale_dir, f'locale.{lang}.ini')
                 self.dump_locale(plugin, path)

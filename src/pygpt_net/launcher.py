@@ -200,6 +200,12 @@ class Launcher:
             except Exception:
                 pass
             self._preloader = None
+        # Closing the separate splash process can reactivate the Windows console.
+        # Request GUI focus after it has closed, rather than only at first paint.
+        if sys.platform == "win32" and self.window is not None:
+            if self.window.isVisible() and not self.window.isMinimized():
+                self.window.raise_()
+                self.window.activateWindow()
 
     def add_plugin(self, plugin: BasePlugin):
         """
@@ -245,6 +251,10 @@ class Launcher:
         self.window.add_vector_store(store)
         if self.debug:
             print("Loaded vector store: {} ({})".format(store.id, store.__class__.__name__))
+
+    def add_file_preview(self, provider):
+        """Register a BaseFilePreview provider for all Files tabs."""
+        self.window.add_file_preview(provider)
 
     def add_loader(self, loader: BaseLoader):
         """

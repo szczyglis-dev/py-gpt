@@ -136,6 +136,29 @@ class Config(BaseConfig):
         )
 
         plugin.add_option(
+            "allow_self_mcp",
+            type="bool",
+            value=False,
+            label="Allow self-defined MCP connections",
+            description=(
+                "Allow the model to define and connect to MCP servers over HTTP/SSE at runtime. "
+                "When disabled, the self-connect tool and tools from model-defined HTTP/SSE servers are not exposed."
+            ),
+            tooltip="Disabled by default. Applies only to model-defined runtime MCP connections.",
+        )
+        plugin.add_option(
+            "allow_self_mcp_stdio",
+            type="bool",
+            value=False,
+            label="Allow self-defined MCP stdio",
+            description=(
+                "Allow the model to define MCP stdio connections that start local commands. "
+                "This is independent from HTTP/SSE self-connect permission and is disabled by default."
+            ),
+            tooltip="Warning: stdio connections can start local processes. Enable only when explicitly needed.",
+        )
+
+        plugin.add_option(
             "tools_cache_enabled",
             type="bool",
             value=True,

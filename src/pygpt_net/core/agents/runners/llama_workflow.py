@@ -75,7 +75,7 @@ class LlamaWorkflow(BaseRunner):
         if isinstance(agent, BaseWorkflowAgent):
             # Reuse the Agents v2 multimodal input builder so attached images are
             # available natively to legacy FunctionAgent/ReActAgent runs too.
-            user_msg = session.build_user_message(query)
+            user_msg = session.inputs.message(query)
             handler = agent.run(
                 user_msg=user_msg, ctx=ctx, memory=memory,
                 max_iterations=effective_iteration_limit(

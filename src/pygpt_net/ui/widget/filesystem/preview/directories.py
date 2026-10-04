@@ -8,6 +8,12 @@ from PySide6.QtWidgets import QFrame, QVBoxLayout, QTreeView, QFileSystemModel, 
 class DirectoryFileSystemModel(QFileSystemModel):
     """Filesystem model that does not advertise expandability for empty folders."""
 
+    def data(self, index, role=Qt.DisplayRole):
+        if role == Qt.ToolTipRole and index.isValid():
+            root = getattr(self, "workdir_root", self.rootPath())
+            return os.path.relpath(self.filePath(index.siblingAtColumn(0)), root)
+        return super().data(index, role)
+
     def hasChildren(self, parent=QModelIndex()) -> bool:
         if parent.isValid():
             try:
@@ -26,7 +32,7 @@ class DirectoryFileSystemModel(QFileSystemModel):
 
 
 class DirectoryPopup(QFrame):
-    def __init__(self, path, open_file, parent=None):
+    def __init__(self, path, open_file, parent=None, workdir_root=None):
         super().__init__(parent, Qt.Popup)
         self.open_file = open_file
         self.setFrameShape(QFrame.StyledPanel)
@@ -35,6 +41,7 @@ class DirectoryPopup(QFrame):
         layout.setContentsMargins(4, 4, 4, 4)
         self.tree = QTreeView(self)
         self.model = DirectoryFileSystemModel(self)
+        self.model.workdir_root = workdir_root or path
         self.model.setFilter(QDir.AllEntries | QDir.NoDotAndDotDot | QDir.Hidden)
         self.model.setRootPath(path)
         self.tree.setModel(self.model)

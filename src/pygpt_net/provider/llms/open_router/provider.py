@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.17 19:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -33,37 +33,8 @@ class OpenRouterLLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://openrouter.ai/settings/keys"},
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": "https://openrouter.ai/api/v1",
-                },
-            }
-        }
-
-    def get_embeddings_model(
-            self,
-            window,
-            config: Optional[List[Dict]] = None
-    ) -> BaseEmbedding:
-        """
-        Return provider instance for embeddings
-
-        :param window: window instance
-        :param config: config keyword arguments list
-        :return: Embedding provider instance
-        """
-        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
-        args = self.prepare_openai_compatible_embedding_args(window, config)
-        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
-        return OpenAILikeEmbedding(**args)
+        from .config import setup
+        return setup()
 
     def llama(
             self,
@@ -72,7 +43,7 @@ class OpenRouterLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LlamaIndex chat provider
 
         :param window: window instance
         :param model: model instance
@@ -103,3 +74,24 @@ class OpenRouterLLM(BaseLLM):
             args["model"] = window.core.models.get_openrouter_model(model)
         self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
+
+    def llama_embeddings(
+            self,
+            window,
+            config: Optional[List[Dict]] = None
+    ) -> BaseEmbedding:
+        """
+        Return LlamaIndex embeddings provider
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
+        from llama_index.embeddings.openai_like import OpenAILikeEmbedding
+        args = self.prepare_openai_compatible_embedding_args(window, config)
+        args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        self.log_llama_create(
+            window, None, args, "OpenAILikeEmbedding",
+            kind="embeddings",
+        )
+        return OpenAILikeEmbedding(**args)

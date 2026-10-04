@@ -17,11 +17,12 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QWidget
 
 from pygpt_net.core.events import BaseEvent
+from pygpt_net.core.locale import LocaleDomain
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.dialog.base import BaseDialog
 from pygpt_net.utils import trans
 
-class BaseTool(QObject):
+class BaseTool(QObject, LocaleDomain):
     def __init__(self, *args, **kwargs):
         """
         Base Tool
@@ -31,6 +32,7 @@ class BaseTool(QObject):
         :param kwargs: keyword arguments
         """
         super(BaseTool, self).__init__()
+        self.init_locale_domain()
         self.window = None
         self.id = ""
         self.has_tab = False
@@ -159,7 +161,7 @@ class BaseTool(QObject):
             "target": target_ref,
             "key": key,
             "setter": setter,
-            "domain": domain,
+            "domain": domain if domain is not None else self.get_locale_domain(),
             "on_apply": callback_ref,
         }
         self._lang_mappings.append(mapping)

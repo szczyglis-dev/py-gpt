@@ -31,7 +31,8 @@ def make_runtime():
         ),
         strategy=get_agent_strategy(AgentMode.PRIMARY_AGENT),
     )
-    runtime._rag_prompt_context = MagicMock(return_value="<rag_context>retrieved</rag_context>")
+    runtime.inputs = SimpleNamespace()
+    runtime.inputs.rag_prompt = MagicMock(return_value="<rag_context>retrieved</rag_context>")
     return runtime
 
 
@@ -39,7 +40,7 @@ def test_compose_agent_system_prompt_includes_capabilities_runtime_rag_and_bridg
     runtime = make_runtime()
     builder = RuntimePromptBuilder(runtime)
 
-    prompt = builder.compose_agent_system_prompt(base_prompt="role prompt")
+    prompt = builder.compose(base_prompt="role prompt")
 
     assert prompt.startswith("role prompt\n\n<runtime_capabilities>")
     assert "agent_mode=primary_agent" in prompt
@@ -60,7 +61,7 @@ def test_compose_agent_system_prompt_uses_preset_fallback_and_does_not_duplicate
     runtime.preset.prompt = "preset prompt with runtime block"
     builder = RuntimePromptBuilder(runtime)
 
-    prompt = builder.compose_agent_system_prompt()
+    prompt = builder.compose()
 
     assert "preset prompt with runtime block" in prompt
     assert "<runtime_environment>" not in prompt
@@ -71,7 +72,7 @@ def test_compose_agent_system_prompt_honors_explicit_additional_prompt():
     runtime = make_runtime()
     builder = RuntimePromptBuilder(runtime)
 
-    prompt = builder.compose_agent_system_prompt(
+    prompt = builder.compose(
         base_prompt="base",
         additional_system_prompt="explicit",
     )
@@ -79,3 +80,16 @@ def test_compose_agent_system_prompt_honors_explicit_additional_prompt():
     assert "<additional_system_prompt>\nexplicit\n</additional_system_prompt>" in prompt
     assert "plugin prompt" not in prompt
     assert "preset prompt" not in prompt
+
+
+def test_builtin_prompt_slots_honor_overrides_without_injecting_policy():
+    runtime = make_runtime()
+    builder = RuntimePromptBuilder(runtime)
+    runtime.window.core.config.get.side_effect = lambda key, default=None: ' custom role ' if key.startswith('prompt.') else default
+    assert builder._compose_main('base').startswith('base')
+    assert builder._configured_main_prompt('default', 'override') == 'default'
+    runtime.window.core.config.get.side_effect = lambda key, default=None: ' custom role '
+    for method in (builder.primary, builder.orchestrator, builder.swarm):
+        prompt = method()
+        assert prompt.startswith('custom role')
+        assert '<workflow_progress_policy>' not in prompt

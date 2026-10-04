@@ -10,6 +10,23 @@
 from pygpt_net.provider.llms.base import BaseLLM
 
 
+def setup() -> dict:
+    return {
+        "settings": {
+            "api_key": {
+                "type": "str",
+                "default": "",
+                "secret": True,
+                "urls": {"API Keys": "https://console.typesafe.ai/keys"},
+            },
+            "api_base": {
+                "type": "str",
+                "default": "https://api.typesafe.ai",
+            },
+        }
+    }
+
+
 class JevConfigLLM(BaseLLM):
     """Configuration-only provider for Jev / System One credentials."""
 
@@ -20,17 +37,4 @@ class JevConfigLLM(BaseLLM):
         self.type = []
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://console.typesafe.ai/keys"},
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": "https://api.typesafe.ai",
-                },
-            }
-        }
+        return setup()

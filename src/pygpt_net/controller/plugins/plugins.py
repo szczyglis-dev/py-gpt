@@ -6,12 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 16:45:00                  #
+# Updated Date: 2026.09.29 19:40:00                  #
 # ================================================== #
 
 from typing import List, Dict, Any, Optional
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject, Signal
 from PySide6.QtGui import QAction
 
 from pygpt_net.core.types import (
@@ -22,6 +22,10 @@ from pygpt_net.controller.plugins.settings import Settings
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from pygpt_net.utils import trans
+
+
+class PluginUiSignals(QObject):
+    annotation_info = Signal()
 
 
 class Plugins:
@@ -38,6 +42,11 @@ class Plugins:
         self._ids = None
         self._ids_with_update = None
         self._suspend_updates = 0
+        self._ui_signals = PluginUiSignals()
+        self._ui_signals.annotation_info.connect(
+            self.update_annotations_info,
+            Qt.ConnectionType.QueuedConnection,
+        )
 
     def _begin_batch(self):
         """Begin batch updates"""
@@ -488,8 +497,14 @@ class Plugins:
                 if callable(fn):
                     fn()
 
+    def _status_tooltip(self, header_key: str, items=None) -> str:
+        """Build a compact status tooltip containing only status items."""
+        if items:
+            return "\n".join(items)
+        return ""
+
     def update_info(self):
-        """Update enabled plugin/MCP/Skill counters below the chat input."""
+        """Update plugin/MCP/Skill and annotation counters below the chat input."""
         pm = self.window.core.plugins
 
         # Plugins
@@ -502,10 +517,9 @@ class Plugins:
 
         plugin_label = self.window.ui.nodes['chat.plugins']
         if plugin_count > 0:
-            key = 'chatbox.plugins' if plugin_count == 1 else 'chatbox.plugins.plural'
             enabled_names.sort(key=str.casefold)
-            plugin_label.setText(f"{plugin_count} {trans(key)}")
-            plugin_label.setToolTip("\n".join(enabled_names))
+            plugin_label.setCount(plugin_count)
+            plugin_label.setToolTip(self._status_tooltip("menu.plugins", enabled_names))
             plugin_label.setVisible(True)
         else:
             plugin_label.clear()
@@ -532,10 +546,9 @@ class Plugins:
 
         if mcp_label is not None:
             if mcp_names:
-                key = 'chatbox.mcp' if len(mcp_names) == 1 else 'chatbox.mcp.plural'
                 mcp_names.sort(key=str.casefold)
-                mcp_label.setText(f"{len(mcp_names)} {trans(key)}")
-                mcp_label.setToolTip("\n".join(mcp_names))
+                mcp_label.setCount(len(mcp_names))
+                mcp_label.setToolTip(self._status_tooltip("menu.config.mcp", mcp_names))
                 mcp_label.setVisible(True)
             else:
                 mcp_label.clear()
@@ -558,15 +571,51 @@ class Plugins:
 
         if skills_label is not None:
             if skill_names:
-                key = 'chatbox.skills' if len(skill_names) == 1 else 'chatbox.skills.plural'
                 skill_names.sort(key=str.casefold)
-                skills_label.setText(f"{len(skill_names)} {trans(key)}")
-                skills_label.setToolTip("\n".join(skill_names))
+                skills_label.setCount(len(skill_names))
+                skills_label.setToolTip(self._status_tooltip("menu.skills", skill_names))
                 skills_label.setVisible(True)
             else:
                 skills_label.clear()
                 skills_label.setToolTip("")
                 skills_label.setVisible(False)
+
+        self.update_annotations_info()
+
+    def request_annotations_info_update(self):
+        """Thread-safe request to refresh the annotation counter on the UI thread."""
+        self._ui_signals.annotation_info.emit()
+
+    def update_annotations_info(self):
+        """Update the combined Canvas/chat/files annotation counter."""
+        label = self.window.ui.nodes.get('chat.annotations')
+        if label is None:
+            return
+
+        count = 0
+        try:
+            meta = self.window.core.ctx.get_current_meta()
+            session = self.window.controller.chat.text.get_annotations(meta)
+            if session is not None:
+                count += len(session.annotations)
+        except Exception:
+            pass
+
+        try:
+            tool = self.window.tools.get("web_browser")
+            if tool is not None:
+                count += len(tool.get_annotations())
+        except Exception:
+            pass
+
+        if count > 0:
+            label.setCount(count)
+            label.setToolTip(str(trans("plugin.tab.annotations")).strip())
+            label.setVisible(True)
+        else:
+            label.clear()
+            label.setToolTip(str(trans("plugin.tab.annotations")).strip())
+            label.setVisible(False)
 
     def _apply_cmds_common(
             self,
@@ -693,6 +742,8 @@ class Plugins:
                 cfg_plugins[pid] = {}
             dest = cfg_plugins[pid]
             for key, opt in plugin.options.items():
+                if opt.get('type') == 'button':
+                    continue
                 if opt.get('type') == 'cmd':
                     value = opt.get('value')
                     dest[key] = bool(value.get('enabled', False)) if isinstance(value, dict) else bool(value)

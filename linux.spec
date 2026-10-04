@@ -154,46 +154,16 @@ try:
 except Exception:
     pass
 
-# CSS themes use a recursive directory layout (data/css/<theme-id>/...).
-# Preserve the complete tree in the frozen application.
+# Bundle the complete application data tree recursively.
+# Keep the same directory layout below data/ so new resources and
+# subdirectories are picked up automatically without updating this spec.
 add_data_tree(
     datas,
-    'src/pygpt_net/data/css',
-    'data/css',
+    'src/pygpt_net/data',
+    'data',
 )
 
 datas += [
-    ('src/pygpt_net/data/config/presets/*', 'data/config/presets'),
-    ('src/pygpt_net/data/config/config.json', 'data/config'),
-    ('src/pygpt_net/data/config/models.json', 'data/config'),
-    ('src/pygpt_net/data/config/modes.json', 'data/config'),
-    ('src/pygpt_net/data/config/settings.json', 'data/config'),
-    ('src/pygpt_net/data/config/settings_section.json', 'data/config'),
-    ('src/pygpt_net/data/banners/*', 'data/banners'),
-    ('src/pygpt_net/data/icons/*', 'data/icons'),
-    ('src/pygpt_net/data/icons/chat/*', 'data/icons/chat'),
-    ('src/pygpt_net/data/locale/*', 'data/locale'),
-    ('src/pygpt_net/data/audio/*', 'data/audio'),
-    ('src/pygpt_net/data/fixtures/*', 'data/fixtures'),
-    ('src/pygpt_net/data/skills/*', 'data/skills'),
-    ('src/pygpt_net/data/connectors/*', 'data/connectors'),
-    ('src/pygpt_net/data/fonts/Lato/*', 'data/fonts/Lato'),
-    ('src/pygpt_net/data/fonts/SpaceMono/*', 'data/fonts/SpaceMono'),
-    ('src/pygpt_net/data/fonts/MonaspaceArgon/*', 'data/fonts/MonaspaceArgon'),
-    ('src/pygpt_net/data/fonts/MonaspaceKrypton/*', 'data/fonts/MonaspaceKrypton'),
-    ('src/pygpt_net/data/fonts/MonaspaceNeon/*', 'data/fonts/MonaspaceNeon'),
-    ('src/pygpt_net/data/fonts/MonaspaceRadon/*', 'data/fonts/MonaspaceRadon'),
-    ('src/pygpt_net/data/fonts/MonaspaceXenon/*', 'data/fonts/MonaspaceXenon'),
-    ('src/pygpt_net/data/js/highlight/styles/*', 'data/js/highlight/styles'),
-    ('src/pygpt_net/data/prompts.csv', 'data'),
-    ('src/pygpt_net/data/languages.csv', 'data'),
-    ('src/pygpt_net/data/banners.json', 'data'),
-    ('src/pygpt_net/data/logo.png', 'data'),
-    ('src/pygpt_net/data/logo_splash.png', 'data'),
-    ('src/pygpt_net/data/icon.ico', 'data'),
-    ('src/pygpt_net/data/icon_tray_idle.ico', 'data'),
-    ('src/pygpt_net/data/icon_tray_busy.ico', 'data'),
-    ('src/pygpt_net/data/icon_tray_error.ico', 'data'),
     ('src/pygpt_net/CHANGELOG.txt', '.'),
     ('src/pygpt_net/LICENSE', '.'),
     ('src/pygpt_net/data/icon.png', '.'),
@@ -286,6 +256,10 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+
+# Optional runtime packages must resolve against versions bundled in this build.
+import runpy
+runpy.run_path(os.path.join(SPECPATH, 'bin', 'pyinstaller_runtime_metadata.py'))['add_runtime_metadata'](a)
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 

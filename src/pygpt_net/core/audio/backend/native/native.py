@@ -33,9 +33,11 @@ from ..shared import (
     InputLevelMeter,
 )
 
+from ..shared.capture import has_minimum_audio
+
+
 class NativeBackend(QObject):
 
-    MIN_FRAMES = 25  # minimum frames to start transcription
     AUTO_CONVERT_TO_WAV = False  # automatically convert to WAV format
 
     def __init__(self, window=None):
@@ -162,10 +164,8 @@ class NativeBackend(QObject):
         self.prepare_device()
         if not self.selected_device:
             print("No audio input device selected")
-            return
-        if self.disconnected:
-            print("Audio source disconnected, please connect the audio source")
             return False
+        self.disconnected = False
 
         # Prevent multiple recordings
         if self.audio_source is not None:
@@ -179,7 +179,8 @@ class NativeBackend(QObject):
         # This ensures process_audio_input() will start updating the UI.
         if self.audio_source is not None and self.audio_io_device is not None:
             self._is_recording = True
-        return True
+            return True
+        return False
 
     def stop(self) -> bool:
         """
@@ -194,6 +195,11 @@ class NativeBackend(QObject):
         self._is_recording = False
 
         if self.audio_source is not None:
+            # Preserve the final partial chunk before stop discards Qt's buffer.
+            if self.audio_io_device is not None:
+                data = self.audio_io_device.readAll()
+                if not data.isEmpty():
+                    self.frames.append(data.data())
             # Disconnect the readyRead signal
             try:
                 if self.audio_io_device is not None:
@@ -245,18 +251,13 @@ class NativeBackend(QObject):
         return False
 
     def has_min_frames(self) -> bool:
-        """
-        Check if min required audio frames
-
-        :return: True if min frames
-        """
-        if self.frames:
-            frames = self.get_frames()
-            if len(frames) < self.MIN_FRAMES:
-                return False
-            else:
-                return True
-        return False
+        """Return whether at least 100 ms of PCM audio was captured."""
+        if not self.frames or self.actual_audio_format is None:
+            return False
+        fmt = self.actual_audio_format
+        return has_minimum_audio(
+            self.frames, fmt.sampleRate(), fmt.channelCount(), fmt.bytesPerSample(),
+        )
 
     def reset_audio_level(self):
         """Reset the audio level bar"""
@@ -578,6 +579,30 @@ class NativeBackend(QObject):
             select_output_device=self._select_output_device,
         )
 
+    def shutdown(self):
+        """Hard-stop Qt audio input/output objects owned by this backend."""
+        try:
+            self.stop()
+        except Exception:
+            pass
+        try:
+            self.interrupt_realtime()
+        except Exception:
+            pass
+        try:
+            self.stop_playback()
+        except Exception:
+            pass
+        try:
+            self.stop_timers()
+        except Exception:
+            pass
+        self._rt_session = None
+        self._rt_ctx = None
+        self.audio_source = None
+        self.audio_io_device = None
+        self.initialized = False
+
     def stop_timers(self):
         """Stop playback timers."""
         if self._player is not None:
@@ -766,7 +791,7 @@ class NativeBackend(QObject):
         safe_emit(
             self._rt_signals,
             "response",
-            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START),
+            RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_PLAYBACK_START, {"ctx": self._rt_ctx}),
         )
 
     def _ensure_rt_session(
@@ -834,7 +859,10 @@ class NativeBackend(QObject):
                 safe_emit(
                     self._rt_signals,
                     "response",
-                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {"source": "device"}),
+                    RealtimeEvent(RealtimeEvent.RT_OUTPUT_AUDIO_END, {
+                        "source": "device",
+                        "ctx": self._rt_ctx,
+                    }),
                 )
             self._rt_session = None
             self._rt_ctx = None

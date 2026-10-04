@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.29 20:35:00                  #
 # ================================================== #
 
 from typing import Any, Optional
@@ -105,6 +105,12 @@ class Confirm:
             if dont_show_again:
                 self.window.controller.agent.common.disable_infinity_loop_confirm()
             self.window.controller.chat.input.send_input(force=True)
+
+        # Canvas browser history
+        elif type == 'canvas.history.clear':
+            plugin = self.window.core.plugins.get("canvas_web")
+            if plugin is not None:
+                plugin.clear_browser_history(force=True)
 
         # interpreter
         elif type == 'interpreter.clear':

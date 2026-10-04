@@ -12,10 +12,11 @@
 import os
 
 from PySide6 import QtCore
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItem, QStandardItemModel, QIcon, QAction
 from PySide6.QtWidgets import QVBoxLayout, QPushButton, QHBoxLayout, QRadioButton, QCheckBox, QWidget, QMenu, QWidgetAction, QButtonGroup
 
+from pygpt_net.ui.widget.element.button import ButtonPopupMenu
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.lists.attachment_ctx import AttachmentCtxList
 from pygpt_net.utils import trans
@@ -31,7 +32,6 @@ class AttachmentsCtx:
         self.window = window
         self.id = 'attachments_ctx'
         self._updating = False
-        self._options_menu = None
         self._options_state_holder = None
 
     def setup(self) -> QVBoxLayout:
@@ -96,7 +96,12 @@ class AttachmentsCtx:
         self.window.ui.nodes['input.attachments.native_upload'].toggled.connect(
             lambda enabled: self.window.controller.chat.attachment.toggle_native_upload(enabled)
         )
-        self.window.ui.nodes['attachments_ctx.btn.options'] = self._create_options_button()
+        self.window.ui.nodes['attachments_ctx.btn.options'] = ButtonPopupMenu(
+            self.window,
+            menu_builder=self._build_options_menu,
+            object_name='attachmentsCtxOptionsButton',
+            menu_object_name='attachmentsCtxOptionsMenu',
+        )
 
         buttons_layout = QHBoxLayout()
         buttons_layout.addWidget(self.window.ui.nodes['attachments_ctx.btn.clear'])
@@ -109,16 +114,6 @@ class AttachmentsCtx:
         layout.addLayout(buttons_layout)
 
         return layout
-
-    def _create_options_button(self) -> QPushButton:
-        # Same native QPushButton styling as the Clear/Add buttons next to it.
-        btn = QPushButton(QIcon(':/icons/more_horizontal.svg'), '', self.window)
-        btn.setObjectName('attachmentsCtxOptionsButton')
-        btn.setCursor(Qt.PointingHandCursor)
-        btn.setFocusPolicy(Qt.NoFocus)
-        btn.setToolTip(trans('attachments.options.label'))
-        btn.clicked.connect(self.action_show_options)
-        return btn
 
     def _select_mode(self, node_key: str, mode: str):
         node = self.window.ui.nodes.get(node_key)
@@ -169,15 +164,9 @@ class AttachmentsCtx:
         menu.addAction(action)
         return action
 
-    def action_show_options(self):
-        """Open context options and keep the popup open for radios and checkboxes."""
-        btn = self.window.ui.nodes.get('attachments_ctx.btn.options')
-        if btn is None:
-            return
-
+    def _build_options_menu(self, menu: QMenu):
+        """Populate context options; radio and checkbox rows remain open."""
         nodes = self.window.ui.nodes
-        menu = QMenu(btn)
-        menu.setObjectName('attachmentsCtxOptionsMenu')
 
         header = QAction(trans('attachments.ctx.label'), menu)
         header.setEnabled(False)
@@ -217,19 +206,6 @@ class AttachmentsCtx:
                 native_upload.isChecked(),
                 lambda checked=False, node=native_upload: node.setChecked(bool(checked)),
             )
-
-        self._options_menu = menu
-        menu.aboutToHide.connect(self._clear_options_menu)
-        menu.adjustSize()
-        size = menu.sizeHint()
-        global_pos = btn.mapToGlobal(QPoint(btn.width() - size.width(), -size.height()))
-        menu.popup(global_pos)
-
-    def _clear_options_menu(self):
-        menu = self._options_menu
-        self._options_menu = None
-        if menu is not None:
-            menu.deleteLater()
 
     def setup_attachments(self):
         """Setup attachments uploaded list"""

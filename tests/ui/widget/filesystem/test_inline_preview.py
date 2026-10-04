@@ -234,7 +234,7 @@ def test_single_click_and_breadcrumb_navigation(app, tmp_path):
                      pos=explorer.treeView.visualRect(index).center())
     assert explorer.preview.path == str(path)
     buttons = explorer.preview.findChildren(QPushButton)
-    next(button for button in buttons if button.toolTip() == str(tmp_path)).click()
+    next(button for button in buttons if button.toolTip() == '.').click()
     popup = explorer.preview._directory_popup
     wait(100)
     directory_index = popup.model.index(str(folder))
@@ -267,7 +267,8 @@ def test_zoom_uses_shared_config_and_ctrl_wheel(app, tmp_path):
     event.angleDelta.return_value = QPoint(0, 120)
     panel.viewer.wheelEvent(event)
     assert panel.viewer.value == 17
-    assert values['font_size'] == 17
+    assert values['filesystem.preview.text.font_size'] == 17
+    assert values['font_size'] == 16
     window.core.config.save.assert_not_called()
     wait(300)
     window.core.config.save.assert_called_once()
@@ -335,7 +336,7 @@ def test_preview_uses_shared_finder_and_cleans_up(app, tmp_path):
 
 
 def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
-    from pygpt_net.ui.widget.filesystem.preview import text as module
+    from pygpt_net.core.text.editor import syntax as syntax_module
     window = MagicMock()
     values = {'font_size': 12}
     window.core.config.get.side_effect = values.get
@@ -346,8 +347,8 @@ def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
     panel.open_file(str(path))
     panel.show()
     wait(200)
-    lex = MagicMock(wraps=module.lex)
-    monkeypatch.setattr(module, 'lex', lex)
+    lex = MagicMock(wraps=syntax_module.lex)
+    monkeypatch.setattr(syntax_module, 'lex', lex)
     for value in range(13, 20):
         panel.viewer.on_zoom_changed(value)
         wait(10)
@@ -379,7 +380,9 @@ def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
     cursor.movePosition(QTextCursor.End)
     editor.setTextCursor(cursor)
     editor.finder.find('needle')
-    wait(150)
+    # Execute the pending search deterministically rather than racing the Qt timer.
+    editor.finder.timer.stop()
+    editor.finder.find_execute()
     assert len(editor.extraSelections()) == 9  # only search matches highlight the code
     editor.finder.clear_search()
     assert editor.extraSelections() == []
@@ -431,10 +434,12 @@ def test_file_annotation_popup_captures_relative_path_and_selected_lines(app, tm
 
 def test_line_number_spacing_and_font_are_configurable(app, tmp_path, monkeypatch):
     from PySide6.QtGui import QFontMetrics
-    from pygpt_net.ui.widget.filesystem.preview import text as module
-    monkeypatch.setattr(module, 'LINE_NUMBER_PADDING', 13)
-    monkeypatch.setattr(module, 'LINE_NUMBER_TEXT_GAP', 5)
-    monkeypatch.setattr(module, 'LINE_NUMBER_FONT_SCALE', 0.75)
+    from pygpt_net.core.text.editor import base as base_module
+    from pygpt_net.core.text.editor import gutter as gutter_module
+    monkeypatch.setattr(base_module, 'LINE_NUMBER_PADDING', 13)
+    monkeypatch.setattr(base_module, 'LINE_NUMBER_TEXT_GAP', 5)
+    monkeypatch.setattr(gutter_module, 'LINE_NUMBER_PADDING', 13)
+    monkeypatch.setattr(gutter_module, 'LINE_NUMBER_FONT_SCALE', 0.75)
     panel = PreviewPanel(MagicMock(), str(tmp_path))
     path = tmp_path / 'padding.txt'
     path.write_text('code')
@@ -488,3 +493,30 @@ def test_annotation_gutter_follows_add_remove_delivery_and_conversation(app, tmp
     panel.close()
     panel.deleteLater()
     wait()
+
+
+@pytest.mark.parametrize('ending', [b'\r\n', b'\r', b'\n'])
+def test_csv_load_normalization_is_not_an_edit(app, tmp_path, monkeypatch, ending):
+    csv = tmp_path / 'table.csv'
+    original = ending.join([b'name,value', b'first,1', b'second,2', b''])
+    csv.write_bytes(original)
+    other = tmp_path / 'other.txt'
+    other.write_text('other file')
+    panel = PreviewPanel(MagicMock(), str(tmp_path))
+    question = MagicMock(return_value=QMessageBox.Cancel)
+    monkeypatch.setattr(QMessageBox, 'question', question)
+    assert panel.open_file(str(csv))
+    assert not panel.viewer.is_content_modified()
+    panel.viewer.document().setModified(True)  # formatting-only changes
+    assert panel.open_file(str(other))
+    question.assert_not_called()
+    assert csv.read_bytes() == original
+    assert panel.open_file(str(csv))
+    panel.viewer.insertPlainText('edited')
+    assert panel.viewer.is_content_modified()
+    assert not panel.open_file(str(other))
+    question.assert_called_once()
+    panel.viewer.undo()
+    assert not panel.viewer.is_content_modified()
+    assert panel.open_file(str(other))
+    panel.deleteLater()

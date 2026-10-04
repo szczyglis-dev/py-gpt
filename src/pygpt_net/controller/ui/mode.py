@@ -105,12 +105,10 @@ class Mode:
         # audio options visibility
         if not is_audio:
             ui_nodes['audio.auto_turn'].setVisible(False)
-            ui_nodes["audio.loop"].setVisible(False)
             if not ctrl.plugins.is_enabled('audio_output'):
                 ctrl.audio.toggle_output_icon(False)
         else:
             ui_nodes['audio.auto_turn'].setVisible(True)
-            ui_nodes["audio.loop"].setVisible(True)
             if not ctrl.audio.is_muted():
                 ctrl.audio.toggle_output_icon(True)
             else:

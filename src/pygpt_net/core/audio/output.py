@@ -117,3 +117,20 @@ class Output:
         """
         #self.get_backend().set_signals(signals)
         self.get_backend().handle_realtime(payload)
+
+    def shutdown(self):
+        """Stop and release every audio output backend instantiated in this run."""
+        for backend in list(self.backends.values()):
+            try:
+                shutdown = getattr(backend, "shutdown", None)
+                if callable(shutdown):
+                    shutdown()
+                else:
+                    interrupt = getattr(backend, "interrupt_realtime", None)
+                    if callable(interrupt):
+                        interrupt()
+                    backend.stop_playback()
+            except Exception:
+                pass
+        self.backends.clear()
+

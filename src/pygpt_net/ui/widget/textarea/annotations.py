@@ -7,11 +7,6 @@ from PySide6.QtCore import QTimer
 from pygpt_net.utils import trans
 
 
-CLEAR_ANNOTATION_CANVAS = False
-CLEAR_ANNOTATION_CTX = True
-CLEAR_ANNOTATION_FILE = True
-
-
 def track_sent_annotations(ctx, owner, items):
     """Snapshot only annotations serialized into this request; do not clear yet."""
     if ctx is None or not items:
@@ -37,6 +32,13 @@ def clear_sent_annotations(ctx):
 class AnnotationMixin:
     annotation_source = "canvas_web"
 
+    def _notify_annotation_count_changed(self):
+        """Queue a footer counter refresh without touching Qt widgets from tool workers."""
+        try:
+            self.window.controller.plugins.request_annotations_info_update()
+        except (AttributeError, RuntimeError):
+            pass
+
     def _annotation_palette(self):
         """Resolve colors from the application theme, independent of page content."""
         is_dark = self.window is None or self.window.controller.theme.is_dark_theme()
@@ -58,16 +60,31 @@ class AnnotationMixin:
             cardShadow='0 8px 28px rgba(36,33,43,.14)',
         )
 
+    def _clear_annotations_on_send(self, source: str) -> bool:
+        """Return the runtime clear policy for an annotation source."""
+        keys = {
+            'canvas_web': 'ctx.annotations.clear_on_send.canvas',
+            'chat': 'ctx.annotations.clear_on_send.chat',
+            'files': 'ctx.annotations.clear_on_send.files',
+        }
+        key = keys.get(source)
+        if key is None:
+            return False
+        # Keep the historic behavior as a fallback for profiles that have not
+        # been migrated yet: Chat clears automatically, Canvas/Files do not.
+        return bool(self.window.core.config.get(key, source == 'chat'))
+
     def clear_sent_annotations(self, ids):
-        flags = {'canvas_web': CLEAR_ANNOTATION_CANVAS,
-                 'chat': CLEAR_ANNOTATION_CTX, 'files': CLEAR_ANNOTATION_FILE}
         retained = [item for item in self.annotations
                     if (item['id'], item.get('time')) not in ids
-                    or not flags.get(item.get('source', self.annotation_source), False)]
+                    or not self._clear_annotations_on_send(
+                        item.get('source', self.annotation_source)
+                    )]
         if len(retained) != len(self.annotations):
             self.annotations = retained
             # Rebuild overlays as well: removed annotation cards must disappear.
             self._render_annotations()
+            self._notify_annotation_count_changed()
 
     def annotate_selection(self, selected: str = "", position=None, backend=None):
         """Open the lightweight in-page annotation composer for current selection.
@@ -271,6 +288,7 @@ class AnnotationMixin:
         if len(self.annotations) > max_items:
             del self.annotations[:-max_items]
         self._render_annotations()
+        self._notify_annotation_count_changed()
         self.window.update_status(
             f"{trans('ui.annotation_added', domain='plugin.canvas_web')} #{self.annotation_seq}"
         )
@@ -316,6 +334,7 @@ class AnnotationMixin:
         if len(self.annotations) == before:
             return False
         self._render_annotations()
+        self._notify_annotation_count_changed()
         try:
             self.window.update_status(
                 f"{trans('ui.annotation_removed', domain='plugin.canvas_web')} #{annotation_id}"
@@ -532,4 +551,5 @@ class ChatAnnotations(AnnotationMixin):
                     selection=selection, note=note.strip())
         self.annotations.append(item)
         del self.annotations[:-30]
+        self._notify_annotation_count_changed()
         return item

@@ -39,7 +39,7 @@ class RemoteTools:
     def is_computer_use_enabled(self, model: ModelItem = None) -> bool:
         """Return True when Computer Use is enabled as a Google remote tool."""
         return bool(
-            self.window.core.config.get("remote_tools.google.computer_use", False)
+            self.window.core.llm.get("google").is_remote_tool_enabled("computer_use")
             and self.supports_computer_use(model)
         )
 
@@ -59,8 +59,8 @@ class RemoteTools:
         :param model: ModelItem
         :return: list of Interactions API MCP server definitions
         """
-        cfg = self.window.core.config
-        if not cfg.get("remote_tools.google.mcp", False):
+        provider = self.window.core.llm.get("google")
+        if not provider.is_remote_tool_enabled("mcp"):
             return []
 
         # Google currently excludes Gemini 3 family models from Remote MCP in
@@ -71,7 +71,7 @@ class RemoteTools:
         if model_id.startswith("gemini-3"):
             return []
 
-        raw = cfg.get("remote_tools.google.mcp.args", "")
+        raw = provider.get_remote_tool_config("mcp.args", "")
         if not raw:
             return []
 
@@ -122,9 +122,9 @@ class RemoteTools:
     def build_remote_tools(self, model: ModelItem = None) -> list:
         """
         Build Google GenAI remote tools based on config flags.
-        - remote_tools.google.web_search: enables grounding via Google Search (Gemini 2.x)
+        - web_search: enables grounding via Google Search (Gemini 2.x)
           or GoogleSearchRetrieval (Gemini 1.5 fallback).
-        - remote_tools.google.code_interpreter: enables code execution tool.
+        - code_interpreter: enables code execution tool.
 
         Returns a list of gtypes.Tool objects (can be empty).
 
@@ -132,7 +132,7 @@ class RemoteTools:
         :return: list of gtypes.Tool
         """
         tools: list = []
-        cfg = self.window.core.config
+        provider = self.window.core.llm.get("google")
         model_id = (model.id if model and getattr(model, "id", None) else "").lower()
         remote_tools = self.window.controller.chat.remote_tools
         is_web = (
@@ -157,14 +157,14 @@ class RemoteTools:
                 self.window.core.debug.log(e)
 
         # Code Execution tool
-        if cfg.get("remote_tools.google.code_interpreter") and "image" not in model.id:
+        if provider.is_remote_tool_enabled("code_interpreter") and "image" not in model.id:
             try:
                 tools.append(gtypes.Tool(code_execution=gtypes.ToolCodeExecution()))
             except Exception as e:
                 self.window.core.debug.log(e)
 
         # URL Context tool
-        if cfg.get("remote_tools.google.url_ctx") and "image" not in model.id:
+        if provider.is_remote_tool_enabled("url_ctx") and "image" not in model.id:
             try:
                 # Supported on Gemini 2.x+ models (not on 1.5)
                 if not model_id.startswith("gemini-1.5") and not model_id.startswith("models/gemini-1.5"):
@@ -173,7 +173,7 @@ class RemoteTools:
                 self.window.core.debug.log(e)
 
         # Google Maps
-        if cfg.get("remote_tools.google.maps") and "image" not in model.id:
+        if provider.is_remote_tool_enabled("maps") and "image" not in model.id:
             try:
                 tools.append(gtypes.Tool(google_maps=gtypes.GoogleMaps()))
             except Exception as e:
@@ -188,8 +188,8 @@ class RemoteTools:
                 self.window.core.debug.log(e)
 
         # File search
-        if cfg.get("remote_tools.google.file_search") and "image" not in model.id:
-            store_ids = cfg.get("remote_tools.google.file_search.args", "")
+        if provider.is_remote_tool_enabled("file_search") and "image" not in model.id:
+            store_ids = provider.get_remote_tool_config("file_search.args", "")
             file_search_store_names = [s.strip() for s in store_ids.split(",") if s.strip()]
             try:
                 tools.append(gtypes.Tool(file_search=gtypes.FileSearch(

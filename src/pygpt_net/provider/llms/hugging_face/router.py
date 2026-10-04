@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -16,7 +16,6 @@ from typing import Optional, List, Dict, Union, TYPE_CHECKING
 if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-    from llama_index.core.multi_modal_llms import MultiModalLLM as LlamaMultiModalLLM
 
 from pygpt_net.core.types import (
     MODE_CHAT,
@@ -37,47 +36,11 @@ class HuggingFaceRouterLLM(BaseLLM):
         self.config_name = "HuggingFace"
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str", "default": "", "secret": True,
-                    "urls": {"API Keys": "https://huggingface.co/settings/tokens"},
-                },
-                "api_base": {"type": "str", "default": "https://router.huggingface.co/v1"},
-            }
-        }
+        from .config import setup
+        data = setup()
+        data["openai_compatible"] = True
+        return data
 
-    def completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return LLM provider instance for completion
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-        """
-        pass
-
-    def chat(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return LLM provider instance for chat
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-        """
-        pass
 
     def llama(
             self,
@@ -86,7 +49,7 @@ class HuggingFaceRouterLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LlamaIndex chat provider
 
         :param window: window instance
         :param model: model instance
@@ -104,27 +67,19 @@ class HuggingFaceRouterLLM(BaseLLM):
         self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
-    def llama_multimodal(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> LlamaMultiModalLLM:
-        """
-        Return multimodal LLM provider instance for llama
 
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-        """
-        pass
-
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
+        """
+        Return LlamaIndex embeddings provider
+
+        :param window: window instance
+        :param config: config keyword arguments list
+        :return: Embedding provider instance
+        """
         from .embedding import (
             HuggingFaceInferenceAPIEmbeddingWithProxy as HFEmbed,
         )
@@ -171,4 +126,9 @@ class HuggingFaceRouterLLM(BaseLLM):
         trust_env = self.get_config("trust_env", False)
         args.setdefault("timeout", self.get_embeddings_timeout(window.core.config))
 
+        self.log_llama_create(
+            window, None, args, "HuggingFaceInferenceAPIEmbeddingWithProxy",
+            {"proxy": proxy, "trust_env": trust_env},
+            kind="embeddings",
+        )
         return HFEmbed(proxy=proxy, trust_env=trust_env, **args)

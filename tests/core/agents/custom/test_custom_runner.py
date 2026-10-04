@@ -2,7 +2,10 @@ import asyncio
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pygpt_net.core.agents.custom.runner as runner_module
+import pygpt_net.core.agents.custom.flow as flow_module
+import pygpt_net.core.agents.custom.flow_preparation as preparation_module
+from pygpt_net.core.agents.custom.flow_memory import FlowMemoryPolicy
+from pygpt_net.core.agents.custom.logging import NullLogger
 from pygpt_net.core.agents.custom.runner import DebugConfig, FlowOrchestrator, FlowResult
 
 
@@ -23,12 +26,12 @@ def test_debug_config_defaults_and_flow_result_fields():
 
 def test_extract_text_from_item_supports_string_and_content_parts():
     orchestrator = FlowOrchestrator(window=None)
-    assert orchestrator._extract_text_from_item("plain") == "plain"
-    assert orchestrator._extract_text_from_item({"content": "text"}) == "text"
-    assert orchestrator._extract_text_from_item({
+    assert FlowMemoryPolicy(NullLogger())._extract_text_from_item("plain") == "plain"
+    assert FlowMemoryPolicy(NullLogger())._extract_text_from_item({"content": "text"}) == "text"
+    assert FlowMemoryPolicy(NullLogger())._extract_text_from_item({
         "content": [{"text": "one"}, {"type": "image"}, {"text": "two"}],
     }) == "one\ntwo"
-    assert orchestrator._extract_text_from_item(object()) == ""
+    assert FlowMemoryPolicy(NullLogger())._extract_text_from_item(object()) == ""
 
 
 def test_build_baton_input_first_agent_uses_initial_messages():
@@ -37,7 +40,7 @@ def test_build_baton_input_first_agent_uses_initial_messages():
     memory = SimpleNamespace(get=MagicMock())
     messages = [{"id": "server", "role": "user", "content": "question"}]
 
-    prepared, baton, mem_id, mem_state, source = orchestrator._build_baton_input(
+    prepared, baton, mem_id, mem_state, source = FlowMemoryPolicy(NullLogger()).build_input(
         node_id="a",
         g=graph,
         mem=memory,
@@ -59,7 +62,7 @@ def test_build_baton_input_next_agent_uses_last_plain_output():
     graph = SimpleNamespace(agent_to_memory={})
     memory = SimpleNamespace(get=MagicMock())
 
-    prepared, baton, _, _, source = orchestrator._build_baton_input(
+    prepared, baton, _, _, source = FlowMemoryPolicy(NullLogger()).build_input(
         node_id="b",
         g=graph,
         mem=memory,
@@ -80,7 +83,7 @@ def test_update_memory_after_step_replaces_last_memory_item_with_baton_pair():
         items=[{"role": "system", "content": "keep"}, {"role": "assistant", "content": "old"}],
         set_from=MagicMock(),
     )
-    orchestrator._update_memory_after_step(
+    FlowMemoryPolicy(NullLogger()).update_after_step(
         node_id="a",
         mem_state=state,
         baton_user_text="question",
@@ -99,10 +102,10 @@ def test_run_flow_without_start_or_agents_returns_empty_result(monkeypatch):
     orchestrator = FlowOrchestrator(window=SimpleNamespace())
     schema = SimpleNamespace(ends={}, agents={})
     graph = SimpleNamespace(start_targets=[], pick_default_start_agent=lambda: None)
-    monkeypatch.setattr(runner_module, "parse_schema", lambda value: schema)
-    monkeypatch.setattr(runner_module, "build_graph", lambda value: graph)
-    monkeypatch.setattr(runner_module, "MemoryManager", lambda: object())
-    monkeypatch.setattr(runner_module, "AgentFactory", lambda *args: object())
+    monkeypatch.setattr(flow_module, "parse_schema", lambda value: schema)
+    monkeypatch.setattr(flow_module, "build_graph", lambda value: graph)
+    monkeypatch.setattr(flow_module, "MemoryManager", lambda: object())
+    monkeypatch.setattr(preparation_module, "AgentFactory", lambda *args: object())
     ctx = object()
     bridge = SimpleNamespace(stopped=lambda: False)
 

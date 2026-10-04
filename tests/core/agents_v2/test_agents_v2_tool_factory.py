@@ -33,7 +33,11 @@ class FakeMetadata:
 
 
 def make_runtime(functions=None):
-    runtime = SimpleNamespace()
+    runtime = SimpleNamespace(
+        status=SimpleNamespace(),
+        artifacts=SimpleNamespace(),
+        tool_history=SimpleNamespace(),
+    )
     runtime.window = MagicMock()
     runtime.window.core.command.get_functions.return_value = list(functions or [])
     runtime.window.core.command.is_cmd.return_value = True
@@ -46,14 +50,14 @@ def make_runtime(functions=None):
     runtime.model = object()
     runtime.verbose = MagicMock()
     runtime.is_stopped = MagicMock(return_value=False)
-    runtime._show_tool_status = MagicMock(return_value=False)
+    runtime.status.show_tool = MagicMock(return_value=False)
     runtime.local_tool_lock = asyncio.Lock()
     runtime.emitter = SimpleNamespace(execute_plugin=AsyncMock(return_value={"ok": True}))
-    runtime.emit_runtime_status = MagicMock()
-    runtime.collect_artifacts = MagicMock()
-    runtime.register_local_plugin_tool = MagicMock()
-    runtime.record_local_plugin_tool_call = MagicMock(return_value="display-1")
-    runtime.record_local_plugin_tool_result = MagicMock()
+    runtime.status.emit = MagicMock()
+    runtime.artifacts.collect = MagicMock()
+    runtime.tool_history.register_plugin = MagicMock()
+    runtime.tool_history.record_local_call = MagicMock(return_value="display-1")
+    runtime.tool_history.record_local_result = MagicMock()
     return runtime
 
 
@@ -92,7 +96,7 @@ def test_agents_v2_tool_factory_filters_reserved_and_invalid_plugin_specs(monkey
     tools = factory._plugin_tools(make_worker())
 
     assert [tool.metadata.name for tool in tools] == ["normal_tool"]
-    runtime.register_local_plugin_tool.assert_called_once_with("normal_tool")
+    runtime.tool_history.register_plugin.assert_called_once_with("normal_tool")
     runtime.window.core.debug.log.assert_called_once()
 
 
@@ -113,7 +117,7 @@ def test_agents_v2_tool_factory_plugin_call_normalizes_wrapped_arguments(monkeyp
     result = asyncio.run(tool.async_fn(params={"path": "/tmp/a.txt"}))
 
     assert result == json.dumps({"ok": True}, ensure_ascii=False, indent=2)
-    runtime.record_local_plugin_tool_call.assert_called_once_with(
+    runtime.tool_history.record_local_call.assert_called_once_with(
         "read_file", {"path": "/tmp/a.txt"}, actor="w01"
     )
     runtime.emitter.execute_plugin.assert_awaited_once_with(
@@ -121,7 +125,7 @@ def test_agents_v2_tool_factory_plugin_call_normalizes_wrapped_arguments(monkeyp
         [{"cmd": "read_file", "params": {"path": "/tmp/a.txt"}}],
         runtime.is_stopped,
     )
-    runtime.record_local_plugin_tool_result.assert_called_once_with(
+    runtime.tool_history.record_local_result.assert_called_once_with(
         "display-1", "read_file", {"ok": True}, actor="w01"
     )
     assert worker.tool_ctx.agent_call is True
@@ -129,7 +133,7 @@ def test_agents_v2_tool_factory_plugin_call_normalizes_wrapped_arguments(monkeyp
     assert worker.tool_ctx.internal is True
     assert worker.tool_ctx.hidden is True
     assert worker.tool_ctx.reply is False
-    runtime.collect_artifacts.assert_called_once_with(worker.tool_ctx, worker)
+    runtime.artifacts.collect.assert_called_once_with(worker.tool_ctx, worker)
 
 
 def test_agents_v2_tool_factory_plugin_call_rejects_missing_required_parameters(monkeypatch):
@@ -145,7 +149,7 @@ def test_agents_v2_tool_factory_plugin_call_rejects_missing_required_parameters(
     assert result["error"] == "Missing required tool parameter(s)."
     assert result["missing"] == ["query"]
     runtime.emitter.execute_plugin.assert_not_awaited()
-    runtime.record_local_plugin_tool_call.assert_not_called()
+    runtime.tool_history.record_local_call.assert_not_called()
 
 
 def test_agents_v2_tool_factory_plugin_call_short_circuits_on_stop(monkeypatch):
@@ -176,7 +180,7 @@ def test_agents_v2_tool_factory_records_error_response_before_reraising(monkeypa
     except RuntimeError as exc:
         assert str(exc) == "boom"
 
-    runtime.record_local_plugin_tool_result.assert_called_once_with(
+    runtime.tool_history.record_local_result.assert_called_once_with(
         "display-1", "failing_tool", {"error": "boom"}, actor="w01"
     )
 
@@ -199,7 +203,7 @@ def test_agents_v2_tool_factory_build_adds_status_shared_context_and_plugin_tool
 
 def test_agents_v2_tool_factory_report_status_trims_and_emits():
     runtime = make_runtime()
-    runtime.emit_worker_status = MagicMock()
+    runtime.status.worker = MagicMock()
     worker = make_worker()
     factory = WorkerToolFactory(runtime)
 
@@ -207,7 +211,7 @@ def test_agents_v2_tool_factory_report_status_trims_and_emits():
 
     assert result == "Status updated."
     assert len(worker.progress) == 240
-    runtime.emit_worker_status.assert_called_once_with(worker, worker.progress)
+    runtime.status.worker.assert_called_once_with(worker, worker.progress)
 
 
 def test_agents_v2_tool_factory_rag_tool_reuses_chat_index(monkeypatch):
@@ -228,7 +232,8 @@ def test_agents_v2_tool_factory_rag_tool_reuses_chat_index(monkeypatch):
 
     monkeypatch.setattr(tools_module, "QueryEngineTool", FakeQueryEngineTool)
     monkeypatch.setattr(tools_module, "ToolMetadata", lambda name, description: SimpleNamespace(
-        name=name, description=description
+        name=name,
+        description=description,
     ))
 
     tool = WorkerToolFactory(runtime)._rag_tool()
@@ -238,3 +243,53 @@ def test_agents_v2_tool_factory_rag_tool_reuses_chat_index(monkeypatch):
     assert captured["metadata"].name == "query_index"
     assert "idx-1" in captured["metadata"].description
     index.as_query_engine.assert_called_once_with(llm=llm, similarity_top_k=3)
+
+
+def test_orchestrator_shared_context_and_skill_callbacks(tmp_path):
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    from pygpt_net.core.agents_v2.tools import WorkerToolFactory
+    runtime = MagicMock()
+    runtime.allow_local_tools = False
+    runtime.shared_context_text = 'manifest'
+    factory = WorkerToolFactory(runtime)
+    factory._rag_tool = MagicMock(return_value=None)
+    tools = {t.metadata.name: t for t in factory.build_orchestrator(SimpleNamespace(id='orchestrator'))}
+    assert asyncio.run(tools['shared_context'].acall()).content == 'manifest'
+    skills = runtime.window.core.skills
+    skills.list_for_agent.return_value = 'catalog'
+    skills.load_for_agent.return_value = 'instructions'
+    skills.read_resource_for_agent.return_value = 'resource'
+    assert asyncio.run(tools['list_skills'].acall(query='query')).content == 'catalog'
+    assert asyncio.run(tools['load_skill'].acall(name='skill')).content == 'instructions'
+    assert asyncio.run(tools['read_skill_resource'].acall(name='skill', path='file')).content == 'resource'
+    skills.load_for_agent.assert_called_once_with('skill', ctx=runtime.context.ctx)
+    value = {'result': [{'agent_runtime_attachments': ['secret'], 'visible': 1}], 'agent_delivery_files': ['private']}
+    assert factory._strip_private_artifact_markers(value) == {'result': [{'visible': 1}]}
+    assert value['agent_delivery_files'] == ['private']
+    runtime.model.is_image_input.return_value = True
+    path = tmp_path / 'image.png'
+    path.write_bytes(b'image')
+    blocks = factory._runtime_attachment_blocks('output', [{'path': str(path)}, {'path': 'missing', 'name': 'missing'}])
+    assert 'missing' in blocks[0].text and len(blocks) == 2
+
+
+def test_worker_status_and_shared_context_tools_delegate_semantic_updates():
+    import asyncio
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    from pygpt_net.core.agents_v2.tools import WorkerToolFactory
+    runtime = MagicMock()
+    runtime.allow_local_tools = False
+    runtime.shared_context_text = ''
+    worker = SimpleNamespace(id='w', stop_requested=False)
+    runtime.is_stopped.return_value = False
+    factory = WorkerToolFactory(runtime)
+    factory._rag_tool = MagicMock(return_value=None)
+    factory._skill_tools = MagicMock(return_value=[])
+    tools = {t.metadata.name: t for t in factory.build(worker)}
+    assert 'No shared' in asyncio.run(tools['shared_context'].acall()).content
+    result = asyncio.run(tools['report_status'].acall(status='Reading'))
+    assert result.content
+    runtime.status.worker.assert_called_once_with(worker, 'Reading')

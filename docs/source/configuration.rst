@@ -36,7 +36,7 @@ General
 
 * ``Application environment (os.environ)``: Defines environment variables that PyGPT adds to its process environment during startup. Use this for provider SDKs, local model servers, proxies, or integrations that read configuration from environment variables.
 
-* ``Memory Limit``: Sets the memory threshold used by the renderer memory-management logic. When the renderer exceeds the configured threshold, PyGPT attempts to release renderer resources; set ``0`` to disable this mechanism. Accepted formats include ``3.5GB``, ``2GB``, ``2048MB`` and raw byte values; the minimum enabled limit is 2 GB. Default: 2.5GB.
+* ``Memory Limit``: Sets the memory threshold used by the renderer memory-management logic. When the renderer exceeds the configured threshold, PyGPT attempts to release renderer resources; set ``0`` to disable this mechanism. Accepted formats include ``3.5GB``, ``2GB``, ``2048MB`` and raw byte values; the minimum enabled limit is 2 GB. Default: 4GB.
 
 API Keys
 ~~~~~~~~
@@ -189,6 +189,8 @@ General
 
 * ``Display tips (help descriptions)``: Shows contextual help text and descriptions next to configurable options throughout the interface. Disable it for a more compact settings UI once you are familiar with the controls. Default: True.
 
+* ``Auto-open Canvas if used``: On the first model-driven Canvas/browser open in an application session, reveals the Canvas in split screen. If you later collapse split screen, PyGPT does not force it open again during that session. Default: True.
+
 * ``Store dialog window positions``: Remembers the geometry/position of supported dialog windows and restores them the next time they are opened. Disable it if you prefer dialogs to use their default placement each time. Default: True.
 
 Code syntax
@@ -270,7 +272,7 @@ Render
 
 The plain-text renderer itself is switched on or off with the ``text`` icon in the input-tab icon row. The icon tooltip changes between ``Switch to plain text`` and ``Switch to normal view`` according to the active renderer.
 
-* ``Show RAG sources``: Appends source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. Default: True.
+* ``Show RAG sources``: Appends source nodes/documents returned by RAG retrieval to the rendered answer when source metadata is available. Default: False.
 
 * ``Show Code Interpreter output``: Displays execution results returned by provider-side Code Interpreter tools as part of the conversation. Default: True.
 
@@ -282,10 +284,19 @@ The plain-text renderer itself is switched on or off with the ``text`` icon in t
 
 * ``Use extra context output``: Renders the human-readable/plain-text part of tool or command results in addition to their structured JSON payload when both forms are available. Default: True.
 
+Annotations
+^^^^^^^^^^^
+
+These options control whether pending annotations are cleared automatically when a message is sent. They affect annotations created in the corresponding UI surface; they do not disable annotation support itself.
+
+* ``Clear annotations on message send in Canvas``: Clears pending Canvas/browser annotations after sending a message. Default: False.
+
+* ``Clear annotations on message send in Files``: Clears pending annotations from the Files preview/editor after sending a message. Default: False.
+
+* ``Clear annotations on message send in Chat``: Clears pending annotations attached to chat content after sending a message. Default: True.
+
 Options
 ^^^^^^^
-
-* ``Use context (memory)``: Includes previous messages from the current conversation when building new model requests, allowing the model to follow the ongoing dialogue. Disable it to send each new interaction without prior conversational context. Default: True.
 
 * ``Lock incompatible modes``: Prevents an existing conversation from being reused when you switch to a mode whose context format is incompatible with it. PyGPT creates a new context instead. Default: True.
 
@@ -299,14 +310,26 @@ The ``Context`` settings are organized into three tabs: ``General``, ``Tools``, 
 General
 ^^^^^^^
 
-* ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window.
+* ``Use context (memory)``: Includes previous messages from the current conversation when building new model requests, allowing the model to follow the ongoing dialogue. Disable it to send each new interaction without prior conversational context. Default: True.
 
-* ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion.
+* ``Max total tokens``: Sets an application-level ceiling for the total token budget used when preparing a request, including conversation context and output allowance where applicable. Set ``0`` to disable this extra limit and rely on the model/provider context window. Default: ``0``.
+
+* ``Context threshold``: Reserves part of the model context window for the generated answer instead of filling the entire window with prompt/history tokens. Increasing it can reduce how much old context is included but leaves more room for completion. Default: ``200``.
+
+* ``Max history items to append``: Limits how many of the most recent conversation items may be appended to a model request before token-budget fitting is applied. Set ``0`` for no item-count limit. Default: ``0``.
 
 Tools
 ^^^^^
 
-Tool-call persistence and replay options are grouped in this tab. ``Store tool calls in database`` controls durable storage, while ``Restore tool calls in runtime`` and ``Restore tool calls from history`` independently control replay for the active in-memory conversation and for history reloaded from the database. See ``Context and memory -> Tool call storage`` for details.
+Tool-call persistence and replay options are grouped in this tab. ``Store tool calls in database`` controls durable storage, while ``Restore tool calls in runtime`` and ``Restore tool calls from history`` independently control replay for the active in-memory conversation and for history reloaded from the database.
+
+* ``Store tool calls in database``: Selects how tool requests/results are persisted in conversation history. ``Do not store`` keeps no durable tool payloads, ``Store truncated`` preserves the structure while truncating stored string values, and ``Store full input/output`` persists complete payloads. Default: ``Store truncated``.
+
+* ``Restore tool calls in runtime``: Replays completed tool calls/results from earlier turns to the model while the current conversation remains active in memory. It does not control durable database storage and does not interrupt the tool exchange currently in progress. Default: True.
+
+* ``Restore tool calls from history``: Replays persisted tool protocol after a conversation is reloaded from the database. It requires ``Store full input/output`` and is ignored for ``Do not store`` or ``Store truncated``. Default: False.
+
+See ``Context and memory -> Tool call storage`` for details.
 
 Advanced handling
 ^^^^^^^^^^^^^^^^^
@@ -406,6 +429,8 @@ xAI
 
 Models
 ~~~~~~
+
+* ``Group model providers``: Groups models by provider in expandable submenus in the model selector below the input field. Only providers with at least one available model are shown. When set to ``False``, models are displayed in a flat list. Default: False.
 
 * ``Restore used model from stored conversation``: Restores the model saved with a conversation or preset when it is loaded. Disable it to keep the currently selected model. Default: False.
 
@@ -535,7 +560,7 @@ General
 Vector Store
 ^^^^^^^^^^^^
 
-* ``Vector Store``: Selects the storage backend in which LlamaIndex writes and queries document embeddings. Changing it determines where indexed vectors are persisted and which provider-specific connection options may be required. Default: ``SimpleVectorStore``.
+* ``Vector Store``: Selects the storage backend in which LlamaIndex writes and queries document embeddings. Changing it determines where indexed vectors are persisted and which provider-specific connection options may be required. Default: ``ChromaVectorStore``.
 
 * ``Vector Store (**kwargs)``: Additional keyword arguments (**kwargs), such as API keys, for the Vector Store provider. These arguments will be passed to the provider; please refer to the LlamaIndex API reference for a list of required arguments for the specified Vector Store.
 
@@ -619,9 +644,11 @@ Agents
 
 * ``Add support for .agents directory``: Checks the active workdir at run start. If ``%workdir%/.agents/`` exists, the top-level Agents agent receives its layout and guidance to use relevant project instructions/resources; otherwise it receives only a short note that ``.agents/`` may be created and ``.agents/memories/`` used for persistent notes. PyGPT does not preload the directory contents. Default: True.
 
+* ``Show tools in Agents``: Shows expandable tool calls beneath Agents status rows during a workflow and when restoring a conversation from history. Each tool call can be expanded to view its input and output. When disabled, status updates remain visible, but individual tool calls are not sent to the chat web view or rendered from history. Default: False.
+
 * ``Show full tool-chain in Agents``: When enabled, the final Agents response stores and displays the full sequence of normal tool calls executed across the workflow. Each tool call is shown as its own expandable item with Request and Response data. Internal orchestration and worker-management tools are excluded. Default: False.
 
-* ``Display full agent workflow``: Keeps the complete visible sequence of persisted Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: True.
+* ``Display full agent workflow``: Keeps the complete visible sequence of persisted Agents partial responses in the chat after the workflow finishes and after the conversation is reloaded. Disable it to collapse completed turns to the final response only. This affects UI rendering only and is independent from ``Restore full workflow history on next request``. Default: False.
 
 * ``Restore full workflow history on next request``: Controls the model-facing history restored from completed Agents turns. When enabled, later requests replay the full persisted workflow, including intermediate main-agent output and worker results. This can improve continuity and accuracy but uses more input tokens. When disabled, only the final response from each completed turn is restored, reducing token usage at the cost of less detailed workflow context. The full workflow remains stored in the database/UI. The live history token estimate and Advanced Context Handling checkpoint sizing/snapshots follow the same selection. Default: True.
 
@@ -711,6 +738,8 @@ General
 Computer use
 ^^^^^^^^^^^^
 
+* ``Show computer use warning``: Displays the warning badge and a green overlay frame around the screen while Computer Use controls the host computer. Applies only to non-sandbox execution. Disabling it hides both indicators without changing execution permissions. Configuration key: ``security.computer.show_warning``. Default: True.
+
 * ``Halt on potentially unsafe operation``: Non-sandbox only. When enabled, Computer Use pauses before an operation that the API provider flags as requiring user confirmation. PyGPT displays a warning in the chat and waits until the user types ``continue``. The paused mouse/keyboard action is executed only after that confirmation, and only then is the provider safety check acknowledged back to the API. When disabled, provider safety checks are acknowledged automatically as before. Sandbox execution is not affected. Default: True.
 
 Linux
@@ -796,6 +825,35 @@ Debug
 
 * ``Log legacy API usage to console``: Prints diagnostics for older/legacy API and assistant execution paths that are still supported for compatibility. Enable it when debugging those paths specifically. Default: False.
 
+* ``Log package installations``: Writes output from Package Manager install/uninstall operations to ``extra_packages/packages.log`` in addition to the Package Manager window. Default: False.
+
+* ``Log auto-update flow``: Logs automatic update-check/update workflow diagnostics. Enable it when troubleshooting the updater. Default: False.
+
+Package Manager
+---------------
+
+Open ``Config -> Package Manager`` to install or remove optional Python packages used by PyGPT itself. This is the application-runtime package environment. It is deliberately separate from both built-in Python/System sandboxes and Docker: installing a package here makes it available to PyGPT features and external Add-ons, not to a sandboxed model runtime.
+
+PyGPT installs these packages with ``uv`` into an application-wide, Python-version-specific directory:
+
+.. code-block:: text
+
+   <application base workdir>/extra_packages/<major.minor>/
+
+For example, a Python 3.13 build uses ``extra_packages/3.13``. The directory is shared by all profiles that use the same application base workdir. Keeping packages separated by Python version prevents binary or ABI-incompatible packages from an older bundled/runtime Python version from being reused after an upgrade. When PyGPT later runs with another Python minor version, a separate directory is selected automatically.
+
+The manager accepts normal package requirements such as ``httpx``, ``httpx>=0.27,<1.0`` or ``package[extra]>=1.0``. Direct package URLs are intentionally not accepted by the Add-on dependency resolver. Environment markers are evaluated for the current runtime. Packages already supplied by the main PyGPT environment are constrained during installation so optional packages do not silently replace core runtime dependencies with incompatible versions.
+
+Install/uninstall operations are transactional. PyGPT copies the current ``extra_packages`` environment to a temporary staging directory, runs ``uv pip`` against that staging copy, and swaps it into place only after the operation succeeds. Cancellation or installation failure therefore leaves the live package directory intact. A per-installation lock also prevents two PyGPT instances from changing the package directory at the same time.
+
+The Package Manager dialog shows currently installed packages, accepts one requirement per line, displays installer output, and uses the standard progress dialog. Packages installed successfully are added to the running Python import path. Pure-Python packages that have not already been imported can often be used immediately, but a restart may still be required for compiled/native extensions or modules whose old version is already loaded in the process.
+
+External Add-ons integrate with the same manager through ``manifest.json -> external_dependencies``. During Add-on installation PyGPT checks required dependency versions; when something is missing it asks the user to install the requirements before completing the Add-on installation. Dependencies marked ``optional: true`` are not installed automatically. On startup PyGPT also checks installed Add-ons against the currently selected Python-version directory, which makes dependency repair possible after a bundled/runtime Python upgrade. See :doc:`addons_api` for the manifest syntax and publishing workflow.
+
+Local Whisper uses this same mechanism when ``openai-whisper`` is not installed. The selected model checkpoint is downloaded separately by Whisper on first use.
+
+``Log package installations`` under Debug writes Package Manager operations to ``extra_packages/packages.log`` in addition to the dialog output.
+
 JSON files
 -----------
 The configuration is stored in JSON files for easy manual modification outside of the application. 
@@ -808,7 +866,29 @@ These configuration files are located in the user's work directory within the fo
 
 Manual configuration
 ---------------------
-You can manually edit the configuration files in this directory (this is your work directory):
+
+PyGPT uses two related paths:
+
+* the **application base workdir**, which by default is ``{HOME_DIR}/.config/pygpt-net/`` and owns ``path.cfg``;
+* the active **profile/application workdir**, which is normally the same directory but may be redirected elsewhere by the contents of ``path.cfg``.
+
+The application base workdir also owns runtime data shared across profiles:
+
+.. code-block:: text
+
+   <application base workdir>/
+   ├── path.cfg
+   ├── addons/
+   │   ├── themes/                 # application-wide Theme Add-ons
+   │   └── locale/                 # application-wide Locale Add-ons
+   ├── css/                        # optional application-wide custom CSS/themes
+   ├── locale/                     # optional application-wide locale overrides
+   ├── sandbox/                    # shared built-in Python/System runtime
+   └── extra_packages/             # shared Package Manager dependencies, grouped by Python version
+
+``addons``, ``sandbox`` and ``extra_packages`` stay in the application base workdir even when ``path.cfg`` points the active profile/workdir to another directory. The application-base ``css`` and ``locale`` directories are also loaded as shared customization layers. Profile-local ``css`` / ``locale`` directories remain supported as final explicit overrides. For example, Package Manager dependencies for Python 3.13 are stored under ``<application base workdir>/extra_packages/3.13``.
+
+You can manually edit the profile configuration files in the active profile/application workdir. With the default configuration this is:
 
 .. code-block:: ini
 
@@ -833,9 +913,11 @@ You can manually edit the configuration files in this directory (this is your wo
 Project data workdirs
 ~~~~~~~~~~~~~~~~~~~~~
 
-The directory above is the **profile/application workdir**. Projects do not
+The directory above is the active **profile/application workdir**. Projects do not
 replace it. A project can override only the logical ``data`` directory used by
-conversations assigned to that project.
+conversations assigned to that project. The application-wide ``addons``,
+``sandbox`` and ``extra_packages`` directories are not profile-level paths; they
+remain under the application base workdir that owns ``path.cfg``.
 
 When creating a project, ``Use shared workdir`` is enabled by default. Disable
 it to choose a custom project data directory. For an existing project use
@@ -898,22 +980,25 @@ This will add Spanish as a selectable language in the application's language men
 
 **Overwriting locales and adding custom CSS themes:**
 
-You can override locale files and provide profile-specific themes from the application workdir:
+There are two customization scopes in addition to bundled resources:
 
-.. code-block:: ini
+* application-wide overrides under ``<application base workdir>/locale`` and ``<application base workdir>/css``;
+* active-profile overrides under ``<profile workdir>/locale`` and ``<profile workdir>/css``.
 
-   {HOME_DIR}/.config/pygpt-net/
+Static Add-ons are also application-wide and are read directly from:
 
-* ``locale`` - locale overrides in ``.ini`` format.
-* ``css`` - custom theme directories and optional global CSS overrides.
+* ``<application base workdir>/addons/locale/<id>/[locale/]``;
+* ``<application base workdir>/addons/themes/<id>/[theme/]``.
 
-Theme CSS now uses a directory-per-theme layout. For new custom themes, use a ``-dark`` or
+Theme and Locale Add-ons are not copied into profile workdirs. For locale data, the effective load order is bundled locale -> application-base ``locale`` -> Locale Add-ons -> active-profile ``locale``. For theme assets, the effective order is bundled theme -> application-base ``css`` -> Theme Add-on -> active-profile ``css``.
+
+Theme CSS uses a directory-per-theme layout. For new custom themes, use a ``-dark`` or
 ``-light`` suffix to declare the runtime compatibility type, for example
-``%workdir%/css/my_custom-dark/`` or ``%workdir%/css/paper-light/``. The suffix stays in the stored
+``<application base workdir>/css/my_custom-dark/`` or ``<profile workdir>/css/paper-light/``. The suffix stays in the stored
 theme ID but is omitted from the normal menu title, so these are displayed as **My Custom** and
 **Paper**. If both Dark and Light variants with the same base name are installed, the menu shows
-**(Dark)** / **(Light)** to distinguish them. Unsuffixed new custom IDs default to Dark. A profile
-directory with the same ID as a built-in theme, such as ``%workdir%/css/ocean/``, overrides/extends
+**(Dark)** / **(Light)** to distinguish them. Unsuffixed new custom IDs default to Dark. A custom
+directory with the same ID as a built-in theme, such as ``<application base workdir>/css/ocean/`` or ``<profile workdir>/css/ocean/``, overrides/extends
 that bundled theme and keeps its built-in compatibility type.
 
 See ``Extending PyGPT -> Custom themes and styles`` for the complete directory layout, load order,

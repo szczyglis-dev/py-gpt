@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.19 22:48:00                  #
+# Updated Date: 2026.09.30 19:20:00                  #
 # ================================================== #
 
 import os
@@ -46,7 +46,7 @@ class Common:
         """
         self.window = window
         # Runtime equivalent of the static built-in compatibility metadata.
-        # It is rebuilt from the active profile's discovered theme directories.
+        # It is rebuilt from bundled, global Add-on and profile theme directories.
         self.theme_types = {}
 
     def get_builtin_css_dir(self) -> str:
@@ -57,12 +57,75 @@ class Common:
             "css",
         )
 
+    def get_base_css_dir(self) -> str:
+        """Return the application-wide custom CSS/theme root."""
+        return os.path.join(
+            self.window.core.config.get_base_workdir(),
+            "css",
+        )
+
+    def get_addon_themes_dir(self) -> str:
+        """Return the application-wide Theme Add-ons root."""
+        return os.path.join(
+            self.window.core.config.get_base_workdir(),
+            "addons",
+            "themes",
+        )
+
     def get_user_css_dir(self) -> str:
         """Return the active profile CSS/theme root."""
         return os.path.join(
             self.window.core.config.get_user_path(),
             "css",
         )
+
+    @staticmethod
+    def _unique_roots(*roots: str) -> List[str]:
+        """Return path roots once, preserving precedence/order."""
+        result = []
+        seen = set()
+        for root in roots:
+            if not root:
+                continue
+            key = os.path.normcase(os.path.realpath(root))
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(root)
+        return result
+
+    def _get_addon_theme_dir(self, theme: str) -> Optional[str]:
+        """Resolve a Theme Add-on payload directory by Add-on/theme ID."""
+        package = self._find_theme_dir(self.get_addon_themes_dir(), theme)
+        if package is None:
+            return None
+        nested = os.path.join(package, "theme")
+        payload = nested if os.path.isdir(nested) else package
+        if any(os.path.isfile(os.path.join(payload, name)) for name in self.THEME_FILES):
+            return payload
+        return None
+
+    def _discover_addon_themes(self) -> List[str]:
+        """Return IDs of valid application-wide Theme Add-ons."""
+        root = self.get_addon_themes_dir()
+        if not os.path.isdir(root):
+            return []
+        result = []
+        try:
+            entries = list(os.scandir(root))
+        except OSError:
+            return []
+        for entry in entries:
+            if entry.name.startswith("."):
+                continue
+            try:
+                if not entry.is_dir() or entry.is_symlink():
+                    continue
+            except OSError:
+                continue
+            if self._get_addon_theme_dir(entry.name) is not None:
+                result.append(entry.name)
+        return sorted(result, key=str.casefold)
 
     def _discover_theme_dirs(self, root: str) -> List[str]:
         """Return theme directory IDs found below a CSS root."""
@@ -129,17 +192,31 @@ class Common:
         return ordered
 
     def get_custom_themes_list(self) -> List[str]:
-        """Return theme directory IDs supplied by the active profile."""
-        return self._discover_theme_dirs(self.get_user_css_dir())
+        """Return global/Add-on/profile custom theme IDs."""
+        result = []
+        known = set()
+        sources = [
+            self._discover_theme_dirs(self.get_base_css_dir()),
+            self._discover_addon_themes(),
+            self._discover_theme_dirs(self.get_user_css_dir()),
+        ]
+        for themes in sources:
+            for theme in themes:
+                key = theme.casefold()
+                if key in known:
+                    continue
+                known.add(key)
+                result.append(theme)
+        return result
 
     def get_themes_list(self) -> List[str]:
         """
         Return all available theme IDs and rebuild runtime compatibility types.
 
-        Bundled themes keep their normal order. User themes from
-        ``%workdir%/css/<theme-id>/`` are appended alphabetically. A user theme
-        with the same ID (case-insensitive) as a bundled theme overrides its
-        assets instead of creating a duplicate menu entry.
+        Bundled themes keep their normal order. Application-base themes, Theme
+        Add-ons, and active-profile themes are then discovered without duplicate
+        menu entries. A custom theme with the same ID as a bundled theme extends
+        or overrides that bundled theme's assets.
         """
         themes = self.get_builtin_themes_list()
         known = {theme.casefold() for theme in themes}
@@ -296,66 +373,88 @@ class Common:
         """
         Return CSS layers for a theme asset in application order.
 
-        Order is: bundled global file, bundled theme file, user global file,
-        user theme file. Missing files are simply skipped.
+        Precedence is bundled -> application-base custom CSS -> Theme Add-on ->
+        active-profile CSS. Missing files are skipped and equal base/profile
+        paths are de-duplicated.
         """
         name = self.normalize_theme(theme)
         builtin_root = self.get_builtin_css_dir()
+        base_root = self.get_base_css_dir()
         user_root = self.get_user_css_dir()
         paths = []
 
-        bundled_global = os.path.join(builtin_root, filename)
-        if os.path.isfile(bundled_global):
-            paths.append(bundled_global)
+        def append_file(path: str):
+            if os.path.isfile(path) and path not in paths:
+                paths.append(path)
+
+        append_file(os.path.join(builtin_root, filename))
 
         bundled_dir = self._find_theme_dir(builtin_root, name)
         if bundled_dir is None:
-            # A new profile theme inherits a complete bundled compatibility
-            # base. This makes partial custom themes useful: a directory may
-            # contain only the files it actually wants to override.
             fallback_id = "light" if self.is_light_theme_id(name) else "dark"
             bundled_dir = self._find_theme_dir(builtin_root, fallback_id)
         if bundled_dir is not None:
-            path = os.path.join(bundled_dir, filename)
-            if os.path.isfile(path):
-                paths.append(path)
+            append_file(os.path.join(bundled_dir, filename))
 
-        user_global = os.path.join(user_root, filename)
-        if os.path.isfile(user_global):
-            paths.append(user_global)
+        # Application-wide manually installed/custom CSS.
+        append_file(os.path.join(base_root, filename))
+        base_dir = self._find_theme_dir(base_root, name)
+        if base_dir is not None:
+            append_file(os.path.join(base_dir, filename))
 
-        user_dir = self._find_theme_dir(user_root, name)
-        if user_dir is not None:
-            path = os.path.join(user_dir, filename)
-            if os.path.isfile(path):
-                paths.append(path)
+        # Static Theme Add-ons are read directly from their package.
+        addon_dir = self._get_addon_theme_dir(name)
+        if addon_dir is not None:
+            append_file(os.path.join(addon_dir, filename))
+
+        # Profile-local CSS remains the last, explicit override layer.
+        if os.path.normcase(os.path.realpath(user_root)) != os.path.normcase(os.path.realpath(base_root)):
+            append_file(os.path.join(user_root, filename))
+            user_dir = self._find_theme_dir(user_root, name)
+            if user_dir is not None:
+                append_file(os.path.join(user_dir, filename))
 
         return paths
 
     def get_global_asset_paths(self, filename: str) -> List[str]:
-        """Return bundled then user profile paths for a global CSS asset."""
+        """Return bundled, application-base, then profile global CSS assets."""
         paths = []
-        for root in (self.get_builtin_css_dir(), self.get_user_css_dir()):
+        for root in self._unique_roots(
+                self.get_builtin_css_dir(),
+                self.get_base_css_dir(),
+                self.get_user_css_dir(),
+        ):
             path = os.path.join(root, filename)
             if os.path.isfile(path):
                 paths.append(path)
         return paths
 
     def get_material_theme_path(self, theme: str) -> Optional[str]:
-        """
-        Resolve ``app.xml`` for a theme.
-
-        A profile-level XML overrides the bundled XML with the same theme ID.
-        A completely custom theme without ``app.xml`` falls back to the bundled
-        Light or Dark material palette selected by its runtime compatibility
-        type.
-        """
+        """Resolve the highest-precedence ``app.xml`` for a theme."""
         name = self.normalize_theme(theme)
-        user_dir = self._find_theme_dir(self.get_user_css_dir(), name)
+
+        # Profile-local override is explicit and wins over the global Add-on.
+        user_root = self.get_user_css_dir()
+        base_root = self.get_base_css_dir()
+        user_dir = self._find_theme_dir(user_root, name)
         if user_dir is not None:
             path = os.path.join(user_dir, "app.xml")
             if os.path.isfile(path):
                 return path
+
+        # Application-wide Theme Add-on overrides the manually shared base CSS.
+        addon_dir = self._get_addon_theme_dir(name)
+        if addon_dir is not None:
+            path = os.path.join(addon_dir, "app.xml")
+            if os.path.isfile(path):
+                return path
+
+        if os.path.normcase(os.path.realpath(base_root)) != os.path.normcase(os.path.realpath(user_root)):
+            base_dir = self._find_theme_dir(base_root, name)
+            if base_dir is not None:
+                path = os.path.join(base_dir, "app.xml")
+                if os.path.isfile(path):
+                    return path
 
         bundled_dir = self._find_theme_dir(self.get_builtin_css_dir(), name)
         if bundled_dir is not None:

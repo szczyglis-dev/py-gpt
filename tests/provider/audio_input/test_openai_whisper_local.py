@@ -211,3 +211,11 @@ def test_get_memory_excluded_bytes_is_capped_to_process_rss():
     provider._get_rss_bytes = MagicMock(return_value=1000)
 
     assert provider.get_memory_excluded_bytes() == 1000
+
+
+def test_compiled_whisper_accepts_available_runtime_packages():
+    provider, plugin = make_provider()
+    plugin.window.core.config.is_compiled.return_value = True
+    plugin.window.core.platforms.is_snap.return_value = True
+    provider._import_whisper = MagicMock()
+    assert provider.is_configured() is True

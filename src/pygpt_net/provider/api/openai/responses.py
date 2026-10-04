@@ -848,7 +848,7 @@ class Responses:
                     (model.has_mode(MODE_COMPUTER)
                      or supports_future_computer_mode(model.provider, model.id))
                     and (
-                        self.window.core.config.get("remote_tools.computer_use", False)
+                        self.window.core.llm.get("openai").is_remote_tool_enabled("computer_use")
                         or preset_computer_use
                     )
                 )

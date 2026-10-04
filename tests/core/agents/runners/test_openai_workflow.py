@@ -117,3 +117,47 @@ def test_make_response_without_tool_outputs(monkeypatch, workflow):
     assert "output" not in dummy_response_ctx.extra
 
     add_ctx.assert_called_once_with(dummy_ctx, with_tool_outputs=True)
+
+
+def test_legacy_openai_run_callbacks_keep_loader_until_real_prose_and_finalize():
+    import asyncio
+    from types import SimpleNamespace
+    from pygpt_net.item.ctx import CtxItem
+    window = MagicMock()
+    workflow = OpenAIWorkflow(window)
+    workflow.is_stopped = MagicMock(return_value=False)
+    for name in ('set_busy', 'set_idle', 'send_stream', 'end_stream', 'next_stream', 'send_response', 'set_error'):
+        setattr(workflow, name, MagicMock())
+    ctx, next_ctx = CtxItem(), CtxItem()
+    ctx.set_agent_name('Writer')
+    workflow.add_next_ctx = MagicMock(return_value=next_ctx)
+    workflow.make_response = MagicMock(return_value=ctx)
+    window.core.agents.memory.prepare_openai.return_value = ([], 'previous')
+    window.core.api.openai.vision.build_agent_input.return_value = [{'role': 'user', 'content': 'task'}]
+    signals, monitor = MagicMock(), MagicMock()
+    async def run(**kwargs):
+        assert kwargs['previous_response_id'] == 'previous'
+        assert kwargs['use_partial_ctx'] is True
+        assert kwargs['schema'] == ['schema']
+        bridge = kwargs['bridge']
+        ctx.stream = ''
+        bridge.on_step(ctx)
+        workflow.send_stream.assert_not_called()
+        ctx.stream = 'prose'
+        bridge.on_step(ctx)
+        workflow.send_stream.assert_called_once_with(ctx, signals, True)
+        bridge.on_next(ctx)
+        result = bridge.on_next_ctx(ctx, input='next', output='answer', response_id='r')
+        assert result is next_ctx and next_ctx.partial is True
+        bridge.on_next_ctx(ctx, input='done', output='done', response_id='r', finish=True)
+        assert ctx.extra['agent_finish_evaluate'] is True
+        bridge.on_error(RuntimeError('test'))
+        bridge.on_stop(ctx)
+        return ctx, 'final', 'response'
+    context = SimpleNamespace(attachments=[])
+    assert asyncio.run(workflow.run(MagicMock(), {'context': context, 'llm': 'unused'}, run,
+                                    ctx, 'task', signals, schema=['schema'], workflow_bridge=monitor)) is True
+    monitor.finish.assert_called_once_with('final')
+    monitor.stop.assert_called_once()
+    monitor.fail.assert_called_once()
+    workflow.make_response.assert_called_once_with(ctx, 'task', 'final', 'response')

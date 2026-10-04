@@ -66,12 +66,11 @@ class ProfileExporter:
         SECTION_DATA: "workdir_data",
     }
 
-    CONFIG_DIRS = {"presets", "css", "locale", "fonts", "addons"}
-    # Profile-local runtime environments/caches are reproducible and must
-    # never be treated as portable profile data.  In particular, the
-    # built-in uv-managed interpreter lives under ``sandbox/`` and can be
-    # very large.
-    RUNTIME_DIRS = {"tmp", "cache", "__pycache__", "sandbox"}
+    CONFIG_DIRS = {"presets", "css", "locale", "fonts"}
+    # Application-wide/runtime directories are not portable profile data.
+    # ``addons`` is shared by all profiles from 2.8.36; sandbox and optional
+    # Package Manager environments are shared runtime state as well.
+    RUNTIME_DIRS = {"tmp", "cache", "__pycache__", "sandbox", "extra_packages", "addons"}
     EXCLUDED_ROOT_FILES = {
         "app.log",
         "path.cfg",
@@ -812,11 +811,12 @@ class ProfileExporter:
             raise InvalidProfileArchive("Symbolic links are not supported")
 
     def _archive_member_is_runtime(self, section: str, normalized: str) -> bool:
-        """Return True for root-level runtime dirs stored in old archives.
+        """Return True for root-level non-portable dirs stored in old archives.
 
-        Runtime dirs are part of the profile root (the ``files``/``config``
-        archive namespaces), not of the user-managed ``data`` directory.  A
-        user folder named ``data/sandbox`` therefore remains portable.
+        Application-wide/runtime dirs are part of the profile root in legacy
+        ``files``/``config`` archive namespaces, not of the user-managed
+        ``data`` directory. A user folder named ``data/addons`` or
+        ``data/sandbox`` therefore remains portable.
         """
         if section not in (self.SECTION_CONFIG, self.SECTION_FILES):
             return False

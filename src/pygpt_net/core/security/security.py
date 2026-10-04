@@ -254,7 +254,7 @@ class Security:
 
     def is_computer_sandbox(self) -> bool:
         """Return True when Computer Use runs in sandbox mode."""
-        return bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        return bool(self.window.core.config.get("computer_use.sandbox", False))
 
     def is_computer_halt_insecure_enabled(self) -> bool:
         """Return True when provider-flagged Computer Use actions require explicit confirmation."""

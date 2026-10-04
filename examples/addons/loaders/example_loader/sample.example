@@ -1,0 +1,4 @@
+# sample.example -- input for the tutorial loader
+project = PyGPT
+purpose = Demonstrate an external data loader
+status = working example

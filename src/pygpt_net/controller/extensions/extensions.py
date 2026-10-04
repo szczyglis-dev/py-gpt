@@ -6,15 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 16:00:00                  #
+# Updated Date: 2026.10.01 22:20:00                  #
 # ================================================== #
 
 import os
 
 from PySide6.QtCore import Qt, QThreadPool, QUrl, Slot
 from PySide6.QtGui import QDesktopServices, QIcon
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidgetItem
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QLabel, QMenu, QMessageBox, QTreeWidgetItem
 
+from pygpt_net.ui.dialog.list_details import set_item_tooltips, show_item_details
 from pygpt_net.utils import trans
 from .worker import ExtensionsWorker
 
@@ -43,8 +44,10 @@ class Extensions:
 
     def reload(self):
         self._explore_auto_loaded = False
-        # Static theme/locale packages can follow a profile switch immediately.
-        # Python runtime add-ons remain process-scoped and require restart.
+        # Static theme/locale packages are application-wide and consumed
+        # directly from the global Add-ons tree. sync_static_extensions() also
+        # retires files mirrored by older versions. Python runtime Add-ons remain
+        # process-scoped and require restart after install/uninstall.
         self.window.core.extensions.sync_static_extensions()
         if "extensions.registry.url" in self.window.ui.nodes:
             self.window.ui.nodes["extensions.registry.url"].setText(
@@ -66,6 +69,35 @@ class Extensions:
         dialog.raise_()
         dialog.activateWindow()
 
+    def _make_trusted_badge(self, text: str) -> QLabel:
+        label = QLabel(str(text or ""))
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        label.setContentsMargins(0, 0, 0, 0)
+        label.setMargin(0)
+        label.setStyleSheet(
+            "QLabel {"
+            "color: #ffffff;"
+            "padding: 2px 5px;"
+            "border-radius: 8px;"
+            "background-color: #2f8f46;"
+            "font-weight: 700;"
+            "}"
+        )
+        return label
+
+    def _set_trusted_badge(self, tree, item: QTreeWidgetItem, column: int, trusted: bool):
+        item.setText(column, trans("extensions.yes") if trusted else trans("extensions.no"))
+        if trusted:
+            tree.setItemWidget(item, column, self._make_trusted_badge(item.text(column)))
+        else:
+            tree.removeItemWidget(item, column)
+
+    def _set_official_text(self, item: QTreeWidgetItem, column: int, official: bool):
+        item.setText(column, trans("extensions.yes") if official else trans("extensions.no"))
+        font = item.font(column)
+        font.setBold(bool(official))
+        item.setFont(column, font)
+
     def refresh_installed(self):
         tree = self.window.ui.nodes.get("extensions.installed.list")
         if tree is None:
@@ -80,10 +112,17 @@ class Extensions:
             item.setText(2, str(ext.get("author") or ""))
             item.setText(3, str(ext.get("version") or ""))
             item.setText(4, str(ext.get("type") or ""))
-            item.setText(5, trans("extensions.yes") if ext.get("trusted") else trans("extensions.no"))
-            item.setText(6, trans("extensions.yes") if ext.get("official") else trans("extensions.no"))
+            self._set_trusted_badge(tree, item, 5, bool(ext.get("trusted")))
+            self._set_official_text(item, 6, bool(ext.get("official")))
+            source = str(ext.get("source_url") or ext.get("source") or "local")
+            source_path = str(ext.get("github_path") or "").strip()
+            if source_path:
+                source += " :: " + source_path
+            item.setText(7, source)
+            incompatible = ""
             if not ext.get("_compatible", True):
-                item.setToolTip(0, trans("extensions.incompatible").format(version=ext.get("min_app_version")))
+                incompatible = trans("extensions.incompatible").format(version=ext.get("min_app_version"))
+            set_item_tooltips(tree, item, {0: incompatible} if incompatible else None)
         self._apply_filters()
         status = self.window.ui.nodes.get("extensions.installed.status")
         if status is not None:
@@ -136,9 +175,13 @@ class Extensions:
         if not ext_id:
             return
         menu = QMenu(tree)
-        remove = menu.addAction(QIcon(":/icons/delete.svg"), trans("extensions.uninstall"))
+        details_action = menu.addAction(QIcon(":/icons/info.svg"), trans("action.show_details"))
+        menu.addSeparator()
+        uninstall_action = menu.addAction(QIcon(":/icons/delete.svg"), trans("action.uninstall"))
         chosen = menu.exec(tree.viewport().mapToGlobal(pos))
-        if chosen == remove:
+        if chosen == details_action:
+            show_item_details(self.window, tree, item)
+        elif chosen == uninstall_action:
             self.uninstall(ext_id, item.text(0) or ext_id)
 
     def uninstall(self, ext_id: str, name: str):
@@ -201,18 +244,20 @@ class Extensions:
             return
 
         menu = QMenu(tree)
+        details_action = menu.addAction(QIcon(":/icons/info.svg"), trans("action.show_details"))
+        menu.addSeparator()
         installed = ext_id in self.window.core.extensions.get_installed_versions()
         if installed:
-            action = menu.addAction(QIcon(":/icons/delete.svg"), trans("extensions.uninstall"))
+            action = menu.addAction(QIcon(":/icons/delete.svg"), trans("action.uninstall"))
         else:
             action = menu.addAction(QIcon(":/icons/download.svg"), trans("action.install"))
 
         selected = menu.exec(tree.viewport().mapToGlobal(pos))
-        if selected != action:
-            return
-        if installed:
+        if selected == details_action:
+            show_item_details(self.window, tree, item)
+        elif selected == action and installed:
             self.uninstall(ext_id, str(entry.get("name") or ext_id))
-        else:
+        elif selected == action:
             self._install_registry_entry(entry)
 
     def _install_registry_entry(self, entry):
@@ -294,13 +339,14 @@ class Extensions:
                 item.setText(3, str(ext.get("author") or ""))
                 item.setText(4, str(ext.get("version") or ""))
                 item.setText(5, str(ext.get("type") or ""))
-                item.setText(6, trans("extensions.yes") if ext.get("trusted") else trans("extensions.no"))
-                item.setText(7, trans("extensions.yes") if ext.get("official") else trans("extensions.no"))
+                self._set_trusted_badge(tree, item, 6, bool(ext.get("trusted")))
+                self._set_official_text(item, 7, bool(ext.get("official")))
                 path = str(ext.get("github_path") or ext.get("path") or "")
                 source = str(ext.get("github_url") or ext.get("url") or "")
                 if not source and path:
                     source = self.window.core.extensions.DEFAULT_REGISTRY_REPOSITORY
                 item.setText(8, source + ((" :: " + path) if path else ""))
+                set_item_tooltips(tree, item)
         finally:
             tree.blockSignals(False)
         self._apply_filters()
@@ -332,7 +378,7 @@ class Extensions:
                 item.setHidden(not (matches_type and matches_search))
 
     def _start_worker(self, action: str, show_error_dialog: bool = True, **kwargs):
-        # Installation mutates one profile-scoped add-ons tree and registry.
+        # Installation mutates the single application-wide add-ons tree and registry.
         # Serialize all extension workers so two imports/refreshes cannot race on
         # the same files or .registry.json.
         if self._workers:

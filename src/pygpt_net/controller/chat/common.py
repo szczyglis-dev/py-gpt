@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.30 16:40:00                  #
 # ================================================== #
 
 import os
@@ -176,6 +176,11 @@ class Common:
 
         chat_input = self.window.controller.chat.input
         busy = bool(chat_input.locked or chat_input.generating)
+        try:
+            realtime_response = self.window.controller.realtime.is_response_active()
+        except Exception:
+            realtime_response = False
+        stop_active = bool(busy or realtime_response)
         editing = self.window.controller.ctx.extra.is_editing()
         tabs = self.window.controller.tabs
         if hasattr(tabs, 'is_chat_input_visible'):
@@ -188,8 +193,8 @@ class Common:
         # Chat still owns that composer, so button visibility must follow the
         # composer host rather than get_current_type().
         send_btn.setEnabled(not busy)
-        input_node.set_icon_visible('send', chat_input_visible and not editing and not busy)
-        input_node.set_icon_visible('stop', chat_input_visible and busy)
+        input_node.set_icon_visible('send', chat_input_visible and not editing and not stop_active)
+        input_node.set_icon_visible('stop', chat_input_visible and not editing and stop_active)
 
     def lock_input(self):
         """Lock input."""
@@ -222,8 +227,32 @@ class Common:
             unlock = False
         return unlock
 
+    def handle_send(self):
+        """Submit an ordinary microphone recording or send the text composer."""
+        if not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                self.handle_stop()
+                return
+        self.window.controller.chat.input.send_input()
+
     def handle_stop(self):
         """Handle stop"""
+        # Ordinary microphone capture is submitted, even when the saved VAD
+        # setting is enabled. Only realtime STOP discards the current buffer.
+        if not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                handler.stop_recording()
+                return
+
+        # Realtime STOP intentionally delegates to the exact ESC interrupt route.
+        # Keeping one path avoids subtle ordering differences between playback
+        # abort, provider cancellation, turn persistence and UI cleanup.
+        if self.window.controller.realtime.can_interrupt():
+            self.window.controller.access.on_escape(close_dialog=False)
+            return
+
         # stop voice recording if active
         if self.window.controller.access.voice.is_recording:
             self.window.controller.access.voice.stop_recording(timeout=True)

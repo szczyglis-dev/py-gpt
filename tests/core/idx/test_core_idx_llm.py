@@ -62,7 +62,6 @@ def test_get_calls_init_and_llama_with_stream_and_sets_initialized(mock_window):
     provider = MagicMock()
     provider.init = MagicMock()
     provider.llama = MagicMock(return_value="LLM_INSTANCE")
-    provider.llama_multimodal = MagicMock(return_value=None)
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {"openai": provider}.get(provider_id))
     mock_window.core.llm.is_custom_provider = MagicMock(return_value=False)
 
@@ -154,7 +153,7 @@ def test_get_embeddings_provider_uses_config_and_logs_model_name(mock_window):
 
     emb_provider = MagicMock()
     emb_provider.init_embeddings = MagicMock()
-    emb_provider.get_embeddings_model = MagicMock(return_value="EMB_MODEL")
+    emb_provider.llama_embeddings = MagicMock(return_value="EMB_MODEL")
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {provider_name: emb_provider}.get(provider_id))
 
     llm = Llm(mock_window)
@@ -165,9 +164,9 @@ def test_get_embeddings_provider_uses_config_and_logs_model_name(mock_window):
     assert emb_provider.init_embeddings.call_args.kwargs["window"] is mock_window
     assert emb_provider.init_embeddings.call_args.kwargs["env"] == env_cfg
 
-    emb_provider.get_embeddings_model.assert_called_once()
-    assert emb_provider.get_embeddings_model.call_args.kwargs["window"] is mock_window
-    assert emb_provider.get_embeddings_model.call_args.kwargs["config"] == args_cfg
+    emb_provider.llama_embeddings.assert_called_once()
+    assert emb_provider.llama_embeddings.call_args.kwargs["window"] is mock_window
+    assert emb_provider.llama_embeddings.call_args.kwargs["config"] == args_cfg
 
     mock_window.core.idx.log.assert_called_with(
         f"Embeddings: using global provider: {provider_name}, model_name: EMB-1"
@@ -182,7 +181,7 @@ def test_get_embeddings_provider_falls_back_to_default_provider_when_missing(moc
 
     openai_emb = MagicMock()
     openai_emb.init_embeddings = MagicMock()
-    openai_emb.get_embeddings_model = MagicMock(return_value="OPENAI_EMB")
+    openai_emb.llama_embeddings = MagicMock(return_value="OPENAI_EMB")
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {"openai": openai_emb}.get(provider_id))
 
     llm = Llm(mock_window)
@@ -190,7 +189,7 @@ def test_get_embeddings_provider_falls_back_to_default_provider_when_missing(moc
 
     assert result == "OPENAI_EMB"
     openai_emb.init_embeddings.assert_called_once()
-    openai_emb.get_embeddings_model.assert_called_once()
+    openai_emb.llama_embeddings.assert_called_once()
     mock_window.core.idx.log.assert_called_with(
         "Embeddings: using global provider: openai, model_name: EMB-DEF"
     )
@@ -261,7 +260,7 @@ def test_get_custom_embed_provider_uses_matching_provider_without_duplicating_cr
     mock_window.core.config.set("llama.idx.embeddings.default", defaults)
 
     emb_provider = MagicMock()
-    emb_provider.get_embeddings_model = MagicMock(return_value="EMB_CUSTOM")
+    emb_provider.llama_embeddings = MagicMock(return_value="EMB_CUSTOM")
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {"provEmb": emb_provider}.get(provider_id))
 
     model = ModelItem()
@@ -272,8 +271,8 @@ def test_get_custom_embed_provider_uses_matching_provider_without_duplicating_cr
     result = llm.get_custom_embed_provider(model=model)
 
     assert result == "EMB_CUSTOM"
-    emb_provider.get_embeddings_model.assert_called_once()
-    cfg = emb_provider.get_embeddings_model.call_args.kwargs["config"]
+    emb_provider.llama_embeddings.assert_called_once()
+    cfg = emb_provider.llama_embeddings.call_args.kwargs["config"]
     assert {"name": "model_name", "type": "str", "value": "emb-model-1"} in cfg
     assert not any(item.get("name") == "api_key" for item in cfg)
 
@@ -289,7 +288,7 @@ def test_get_custom_embed_provider_ollama_no_api_key_and_uses_model_id_when_empt
     mock_window.core.config.set("llama.idx.embeddings.default", defaults)
 
     emb_provider = MagicMock()
-    emb_provider.get_embeddings_model = MagicMock(return_value="EMB_OLLAMA")
+    emb_provider.llama_embeddings = MagicMock(return_value="EMB_OLLAMA")
     mock_window.core.llm.get = MagicMock(side_effect=lambda provider_id: {"ollama": emb_provider}.get(provider_id))
 
     mock_window.core.models.prepare_client_args = MagicMock(return_value={"api_key": "IGNORED"})
@@ -302,7 +301,7 @@ def test_get_custom_embed_provider_ollama_no_api_key_and_uses_model_id_when_empt
     result = llm.get_custom_embed_provider(model=model)
 
     assert result == "EMB_OLLAMA"
-    cfg = emb_provider.get_embeddings_model.call_args.kwargs["config"]
+    cfg = emb_provider.llama_embeddings.call_args.kwargs["config"]
     assert {"name": "model_name", "type": "str", "value": "llama2"} in cfg
     assert not any(item.get("name") == "api_key" for item in cfg)
 
@@ -319,7 +318,7 @@ def test_get_custom_embed_provider_fallbacks_to_global_when_not_configured_or_no
     llm = Llm(mock_window)
     llm.get_embeddings_provider = MagicMock(return_value=global_emb_return)
 
-    missing_embed_provider = MagicMock(get_embeddings_model=MagicMock(return_value=None))
+    missing_embed_provider = MagicMock(llama_embeddings=MagicMock(return_value=None))
     mock_window.core.llm.get = MagicMock(
         side_effect=lambda provider_id: {"provX": missing_embed_provider}.get(provider_id)
     )

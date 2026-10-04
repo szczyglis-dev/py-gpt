@@ -18,6 +18,7 @@ body {{
   margin: auto;
   max-width: 780px;
   border-radius: .25rem;
+  font-size: 0.9rem;
 }}
 h1,
 h2,
@@ -335,6 +336,7 @@ think {{
   border-bottom-right-radius: 10px;
   overflow-y: auto;
   padding: 1.5rem;
+  font-size: 0.75rem;
   transition:
     padding-top 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
     padding-bottom 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -378,6 +380,7 @@ think {{
     visibility 0s linear 0.14s;
 }}
 .action-icons a {{
+  margin-right: 6px;
   text-decoration: none;
   transition: filter 0.3s ease;
 }}
@@ -491,9 +494,6 @@ body.display-timestamp .ts {{
 .ts {{
   display: none;
 }}
-#_append_output_ .msg-bot {{
-  margin-top: 5px !important;
-}}
 
 /* images */
 .image {{
@@ -530,6 +530,14 @@ body.display-timestamp .ts {{
   padding: 0;
   color: #4d4d4d !important;
   font-size: 0.75rem;
+}}
+
+/* During explicit Tool/Processed accordion interaction the JS keeps the
+   clicked header fixed in the viewport. Disable Chromium's native page anchor
+   selection for the duration so content below the accordion cannot pull the
+   viewport upward while the block animates. */
+html.tool-viewport-anchor-lock {{
+  overflow-anchor: none !important;
 }}
 
 /* Smooth Tool / Tools / Processed workflow accordions.
@@ -627,6 +635,7 @@ body.display-timestamp .ts {{
   transition: color 0.15s ease;
 }}
 .tool-output .tool-output-name {{
+  color: #8d8d8c;
   font-family: 'Lato';
   transition: color 0.15s ease;
 }}
@@ -998,4 +1007,115 @@ body.display-timestamp .ts {{
   .agents-v2-status, .agents-v2-status--changing, .agents-v2-status--leave {{
     transition: none;
   }}
+}}
+
+/* Runtime-only elapsed work header, above the response timeline. */
+.agent-working.agents-v2-status {{
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 6px 0 12px 0;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+  padding-bottom: 12px;
+}}
+
+/* The running and completed controls share one accordion surface. */
+.live-tool-status {{ pointer-events: auto; width: auto; max-width: none; padding: 0; margin: 0; opacity: 1; }}
+.live-tool-status > .agents-v2-status__text {{ display: none; }}
+.tool-output-live > .tool-output-toggle .tool-output-arrow {{ visibility: hidden; }}
+.tool-output-live > .tool-output-toggle:hover .tool-output-arrow,
+.tool-output-live > .tool-output-toggle:focus-visible .tool-output-arrow {{ visibility: visible; }}
+.tool-output-live > .tool-output-toggle .tool-output-label,
+.tool-output-live > .tool-output-toggle .tool-output-name {{
+  background-image: linear-gradient(90deg, #7f7f7f 0%, #c5c5c5 48%, #7f7f7f 100%);
+  background-size: 240% 100%; background-clip: text; -webkit-background-clip: text;
+  color: transparent; animation: agents-v2-status-shimmer 1.8s linear infinite;
+}}
+.tool-output-live > .tool-output-toggle:hover span {{ background: none; animation: none; }}
+
+.tool-output-live > .tool-output-toggle .tool-output-name::after {{ content: "..."; }}
+
+@media (prefers-reduced-motion: reduce) {{
+  .tool-output-live > .tool-output-toggle span {{ animation: none; }}
+}}
+
+/* Joined tool input/output blocks; independent from assistant code styling. */
+.tool-output-pair .tool-output-section + .tool-output-section {{ margin-top: 0; }}
+.tool-output-pair .code-wrapper {{ margin: 0; border-radius: 0; }}
+.tool-output-pair .code-header-wrapper {{ border-radius: 0; }}
+.tool-output-pair .tool-output-result-data .code-header-wrapper {{
+  border-top: 1px solid var(--tool-output-separator-color, #9c9c9c);
+  box-shadow: none;
+}}
+.tool-output-pair .tool-output-data {{ margin-top: 0; }}
+.tool-output-pair .tool-output-request-data > .code-wrapper:first-child,
+.tool-output-pair .tool-output-request-data > .tool-payload > div > .code-wrapper:first-child {{ border-radius: 10px 10px 0 0; overflow: hidden; }}
+.tool-output-pair .tool-output-result-data > .code-wrapper:last-child,
+.tool-output-pair .tool-output-result-data > .tool-payload > div > .code-wrapper:last-child {{ border-radius: 0 0 10px 10px; overflow: hidden; }}
+.tool-output-pair .code-wrapper pre code {{ border-radius: 0; }}
+.tool-output-pair .code-wrapper pre {{ margin: 0; border-radius: 0; }}
+.tool-output-pair .code-wrapper pre code {{ max-height: 300px; overflow: auto; }}
+.tool-output-pair + .tool-output-pair {{ margin-top: 12px; }}
+.tool-view-raw {{ display: none; }}
+html[data-tool-view="raw"] .tool-view-raw {{ display: block; }}
+html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
+.code-header-tool-view {{ display: inline-block; vertical-align: middle; background: transparent; color: #9c9c9c; border: 0; cursor: pointer; padding: 2px 6px; font: bold 16px monospace; border-radius: 6px; }}
+.code-header-tool-view:hover {{ background: rgba(150,150,150,.15); }}
+
+/* Durable Agents v2 progress accordions. */
+.progress-details > summary, .progress-worker > summary {{ list-style: none; cursor: pointer; }}
+.progress-details > summary::-webkit-details-marker, .progress-worker > summary::-webkit-details-marker {{ display: none; }}
+.progress-content {{ padding-left: 18px; }}
+.progress-details > summary .tool-output-arrow, .progress-worker > summary .tool-output-arrow {{ visibility: hidden; }}
+.progress-details > summary:hover .tool-output-arrow, .progress-worker > summary:hover .tool-output-arrow,
+.progress-details > summary:focus-visible .tool-output-arrow, .progress-worker > summary:focus-visible .tool-output-arrow {{ visibility: visible; }}
+.progress-details[open] > summary .tool-output-arrow, .progress-worker[open] > summary .tool-output-arrow {{ transform: rotate(180deg); }}
+
+/* Expandable progress must receive real mouse events; passive status rows do not. */
+.workflow-status-progress, .workflow-status-progress .progress-details,
+.workflow-status-progress .progress-worker, .workflow-status-progress .progress-content,
+.workflow-status-progress .tool-output-toggle {{ pointer-events: auto; }}
+
+/* Progress payloads fill the message rather than the status label's width. */
+.workflow-status-progress {{ width: calc(100% - 24px); box-sizing: border-box; }}
+.workflow-status-progress .progress-content,
+.workflow-status-progress .progress-details,
+.workflow-status-progress .progress-worker,
+.workflow-status-progress .tool-output,
+.workflow-status-progress .tool-output-pair,
+.workflow-status-progress .code-wrapper {{ width: 100%; box-sizing: border-box; min-width: 0; }}
+
+/* User action row keeps its space while fading on region hover. */
+.msg-user-region {{ width: 100%; }}
+.user-message-actions {{ display: flex; justify-content: flex-end; align-items: center; gap: 12px; min-height: 26px; padding: 0 10px; box-sizing: border-box; font-size: 0.7rem; color: var(--user-actions-color, #999); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .16s ease, visibility .16s ease; }}
+.msg-user-region:hover .user-message-actions, .msg-user-region:focus-within .user-message-actions {{ opacity: 1; visibility: visible; pointer-events: auto; }}
+.user-message-actions a {{ display: inline-flex; align-items: center; color: inherit; padding: 3px; line-height: 0; opacity: .7; }}
+.user-message-actions a:hover {{ opacity: 1; }}
+.user-message-actions img {{ width: 14px; height: 14px; }}
+.user-message-actions .copied {{ opacity: 1; }}
+
+/* User-uploaded attachments above the input bubble. */
+.user-attachments {{ margin: 8px 10px 0 auto; max-width: 75%; }}
+.user-attachment-images, .user-attachment-files {{ display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }}
+.user-attachment-images > br {{ display: none; }}
+.user-attachment-images .extra-src-img-box {{ margin-right: 0; padding-right: 0; max-width: 125px; }}
+.user-attachment-images .img-wrapper {{ width: 104px; max-width: 104px; height: 104px; }}
+.user-attachment-images .extra-src-img-box img {{ object-fit: cover; }}
+.user-attachment-files:empty, .user-attachment-images:empty {{ display: none; }}
+.user-attachments:has(.user-attachment-images:empty):has(.user-attachment-files:empty) {{ display: none; }}
+.user-file {{ display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 230px; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--user-file-border); border-radius: 9px; background: var(--user-file-bg); color: inherit; text-decoration: none; }}
+.user-file:hover {{ background: var(--user-file-hover); }}
+.user-file img {{ width: 20px; height: 20px; flex-shrink: 0; }}
+.user-file span {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }}
+
+/* Only newly sent input uses this animation; restored history stays static. */
+@keyframes input-attachment-fade-in {{
+  from {{ opacity: 0; }}
+  to {{ opacity: 1; }}
+}}
+.msg-user-region.input-live-arrival, .msg-date-separator.input-live-date {{
+  animation: input-attachment-fade-in 0.35s ease-out;
+}}
+@media (prefers-reduced-motion: reduce) {{
+  .msg-user-region.input-live-arrival, .msg-date-separator.input-live-date {{ animation: none; }}
 }}

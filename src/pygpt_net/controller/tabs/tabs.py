@@ -35,6 +35,7 @@ class Tabs(TabLifecycle, TabSplit, TabInput, TabTitles, ChatTabs, TabOperations)
     def __init__(self, window=None):
         self.window = window
         self._state = TabState()
+        self._last_active_chat_pid = None
         self.handler = TabEventHandler(self)
 
         # Non-selection lifecycle/UI state.

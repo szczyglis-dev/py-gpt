@@ -10,6 +10,7 @@
 # ================================================== #
 
 import copy
+import json
 from typing import Optional, Any, Dict
 
 from pygpt_net.core.events import Event
@@ -77,7 +78,21 @@ class Editor:
                 if self.options[key].get('_provider_dynamic'):
                     provider = self.window.core.llm.get(self.options[key].get('_provider'))
                     if provider is not None:
-                        options[key]['value'] = provider.get_config(self.options[key].get('_provider_key'))
+                        if '_remote_tool_key' in self.options[key]:
+                            tool_key = self.options[key]['_remote_tool_key']
+                            value = provider.get_remote_tool_config(tool_key)
+                            field = provider.get_remote_tools_schema()[tool_key]
+                            if field.get('value_type') == 'optional_bool':
+                                value = '' if value is None else str(bool(value)).lower()
+                            elif field.get('type') == 'textarea' and isinstance(value, (dict, list)):
+                                value = json.dumps(value, ensure_ascii=False, indent=2)
+                            elif field.get('type') == 'text' and isinstance(value, list):
+                                value = ', '.join(str(item) for item in value)
+                            elif value is None and field.get('type') in ('text', 'str', 'textarea'):
+                                value = ''
+                            options[key]['value'] = value
+                        else:
+                            options[key]['value'] = provider.get_config(self.options[key].get('_provider_key'))
                     else:
                         options[key]['value'] = self.options[key].get('value')
                 else:
@@ -119,7 +134,10 @@ class Editor:
             if self.options[key].get('_provider_dynamic'):
                 provider = self.window.core.llm.get(self.options[key].get('_provider'))
                 if provider is not None:
-                    provider.set_config(self.options[key].get('_provider_key'), value)
+                    if '_remote_tool_key' in self.options[key]:
+                        provider.set_remote_tool_config(self.options[key]['_remote_tool_key'], value)
+                    else:
+                        provider.set_config(self.options[key].get('_provider_key'), value)
             else:
                 self.window.core.config.set(key, value)
 
@@ -128,6 +146,11 @@ class Editor:
             self.window.core.config.set('layout.tray.minimize', False)
 
         self.window.core.config.save()
+
+        if not self.window.core.config.get("security.computer.show_warning", True):
+            badge = getattr(self.window, "computer_use_badge", None)
+            if badge is not None:
+                badge.stop()
 
         # Runtime OpenAI-compatible providers are created/removed immediately,
         # without restarting the application.

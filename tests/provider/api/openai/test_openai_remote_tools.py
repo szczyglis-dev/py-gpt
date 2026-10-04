@@ -14,6 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
+from tests.remote_tools_helpers import bind_remote_providers
 from pygpt_net.core.types import MODE_COMPUTER
 import pygpt_net.provider.api.openai.remote_tools as remote_mod
 from pygpt_net.provider.api.openai.remote_tools import RemoteTools
@@ -36,7 +37,9 @@ def get_dummy_window(config_data):
             )
         )
     )
-    return SimpleNamespace(core=core, controller=controller)
+    window = SimpleNamespace(core=core, controller=controller)
+    bind_remote_providers(window, config_data)
+    return window
 
 def set_disable(monkeypatch):
     monkeypatch.setattr(remote_mod, "OPENAI_REMOTE_TOOL_DISABLE_COMPUTER_USE", [])
@@ -48,7 +51,7 @@ def set_disable(monkeypatch):
 
 def test_get_choices(monkeypatch):
     monkeypatch.setattr(remote_mod, "trans", lambda s: s.upper())
-    rt = RemoteTools()
+    rt = RemoteTools(get_dummy_window({}))
     expected = [
         {"web_search": "REMOTE_TOOL.OPENAI.WEB_SEARCH"},
         {"image": "REMOTE_TOOL.OPENAI.IMAGE"},
@@ -150,3 +153,26 @@ def test_append_to_tools_expert_with_unknown(monkeypatch):
         {"type": "code_interpreter", "container": {"type": "auto"}},
     ]
     assert result == expected
+
+def test_choices_during_bootstrap_and_after_provider_registration(monkeypatch):
+    from pygpt_net.core.llm.llm import LLM
+    from pygpt_net.controller.config.placeholder import Placeholder
+    from pygpt_net.provider.llms.openai.provider import OpenAILLM
+
+    monkeypatch.setattr(remote_mod, "trans", lambda key: key)
+    window = get_dummy_window({})
+    window.core.llm = LLM(window)  # Launcher has not registered any providers yet.
+    window.core.api.openai.remote_tools = RemoteTools(window)
+    placeholder = Placeholder(window)
+
+    choices = placeholder.get_remote_tools_openai()
+    assert [next(iter(choice)) for choice in choices] == list(OpenAILLM().get_remote_tools())
+    assert window.core.llm.get('openai') is None  # Metadata lookup does not register a provider.
+    assert RemoteTools().get_choices() == choices
+
+    class CustomOpenAI(OpenAILLM):
+        def get_remote_tools(self):
+            return {'custom_tool': {'label': 'Custom tool', 'use_locale': False}}
+
+    window.core.llm.register('openai', CustomOpenAI())
+    assert placeholder.get_remote_tools_openai() == [{'custom_tool': 'Custom tool'}]

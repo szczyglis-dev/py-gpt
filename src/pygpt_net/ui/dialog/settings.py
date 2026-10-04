@@ -101,7 +101,10 @@ class Settings(BaseConfigDialog):
                 tab_id = field['tab'] if field.get('tab') not in (None, "") else "general"
                 tab_by_key[key] = tab_id
                 if field.get('_tab_label'):
-                    tab_labels[tab_id] = field.get('_tab_label')
+                    tab_labels[tab_id] = {
+                        "label": field.get('_tab_label'),
+                        "domain": field.get('_tab_locale_domain'),
+                    }
 
                 if field.get('advanced'):
                     advanced_keys.setdefault(tab_id, []).append(key)
@@ -223,7 +226,7 @@ class Settings(BaseConfigDialog):
 
                 # keep Chat tabs in their intended order
                 if section_id == "ctx":
-                    preferred = ["list", "render", "options"]
+                    preferred = ["list", "render", "annotations", "options"]
                     tab_order = ([tid for tid in preferred if tid in tab_order]
                                  + [tid for tid in tab_order if tid not in preferred])
 
@@ -242,8 +245,20 @@ class Settings(BaseConfigDialog):
                         locale_key = "settings.section." + section_id + "." + tab_id
                     literal_label = tab_labels.get(tab_id)
                     if literal_label:
-                        tab_name = literal_label
-                        tab_meta = {"label": literal_label}
+                        tab_domain = literal_label.get("domain") if isinstance(literal_label, dict) else None
+                        fallback_label = literal_label.get("label") if isinstance(literal_label, dict) else literal_label
+                        if tab_domain:
+                            tab_name = trans("provider.name", domain=tab_domain)
+                            if tab_name == "provider.name":
+                                tab_name = fallback_label
+                            tab_meta = {
+                                "key": "provider.name",
+                                "domain": tab_domain,
+                                "fallback": fallback_label,
+                            }
+                        else:
+                            tab_name = fallback_label
+                            tab_meta = {"label": fallback_label}
                     else:
                         name_key = trans(locale_key)
                         tab_name = name_key

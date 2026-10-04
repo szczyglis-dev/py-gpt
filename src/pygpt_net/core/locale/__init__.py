@@ -10,3 +10,4 @@
 # ================================================== #
 
 from .locale import *
+from .domain import *

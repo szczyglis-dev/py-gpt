@@ -74,3 +74,27 @@ def test_get_choices_with_filter(provider):
     choices = provider.get_choices(type="A")
     expected = [{"a": "Alpha"}, {"c": "Gamma"}]
     assert choices == expected
+
+@pytest.mark.parametrize('provider_name,sdk_class', [('openai', 'OpenAIResponsesModel'), ('azure_openai', 'OpenAIResponsesModel'), ('other', 'OpenAIChatCompletionsModel')])
+def test_legacy_sdk_model_uses_configured_client(provider_name, sdk_class):
+    from types import SimpleNamespace
+    from unittest.mock import patch
+    window = MagicMock()
+    core = Provider(window)
+    model = SimpleNamespace(id='model', provider=provider_name)
+    window.core.models.prepare_client_args.return_value = {'api_key': 'test'}
+    with patch('openai.AsyncOpenAI') as client, patch('agents.OpenAIResponsesModel') as responses, \
+         patch('agents.OpenAIChatCompletionsModel') as chat, patch('agents.set_tracing_disabled') as tracing:
+        result = core.get_openai_model(model)
+    selected = responses if sdk_class == 'OpenAIResponsesModel' else chat
+    assert result is selected.return_value
+    selected.assert_called_once_with(model='model', openai_client=client.return_value)
+    client.assert_called_once_with(api_key='test')
+    tracing.assert_called_once_with(True)
+
+
+def test_missing_legacy_sdk_model_raises_instead_of_using_global_credentials():
+    core = Provider(MagicMock())
+    core.window.core.models.get.return_value = None
+    with pytest.raises(ValueError, match='Unable to resolve a model'):
+        core.get_openai_model('missing')

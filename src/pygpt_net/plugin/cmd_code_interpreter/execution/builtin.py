@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 18:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os
@@ -14,6 +14,8 @@ import threading
 
 from pygpt_net.core.sandbox import BuiltinSandboxRuntime
 from ..ipython import BuiltinKernel
+
+from pygpt_net.plugin.base.execution import execution_response
 
 from .base import ExecutionBackend
 from ..sandbox import SandboxMode
@@ -70,12 +72,9 @@ class BuiltinBackend(ExecutionBackend):
 
     def _preparing_response(self, request: dict) -> dict:
         self.plugin.builtin_preparer.prepare(self.runtime)
-        return {
-            "request": request,
-            "result": self.PREPARING_MESSAGE,
-            "context": self.PREPARING_MESSAGE,
-            "builtin_sandbox_preparing": True,
-        }
+        response = execution_response(request, stdout=self.PREPARING_MESSAGE, context=self.PREPARING_MESSAGE)
+        response['builtin_sandbox_preparing'] = True
+        return response
 
     def supports_command(self, cmd: str) -> bool:
         return True
@@ -112,23 +111,24 @@ class BuiltinBackend(ExecutionBackend):
         path = self.prepare_path(item["params"]["path"], on_host=True, ctx=ctx)
         self.plugin.window.core.security.ensure_read(path, sandbox=True, ctx=ctx)
         if not os.path.isfile(path):
-            return {"request": request, "result": "File not found"}
+            return execution_response(request, stderr="File not found")
 
         runner.log(f"Executing Python file: {path}", sandbox=True)
         runner.send_interpreter_output_begin("stdout")
+        process_output = None
         try:
-            stdout, stderr = self.runtime.run_python(path, ctx=ctx)
+            process_output = self.runtime.run_python(path, ctx=ctx)
+            stdout, stderr = process_output
         except Exception as exc:
             runner.error(exc)
             stdout = None
             stderr = str(exc).encode("utf-8")
         result = runner.handle_result(stdout, stderr)
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def python_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         if self._must_defer():
@@ -163,8 +163,10 @@ class BuiltinBackend(ExecutionBackend):
             runner.send_interpreter_input(data)
             runner.log(f"Running built-in Python: {host_path}", sandbox=True)
             runner.send_interpreter_output_begin("stdout")
+            process_output = None
             try:
-                stdout, stderr = self.runtime.run_python(host_path, ctx=ctx)
+                process_output = self.runtime.run_python(host_path, ctx=ctx)
+                stdout, stderr = process_output
             except Exception as exc:
                 runner.error(exc)
                 stdout = None
@@ -172,11 +174,10 @@ class BuiltinBackend(ExecutionBackend):
             result = runner.handle_result(stdout, stderr)
             runner.send_interpreter_output_end("stdout")
 
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def python_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         if self._must_defer():
@@ -187,19 +188,20 @@ class BuiltinBackend(ExecutionBackend):
         runner.send_interpreter_input(command)
         runner.log(f"Executing Python environment system command: {command}", sandbox=True, category="exec")
         runner.send_interpreter_output_begin("stdout")
+        process_output = None
         try:
-            stdout, stderr = self.runtime.run_shell(command, ctx=ctx)
+            process_output = self.runtime.run_shell(command, ctx=ctx)
+            stdout, stderr = process_output
         except Exception as exc:
             runner.error(exc)
             stdout = None
             stderr = str(exc).encode("utf-8")
         result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def ipython_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         if self._must_defer():
@@ -210,19 +212,20 @@ class BuiltinBackend(ExecutionBackend):
         runner.send_interpreter_input(command)
         runner.log(f"Executing Built-in IPython system command: {command}", sandbox=True, category="exec")
         runner.send_interpreter_output_begin("stdout")
+        process_output = None
         try:
-            stdout, stderr = self.runtime.run_shell(command, ctx=ctx)
+            process_output = self.runtime.run_shell(command, ctx=ctx)
+            stdout, stderr = process_output
         except Exception as exc:
             runner.error(exc)
             stdout = None
             stderr = str(exc).encode("utf-8")
         result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def get_runtime_workdir(self, ctx=None) -> str:
         return self.runtime.get_data_dir(ctx=ctx)

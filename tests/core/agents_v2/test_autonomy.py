@@ -114,11 +114,13 @@ def test_completion_tool_validates_evidence_and_records_blocker():
             model=None,
             verbose=MagicMock(),
             window=window,
-            _actor_llms={},
-            reset_actor_provider_tool_activity=MagicMock(),
-            actor_provider_tool_activity_seen=MagicMock(return_value=False),
+            timeline=SimpleNamespace(
+                reset_tool_activity=MagicMock(),
+                has_tool_activity=MagicMock(return_value=False),
+            ),
+            inputs=SimpleNamespace(actor_llms={}),
         )
-        agent = RuntimeContext(runtime).build_agent("Primary Agent", "Main", ToolLLM(), "System", [])
+        agent = RuntimeContext(runtime).agent("Primary Agent", "Main", ToolLLM(), "System", [])
         tool = next(t for t in agent.tools if t.metadata.name == "task_complete")
         await tool.acall(outcome="completed", evidence="")
         assert not agent._completion_requested
@@ -231,3 +233,56 @@ def test_approved_final_at_limit_does_not_generate_another_response():
         assert await ctx.store.get("max_iterations") == 2
         assert await ctx.store.get("num_iterations") == 2
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize('phase, expected', [('commentary',AgentInput),('final_answer',StopEvent)])
+def test_provider_phase_controls_continuation_without_synthetic_assignment(phase, expected):
+    async def scenario():
+        agent=AutonomousFunctionAgent(llm=ToolLLM())
+        agent.configure_completion('task_complete',direct_check=lambda:False)
+        ctx=SimpleNamespace(store=Store(),write_event_to_stream=MagicMock())
+        memory=InlineMemory.from_defaults(token_limit=4096)
+        await memory.aput(ChatMessage(role='user',content='Open Blender and save the result'))
+        await ctx.store.set('memory',memory)
+        event=AgentOutput(response=ChatMessage(role='assistant',content='Checking' if phase=='commentary' else 'Done',
+                            additional_kwargs={'phase':phase}),tool_calls=[],current_agent_name=agent.name)
+        await ctx.store.set(agent.scratchpad_key,[event.response])
+        result=await agent.parse_agent_output(ctx,event)
+        assert isinstance(result,expected)
+        assert not any('Runtime continuation' in (item.content or '') for item in await memory.aget())
+        if phase=='commentary':
+            assert result.input[-1].additional_kwargs['phase']=='commentary'
+    asyncio.run(scenario())
+
+
+def test_message_receiver_injects_peer_evidence_into_next_model_step():
+    from unittest.mock import patch
+    from pygpt_net.core.agents_v2.autonomy import AutonomousAgentMixin
+    from llama_index.core.agent.workflow import FunctionAgent
+    agent = AutonomousFunctionAgent(llm=ToolLLM(), tools=[])
+    callback = MagicMock(return_value='peer evidence')
+    agent.set_message_receiver(callback)
+    memory = SimpleNamespace(aput=AsyncMock())
+    with patch.object(FunctionAgent, 'take_step', new=AsyncMock(return_value='result')) as step:
+        result = asyncio.run(agent.take_step('context', [ChatMessage(role='user', content='request')], [], memory))
+    assert result == 'result'
+    assert memory.aput.call_args.args[0].content == 'peer evidence'
+    assert step.call_args.args[1][-1].content == 'peer evidence'
+
+
+def test_new_run_resets_previous_completion_and_stall_state():
+    from unittest.mock import patch
+    from llama_index.core.agent.workflow import FunctionAgent
+    agent = AutonomousFunctionAgent(llm=ToolLLM(), tools=[])
+    reset = MagicMock()
+    agent.configure_completion('done', direct_reset=reset)
+    agent.request_completion('blocked')
+    agent._stalled = True
+    agent._iteration_limit_reached = True
+    agent._tool_activity_seen = True
+    with patch.object(FunctionAgent, 'run', return_value='handler') as run:
+        assert agent.run(user_msg='new request') == 'handler'
+    assert not agent.completion_requested and not agent.stalled and not agent.iteration_limit_reached
+    assert not agent._tool_activity_seen
+    reset.assert_called_once_with()
+    run.assert_called_once_with(user_msg='new request')

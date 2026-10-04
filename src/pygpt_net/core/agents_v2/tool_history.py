@@ -15,6 +15,7 @@ import json
 from typing import Any, Dict, Optional
 
 from pygpt_net.core.types import PERSIST_HIDDEN_TOOL_CALLS
+from pygpt_net.core.types.tools import MOUSE_KEYBOARD_TOOL_NAMES
 
 from .utils import (
     json_safe_tool_result,
@@ -29,23 +30,27 @@ class RuntimeToolHistory:
 
     def __init__(self, runtime):
         self.runtime = runtime
+        self.calls = []
+        self.sequence = 0
+        self.plugin_names = set()
+        self.tasks = {}
 
-    def register_local_plugin_tool(self, name: str):
+    def register_plugin(self, name: str):
         value = str(name or "").strip()
         if value:
-            self.runtime._local_plugin_tool_names.add(value)
+            self.plugin_names.add(value)
 
-    def _new_tool_call_id(self, call_id: Any = None) -> str:
+    def new_id(self, call_id: Any = None) -> str:
         if call_id not in (None, ""):
             return str(call_id)
-        self.runtime._main_tool_call_seq += 1
-        return f"agents_v2_{self.runtime.run_id}_{self.runtime._main_tool_call_seq}"
+        self.sequence += 1
+        return f"agents_v2_{self.runtime.run_id}_{self.sequence}"
 
-    def _persist_tool_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> str:
+    def persist_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> str:
         """Persist an Agents v2 tool invocation according to hidden-tool policy."""
         name = str(name or "tool").strip() or "tool"
-        actor_id, agent_name, current_task = self.runtime._actor_metadata(actor)
-        value = self.runtime._new_tool_call_id(call_id)
+        actor_id, agent_name, current_task = self.runtime.timeline.metadata(actor)
+        value = self.new_id(call_id)
         hidden = self.runtime.window.core.command.is_tool_hidden(name)
         self.runtime.window.core.api.tool_logger.log_call(
             name=name,
@@ -55,9 +60,16 @@ class RuntimeToolHistory:
             raw={"name": name, "arguments": args, "call_id": value},
             extra={"agents_v2": True, "hidden": hidden},
         )
+        if name in MOUSE_KEYBOARD_TOOL_NAMES:
+            # Workers may suppress renderer events; the global badge must not.
+            badge = getattr(self.runtime.window, "computer_use_badge", None)
+            if badge is not None:
+                badge.active_changed.emit(True)
+            if getattr(self.runtime, "visible", True):
+                self.runtime.emitter.computer_use(True)
         if hidden and not PERSIST_HIDDEN_TOOL_CALLS:
             return value
-        part = self.runtime._actor_part(actor, create=True)
+        part = self.runtime.timeline.part(actor, create=True)
         safe_args = json_safe_tool_value(args)
         if isinstance(safe_args, dict) and len(safe_args) == 1:
             for wrapper in ("params", "arguments"):
@@ -89,13 +101,16 @@ class RuntimeToolHistory:
             task.extra["tool_name"] = name
             task.extra["ui_ready"] = False
             self.runtime.window.core.ctx.update_part_task(task)
-            self.runtime._persisted_tool_tasks[f"{actor_id}:{value}"] = task
+            self.tasks[f"{actor_id}:{value}"] = task
+        refresh_tools = getattr(getattr(self.runtime, "status", None), "refresh_tools", None)
+        if callable(refresh_tools):
+            refresh_tools(actor)
         return value
 
-    def _persist_tool_result(
+    def persist_result(
             self, result: Any, actor: str, name: str = "", call_id: Any = None
     ) -> bool:
-        actor_id, _agent_name, _task_name = self.runtime._actor_metadata(actor)
+        actor_id, _agent_name, _task_name = self.runtime.timeline.metadata(actor)
         name = str(name or "").strip()
         value = str(call_id).strip() if call_id not in (None, "") else ""
         self.runtime.window.core.api.tool_logger.log_result(
@@ -105,7 +120,7 @@ class RuntimeToolHistory:
             actor=actor,
             extra={"agents_v2": True},
         )
-        task = self.runtime._persisted_tool_tasks.get(f"{actor_id}:{value}") if value else None
+        task = self.tasks.get(f"{actor_id}:{value}") if value else None
         main = getattr(self.runtime.context, "ctx", None)
         if task is None and main is not None:
             for part in main.parts or []:
@@ -138,9 +153,12 @@ class RuntimeToolHistory:
         task.task_summary = f"Tool {task.extra.get('tool_name') or name or 'tool'} completed"
         task.touch()
         self.runtime.window.core.ctx.update_part_task(task)
+        refresh_tools = getattr(getattr(self.runtime, "status", None), "refresh_tools", None)
+        if callable(refresh_tools):
+            refresh_tools(actor)
         return True
 
-    def _promote_part_tasks(self, part):
+    def promote_part(self, part):
         """Expose completed tasks once the model has produced its next response."""
         if part is None:
             return
@@ -150,9 +168,9 @@ class RuntimeToolHistory:
                 task.mark_ui_ready(True)
                 self.runtime.window.core.ctx.update_part_task(task)
 
-    def _promote_actor_tasks(self, actor: str):
+    def promote_actor(self, actor: str):
         """Expose completed calls once that actor has produced a next response."""
-        actor_id, _agent_name, _task_name = self.runtime._actor_metadata(actor)
+        actor_id, _agent_name, _task_name = self.runtime.timeline.metadata(actor)
         main = getattr(self.runtime.context, "ctx", None)
         if main is None:
             return
@@ -165,15 +183,15 @@ class RuntimeToolHistory:
                     task.mark_ui_ready(True)
                     self.runtime.window.core.ctx.update_part_task(task)
 
-    def _promote_all_tasks(self):
+    def promote_all(self):
         """Expose every completed displayable tool before the final UI commit."""
         main = getattr(self.runtime.context, "ctx", None)
         if main is None:
             return
         for part in main.parts or []:
-            self.runtime._promote_part_tasks(part)
+            self.promote_part(part)
 
-    def _append_main_tool_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> Optional[str]:
+    def _append_call(self, name: str, args: Any, actor: str, call_id: Any = None) -> Optional[str]:
         if not self.runtime.return_tool_calls_to_main_ctx:
             return None
         name = str(name or "").strip()
@@ -190,8 +208,8 @@ class RuntimeToolHistory:
                     args = dict(wrapped)
                     break
 
-        value = self.runtime._new_tool_call_id(call_id)
-        self.runtime._main_tool_calls.append({
+        value = self.new_id(call_id)
+        self.calls.append({
             "id": value,
             "call_id": value,
             "type": "function",
@@ -204,7 +222,7 @@ class RuntimeToolHistory:
         })
         return value
 
-    def _set_main_tool_result(
+    def _set_result(
             self,
             result: Any,
             actor: str,
@@ -236,58 +254,58 @@ class RuntimeToolHistory:
         # it on ToolCallResult, fall back to the oldest unmatched call with the
         # same actor + name. This also handles repeated calls to one tool.
         if call_id:
-            for item in self.runtime._main_tool_calls:
+            for item in self.calls:
                 if matches(item, True):
                     item["agents_v2_response"] = json_safe_tool_result(result)
                     return True
-        for item in self.runtime._main_tool_calls:
+        for item in self.calls:
             if matches(item, False):
                 item["agents_v2_response"] = json_safe_tool_result(result)
                 return True
         return False
 
-    def record_local_plugin_tool_call(
+    def record_local_call(
             self, name: str, args: Any, actor: str = "orchestrator"
     ) -> Optional[str]:
         """Persist a validated local plugin call and optionally mirror it to UI cache."""
-        call_id = self.runtime._persist_tool_call(name, args, actor)
-        self.runtime._append_main_tool_call(name, args, actor, call_id=call_id)
+        call_id = self.persist_call(name, args, actor)
+        self._append_call(name, args, actor, call_id=call_id)
         return call_id
 
-    def record_local_plugin_tool_result(
+    def record_local_result(
             self, call_id: Any, name: str, result: Any, actor: str = "orchestrator"
     ):
         """Attach the exact local plugin response to its persisted task/call."""
         if not call_id:
             return
-        self.runtime._persist_tool_result(result, actor=actor, name=name, call_id=call_id)
-        self.runtime._set_main_tool_result(result, actor=actor, name=name, call_id=call_id)
+        self.persist_result(result, actor=actor, name=name, call_id=call_id)
+        self._set_result(result, actor=actor, name=name, call_id=call_id)
 
-    def record_tool_call(self, event: Any, actor: str = "orchestrator"):
+    def record_call(self, event: Any, actor: str = "orchestrator"):
         """Persist a non-plugin tool invocation and optionally mirror it to legacy UI."""
         name = tool_event_value(event, "tool_name", "name", "tool")
         name = str(name or "").strip()
-        if not name or name in self.runtime._local_plugin_tool_names:
+        if not name or name in self.plugin_names:
             return
         args = tool_event_value(
             event, "tool_kwargs", "tool_args", "arguments", "kwargs", "args", "raw_arguments",
         )
         event_id = tool_event_value(event, "tool_id", "call_id", "id")
-        call_id = self.runtime._persist_tool_call(name, args, actor, call_id=event_id)
-        self.runtime._append_main_tool_call(name, args, actor, call_id=call_id)
+        call_id = self.persist_call(name, args, actor, call_id=event_id)
+        self._append_call(name, args, actor, call_id=call_id)
 
-    def record_tool_result(self, event: Any, actor: str = "orchestrator"):
+    def record_result(self, event: Any, actor: str = "orchestrator"):
         """Persist the corresponding ToolCallResult for a non-plugin invocation."""
         name = tool_event_value(event, "tool_name", "name", "tool")
         name = str(name or "").strip()
-        if not name or name in self.runtime._local_plugin_tool_names:
+        if not name or name in self.plugin_names:
             return
         event_id = tool_event_value(event, "tool_id", "call_id", "id")
         result = tool_result_value(event)
-        self.runtime._persist_tool_result(result, actor=actor, name=name, call_id=event_id)
-        self.runtime._set_main_tool_result(result, actor=actor, name=name, call_id=event_id)
+        self.persist_result(result, actor=actor, name=name, call_id=event_id)
+        self._set_result(result, actor=actor, name=name, call_id=event_id)
 
-    def export_tool_calls_to_main_ctx(self):
+    def export(self):
         """Persist the collected normal tool calls on the user-visible turn.
 
         Intentionally do *not* assign ``main.tool_calls`` and do not synthesize
@@ -315,8 +333,8 @@ class RuntimeToolHistory:
 
         # Always replace a previous Agents v2 export (e.g. after Regenerate) so
         # the main item reflects exactly this workflow execution.
-        if self.runtime._main_tool_calls:
-            main.extra["tool_calls"] = list(self.runtime._main_tool_calls)
+        if self.calls:
+            main.extra["tool_calls"] = list(self.calls)
             main.extra["agents_v2_tool_calls_display"] = True
         elif main.extra.get("agents_v2_tool_calls_display"):
             main.extra.pop("tool_calls", None)

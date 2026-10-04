@@ -10,20 +10,22 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize, QTimer, QPoint
-from PySide6.QtGui import QIcon, QAction, QActionGroup, QPixmap, QPainter
+from PySide6.QtGui import QIcon, QAction, QActionGroup
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QMenu, \
-    QGridLayout, QSizePolicy, QLabel
+    QGridLayout, QSizePolicy
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.layout.chat.attachments import Attachments
 from pygpt_net.ui.layout.chat.attachments_uploaded import AttachmentsUploaded
 from pygpt_net.ui.layout.chat.attachments_ctx import AttachmentsCtx
 from pygpt_net.ui.layout.status import Status
-from pygpt_net.ui.widget.audio.bar import OutputBar
+from pygpt_net.ui.widget.audio.bar import OutputBar, InputRecordWidget
 from pygpt_net.ui.widget.audio.input import AudioInput
 from pygpt_net.ui.widget.audio.input_button import AudioInputButton
 from pygpt_net.ui.widget.audio.output import AudioOutput
-from pygpt_net.ui.widget.element.labels import HelpLabel, ChatStatusLabel, IconLabel
+from pygpt_net.ui.widget.element.labels import (
+    HelpLabel, ChatStatusLabel, IconLabel, StatusIconCounter, StatusIconLabel,
+)
 from pygpt_net.ui.widget.tabs.Input import InputTabs
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.input_extra import ExtraInput
@@ -214,9 +216,8 @@ class ChatInputRootContainer(QWidget):
 
 
 class Input:
-    VISION_ICON_SIZE = 16
-    VISION_ICON_LEFT_SPACING = 6
-    VISION_ICON_VERTICAL_SHIFT = -2
+    STATUS_ICON_SIZE = 16
+    STATUS_ITEM_SPACING = 10
 
     def __init__(self, window=None):
         """
@@ -265,7 +266,7 @@ class Input:
 
         self.window.ui.tabs['input'] = InputTabs(self.window)
         tabs = self.window.ui.tabs['input']
-        tabs.setMinimumHeight(self.min_height_input_tab)
+        tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
         tabs.addTab(input, '')
         tabs.addTab(files, '')
         tabs.addTab(files_uploaded, '')
@@ -282,6 +283,9 @@ class Input:
         tabs.set_compact_tab_count(1, 0)
         tabs.set_compact_tab_count(2, 0)
         tabs.set_compact_tab_count(3, 0)
+
+        self.window.ui.plugin_addon['audio.input.bar'] = InputRecordWidget(self.window)
+        tabs.set_header_widget(self.window.ui.plugin_addon['audio.input.bar'])
 
         content = QWidget()
         content_layout = QVBoxLayout(content)
@@ -319,6 +323,7 @@ class Input:
         :return: QWidget
         """
         self.window.ui.nodes['input'] = ChatInput(self.window)
+        self.window.ui.nodes['input'].install_attachment_strip()
         self.window.ui.nodes['input'].setMinimumHeight(self.min_height_input)
 
         widget = QWidget()
@@ -559,16 +564,20 @@ class Input:
         nodes['chat.model'].setWordWrap(False)
         nodes['chat.model'].hide()
 
-        nodes['chat.plugins'] = ChatStatusLabel("")
-        nodes['chat.plugins'].setSizePolicy(min_policy)
-
-        nodes['chat.mcp'] = ChatStatusLabel("")
-        nodes['chat.mcp'].setSizePolicy(min_policy)
-        nodes['chat.mcp'].setContentsMargins(10, 0, 0, 0)
-
-        nodes['chat.skills'] = ChatStatusLabel("")
-        nodes['chat.skills'].setSizePolicy(min_policy)
-        nodes['chat.skills'].setContentsMargins(10, 0, 0, 0)
+        nodes['chat.plugins'] = StatusIconCounter(
+            ":/icons/power.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.mcp'] = StatusIconCounter(
+            ":/icons/router.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.skills'] = StatusIconCounter(
+            ":/icons/robot.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.annotations'] = StatusIconCounter(
+            ":/icons/chat2.svg", self.window, self.STATUS_ICON_SIZE
+        )
+        nodes['chat.annotations'].setToolTip(trans('plugin.tab.annotations'))
+        nodes['chat.annotations'].setVisible(False)
 
         nodes['input.counter'] = ChatStatusLabel("")
         nodes['input.counter'].setToolTip("")
@@ -578,15 +587,10 @@ class Input:
         plugin_addon['audio.output'] = AudioOutput(self.window)
         plugin_addon['schedule'] = ChatStatusLabel("")
 
-        nodes['inline.vision'] = QLabel()
-        nodes['inline.vision'].setPixmap(self._build_shifted_vision_pixmap())
-        nodes['inline.vision'].setAlignment(Qt.AlignCenter)
-        nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
-        nodes['inline.vision'].setContentsMargins(0, 0, 0, 0)
-        nodes['inline.vision'].setFixedSize(
-            self.VISION_ICON_SIZE,
-            self.VISION_ICON_SIZE,
+        nodes['inline.vision'] = StatusIconLabel(
+            ":/icons/vision.svg", self.window, self.STATUS_ICON_SIZE
         )
+        nodes['inline.vision'].setToolTip(trans('vision.checkbox.tooltip'))
         nodes['inline.vision'].setVisible(False)
 
         # Kept for compatibility with the existing (currently disabled) loading
@@ -594,19 +598,6 @@ class Input:
         nodes['anim.loading'] = QWidget()
         nodes['anim.loading'].hide()
 
-
-    def _build_shifted_vision_pixmap(self) -> QPixmap:
-        """Build the vision icon with a tiny upward offset for baseline alignment."""
-        base = QIcon(":/icons/vision.svg").pixmap(QSize(self.VISION_ICON_SIZE, self.VISION_ICON_SIZE))
-        if base.isNull() or self.VISION_ICON_VERTICAL_SHIFT == 0:
-            return base
-
-        shifted = QPixmap(base.size())
-        shifted.fill(Qt.transparent)
-        painter = QPainter(shifted)
-        painter.drawPixmap(0, self.VISION_ICON_VERTICAL_SHIFT, base)
-        painter.end()
-        return shifted
 
     def _setup_footer_metadata(self) -> QHBoxLayout:
         """Build chat metadata on the far left."""
@@ -622,11 +613,19 @@ class Input:
         # Model selection lives directly in ChatInput's bottom controls row.
         layout.addWidget(plugin_addon['schedule'], alignment=Qt.AlignVCenter)
         layout.addSpacing(4)
-        layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
-        layout.addWidget(nodes['chat.mcp'], alignment=Qt.AlignVCenter)
-        layout.addWidget(nodes['chat.skills'], alignment=Qt.AlignVCenter)
-        layout.addSpacing(self.VISION_ICON_LEFT_SPACING)
-        layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
+
+        status_layout = QHBoxLayout()
+        status_layout.setContentsMargins(0, 0, 0, 0)
+        status_layout.setSpacing(self.STATUS_ITEM_SPACING)
+        status_layout.addWidget(nodes['chat.plugins'], alignment=Qt.AlignVCenter)
+        status_layout.addWidget(nodes['chat.mcp'], alignment=Qt.AlignVCenter)
+        status_layout.addWidget(nodes['chat.skills'], alignment=Qt.AlignVCenter)
+        status_layout.addWidget(nodes['chat.annotations'], alignment=Qt.AlignVCenter)
+        # Vision always remains the last status icon in the metadata row.
+        status_layout.addWidget(nodes['inline.vision'], alignment=Qt.AlignVCenter)
+        status_layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+        layout.addLayout(status_layout)
         layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         return layout
 
@@ -667,7 +666,7 @@ class Input:
             key="send",
             icon=QIcon(":/icons/play.svg"),
             tooltip=trans("input.btn.send"),
-            callback=controller.chat.input.send_input,
+            callback=controller.chat.common.handle_send,
             visible=True,
         )
 
@@ -845,7 +844,7 @@ class Input:
             # Lower the files-tab constraint before restoring. Calling this on
             # the next event-loop turn is important: QTabWidget/QSplitter can
             # otherwise still use the previous page's cached minimum height.
-            tabs.setMinimumHeight(self.min_height_input_tab)
+            tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
             tabs.updateGeometry()
 
             composer = self.window.ui.nodes.get('input.container')
@@ -892,6 +891,26 @@ class Input:
             # Geometry restoration must never break tab switching.
             return
 
+    def set_attachment_min_height(self, height):
+        """Propagate the attachment band through the manually positioned composer."""
+        widgets = [self.window.ui.tabs.get('input'),
+                   self.window.ui.nodes.get('input.container'),
+                   self.window.ui.nodes.get('input.root')]
+        if height and not getattr(self, '_attachment_minimums', None):
+            self._attachment_minimums = [(widget, widget.minimumHeight(),
+                                         max(widget.minimumHeight(), widget.minimumSizeHint().height()))
+                                        for widget in widgets if widget is not None]
+        minimums = []
+        for widget, original, base in getattr(self, '_attachment_minimums', []):
+            if height and widget.isVisible():
+                base = max(base, widget.minimumSizeHint().height() - height)
+            minimums.append((widget, original, base))
+            widget.setMinimumHeight(base + height if height else original)
+            widget.updateGeometry()
+        self._attachment_minimums = minimums
+        if not height:
+            self._attachment_minimums = []
+
     def update_min_height(self, _index=None):
         """Resize files tabs temporarily and restore Input to its exact prior height."""
         tabs = self.window.ui.tabs['input']
@@ -910,7 +929,7 @@ class Input:
             # files tab, restore the *live* splitter sizes captured immediately
             # before that files tab was opened, rather than a historical/cache
             # value that may not reflect a user's latest manual resize.
-            tabs.setMinimumHeight(self.min_height_input_tab)
+            tabs.setMinimumHeight(self.min_height_input_tab + getattr(self.window.ui.nodes.get("input"), "_attachment_row_height", 0))
             tabs.updateGeometry()
 
             composer = nodes.get('input.container')

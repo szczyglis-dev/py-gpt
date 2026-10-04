@@ -85,7 +85,7 @@ class AgentGoogleGenAI(PyGPTGoogleGenAI):
         runtime = self._pygpt_runtime
         if runtime is not None:
             try:
-                runtime.record_token_usage(raw, actor_id=self._pygpt_actor_id)
+                runtime.usage.capture(raw, actor_id=self._pygpt_actor_id)
             except Exception:
                 pass
 

@@ -25,7 +25,7 @@ from .preview import PreviewPanel
 from .search import TreeSearch
 
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.ui.widget.element.button import ContextMenuButton
+from pygpt_net.ui.widget.element.button import ButtonPopupMenu
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.utils import trans
 
@@ -734,22 +734,14 @@ class FileExplorer(QWidget):
         self.btn_upload.clicked.connect(self.window.controller.files.upload_local)
         self.btn_upload.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
-        self.btn_idx = ContextMenuButton(trans('idx.btn.index_all'), self)
-        self.btn_idx.action = self.idx_context_menu
-        self.btn_idx.setMaximumHeight(40)
-        self.btn_idx.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
-        self.btn_clear = ContextMenuButton(trans('idx.btn.clear'), self)
-        self.btn_clear.action = self.clear_context_menu
-        self.btn_clear.setMaximumHeight(40)
-        self.btn_clear.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
-        self.btn_tool = QPushButton(QIcon(":/icons/db.svg"), "")
-        self.btn_tool.setMaximumHeight(40)
-        self.btn_tool.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.btn_tool.clicked.connect(
-            lambda: self.window.tools.get("indexer").toggle()
+        self.btn_options = ButtonPopupMenu(
+            self,
+            menu_builder=self._build_options_menu,
+            object_name='filesOptionsButton',
+            menu_object_name='filesOptionsMenu',
         )
+        self.btn_options.setMaximumHeight(40)
+        self.btn_options.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         self.btn_swap = QPushButton(QIcon(":/icons/sync.svg"), "")
         self.btn_swap.setToolTip(trans('files.columns.swap'))
@@ -922,7 +914,7 @@ class FileExplorer(QWidget):
         while self.footer_layout.count():
             self.footer_layout.takeAt(0)
 
-        controls = (self.btn_swap, self.btn_tool, self.btn_idx, self.btn_clear)
+        controls = (self.btn_swap, self.btn_options)
         self.footer_layout.addWidget(self.path_label, 1)
         for widget in controls:
             self.footer_layout.addWidget(widget)
@@ -1004,8 +996,7 @@ class FileExplorer(QWidget):
         self.btn_open.setToolTip(trans('action.open'))
         self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
         self.btn_swap.setToolTip(trans('files.columns.swap'))
-        self.btn_idx.setText(trans('idx.btn.index_all'))
-        self.btn_clear.setText(trans('idx.btn.clear'))
+        self.btn_options.retranslate()
         self.path_label.setText(self.directory)
         self.search.setPlaceholderText(trans('files.search.placeholder'))
         self.searching_text = trans('files.search.searching')
@@ -1110,6 +1101,53 @@ class FileExplorer(QWidget):
         self.refresh_empty_state()
         self._schedule_restore_columns()
 
+    def _build_options_menu(self, menu: QMenu):
+        """Populate the Files footer options popup."""
+        action = menu.addAction(QIcon(":/icons/db.svg"), trans('files.indexer.open'))
+        action.triggered.connect(
+            lambda checked=False: self.window.tools.get("indexer").toggle()
+        )
+
+        menu.addSeparator()
+
+        idx_menu = menu.addMenu(trans('idx.btn.index_all'))
+        if not self._populate_index_all_menu(idx_menu):
+            idx_menu.setEnabled(False)
+
+        clear_menu = menu.addMenu(trans('idx.btn.clear'))
+        if not self._populate_clear_index_menu(clear_menu):
+            clear_menu.setEnabled(False)
+
+    def _populate_index_all_menu(self, menu: QMenu) -> bool:
+        """Add available indexes to an Index all menu and return whether any were added."""
+        idx_list = list(self.window.core.config.get('llama.idx.list') or [])
+        if self.window.core.idx.project.get_current_group_id() is not None:
+            idx_list.insert(0, {
+                'id': self.window.core.idx.project.VIRTUAL_ID,
+                'name': trans('idx.current_project'),
+            })
+        for idx in idx_list:
+            idx_id = idx['id']
+            name = idx['name'] if self.window.core.idx.project.is_virtual(idx_id) \
+                else f"{idx['name']} ({idx_id})"
+            action = menu.addAction(f"IDX: {name}")
+            action.triggered.connect(
+                lambda checked=False, id=idx_id: self.window.controller.idx.indexer.index_all_files(id)
+            )
+        return bool(idx_list)
+
+    def _populate_clear_index_menu(self, menu: QMenu) -> bool:
+        """Add configured indexes to a Clear index menu and return whether any were added."""
+        idx_list = list(self.window.core.config.get('llama.idx.list') or [])
+        for idx in idx_list:
+            idx_id = idx['id']
+            name = f"{idx['name']} ({idx_id})"
+            action = menu.addAction(f"IDX: {name}")
+            action.triggered.connect(
+                lambda checked=False, id=idx_id: self.window.controller.idx.indexer.clear(id)
+            )
+        return bool(idx_list)
+
     def idx_context_menu(self, parent, pos):
         """
         Index all btn context menu
@@ -1118,19 +1156,7 @@ class FileExplorer(QWidget):
         :param pos: mouse  position
         """
         menu = QMenu(self)
-        idx_list = list(self.window.core.config.get('llama.idx.list') or [])
-        if self.window.core.idx.project.get_current_group_id() is not None:
-            idx_list.insert(0, {'id': self.window.core.idx.project.VIRTUAL_ID, 'name': trans('idx.current_project')})
-        if len(idx_list) > 0:
-            for idx in idx_list:
-                id = idx['id']
-                name = idx['name'] if self.window.core.idx.project.is_virtual(id) \
-                    else f"{idx['name']} ({id})"
-                action = menu.addAction(f"IDX: {name}")
-                action.triggered.connect(
-                    lambda checked=False,
-                           id=id: self.window.controller.idx.indexer.index_all_files(id)
-                )
+        self._populate_index_all_menu(menu)
         menu.exec(parent.mapToGlobal(pos))
 
     def clear_context_menu(self, parent, pos):
@@ -1141,16 +1167,7 @@ class FileExplorer(QWidget):
         :param pos: mouse position
         """
         menu = QMenu(self)
-        idx_list = self.window.core.config.get('llama.idx.list')
-        if len(idx_list) > 0:
-            for idx in idx_list:
-                id = idx['id']
-                name = f"{idx['name']} ({idx['id']})"
-                action = menu.addAction(f"IDX: {name}")
-                action.triggered.connect(
-                    lambda checked=False,
-                           id=id: self.window.controller.idx.indexer.clear(id)
-                )
+        self._populate_clear_index_menu(menu)
         menu.exec(parent.mapToGlobal(pos))
 
     def adjustColumnWidths(self):
@@ -2024,6 +2041,8 @@ class IndexedFileSystemModel(QFileSystemModel):
         :param role: role
         :return: data
         """
+        if role == Qt.ToolTipRole and index.isValid():
+            return os.path.relpath(self.filePath(index.siblingAtColumn(0)), self.rootPath())
         last_col = self.columnCount() - 1
         if index.column() == last_col:
             if role == Qt.DisplayRole:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 16:05:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import threading
+from pygpt_net.core.process_output import ProcessOutput
 from typing import Callable, Optional, Sequence
 
 from .packages import (
@@ -60,12 +61,23 @@ class BuiltinSandboxRuntime:
     # ------------------------------------------------------------------
 
     @property
+    def application_root(self) -> str:
+        """Application-wide workdir that owns path.cfg.
+
+        Built-in runtimes are installation resources, not profile data, so
+        they must remain stable when path.cfg points the active profile/workdir
+        at another directory.
+        """
+        return os.path.realpath(self.window.core.config.get_base_workdir())
+
+    @property
     def profile_root(self) -> str:
-        return os.path.realpath(self.window.core.config.get_user_path())
+        """Compatibility alias for callers from older builds."""
+        return self.application_root
 
     @property
     def sandbox_root(self) -> str:
-        return os.path.join(self.profile_root, "sandbox")
+        return os.path.join(self.application_root, "sandbox")
 
     @property
     def runtime_root(self) -> str:
@@ -647,7 +659,8 @@ class BuiltinSandboxRuntime:
 
         job = self.attach_process_job(process)
         try:
-            return process.communicate()
+            stdout, stderr = process.communicate()
+            return ProcessOutput(stdout, stderr, process.returncode)
         finally:
             self.close_process_job(job)
 

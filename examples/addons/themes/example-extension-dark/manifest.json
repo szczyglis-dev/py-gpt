@@ -1,14 +1,15 @@
 {
   "manifest_version": 1,
-  "version": "1.0.0",
-  "min_app_version": "2.8.32",
+  "version": "1.1.0",
+  "min_app_version": "2.8.35",
   "author": "PyGPT example",
   "contact": {
     "repo": "https://github.com/szczyglis-dev/py-gpt"
   },
   "external_dependencies": [],
   "id": "example-extension-dark",
-  "name": "Example extension theme",
-  "description": "Minimal external dark theme.",
-  "type": "theme"
+  "name": "Example dark theme",
+  "description": "Tutorial theme add-on with a visible QToolTip override.",
+  "type": "theme",
+  "sha256": "339a5b5fdab83cb4c1d3485018ce431c9ccc408569aa177bae63a661f373ee21"
 }

@@ -76,45 +76,67 @@ class Info:
             else:
                 QDesktopServices.openUrl(QUrl(url))
 
+    def open_external_url(self, url: str):
+        """Open URL in the system default browser, ignoring internal URL settings."""
+        if url:
+            QDesktopServices.openUrl(QUrl(url))
+
+    def open_docs_url(self, url: str):
+        """Open documentation in Canvas and always reveal/focus its surface."""
+        if not url:
+            return
+        browser = self.window.tools.get("web_browser")
+        if browser is not None:
+            # set_url() is an explicit/manual Canvas open path: it creates the
+            # canonical tab when needed, enables split screen even when global
+            # Canvas auto-open is disabled, focuses Canvas, and loads the URL.
+            browser.set_url(url)
+        else:
+            QDesktopServices.openUrl(QUrl(url))
+
     def goto_website(self):
-        """Open project website"""
-        self.open_url(self.window.meta['website'])
+        """Open project website in the system browser."""
+        self.open_external_url(self.window.meta['website'])
 
     def goto_docs(self):
-        """Open docs"""
-        self.open_url(self.window.meta['docs'])
+        """Open docs in the internal Canvas/browser and force it visible."""
+        self.open_docs_url(self.window.meta['docs'])
 
     def goto_pypi(self):
-        """Open PyPi"""
-        self.open_url(self.window.meta['pypi'])
+        """Open PyPi in the system browser."""
+        self.open_external_url(self.window.meta['pypi'])
 
     def goto_github(self):
-        """Open GitHub page"""
-        self.open_url(self.window.meta['github'])
+        """Open GitHub page in the system browser."""
+        self.open_external_url(self.window.meta['github'])
+
+    def goto_addons(self):
+        """Open the Add-ons repository in the system browser."""
+        self.open_external_url(self.window.meta['addons'])
 
     def goto_snap(self):
-        """Open Snapcraft page"""
-        self.open_url(self.window.meta['snap'])
+        """Open Snapcraft page in the system browser."""
+        self.open_external_url(self.window.meta['snap'])
 
     def goto_ms_store(self):
-        """Open MS Store page"""
-        self.open_url(self.window.meta['ms_store'])
+        """Open MS Store page in the system browser."""
+        self.open_external_url(self.window.meta['ms_store'])
 
     def goto_update(self):
-        """Open update URL"""
-        self.open_url(self.window.meta['website'])
+        """Open update URL in the system browser."""
+        self.open_external_url(self.window.meta['website'])
 
     def goto_donate(self):
-        """Open donate page"""
-        self.open_url(self.window.meta['donate'])
+        """Open donate page in the system browser."""
+        self.open_external_url(self.window.meta['donate'])
 
     def goto_discord(self):
-        """Open discord page"""
-        self.open_url(self.window.meta['discord'])
+        """Open Discord page in the system browser."""
+        self.open_external_url(self.window.meta['discord'])
 
     def goto_report(self):
-        """Open report a bug page"""
-        self.open_url(self.window.meta['report'])
+        """Open report-a-bug page in the system browser."""
+        self.open_external_url(self.window.meta['report'])
 
     def donate(self, id: str):
         """
@@ -123,11 +145,11 @@ class Info:
         :param id: donate id
         """
         if id == 'coffee':
-            self.open_url(self.window.meta['donate_coffee'])
+            self.open_external_url(self.window.meta['donate_coffee'])
         elif id == 'paypal':
-            self.open_url(self.window.meta['donate_paypal'])
+            self.open_external_url(self.window.meta['donate_paypal'])
         elif id == 'github':
-            self.open_url(self.window.meta['donate_github'])
+            self.open_external_url(self.window.meta['donate_github'])
 
     def update_menu(self):
         """Update info menu"""

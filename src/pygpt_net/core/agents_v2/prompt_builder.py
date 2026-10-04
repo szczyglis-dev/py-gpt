@@ -32,7 +32,7 @@ class RuntimePromptBuilder:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    def compose_agent_system_prompt(
+    def compose(
             self,
             base_prompt: str = "",
             additional_system_prompt: Optional[str] = None,
@@ -73,7 +73,7 @@ class RuntimePromptBuilder:
                 + self.runtime.runtime_system_context
                 + "\n</runtime_environment>"
             )
-        rag_context = self.runtime._rag_prompt_context()
+        rag_context = self.runtime.inputs.rag_prompt()
         if rag_context:
             rag_context = "\n\n" + rag_context
 
@@ -119,9 +119,9 @@ class RuntimePromptBuilder:
             + agents_directory
         )
 
-    def _compose_main_agent_prompt(self, base_prompt: str) -> str:
+    def _compose_main(self, base_prompt: str) -> str:
         """Backward-compatible wrapper for top-level Chat with Agents prompts."""
-        return self.compose_agent_system_prompt(
+        return self.compose(
             base_prompt=base_prompt,
             include_agents_directory=True,
         )
@@ -137,36 +137,36 @@ class RuntimePromptBuilder:
     def _builtin_or_custom_prompt(self, default_prompt: str, config_key: str) -> str:
         """Compose one built-in slot, suppressing built-in policies for an explicit user override."""
         custom = self._custom_main_prompt(config_key)
-        return self.compose_agent_system_prompt(
+        return self.compose(
             base_prompt=custom or default_prompt,
             include_agents_directory=True,
             inject_workflow_policy=not bool(custom),
         )
 
-    def primary_agent_prompt(self) -> str:
+    def primary(self) -> str:
         return self._builtin_or_custom_prompt(
             PRIMARY_AGENT_BASE_PROMPT,
             CUSTOM_PRIMARY_PROMPT_CONFIG_KEY,
         )
 
-    def orchestrator_prompt(self) -> str:
+    def orchestrator(self) -> str:
         return self._builtin_or_custom_prompt(
             ORCHESTRATOR_BASE_PROMPT,
             CUSTOM_ORCHESTRATOR_PROMPT_CONFIG_KEY,
         )
 
-    def swarm_prompt(self) -> str:
+    def swarm(self) -> str:
         return self._builtin_or_custom_prompt(
             SWARM_BASE_PROMPT,
             CUSTOM_SWARM_PROMPT_CONFIG_KEY,
         )
 
-    def main_agent_prompt(self) -> str:
+    def main(self) -> str:
         """Return the configured system prompt for the selected agent profile."""
         custom = getattr(self.runtime, "agent_definition", None)
         if custom is not None:
             base = str(custom.get("system_prompt") or "").strip()
-            return self.compose_agent_system_prompt(
+            return self.compose(
                 base_prompt=base,
                 include_agents_directory=True,
                 inject_workflow_policy=False,
@@ -174,12 +174,12 @@ class RuntimePromptBuilder:
 
         mode = str(getattr(self.runtime.agent_mode, "value", "") or "")
         if mode == "primary_agent":
-            return self.primary_agent_prompt()
+            return self.primary()
         if mode == "orchestrator":
-            return self.orchestrator_prompt()
+            return self.orchestrator()
         if mode == "swarm":
-            return self.swarm_prompt()
-        return self.compose_agent_system_prompt(
+            return self.swarm()
+        return self.compose(
             base_prompt=self.runtime.strategy.main_prompt,
             include_agents_directory=True,
         )

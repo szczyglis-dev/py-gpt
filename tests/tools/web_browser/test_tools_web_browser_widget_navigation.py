@@ -23,6 +23,9 @@ def _widget():
             "can_go_back": False,
             "can_go_forward": True,
         }),
+        get_browser_history_entries=MagicMock(return_value=[
+            {"url": "https://example.com", "title": "Example"},
+        ]),
         request_viewport_policy=MagicMock(),
     )
     window = SimpleNamespace(
@@ -49,6 +52,9 @@ def _widget():
         _sync_from_runtime=MagicMock(),
         _update_viewport_badge=MagicMock(),
         _column_visible=MagicMock(return_value=True),
+        _hide_address_history_popup=MagicMock(),
+        update_address_history=MagicMock(),
+        _address_history_lookup={},
     )
 
 
@@ -85,6 +91,9 @@ def test_web_browser_widget_sync_from_runtime_updates_address_and_history_contro
     ToolWidget._sync_from_runtime(obj)
 
     obj.address_bar.setText.assert_called_once_with("https://example.com")
+    obj.update_address_history.assert_called_once_with([
+        {"url": "https://example.com", "title": "Example"},
+    ])
     obj.btn_back.setEnabled.assert_called_once_with(False)
     obj.btn_next.setEnabled.assert_called_once_with(True)
     obj.btn_reload.setEnabled.assert_called_once_with(True)
@@ -152,3 +161,29 @@ def test_web_browser_address_line_edit_enter_invokes_callback_and_accepts_event(
 
     callback.assert_called_once_with()
     event.accept.assert_called_once_with()
+
+
+def test_source_is_applied_only_once_on_return_to_canvas():
+    from pygpt_net.tools.web_browser.ui.widgets import BrowserViewport
+    obj = SimpleNamespace(
+        _source_visible=True, _source_loading=False, _mode="qt",
+        source=MagicMock(), tool=MagicMock(), _source_base_url="https://example.com/",
+        set_mode=MagicMock(), active_view=MagicMock(),
+    )
+    obj.source.toPlainText.return_value = "<p>edited</p>"
+    obj.source.document().isModified.return_value = True
+    obj._apply_source = lambda: BrowserViewport._apply_source(obj)
+
+    BrowserViewport.show_canvas(obj)
+    BrowserViewport.show_canvas(obj)
+
+    obj.tool.apply_source_html.assert_called_once_with("<p>edited</p>", "https://example.com/")
+
+
+def test_source_highlighting_restores_debounce_after_initial_refresh():
+    from pygpt_net.core.text.editor.syntax import SyntaxHighlighter
+    obj = SimpleNamespace(timer=MagicMock())
+
+    SyntaxHighlighter._on_contents_change(obj, 10, 0, 1)
+
+    obj.timer.start.assert_called_once_with(180)

@@ -211,7 +211,11 @@ def test_configure_maintenance_llm_caps_common_and_google_output_limits():
 
 def test_configure_maintenance_llm_preserves_lower_existing_limits():
     manager = make_manager()
-    llm = SimpleNamespace(max_tokens=200, max_output_tokens=300, _generation_config={"max_output_tokens": 400})
+    llm = SimpleNamespace(
+        max_tokens=200,
+        max_output_tokens=300,
+        _generation_config={"max_output_tokens": 400},
+    )
 
     manager.configure_maintenance_llm(llm, 1024)
 
@@ -249,8 +253,8 @@ def test_build_agent_memory_configures_bounded_memory_and_persistent_summary(mon
         model=SimpleNamespace(id="m", ctx=12000),
         context=SimpleNamespace(ctx=ctx(3)),
         run_id="run-1",
-        get_llm=MagicMock(return_value=SimpleNamespace(name="summary-llm")),
-        verbose_log=MagicMock(),
+        inputs=SimpleNamespace(llm=MagicMock(return_value=SimpleNamespace(name="summary-llm"))),
+        verbose=SimpleNamespace(log=MagicMock()),
     )
     captured = {}
 
@@ -278,7 +282,7 @@ def test_build_agent_memory_configures_bounded_memory_and_persistent_summary(mon
 
     assert memory is not None
     manager.agent_memory_limit.assert_called_once_with(runtime.model, "system", ["tool"])
-    runtime.get_llm.assert_called_once_with(
+    runtime.inputs.llm.assert_called_once_with(
         stream=False, actor_id="orchestrator:context-memory", allow_remote_tools=False,
     )
     assert captured["block"]["persistent"] is True
@@ -288,7 +292,7 @@ def test_build_agent_memory_configures_bounded_memory_and_persistent_summary(mon
     assert captured["memory"]["chat_history_token_ratio"] == 0.75
     assert captured["memory"]["token_flush_size"] == 3000
     assert captured["memory"]["memory_blocks"]
-    runtime.verbose_log.assert_called_once()
+    runtime.verbose.log.assert_called_once()
 
 
 def test_meta_id_prefers_meta_object_then_meta_id_fallback():
@@ -446,10 +450,14 @@ def test_assistant_snapshot_prefers_parts_and_worker_context_without_raw_tool_pa
 
 def test_assistant_snapshot_falls_back_to_agent_response_then_output():
     with_agent = SimpleNamespace(
-        parts=[], output="raw", get_agents_v2_response_output=lambda: "agent final",
+        parts=[],
+        output="raw",
+        get_agents_v2_response_output=lambda: "agent final",
     )
     without_agent = SimpleNamespace(
-        parts=[], output="raw", get_agents_v2_response_output=lambda: "",
+        parts=[],
+        output="raw",
+        get_agents_v2_response_output=lambda: "",
     )
 
     manager = make_manager()

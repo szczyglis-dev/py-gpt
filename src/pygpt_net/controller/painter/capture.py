@@ -152,7 +152,7 @@ class Capture:
         try:
             # prepare filename
             now = datetime.datetime.now()
-            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
@@ -218,7 +218,7 @@ class Capture:
 
         try:
             now = datetime.datetime.now()
-            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
@@ -300,7 +300,7 @@ class Capture:
         try:
             # prepare filename
             now = datetime.datetime.now()
-            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
@@ -400,13 +400,15 @@ class Capture:
         try:
             # prepare filename
             now = datetime.datetime.now()
-            dt = now.strftime("%Y-%m-%d_%H-%M-%S")
+            dt = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
             name = 'cap-' + dt
             path = os.path.join(self.window.controller.painter.common.get_capture_dir(), name + '.png')
 
             # capture
             self.window.ui.painter.image.save(path)
             self.attach(name, path)
+            self.window.controller.tabs.switch_to_last_chat()
+            self.window.controller.chat.common.focus_input()
 
             # show last capture time in status
             dt_info = now.strftime("%Y-%m-%d %H:%M:%S")

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.03.08 00:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 from __future__ import annotations
 
@@ -22,7 +22,9 @@ from pygpt_net.core.types import MODE_LLAMA_INDEX, MODE_EMBEDDINGS
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
-FORGE_DEFAULT_BASE_URL = "https://api.forge.tensorblock.co/v1"
+from .config import FORGE_DEFAULT_BASE_URL
+
+
 class ForgeLLM(BaseLLM):
     def __init__(self, *args, **kwargs):
         super(ForgeLLM, self).__init__(*args, **kwargs)
@@ -31,28 +33,8 @@ class ForgeLLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "env": ["FORGE_API_KEY"],
-                },
-                "api_base": {
-                    "type": "str",
-                    "default": FORGE_DEFAULT_BASE_URL,
-                    "env": ["FORGE_API_BASE"],
-                },
-            }
-        }
-
-    def _apply_auth(self, args: Dict, window) -> Dict:
-        if "api_key" not in args or args["api_key"] == "":
-            args["api_key"] = os.environ.get("FORGE_API_KEY") or self.get_config("api_key", "")
-        if "api_base" not in args or args["api_base"] == "":
-            args["api_base"] = os.environ.get("FORGE_API_BASE") or self.get_config("api_base", "") or FORGE_DEFAULT_BASE_URL
-        return args
+        from .config import setup
+        return setup()
 
     def llama(self, window, model: ModelItem, stream: bool = False) -> LlamaBaseLLM:
         from llama_index.llms.openai_like import OpenAILike
@@ -65,8 +47,19 @@ class ForgeLLM(BaseLLM):
         self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
-    def get_embeddings_model(self, window, config: Optional[List[Dict]] = None) -> BaseEmbedding:
+    def llama_embeddings(self, window, config: Optional[List[Dict]] = None) -> BaseEmbedding:
         from llama_index.embeddings.openai_like import OpenAILikeEmbedding
         args = self.prepare_openai_compatible_embedding_args(window, config)
         args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        self.log_llama_create(
+            window, None, args, "OpenAILikeEmbedding",
+            kind="embeddings",
+        )
         return OpenAILikeEmbedding(**args)
+
+    def _apply_auth(self, args: Dict, window) -> Dict:
+        if "api_key" not in args or args["api_key"] == "":
+            args["api_key"] = os.environ.get("FORGE_API_KEY") or self.get_config("api_key", "")
+        if "api_base" not in args or args["api_base"] == "":
+            args["api_base"] = os.environ.get("FORGE_API_BASE") or self.get_config("api_base", "") or FORGE_DEFAULT_BASE_URL
+        return args

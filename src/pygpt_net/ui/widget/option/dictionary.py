@@ -59,7 +59,7 @@ class OptionDict(QWidget):
             if isinstance(field, dict):
                 label = field.get("label")
                 if label:
-                    header_labels[key] = trans(label)
+                    header_labels[key] = trans(label, domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(label)
                 if field.get("secret", False):
                     secret_headers.add(key)
 
@@ -78,6 +78,30 @@ class OptionDict(QWidget):
 
         # update model list
         self.update()
+
+    def update_locale(self):
+        """Refresh translated column headers and generic dictionary actions."""
+        if self.option is None or not hasattr(self, 'model'):
+            return
+        domain = self.option.get('_locale_domain')
+        use_locale = self.option.get('_use_locale', True)
+        labels = {}
+        for key, field in self.keys.items():
+            if not isinstance(field, dict):
+                continue
+            label = field.get("label")
+            if label:
+                labels[key] = trans(label, domain=domain) if use_locale else str(label)
+        self.model.header_labels = labels
+        if self.model.columnCount() > 0:
+            self.model.headerDataChanged.emit(Qt.Horizontal, 0, self.model.columnCount() - 1)
+        if hasattr(self, 'add_btn'):
+            self.add_btn.setText(trans('action.add'))
+        if hasattr(self, 'list'):
+            if hasattr(self.list, '_act_edit_text'):
+                self.list._act_edit_text = trans('action.edit')
+            if hasattr(self.list, '_act_delete_text'):
+                self.list._act_delete_text = trans('action.delete')
 
     def init_layout(self):
         # add button

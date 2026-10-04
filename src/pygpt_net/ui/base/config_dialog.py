@@ -91,14 +91,14 @@ class BaseConfigDialog:
 
         return widgets
 
-    def trans_or_not(self, label: str):
+    def trans_or_not(self, label: str, domain: str = None):
         """
         Translate label or return it as is if translation is not available
 
         :param label: Label to translate
         :return: Translated label or original if not found
         """
-        txt = trans(label)
+        txt = trans(label, domain=domain)
         if txt == label:
             if txt.startswith("dictionary."):
                 # get only last part after the dot
@@ -111,7 +111,7 @@ class BaseConfigDialog:
         if value is None:
             return ""
         if option.get('_use_locale', True):
-            value = self.trans_or_not(str(value))
+            value = self.trans_or_not(str(value), option.get('_locale_domain'))
         else:
             value = str(value)
         params_key = '_label_params' if field == 'label' else '_description_params'

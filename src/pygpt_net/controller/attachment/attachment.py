@@ -65,6 +65,10 @@ class Attachment:
         mode = self.window.core.config.get('mode')
         items = self.window.core.attachments.get_all(mode)
         self.window.ui.chat.input.attachments.update(items)
+        input_node = self.window.ui.nodes.get("input")
+        strip = getattr(input_node, "attachment_strip", None)
+        if strip is not None:
+            strip.sync(items, mode)
         self.update_tab(mode)
 
         if not self.has(mode):

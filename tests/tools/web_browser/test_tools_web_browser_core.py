@@ -21,6 +21,7 @@ def _tool():
             kernel=SimpleNamespace(busy=False),
         ),
         core=SimpleNamespace(
+            config=SimpleNamespace(get=MagicMock(return_value=True), get_user_path=MagicMock(return_value="/tmp")),
             plugins=SimpleNamespace(get=MagicMock(return_value=plugin)),
             tabs=core_tabs,
         ),
@@ -39,9 +40,11 @@ def _tool():
 def test_web_browser_defaults_setup_reload_and_dialog_id():
     tool = _tool()
     tool.update = MagicMock()
+    tool._load_browser_history = MagicMock()
 
     tool.setup()
 
+    tool._load_browser_history.assert_called_once_with()
     tool.update.assert_called_once_with()
     assert tool.id == "web_browser"
     assert tool.has_tab is True
@@ -49,7 +52,9 @@ def test_web_browser_defaults_setup_reload_and_dialog_id():
     assert tool.get_dialog_id() == "web_browser"
 
     tool.update.reset_mock()
+    tool._load_browser_history.reset_mock()
     tool.on_reload()
+    tool._load_browser_history.assert_called_once_with()
     tool.update.assert_called_once_with()
 
 
@@ -135,40 +140,38 @@ def test_web_browser_close_surface_preserves_runtime_and_hides_ui():
     tool.detach_surface.assert_called_once_with()
 
 
-def test_web_browser_auto_open_existing_second_column_reveals_once_without_focus_steal():
+def test_web_browser_agent_surface_existing_second_column_reveals_without_focus_steal():
     tool = _tool()
     tabs = tool.window.controller.tabs
     tab = SimpleNamespace(idx=3, column_idx=1)
     tabs.get_first_tab_by_tool.return_value = tab
-    tabs.is_split_screen_enabled.return_value = False
+    tabs.is_split_screen_enabled.side_effect = [False, True]
     tool._ensure_surface = MagicMock()
 
-    assert tool.auto_open(load=False) is None
-    assert tool.split_auto_expanded is True
+    assert tool.ensure_agent_surface() == "tab"
     tabs.enable_split_screen.assert_called_once_with(update_switch=True)
     tabs.switch_tab_by_idx.assert_not_called()
     tabs.append.assert_not_called()
 
-    tool.auto_open(load=False)
+    tool.ensure_agent_surface()
     assert tabs.enable_split_screen.call_count == 1
     tabs.switch_tab_by_idx.assert_not_called()
 
 
-def test_web_browser_auto_open_respects_existing_legacy_primary_column_tab():
+def test_web_browser_agent_surface_respects_existing_legacy_primary_column_tab():
     tool = _tool()
     tabs = tool.window.controller.tabs
     tabs.get_first_tab_by_tool.return_value = SimpleNamespace(idx=2, column_idx=0)
     tool._ensure_surface = MagicMock()
 
-    tool.auto_open(load=False)
+    assert tool.ensure_agent_surface() == "tab"
 
-    assert tool.split_auto_expanded is True
     tabs.enable_split_screen.assert_not_called()
     tabs.switch_tab_by_idx.assert_not_called()
     tabs.append.assert_not_called()
 
 
-def test_web_browser_auto_open_creates_missing_tab_without_switching_focus():
+def test_web_browser_agent_surface_creates_missing_tab_without_switching_focus():
     tool = _tool()
     tabs = tool.window.controller.tabs
     tabs.get_first_tab_by_tool.return_value = None
@@ -176,7 +179,7 @@ def test_web_browser_auto_open_creates_missing_tab_without_switching_focus():
     tool.window.core.tabs.get_max_idx_by_column.return_value = 5
     tool._ensure_surface = MagicMock()
 
-    tool.auto_open(load=False)
+    assert tool.ensure_agent_surface() == "tab"
 
     tabs.enable_split_screen.assert_called_once_with(update_switch=True)
     tabs.append.assert_called_once_with(
@@ -249,3 +252,64 @@ def test_web_browser_lang_mappings_use_canvas_menu_label():
     assert tool.get_lang_mappings() == {
         "menu.text": {"tools.web_browser": "menu.tools.canvas_html"}
     }
+
+
+def test_source_edits_preserve_url_origin_and_reload_external_document():
+    for backend in ("qt", "playwright"):
+        for url in ("http://example.com/page", "https://example.com/page", "file:///tmp/page.html"):
+            tool = _tool()
+            tool.backend = backend
+            tool.surface = MagicMock()
+            tool.surface._source_visible = False
+            tool.ensure_visible_surface = MagicMock()
+            tool._ensure_playwright = MagicMock()
+            tool._start_server = MagicMock()
+            tool.server_url = "http://127.0.0.1:1234/"
+            tool.pw_page = MagicMock()
+            tool._refresh_playwright_frame = MagicMock()
+            tool.current_state = MagicMock(return_value={})
+            tool.current_url = MagicMock(return_value=url)
+            tool._notify_state = MagicMock()
+            tool._history_push({"kind": "url", "url": url})
+
+            tool.apply_source_html("<p>first edit</p>", url)
+            tool.apply_source_html("<p>second edit</p>", url)
+            assert tool.canvas_history[-1]["reload_url"] == url
+            tool.surface.web.reset_mock()
+            tool.pw_page.reset_mock()
+
+            tool._cmd_reload({})
+            assert tool.canvas_history[-1] == {"kind": "url", "url": url}
+            if backend == "qt":
+                assert tool.surface.web.setUrl.call_args.args[0].toString() == url
+                tool.surface.web.setHtml.assert_not_called()
+            else:
+                tool.pw_page.goto.assert_called_once_with(url, wait_until="domcontentloaded")
+                tool.pw_page.reload.assert_not_called()
+
+
+def test_manual_html_with_http_base_reloads_committed_html():
+    tool = _tool()
+    tool.surface = MagicMock()
+    tool.surface._source_visible = False
+    tool.current_url = MagicMock(return_value="https://example.com/")
+    tool._cmd_set_html = MagicMock(return_value={"ok": True})
+    tool._history_push({"kind": "html", "html": "<p>committed</p>",
+                        "base_url": "https://example.com/"})
+
+    tool._cmd_reload({})
+
+    assert tool._cmd_set_html.call_args.args[0]["html"] == "<p>committed</p>"
+    tool.surface.web.reload.assert_not_called()
+
+
+def test_playwright_does_not_poll_frames_while_editing_source():
+    tool = _tool()
+    tool.backend = "playwright"
+    tool.pw_page = MagicMock()
+    tool.surface_owner = MagicMock()
+    tool.surface = SimpleNamespace(_source_visible=True)
+
+    tool._poll_playwright_frame()
+
+    tool.pw_page.screenshot.assert_not_called()

@@ -60,7 +60,7 @@ class AgentsV2Debug:
     def _workers(self, runtime):
         live = {}
         try:
-            items = list(runtime.workers.items())
+            items = list(runtime.workers.states.items())
         except Exception:
             items = []
         for worker_id, state in items:
@@ -109,14 +109,14 @@ class AgentsV2Debug:
         preset = getattr(runtime, 'preset', None)
         self._add('preset', getattr(preset, 'name', None) or getattr(preset, 'id', None))
         self._add('index_id', getattr(runtime, 'index_id', None))
-        self._add('sequence', getattr(runtime, 'sequence', None))
+        self._add('sequence', getattr(runtime.workers, 'sequence', None))
         self._add('finished', getattr(runtime, 'finished', None))
         snapshot = getattr(runtime, 'debug_cleanup_snapshot', {}) or {}
         self._add('kernel_stopped', runtime.is_stopped())
         self._add('stopped_at_cleanup', snapshot.get('stopped'))
-        self._add('workflow_final_requested', getattr(runtime, 'workflow_final_requested', None))
-        self._add('workflow_final_stream_started', getattr(runtime, 'workflow_final_stream_started', None))
-        self._add('workflow_final_hint', getattr(runtime, 'workflow_final_hint', None))
+        self._add('workflow_final_requested', getattr(runtime.workflow, 'final_requested', None))
+        self._add('workflow_final_stream_started', getattr(runtime.workflow, 'final_stream_started', None))
+        self._add('workflow_final_hint', getattr(runtime.workflow, 'final_hint', None))
         self._add('final_answer', getattr(runtime, 'final_answer', None))
         self._add('event_count', getattr(runtime, 'debug_event_count', None))
         self._add('event_types', getattr(runtime, 'debug_event_types', None))
@@ -129,7 +129,7 @@ class AgentsV2Debug:
         self._add('allow_local_tools', getattr(runtime, 'allow_local_tools', None))
         self._add('allow_remote_tools', getattr(runtime, 'allow_remote_tools', None))
         self._add('show_tool_chain', getattr(runtime, 'return_tool_calls_to_main_ctx', None))
-        self._add('local_plugin_tool_names', sorted(getattr(runtime, '_local_plugin_tool_names', set())))
+        self._add('local_plugin_tool_names', sorted(getattr(runtime.tool_history, 'plugin_names', set())))
 
         self._section('CONTEXT / PROMPTS')
         self._add('rag_context_text', getattr(runtime, 'rag_context_text', None))
@@ -137,7 +137,7 @@ class AgentsV2Debug:
         self._add('runtime_system_context', getattr(runtime, 'runtime_system_context', None))
         self._add('bridge_system_prompt', getattr(runtime, 'bridge_system_prompt', None))
         try:
-            self._add('main_agent_prompt', runtime.main_agent_prompt())
+            self._add('main_agent_prompt', runtime.prompts.main())
         except Exception as exc:
             self._add('main_agent_prompt', f'<debug error: {exc}>')
         context = getattr(runtime, 'context', None)
@@ -153,43 +153,43 @@ class AgentsV2Debug:
 
         self._section('WORKERS / SWARM')
         self._add('workers', self._workers(runtime))
-        self._add('swarm_expected_workers', getattr(runtime, 'swarm_expected_workers', None))
-        self._add('swarm_created_workers', getattr(runtime, 'swarm_created_workers', None))
-        self._add('swarm_launched_workers', getattr(runtime, 'swarm_launched_workers', None))
-        self._add('swarm_worker_numbers', dict(getattr(runtime, '_swarm_worker_numbers', {})) or snapshot.get('swarm_worker_numbers', {}))
+        self._add('swarm_expected_workers', getattr(runtime.workers, 'expected_count', None))
+        self._add('swarm_created_workers', getattr(runtime.workers, 'created_count', None))
+        self._add('swarm_launched_workers', getattr(runtime.workers, 'launched_count', None))
+        self._add('swarm_worker_numbers', dict(getattr(runtime.workers, 'numbers', {})) or snapshot.get('swarm_worker_numbers', {}))
         self._add('worker_parent_parts', {
             str(k): getattr(v, 'uuid', None)
-            for k, v in getattr(runtime, '_worker_parent_parts', {}).items()
+            for k, v in getattr(runtime.workers, 'parent_parts', {}).items()
         } or snapshot.get('worker_parent_parts', {}))
-        self._add('stored_worker_context_runs', list(getattr(runtime, '_stored_worker_context_runs', set())) or snapshot.get('stored_worker_context_runs', []))
+        self._add('stored_worker_context_runs', list(getattr(runtime.workers, 'stored_context_runs', set())) or snapshot.get('stored_worker_context_runs', []))
 
         self._section('TIMELINE / PARTIALS')
         self._add('ctx_parts', [self._part(part) for part in (getattr(main_ctx, 'parts', None) or [])])
-        self._add('primary_stream_current', getattr(runtime, '_primary_stream_current', None))
-        self._add('primary_stream_completed', getattr(runtime, '_primary_stream_completed', None))
-        self._add('primary_tool_activity_seen', getattr(runtime, '_primary_tool_activity_seen', None))
+        self._add('primary_stream_current', getattr(runtime.timeline, 'stream_current', None))
+        self._add('primary_stream_completed', getattr(runtime.timeline, 'stream_completed', None))
+        self._add('primary_tool_activity_seen', getattr(runtime.timeline, 'primary_tool_activity_seen', None))
         self._add('actor_parts', {
             str(actor): self._part(part)
-            for actor, part in getattr(runtime, '_actor_parts', {}).items()
+            for actor, part in getattr(runtime.timeline, 'parts', {}).items()
         })
-        self._add('actor_needs_new_part', getattr(runtime, '_actor_needs_new_part', None))
-        self._add('actor_part_seq', getattr(runtime, '_actor_part_seq', None))
+        self._add('actor_needs_new_part', getattr(runtime.timeline, 'needs_new_part', None))
+        self._add('actor_part_seq', getattr(runtime.timeline, 'part_sequence', None))
 
         self._section('TOOLS / TASKS')
-        self._add('main_tool_calls', getattr(runtime, '_main_tool_calls', None))
-        self._add('main_tool_call_seq', getattr(runtime, '_main_tool_call_seq', None))
-        self._add('persisted_tool_tasks', getattr(runtime, '_persisted_tool_tasks', None))
+        self._add('main_tool_calls', getattr(runtime.tool_history, 'calls', None))
+        self._add('main_tool_call_seq', getattr(runtime.tool_history, 'sequence', None))
+        self._add('persisted_tool_tasks', getattr(runtime.tool_history, 'tasks', None))
         self._add('actor_llms', {
             str(actor): type(llm).__name__
-            for actor, llm in getattr(runtime, '_actor_llms', {}).items()
+            for actor, llm in getattr(runtime.inputs, 'actor_llms', {}).items()
         })
-        self._add('artifact_seen', getattr(runtime, '_artifact_seen', None))
+        self._add('artifact_seen', getattr(runtime.artifacts, 'seen', None))
 
         self._section('STATUS')
-        self._add('status_seq', getattr(runtime, '_status_seq', None))
-        self._add('status_events', getattr(runtime, 'status_events', None))
-        self._add('last_swarm_status_at', getattr(runtime, '_last_swarm_status_at', None))
-        reporter = getattr(runtime, '_swarm_reporter_task', None)
+        self._add('status_seq', getattr(runtime.status, 'sequence', None))
+        self._add('status_events', getattr(runtime.status, 'events', None))
+        self._add('last_swarm_status_at', getattr(runtime.status, 'last_report_at', None))
+        reporter = getattr(runtime.status, 'reporter_task', None)
         self._add('swarm_reporter_task', {
             'exists': reporter is not None,
             'done': reporter.done() if reporter is not None else None,

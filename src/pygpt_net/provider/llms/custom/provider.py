@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 12:30:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -40,6 +40,9 @@ class CustomLLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
         self.is_runtime_custom = True
 
+    def setup(self) -> dict:
+        return {"openai_compatible": True}
+
     def get_api_key(self) -> str:
         """Return configured API key or a harmless SDK placeholder for no-auth endpoints."""
         return self.api_key or "custom"
@@ -50,7 +53,7 @@ class CustomLLM(BaseLLM):
             model: ModelItem,
             stream: bool = False,
     ) -> LlamaBaseLLM:
-        """Return LlamaIndex OpenAILike wrapper for Chat with Files/agents."""
+        """Return LlamaIndex OpenAILike wrapper for Chat/agents."""
         from llama_index.llms.openai_like import OpenAILike
 
         args = self.prepare_openai_compatible_args(window, model)
@@ -65,7 +68,7 @@ class CustomLLM(BaseLLM):
         self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None,
@@ -75,4 +78,8 @@ class CustomLLM(BaseLLM):
 
         args = self.prepare_openai_compatible_embedding_args(window, config)
         args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        self.log_llama_create(
+            window, None, args, "OpenAILikeEmbedding",
+            kind="embeddings",
+        )
         return OpenAILikeEmbedding(**args)

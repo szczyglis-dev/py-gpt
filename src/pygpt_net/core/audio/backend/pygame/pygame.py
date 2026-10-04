@@ -20,8 +20,10 @@ from pygpt_net.core.qt import safe_emit
 
 from ..shared import f32_to_s16le, build_rt_input_delta_event, InputLevelMeter
 
+from ..shared.capture import has_minimum_audio
+
+
 class PygameBackend:
-    MIN_FRAMES = 25  # minimum frames to start transcription
 
     def __init__(self, window=None):
         """
@@ -152,8 +154,10 @@ class PygameBackend:
             return False
 
         # Set up the audio input device and start capturing.
-        self.setup_audio_input()
         self.start_time = time.time()
+        self.setup_audio_input()
+        if self.audio_source is None:
+            return False
 
         # Set up a QTimer to update the audio level based on the latest chunk.
         self.timer = QTimer()
@@ -209,6 +213,28 @@ class PygameBackend:
 
         return result
 
+    def shutdown(self):
+        """Stop SDL audio capture/playback and release pygame resources."""
+        if self.initialized:
+            try:
+                self.stop()
+            except Exception:
+                pass
+            try:
+                self.stop_playback()
+            except Exception:
+                pass
+            try:
+                import pygame
+                pygame.quit()
+            except Exception:
+                pass
+        self.audio_source = None
+        self.playback_sound = None
+        self.initialized = False
+        with self._rt_lock:
+            self._rt_queue.clear()
+
     def has_source(self) -> bool:
         """
         Check if the audio source is available.
@@ -226,12 +252,9 @@ class PygameBackend:
         return bool(self.frames)
 
     def has_min_frames(self) -> bool:
-        """
-        Check if at least MIN_FRAMES audio frames have been recorded.
-
-        :return: True if at least MIN_FRAMES recorded
-        """
-        return len(self.frames) >= self.MIN_FRAMES
+        """Return whether at least 100 ms of PCM audio was captured."""
+        # SDL capture uses float32 PCM, as does the WAV conversion below.
+        return has_minimum_audio(self.frames, self.rate, self.channels, 4)
 
     def reset_audio_level(self):
         """Reset the audio level bar (if available)."""
@@ -342,9 +365,16 @@ class PygameBackend:
                 allowed_changes=self.allowed_changes,
                 callback=self._audio_callback,
             )
+            self._is_recording = True
             self.audio_source.pause(0)
         except Exception as e:
             print(f"Failed to open audio stream: {e}")
+            self._is_recording = False
+            if self.audio_source is not None:
+                try:
+                    self.audio_source.close()
+                except Exception:
+                    pass
             self.audio_source = None
             return
 

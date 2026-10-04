@@ -12,6 +12,7 @@
 import os
 import re
 from typing import Optional, List, Dict
+from pygpt_net.item.render_attachment import attachment_paths
 
 from llama_index.core.schema import ImageDocument
 from llama_index.core.llms import (
@@ -287,9 +288,9 @@ class Context:
 
         # store sent images in ctx
         if len(images) > 0:
-            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()), ctx=ctx)
+            ctx.images = attachment_paths(self.window.core.filesystem.make_local_list(list(images.values()), ctx=ctx), 'user')
         if len(urls) > 0:
-            ctx.images = urls
+            ctx.images = attachment_paths(urls, 'user')
             ctx.urls = urls
 
     def extract_urls(self, text: str) -> List[str]:

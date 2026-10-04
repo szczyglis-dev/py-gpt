@@ -217,6 +217,14 @@ class ChatTabs:
         if tab is not None:
             self.activate_tab(tab)
 
+    def switch_to_last_chat(self):
+        """Return to the last selected chat by identity, or the first open chat."""
+        tab = self.window.core.tabs.get_tab_by_pid(self._last_active_chat_pid)
+        if tab is None or tab.type != Tab.TAB_CHAT:
+            tab = self.window.core.tabs.get_first_by_type(Tab.TAB_CHAT)
+        if tab is not None:
+            self.activate_tab(tab)
+
     def focus_by_type(
         self,
         type: int,
@@ -260,4 +268,3 @@ class ChatTabs:
 
         self.debug()
         return tab
-

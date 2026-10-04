@@ -20,16 +20,3 @@ A theme XML can override these with `<dimension>` entries.
 These are template values expanded before Qt receives QSS, not CSS `var()` or
 Qt `qproperty-*` values. `qproperty-*` still sets actual widget properties.
 The existing `{QTMATERIAL_*}` placeholders remain supported.
-
-Resolution order is shared dimensions, bundled Light/Dark compatibility
-palette, bundled selected palette, then the selected profile XML. Missing
-entries in legacy profile XMLs fall back to the current bundled theme; values
-are rebuilt on every load and never inherited from the previous theme.
-
-Shared geometry and focus rules belong in the base `app.css`. Component and
-state-specific colors stay in theme files. The context list and file tree are
-borderless; toolbox right-edge exceptions and compact composer tabs keep their
-own rules. Tabs retain their Qt Material underline. The bottom chat input
-keeps its normal background and border when focused. Flush toolbox controls
-have neither rounded right corners nor a right border. Combo popup containers
-paint the theme list background instead of relying on native transparency.

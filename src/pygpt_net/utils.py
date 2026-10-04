@@ -40,6 +40,34 @@ def _(key: str, reload: bool = False, domain: str = None) -> str:
     """
     return trans(key, reload, domain)
 
+def register_locale_domain(domain: str, path: str, prepend: bool = False) -> bool:
+    """
+    Register a directory containing ``locale.<lang>.ini`` files for a logical domain.
+
+    The registry is available before the lazy global Locale instance exists. If
+    translations have already been initialized, the newly registered domain is
+    loaded immediately using the active language.
+
+    :param domain: logical translation domain
+    :param path: locale directory
+    :param prepend: load this directory before already registered sources
+    :return: True when the registry changed
+    """
+    global locale
+    changed = Locale.register_domain(domain, path, prepend=prepend)
+    if locale is not None and domain:
+        locale.load(locale.lang, domain)
+    return changed
+
+
+def unregister_locale_domain(domain: str, path: str = None):
+    """Unregister a custom locale domain source."""
+    global locale
+    Locale.unregister_domain(domain, path)
+    if locale is not None:
+        locale.data.pop(domain, None)
+
+
 def trans_reload():
     """
     Reload translations
@@ -76,7 +104,10 @@ def trans(key: str, reload: bool = False, domain: str = None) -> str:
         locale = Locale(domain)
     if reload:
         locale.reload(domain)
-    return locale.get(key, domain)
+    value = locale.get(key, domain)
+    if domain is not None and value == key:
+        value = locale.get(key)
+    return value
 
 def sizeof_fmt(num: Any, suffix: str = 'B'):
     """
@@ -175,6 +206,7 @@ def get_app_meta() -> dict:
     """
     return {
         'github': get_init_value("__github__"),
+        'addons': get_init_value("__addons__"),
         'website': get_init_value("__website__"),
         'docs': get_init_value("__documentation__"),
         'pypi': get_init_value("__pypi__"),

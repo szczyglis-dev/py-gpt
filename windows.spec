@@ -196,44 +196,16 @@ try:
 except Exception:
     pass
 
+# Bundle the complete application data tree recursively.
+# Keep the same directory layout below data/ so new resources and
+# subdirectories are picked up automatically without updating this spec.
 add_data_tree(
     datas,
-    r'src\pygpt_net\data\css',
-    r'data\css',
+    r'src\pygpt_net\data',
+    r'data',
 )
 
 datas += [
-    (r'src\pygpt_net\data\config\presets\*', r'data\config\presets'),
-    (r'src\pygpt_net\data\config\config.json', r'data\config'),
-    (r'src\pygpt_net\data\config\models.json', r'data\config'),
-    (r'src\pygpt_net\data\config\modes.json', r'data\config'),
-    (r'src\pygpt_net\data\config\settings.json', r'data\config'),
-    (r'src\pygpt_net\data\config\settings_section.json', r'data\config'),
-    (r'src\pygpt_net\data\banners\*', r'data\banners'),
-    (r'src\pygpt_net\data\icons\*', r'data\icons'),
-    (r'src\pygpt_net\data\icons\chat\*', r'data\icons\chat'),
-    (r'src\pygpt_net\data\locale\*', r'data\locale'),
-    (r'src\pygpt_net\data\audio\*', r'data\audio'),
-    (r'src\pygpt_net\data\fixtures\*', r'data\fixtures'),
-    (r'src\pygpt_net\data\skills\*', r'data\skills'),
-    (r'src\pygpt_net\data\connectors\*', r'data\connectors'),
-    (r'src\pygpt_net\data\fonts\Lato\*', r'data\fonts\Lato'),
-    (r'src\pygpt_net\data\fonts\SpaceMono\*', r'data\fonts\SpaceMono'),
-    (r'src\pygpt_net\data\fonts\MonaspaceArgon\*', r'data\fonts\MonaspaceArgon'),
-    (r'src\pygpt_net\data\fonts\MonaspaceKrypton\*', r'data\fonts\MonaspaceKrypton'),
-    (r'src\pygpt_net\data\fonts\MonaspaceNeon\*', r'data\fonts\MonaspaceNeon'),
-    (r'src\pygpt_net\data\fonts\MonaspaceRadon\*', r'data\fonts\MonaspaceRadon'),
-    (r'src\pygpt_net\data\fonts\MonaspaceXenon\*', r'data\fonts\MonaspaceXenon'),
-    (r'src\pygpt_net\data\js\highlight\styles\*', r'data\js\highlight\styles'),
-    (r'src\pygpt_net\data\prompts.csv', r'data'),
-    (r'src\pygpt_net\data\languages.csv', r'data'),
-    (r'src\pygpt_net\data\banners.json', r'data'),
-    (r'src\pygpt_net\data\logo.png', r'data'),
-    (r'src\pygpt_net\data\logo_splash.png', r'data'),
-    (r'src\pygpt_net\data\icon.ico', r'data'),
-    (r'src\pygpt_net\data\icon_tray_idle.ico', r'data'),
-    (r'src\pygpt_net\data\icon_tray_busy.ico', r'data'),
-    (r'src\pygpt_net\data\icon_tray_error.ico', r'data'),
     (r'src\pygpt_net\CHANGELOG.txt', r'.'),
     (r'src\pygpt_net\LICENSE', r'.'),
     (r'src\pygpt_net\data\icon.png', r'.'),
@@ -265,6 +237,10 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+# Optional runtime packages must resolve against versions bundled in this build.
+import runpy
+runpy.run_path(os.path.join(SPECPATH, 'bin', 'pyinstaller_runtime_metadata.py'))['add_runtime_metadata'](a)
+
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
@@ -283,6 +259,9 @@ exe = EXE(
     strip=False,
     upx=True,
     console=True,
+    # Keep diagnostic output, but do not foreground a new console when launched
+    # by Explorer/MSI. An existing terminal used for a CLI launch is unaffected.
+    hide_console='minimize-early',
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

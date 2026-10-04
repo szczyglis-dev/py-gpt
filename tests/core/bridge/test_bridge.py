@@ -68,6 +68,12 @@ def make_window():
     window.core.config = SimpleNamespace()
     window.core.config.get = Mock(return_value=None)
     window.core.config.has = Mock(return_value=False)
+    window.core.llm = SimpleNamespace()
+    window.core.llm.get_config = Mock(return_value=False)
+    window.core.llm.is_openai_compatible = Mock(
+        side_effect=lambda provider: provider in ("openai", "azure_openai")
+        or str(provider or "").startswith("custom_")
+    )
     window.core.models = SimpleNamespace()
     window.core.models.get_supported_mode = Mock(return_value=None)
     window.core.idx = SimpleNamespace()
@@ -180,13 +186,14 @@ def test_call_returns_empty_when_stopped_and_not_forced():
 def test_call_uses_llama_index_quick_call(monkeypatch):
     window = make_window()
     class FakeModel:
+        provider = "llama_only"
+        id = "llama-only"
+        reasoning_effort = False
         def is_supported(self, mode):
             if mode == mod.MODE_CHAT:
                 return False
             if mode == mod.MODE_LLAMA_INDEX:
                 return True
-            return False
-        def is_openai_supported(self):
             return False
     fm = FakeModel()
     ctx = DummyContext(mode=mod.MODE_CHAT, model=fm)
@@ -204,14 +211,15 @@ def test_call_uses_llama_index_quick_call(monkeypatch):
 def test_call_switches_to_research_and_uses_quick_call(monkeypatch):
     window = make_window()
     class FakeModel:
+        provider = "openai"
+        id = "research-model"
+        reasoning_effort = False
         def is_supported(self, mode):
             if mode == mod.MODE_CHAT:
                 return False
             if mode == mod.MODE_RESEARCH:
                 return True
             return False
-        def is_openai_supported(self):
-            return True
     fm = FakeModel()
     ctx = DummyContext(mode=None, model=fm)
     window.core.api.openai.quick_call = Mock(return_value="GPT_OK")

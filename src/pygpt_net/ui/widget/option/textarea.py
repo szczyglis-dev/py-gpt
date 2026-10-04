@@ -55,7 +55,16 @@ class OptionTextarea(QTextEdit):
             if "read_only" in self.option and self.option["read_only"]:
                 self.setReadOnly(True)
             if "placeholder" in self.option:
-                self.setPlaceholderText(trans(self.option["placeholder"]))
+                self.setPlaceholderText(trans(self.option["placeholder"], domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(self.option["placeholder"]))
+
+    def update_locale(self):
+        """Refresh an optional translated placeholder."""
+        if not self.option or "placeholder" not in self.option:
+            return
+        placeholder = self.option.get("placeholder", "")
+        if self.option.get('_use_locale', True):
+            placeholder = trans(placeholder, domain=self.option.get('_locale_domain'))
+        self.setPlaceholderText(str(placeholder))
 
     def contextMenuEvent(self, event):
         """

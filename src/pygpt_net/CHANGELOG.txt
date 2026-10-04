@@ -1,3 +1,41 @@
+2.8.38 (2026-10-03)
+
+- Improved attachment handling and attachments display.
+- Optimized and improved Computer Use, fixed the Computer Use flow in agents, and added a full-screen indicator while Computer Use is active.
+- Added support for Markdown (.md) files in the Files preview.
+- Added a new File Preview add-on type, allowing support for additional file formats to be extended through add-ons.
+- Added GPT-6.1 Sol model.
+- Added a "Group models by provider" option.
+- Added a "Show tools in agents" option.
+- Other UI/UX improvements and fixes.
+
+2.8.37 (2026-10-01)
+
+- Added SHA-256 integrity verification for public trusted Add-ons, including manifest/registry hash pinning and validation during installation.
+- Added helper scripts in bin/ for generating SHA-256 signatures for community Add-ons and updated the Add-ons documentation accordingly.
+- Fixed main window frame and shadow rendering on Windows.
+- Fixed tray menu focus handling on Windows.
+
+2.8.36 (2026-09-30)
+
+- Moved external Add-ons to the shared application-wide addons directory, with automatic migration from profile workdirs.
+- Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
+- Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
+- Improved Realtime + audio flow, stability and voice interaction handling.
+- Added a separate audio input level bar for microphone input.
+
+2.8.35 (2026-09-29)
+
+- Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.
+- Added an application-wide Package Manager for optional runtime dependencies, with packages stored per Python version under <application base workdir>/extra_packages/<major.minor>.
+- Added shared text editor preferences for indentation, tab width, and word wrap across the Text Editor, Files preview/editor, and Canvas source editor.
+- Added a search field to the Model Importer.
+- Added optional model-defined runtime MCP connections, with separate permissions for HTTP/SSE and stdio transports and integration with MCP tool discovery and caching.
+- Improved Canvas browser controls, source editing, and persistent address history/search behavior.
+- Improved local Whisper dependency installation through the Package Manager.
+- Added comprehensive Add-ons examples and API reference documentation. See Documentation -> Add-ons API.
+- Added various UI and CSS/QSS fixes and refinements.
+
 2.8.34 (2026-09-28)
 
 - Fixed LiteLLM issues by downgrading to version 1.81.16; fixed issue #214.

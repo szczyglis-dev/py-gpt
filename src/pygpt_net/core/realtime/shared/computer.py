@@ -80,9 +80,9 @@ def is_enabled(window, context=None, provider: str = "") -> bool:
     if _preset_has_computer_use(context):
         requested = True
     elif provider == "google":
-        requested = bool(cfg.get("remote_tools.google.computer_use", False))
+        requested = bool(window.core.llm.get("google").is_remote_tool_enabled("computer_use"))
     elif provider == "openai":
-        requested = bool(cfg.get("remote_tools.computer_use", False))
+        requested = bool(window.core.llm.get("openai").is_remote_tool_enabled("computer_use"))
     else:
         requested = False
 

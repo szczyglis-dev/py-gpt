@@ -55,3 +55,14 @@ def test_model_editor_duplicate_supports_single_multi_and_ignores_invalid_or_emp
     editor.duplicate_by_idx.assert_not_called()
     ModelEditorList.action_duplicate(widget, 7)
     editor.duplicate_by_idx.assert_called_once_with(7)
+
+
+def test_copy_uses_api_model_id_instead_of_internal_key(qapp):
+    from PySide6.QtWidgets import QApplication
+    widget = _widget()
+    widget.window.controller.model.editor.get_model_by_tab_idx = MagicMock(return_value='internal-key')
+    widget.window.core = SimpleNamespace(models=SimpleNamespace(items={
+        'internal-key': SimpleNamespace(id='actual-api-model-id')
+    }))
+    ModelEditorList.action_copy(widget, [0])
+    assert QApplication.clipboard().text() == 'actual-api-model-id'

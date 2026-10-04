@@ -44,7 +44,7 @@ def test_lang_settings_apply_updates_bool_text_labels_descriptions_and_sections(
         "name": {"label": "label.name", "type": "text", "description": "desc.name"},
     }
 
-    with patch("pygpt_net.controller.lang.settings.trans", side_effect=lambda key: f"tr:{key}"):
+    with patch("pygpt_net.controller.lang.settings.trans", side_effect=lambda key, **kwargs: f"tr:{key}"):
         Settings(window).apply()
 
     bool_widget.setText.assert_called_once_with("tr:label.flag")

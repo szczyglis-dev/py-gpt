@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 21:30:00
+# Updated Date: 2026.09.30 08:14:00
 # ================================================== #
 
 import copy
@@ -82,7 +82,7 @@ class Bridge:
         if provider in native and self.window.core.llm.get_config(provider, "native", False):
             return native[provider]
 
-        if model.is_openai_supported():
+        if self.window.core.llm.is_openai_compatible(provider):
             return "openai"
 
         return None

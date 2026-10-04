@@ -226,6 +226,14 @@ class Settings:
         else:
             self.window.update_status('Config directory not exists: {}'.format(self.window.core.config.path))
 
+    def open_base_dir(self):
+        """Open the application-wide base directory that owns path.cfg."""
+        path = self.window.core.config.get_base_workdir()
+        if os.path.exists(path):
+            self.window.controller.files.open_dir(path)
+        else:
+            self.window.update_status('Global base directory not exists: {}'.format(path))
+
     def welcome_settings(self):
         """Open settings at first launch (if no API key yet)."""
         self.open_section("api_keys")

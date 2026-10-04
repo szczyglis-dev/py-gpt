@@ -56,6 +56,17 @@ class Capture:
         for backend in self.backends.values():
             backend.set_rt_signals(self._rt_signals)
 
+    def is_initialized(self) -> bool:
+        """Return whether the currently selected input backend completed lazy init."""
+        backend = self.window.core.config.get("audio.input.backend", "native")
+        if backend not in ("native", "pyaudio", "pygame"):
+            backend = "native"
+
+        instance = self.backends.get(backend)
+        if instance is None:
+            return False
+        return bool(getattr(instance, "initialized", True))
+
     def get_default_input_device(self) -> Tuple[int, str]:
         """
         Get default input device
@@ -155,3 +166,17 @@ class Capture:
         :return devices list: [(id, name)]
         """
         return self.get_backend().get_input_devices()
+
+    def shutdown(self):
+        """Stop and release every audio input backend instantiated in this run."""
+        for backend in list(self.backends.values()):
+            try:
+                shutdown = getattr(backend, "shutdown", None)
+                if callable(shutdown):
+                    shutdown()
+                else:
+                    backend.stop()
+            except Exception:
+                pass
+        self.backends.clear()
+

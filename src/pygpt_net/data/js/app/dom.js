@@ -295,7 +295,7 @@ class DOMRefs {
   // The slot itself never disappears: while a turn is active it is either an
   // invisible placeholder or contains invisible real actions. END/STOP only
   // changes visibility, so finalization cannot change message height.
-  _ensureStreamFooterPlaceholder(msg) {
+  ensureStreamFooterPlaceholder(msg) {
     if (!msg) return null;
 
     // An older implementation also created an empty .msg-extra placeholder.
@@ -317,13 +317,13 @@ class DOMRefs {
     }
 
     actions.dataset.footerSlot = '1';
-    if (!actions.children.length) this._setActionFooterPlaceholder(actions);
+    if (!actions.children.length) this.setActionFooterPlaceholder(actions);
     return actions;
   }
 
   // Fill an existing action slot with one invisible icon-shaped placeholder.
   // It has exactly the same vertical footprint as the real action row.
-  _setActionFooterPlaceholder(actions) {
+  setActionFooterPlaceholder(actions) {
     if (!actions) return null;
     actions.replaceChildren();
     actions.dataset.footerSlot = '1';
@@ -354,7 +354,7 @@ class DOMRefs {
     let msg = this._deref(this._domStreamMsgRef);
     if (msg) {
       try { this._applyStreamOwnerHint(msg.closest('.msg-box.msg-bot')); } catch (_) {}
-      this._ensureStreamFooterPlaceholder(msg);
+      this.ensureStreamFooterPlaceholder(msg);
       return msg;
     }
 
@@ -389,7 +389,7 @@ class DOMRefs {
       const snap = document.createElement('div');
       snap.className = 'md-snapshot-root';
       timeline.appendChild(snap);
-      this._ensureStreamFooterPlaceholder(newMsg);
+      this.ensureStreamFooterPlaceholder(newMsg);
 
       newBox.appendChild(newMsg);
       frag.appendChild(newBox);
@@ -418,7 +418,7 @@ class DOMRefs {
         if (timeline) timeline.appendChild(snap);
         else msg.appendChild(snap);
       }
-      this._ensureStreamFooterPlaceholder(msg);
+      this.ensureStreamFooterPlaceholder(msg);
       this._domStreamBoxRef = (typeof WeakRef !== 'undefined') ? new WeakRef(box) : null;
       this._domStreamMsgRef = (typeof WeakRef !== 'undefined') ? new WeakRef(msg) : null;
     }

@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
-  "version": "1.0.0",
-  "min_app_version": "2.8.32",
+  "version": "1.1.0",
+  "min_app_version": "2.8.35",
   "author": "PyGPT example",
   "contact": {
     "repo": "https://github.com/szczyglis-dev/py-gpt"
@@ -9,7 +9,8 @@
   "external_dependencies": [],
   "id": "example_audio_input",
   "name": "Example audio input",
-  "description": "Minimal external audio input provider.",
+  "description": "Runnable WAV-inspector tutorial for the audio-input provider contract.",
   "type": "audio_input",
-  "entrypoint": "provider.py:ExampleAudioInput"
+  "entrypoint": "provider.py:ExampleAudioInput",
+  "sha256": "3fdfd09de17bd5e8da23c4d23962abf7d6ef047f6c27b0a9bcb03abaa2c90247"
 }

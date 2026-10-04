@@ -1188,6 +1188,11 @@ class ChatInput(QTextEdit):
 
     def action_toggle_mic(self):
         """Toggle microphone (button click)."""
+        try:
+            if not self.window.controller.audio.is_recording():
+                self.window.controller.audio.ui.on_input_toggle_requested("input")
+        except Exception:
+            pass
         self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
 
     def action_toggle_web(self):
@@ -2319,6 +2324,69 @@ class ChatInput(QTextEdit):
             y = max(fw, self.height() - fw - row_h)
             self._icon_bar_right.setGeometry(x, y, width, row_h)
 
+    def install_attachment_strip(self):
+        from pygpt_net.ui.widget.textarea.attachments import InputAttachments
+        self.attachment_strip = InputAttachments(self.window, self)
+        self._attachment_row_height = 0
+        self._attachment_splitter_sizes = None
+        self._attachment_base_input_height = 0
+        self.attachment_strip.heightChanged.connect(self._attachment_height_changed)
+
+    def _attachment_height_changed(self, height):
+        previous = self._attachment_row_height
+        splitter = self._get_main_splitter()
+        container, idx = self._find_container_in_splitter(splitter)
+        if splitter is not None and idx >= 0 and (height or previous):
+            if height and not previous:
+                self._attachment_splitter_sizes = list(splitter.sizes()) if self.isVisible() else None
+                self._attachment_pane_collapsible = splitter.isCollapsible(idx)
+            # A drag past the minimum can arm QSplitter's collapsed state.
+            # Disable collapse before changing any minimum, including on removal.
+            splitter.setCollapsible(idx, False)
+        if height and not previous:
+            # Before the window is shown, QTextEdit still has its provisional
+            # construction geometry. Never turn that height into a permanent
+            # minimum, or add a second band to persisted splitter sizes.
+            self._attachment_base_input_height = self.height() if self.isVisible() else self.minimumHeight()
+            self._attachment_base_minimum_height = self.minimumHeight()
+        window = getattr(self, "window", None)
+        if window is not None:
+            # Capture parent baselines before the editor includes the attachment
+            # band. Otherwise its height is counted again in every ancestor.
+            window.ui.chat.input.set_attachment_min_height(height)
+        if height:
+            self.setMinimumHeight(self._attachment_base_minimum_height + height)
+        elif previous:
+            self.setMinimumHeight(self._attachment_base_minimum_height)
+        self._attachment_row_height = height
+        if splitter is not None and idx >= 0:
+            if height and not previous and self._attachment_splitter_sizes:
+                sizes = list(self._attachment_splitter_sizes)
+                donor = 0 if idx != 0 else 1
+                delta = min(height, sizes[donor])
+                sizes[donor] -= delta
+                sizes[idx] += delta
+                splitter.setSizes(sizes)
+            elif not height and previous:
+                if self._attachment_splitter_sizes:
+                    splitter.setSizes(self._attachment_splitter_sizes)
+                self._attachment_splitter_sizes = None
+                collapsible = self._attachment_pane_collapsible
+                # Restore the normal policy only after Qt has committed the
+                # lower minimum and the restored, visible splitter geometry.
+                def restore_policy():
+                    if self._attachment_row_height == 0:
+                        splitter.setCollapsible(idx, collapsible)
+                QTimer.singleShot(0, restore_policy)
+        self._apply_margins()
+        self._position_attachment_strip()
+
+    def _position_attachment_strip(self):
+        strip = getattr(self, 'attachment_strip', None)
+        if strip is not None:
+            strip.setGeometry(12, 10, max(0, self.width() - 24), self._attachment_row_height)
+            strip.raise_()
+
     def _apply_margins(self):
         """Reserve symmetric text inset plus the dedicated bottom controls row."""
         left_space = self._compute_icon_bar_width()
@@ -2336,7 +2404,7 @@ class ChatInput(QTextEdit):
         bottom_space = self._right_row_height()
         self.setViewportMargins(
             left_space,
-            self._text_top_padding,
+            self._text_top_padding + getattr(self, "_attachment_row_height", 0),
             horizontal_padding,
             bottom_space,
         )
@@ -2347,9 +2415,20 @@ class ChatInput(QTextEdit):
         except Exception:
             pass
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Hidden tab layouts have no reliable size hints. Reapply constraints
+        # after reparenting/showing the composer and Qt's layout activation.
+        def restore_attachment_geometry():
+            if self.isVisible() and getattr(self, '_attachment_row_height', 0):
+                self.window.ui.chat.input.set_attachment_min_height(self._attachment_row_height)
+                self._position_attachment_strip()
+        QTimer.singleShot(0, restore_attachment_geometry)
+
     def resizeEvent(self, event):
         """Resize event keeps the icon bar in place."""
         super().resizeEvent(event)
+        self._position_attachment_strip()
         try:
             self._reposition_icon_bar()
         except Exception:
@@ -2460,7 +2539,9 @@ class ChatInput(QTextEdit):
         min_viewport_h = int(math.ceil(2.0 * doc_margin + line_h))
         # Respect current minimum size hint to avoid jitter on some styles
         min_hint = max(self.minimumSizeHint().height(), 0)
-        return max(min_hint, min_viewport_h + non_viewport_h)
+        attachment_min = (getattr(self, "_attachment_base_input_height", 0)
+                          + getattr(self, "_attachment_row_height", 0)) if getattr(self, "_attachment_row_height", 0) else 0
+        return max(min_hint, min_viewport_h + non_viewport_h, attachment_min)
 
     def _max_input_widget_height_by_lines(self, non_viewport_h: int) -> int:
         """Max widget height allowed by line count cap."""

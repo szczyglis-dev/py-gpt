@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 02:20:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from pygpt_net.core.qt import safe_emit
@@ -305,6 +305,7 @@ del _pygpt_make_system_noninteractive
         :param auto_init: Automatically recover the kernel once if it is unavailable.
         :return: Output from the kernel.
         """
+        self._signals_local.streams = {"stdout": "", "stderr": ""}
         if self.restarting:
             self.log("IPython kernel restart is already in progress; execution deferred.")
             self.send_output(self.RESTARTING_MSG)
@@ -405,6 +406,9 @@ del _pygpt_make_system_noninteractive
                 chunk = str(self.process_message(msg))
                 if chunk.strip() != "":
                     output += chunk
+                    stream = "stderr" if msg['msg_type'] == 'error' else msg['content'].get('name', 'stdout')
+                    if stream in ('stdout', 'stderr'):
+                        self._signals_local.streams[stream] += chunk
                     self.send_output(chunk)
 
                 if (msg['msg_type'] == 'status' and
@@ -513,8 +517,9 @@ del _pygpt_make_system_noninteractive
 
     def log(self, msg):
         """
-        Log the message.
+        Log the message to console only when plugin logging is enabled.
 
         :param msg: Message to log.
         """
-        print(msg)
+        if self.plugin is not None and self.plugin.is_log():
+            print(msg)

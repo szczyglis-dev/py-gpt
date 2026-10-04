@@ -121,7 +121,7 @@ class Responses:
 
         # Store messages: false when images present (SDK guidance), otherwise configurable (default True)
         store_messages = True
-        cfg_store = self.window.core.config.get("remote_tools.xai.store_messages")
+        cfg_store = self.window.core.llm.get("x_ai").get_remote_tool_config("store_messages")
         if cfg_store is not None:
             try:
                 store_messages = bool(cfg_store)

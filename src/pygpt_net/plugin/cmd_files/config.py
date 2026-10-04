@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 15:50:00                  #
+# Updated Date: 2026.10.01 00:45:00                  #
 # ================================================== #
 
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
@@ -94,7 +94,7 @@ class Config(BaseConfig):
         plugin.add_cmd(
             "send_file",
             instruction=(
-                "send file as a normal persistent chat attachment; use attach_runtime_file instead when a local "
+                "send file as a normal persistent chat attachment; use attach_runtime_file (if available) instead when a local "
                 "file should be passed only to the immediate next model request for native analysis without adding "
                 "it to the persistent chat attachment list"
             ),
@@ -172,8 +172,11 @@ class Config(BaseConfig):
         )
         plugin.add_cmd(
             "read_file",
-            instruction=("read data from files; when a local image should be visually inspected by the active "
-                         "multimodal model, use attach_runtime_file instead of read_file"),
+            instruction=(
+                "read text/data from local files. Do not call filesystem tools merely to access an image that the "
+                "user already supplied through the chat attachment UI; System handles user images through the "
+                "chat/vision attachment pipeline. Binary images are not meaningfully inspected with read_file."
+            ),
             params=[
                 {
                     "name": "path",

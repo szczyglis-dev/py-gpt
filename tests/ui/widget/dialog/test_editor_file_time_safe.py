@@ -45,11 +45,14 @@ def test_editor_file_title_without_change_or_force_has_no_clock_suffix(tmp_path)
 
 
 def test_editor_file_is_changed_compares_editor_content_with_base_content():
-    editor = SimpleNamespace(toPlainText=MagicMock(return_value="same"))
+    document = SimpleNamespace(isModified=MagicMock(return_value=False), setModified=MagicMock())
+    editor = SimpleNamespace(toPlainText=MagicMock(return_value="same"), document=MagicMock(return_value=document))
     widget = SimpleNamespace(window=SimpleNamespace(ui=SimpleNamespace(editor={"id": editor})), id="id", base_content="same")
     assert EditorFileDialog.is_changed(widget) is False
     editor.toPlainText.return_value = "different"
+    document.isModified.return_value = False
     assert EditorFileDialog.is_changed(widget) is True
+    document.setModified.assert_called_with(True)
 
 
 def test_editor_file_cleanup_closes_settings_only_for_main_editor_dialog():

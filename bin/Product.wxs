@@ -9,19 +9,51 @@
 
     <!-- Optional launch checkbox on the final installer page; checked by default. -->
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch PyGPT" />
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="PYGPT_LAUNCH" Value="1" />
 
     <!-- Launch the installed PyGPT executable when Finish is clicked and the checkbox is checked. -->
-    <Property Id="WixShellExecTarget" Value="[#PygptExe]" />
+    <CustomAction Id="SetLaunchTarget" Property="WixShellExecTarget" Value="[INSTALLDIR]pygpt.exe" />
     <CustomAction Id="LaunchPyGPT" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
 
     <UI>
       <UIRef Id="WixUI_InstallDir" />
-      <Publish Dialog="ExitDialog"
+      <!-- Use a distinct ID: redefining WixUI's ExitDialog creates duplicate symbols. -->
+      <Dialog Id="PyGPTExitDialog" Width="370" Height="270" Title="!(loc.ExitDialog_Title)">
+        <Control Id="Finish" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Cancel="yes" Text="!(loc.WixUIFinish)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Disabled="yes" Text="!(loc.WixUICancel)" />
+        <Control Id="Bitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="234" TabSkip="no" Text="!(loc.ExitDialogBitmap)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Disabled="yes" Text="!(loc.WixUIBack)" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Description" Type="Text" X="135" Y="70" Width="220" Height="40" Transparent="yes" NoPrefix="yes" Text="!(loc.ExitDialogDescription)" />
+        <Control Id="Title" Type="Text" X="135" Y="20" Width="220" Height="60" Transparent="yes" NoPrefix="yes" Text="!(loc.ExitDialogTitle)" />
+        <Control Id="OptionalText" Type="Text" X="135" Y="110" Width="220" Height="80" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="[WIXUI_EXITDIALOGOPTIONALTEXT]">
+          <Condition Action="show">WIXUI_EXITDIALOGOPTIONALTEXT AND NOT Installed</Condition>
+        </Control>
+        <!-- Native MSI CheckBox backgrounds are opaque. Limit that control to
+             the check mark and draw its caption as transparent text. -->
+        <Control Id="LaunchCheckBox" Type="CheckBox" X="135" Y="205" Width="12" Height="12" Hidden="yes" Property="PYGPT_LAUNCH" CheckBoxValue="1">
+          <Condition Action="show">WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT AND NOT Installed</Condition>
+        </Control>
+        <Control Id="LaunchLabel" Type="Text" X="149" Y="206" Width="206" Height="12" Transparent="yes" NoPrefix="yes" Hidden="yes" Text="[WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT]">
+          <Condition Action="show">WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT AND NOT Installed</Condition>
+        </Control>
+      </Dialog>
+      <Publish Dialog="PyGPTExitDialog" Control="Finish" Event="DoAction" Value="SetLaunchTarget" Order="1">PYGPT_LAUNCH = 1 AND NOT Installed</Publish>
+      <Publish Dialog="PyGPTExitDialog"
                Control="Finish"
                Event="DoAction"
-               Value="LaunchPyGPT">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed</Publish>
+               Value="LaunchPyGPT" Order="2">PYGPT_LAUNCH = 1 AND NOT Installed</Publish>
+      <Publish Dialog="PyGPTExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
     </UI>
+    <!-- The standard WixUI success sequence rows are explicitly overridable. -->
+    <InstallUISequence>
+      <Show Dialog="ExitDialog" Sequence="1">0</Show>
+      <Show Dialog="PyGPTExitDialog" OnExit="success" />
+    </InstallUISequence>
+    <AdminUISequence>
+      <Show Dialog="ExitDialog" Sequence="1">0</Show>
+      <Show Dialog="PyGPTExitDialog" OnExit="success" />
+    </AdminUISequence>
     <WixVariable Id="WixUILicenseRtf" Value="$(var.SourceDir)\_internal\USER-LICENSE.rtf" />
     <WixVariable Id="WixUIBannerBmp" Value="$(var.SourceDir)\_internal\banner.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="$(var.SourceDir)\_internal\banner_welcome.bmp" />
@@ -49,12 +81,13 @@
 
   <Fragment>
   <DirectoryRef Id="INSTALLDIR">
-    <Component Id="ApplicationComponent" Guid="CEBE70CD-7342-438B-A38B-0015B61D9CE9">
-      <File Id="PygptExe" Source="$(var.SourceDir)\pygpt.exe" KeyPath="yes">
-        <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
-        <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" Advertise="yes" />
-      </File>
-      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1"/>
+    <Component Id="ApplicationComponent" Guid="F7FB8DC8-0C02-41F3-B9C3-A3EC9429D574">
+      <!-- pygpt.exe is owned once, by the harvested PYGPTFiles component. -->
+      <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" Target="[INSTALLDIR]pygpt.exe" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" />
+      <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" Target="[INSTALLDIR]pygpt.exe" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" />
+      <RemoveFolder Id="RemoveInstallDir" Directory="INSTALLDIR" On="uninstall" />
+      <RemoveFolder Id="RemoveProgramsDir" Directory="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Name="installed" Type="integer" Value="1" KeyPath="yes" />
     </Component>
   </DirectoryRef>
 </Fragment>

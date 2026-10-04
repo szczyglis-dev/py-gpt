@@ -11,6 +11,7 @@
 
 import os
 from typing import Optional, Dict, List
+from pygpt_net.item.render_attachment import attachment_paths
 
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxItem
@@ -96,7 +97,7 @@ class Vision:
         """
         images = self.get_attachments()
         if len(images) > 0:
-            ctx.images = self.window.core.filesystem.make_local_list(list(images.values()), ctx=ctx)
+            ctx.images = attachment_paths(self.window.core.filesystem.make_local_list(list(images.values()), ctx=ctx), 'user')
 
     def get_attachments(self) -> Dict[str, str]:
         return self.attachments

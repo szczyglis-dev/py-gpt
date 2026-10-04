@@ -55,6 +55,12 @@ To run all unit tests, run the following in the root dir of the project:
 
 See these [instructions](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork) to open a pull request against the PyGPT repo.
 
+## Publishing Add-ons
+
+If you want to publish a PyGPT Add-on in the public Add-ons catalog, please use the dedicated [py-gpt-addons](https://github.com/szczyglis-dev/py-gpt-addons) repository instead of submitting the Add-on code to the main PyGPT repository.
+
+Keep the Add-on source code in your own public GitHub repository and submit only the registry entry through a pull request to `py-gpt-addons`. Follow the contribution instructions in that repository, including SHA-256 integrity signing. Every Add-on update requires a new SHA-256 hash and a new registry pull request.
+
 ## Note
 Please remember that the project is still in the early stages of development, many things require refactoring and will undergo changes.
 

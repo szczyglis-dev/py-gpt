@@ -9,6 +9,7 @@ from llama_index.core.base.llms.types import ImageBlock, MessageRole, TextBlock
 
 import pygpt_net.core.agents_v2.context as context_module
 import pygpt_net.core.agents_v2.runtime as runtime_module
+import pygpt_net.core.agents_v2.setup as runtime_setup_module
 from pygpt_net.core.agents_v2.artifacts import RuntimeArtifacts
 from pygpt_net.core.agents_v2.context import RuntimeContext
 from pygpt_net.core.agents_v2.contracts import RuntimeInput, RuntimeOutput
@@ -31,19 +32,11 @@ def bare_runtime():
     runtime.index_id = None
     runtime.rag_context_text = ""
     runtime.verbose = MagicMock()
-    runtime.verbose_log = MagicMock()
-    runtime.verbose_text = MagicMock()
-    runtime._actor_llms = {}
-    runtime.workers = {}
-    runtime._artifact_seen = {
-        "files": set(), "images": set(), "urls": set(), "attachments": set()
-    }
-    runtime._artifact_delivery_seen = set()
-    runtime._pending_artifacts = {
-        "files": [], "images": [], "urls": [], "attachments": []
-    }
-    runtime.context_api = RuntimeContext(runtime)
-    runtime.artifact_api = RuntimeArtifacts(runtime)
+    runtime.verbose.log = MagicMock()
+    runtime.verbose.text = MagicMock()
+    runtime.workers = SimpleNamespace(states={})
+    runtime.inputs = RuntimeContext(runtime)
+    runtime.artifacts = RuntimeArtifacts(runtime)
     return runtime
 
 
@@ -108,33 +101,35 @@ def test_agents_v2_runtime_input_images_requires_image_capable_model_and_unique_
     monkeypatch.setattr(context_module.os.path, "isfile", lambda path: path != "/tmp/missing.png")
     monkeypatch.setattr(context_module, "is_image", lambda path: path.endswith(".png"))
 
-    assert runtime._input_image_paths() == ["/tmp/a.png"]
+    assert runtime.inputs.image_paths() == ["/tmp/a.png"]
 
     runtime.model = SimpleNamespace(is_image_input=lambda: False)
-    assert runtime._input_image_paths() == []
+    assert runtime.inputs.image_paths() == []
 
 
 def test_agents_v2_runtime_persist_input_images_updates_main_ctx_once():
     runtime = bare_runtime()
     main = SimpleNamespace(images=["existing"])
     runtime.context.ctx = main
-    runtime._input_image_paths = MagicMock(return_value=["/tmp/a.png", "/tmp/b.png"])
+    runtime.inputs.image_paths = MagicMock(return_value=["/tmp/a.png", "/tmp/b.png"])
     runtime.window.core.filesystem.make_local_list.return_value = ["local:a", "local:b"]
 
-    runtime._persist_input_images()
+    runtime.inputs.persist_images()
 
     assert main.images == ["existing", "local:a", "local:b"]
+    assert main.images[1].type == main.images[2].type == "user"
     runtime.window.core.ctx.update_item.assert_called_once_with(main)
 
 
 def test_agents_v2_runtime_persist_input_images_does_not_write_when_unchanged():
     runtime = bare_runtime()
-    main = SimpleNamespace(images=["local:a"])
+    from pygpt_net.item.render_attachment import AttachmentPath
+    main = SimpleNamespace(images=[AttachmentPath("local:a", "user")])
     runtime.context.ctx = main
-    runtime._input_image_paths = MagicMock(return_value=["/tmp/a.png"])
+    runtime.inputs.image_paths = MagicMock(return_value=["/tmp/a.png"])
     runtime.window.core.filesystem.make_local_list.return_value = ["local:a"]
 
-    runtime._persist_input_images()
+    runtime.inputs.persist_images()
 
     runtime.window.core.ctx.update_item.assert_not_called()
 
@@ -146,9 +141,9 @@ def test_agents_v2_runtime_build_user_message_uses_native_image_blocks(tmp_path)
     image_b = tmp_path / "b.jpg"
     image_a.write_bytes(b"")
     image_b.write_bytes(b"")
-    runtime._input_image_paths = MagicMock(return_value=[str(image_a), str(image_b)])
+    runtime.inputs.image_paths = MagicMock(return_value=[str(image_a), str(image_b)])
 
-    message = runtime.build_user_message("hello")
+    message = runtime.inputs.message("hello")
 
     assert message.role == MessageRole.USER
     assert isinstance(message.blocks[0], TextBlock)
@@ -161,7 +156,7 @@ def test_agents_v2_runtime_build_user_message_plain_model_uses_content():
     runtime = bare_runtime()
     runtime.model = SimpleNamespace(is_image_input=lambda: False)
 
-    message = runtime.build_user_message("hello")
+    message = runtime.inputs.message("hello")
 
     assert message.role == MessageRole.USER
     assert message.content == "hello"
@@ -186,7 +181,7 @@ def test_agents_v2_runtime_shared_context_contains_hidden_input_attachment_manif
     }
     monkeypatch.setattr(context_module, "is_image", lambda path: path.endswith(".png"))
 
-    text = runtime._build_shared_context()
+    text = runtime.inputs.shared_context()
 
     assert "extracted text" in text
     assert '"name": "a.png"' in text
@@ -197,10 +192,12 @@ def test_agents_v2_runtime_shared_context_contains_hidden_input_attachment_manif
 
 def test_agents_v2_runtime_system_context_reads_filesystem_runtime_prompt_only():
     runtime = bare_runtime()
-    runtime.context.ctx = SimpleNamespace(extra={
+    runtime.context.ctx = SimpleNamespace(
+        extra={
         "agents_v2_filesystem_context": "stale persisted value must be ignored",
         "other": "ignore",
-    })
+    },
+    )
     plugin = MagicMock()
     plugin.get_option_value.return_value = True
     plugin.build_runtime_filesystem_context.return_value = " filesystem instructions "
@@ -208,7 +205,7 @@ def test_agents_v2_runtime_system_context_reads_filesystem_runtime_prompt_only()
     runtime.window.core.plugins.get.return_value = plugin
     runtime.window.core.command.is_cmd.return_value = True
 
-    assert runtime._build_runtime_system_context() == "filesystem instructions"
+    assert runtime.inputs.system_context() == "filesystem instructions"
     runtime.window.core.plugins.get.assert_called_once_with("cmd_files")
     plugin.build_runtime_filesystem_context.assert_called_once_with()
 
@@ -217,11 +214,11 @@ def test_agents_v2_runtime_prefetch_rag_context_uses_selected_index():
     runtime = bare_runtime()
     runtime.index_id = "idx-7"
     runtime.model = "model"
-    runtime.has_rag_index = MagicMock(return_value=True)
+    runtime.inputs.has_index = MagicMock(return_value=True)
     runtime.window.core.config.get.side_effect = lambda key, default=None: default
     runtime.window.core.idx.chat.query_retrieval.return_value = "  retrieved context  "
 
-    result = runtime.prefetch_rag_context(" question ")
+    result = runtime.inputs.prefetch(" question ")
 
     assert result == "retrieved context"
     runtime.window.core.idx.chat.query_retrieval.assert_called_once_with(
@@ -234,10 +231,10 @@ def test_agents_v2_runtime_prefetch_rag_context_uses_selected_index():
 def test_agents_v2_runtime_prefetch_rag_context_respects_auto_retrieve_setting():
     runtime = bare_runtime()
     runtime.index_id = "idx-7"
-    runtime.has_rag_index = MagicMock(return_value=True)
+    runtime.inputs.has_index = MagicMock(return_value=True)
     runtime.window.core.config.get.return_value = False
 
-    assert runtime.prefetch_rag_context("question") == ""
+    assert runtime.inputs.prefetch("question") == ""
     runtime.window.core.idx.chat.query_retrieval.assert_not_called()
 
 
@@ -245,15 +242,15 @@ def test_agents_v2_runtime_prefetch_rag_context_respects_auto_retrieve_setting()
 def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(monkeypatch):
     actor_ctx = MagicMock()
     monkeypatch.setattr(
-        runtime_module, "AgentsV2VerboseLogger",
+        runtime_setup_module, "AgentsV2VerboseLogger",
         lambda window, run_id, agent_mode=None: MagicMock(),
     )
-    monkeypatch.setattr(runtime_module, "WorkerToolFactory", lambda runtime: SimpleNamespace(runtime=runtime))
-    monkeypatch.setattr(AgentsV2Runtime, "_persist_input_images", lambda self: None)
-    monkeypatch.setattr(AgentsV2Runtime, "_build_shared_context", lambda self: "shared")
-    monkeypatch.setattr(AgentsV2Runtime, "_build_runtime_system_context", lambda self: "runtime")
-    monkeypatch.setattr(AgentsV2Runtime, "_seed_artifact_seen", lambda self: None)
-    monkeypatch.setattr(AgentsV2Runtime, "_make_tool_ctx", lambda self, actor_id: actor_ctx)
+    monkeypatch.setattr(runtime_setup_module, "WorkerToolFactory", lambda runtime: SimpleNamespace(runtime=runtime))
+    monkeypatch.setattr(RuntimeContext, "persist_images", lambda self: None)
+    monkeypatch.setattr(RuntimeContext, "shared_context", lambda self: "shared")
+    monkeypatch.setattr(RuntimeContext, "system_context", lambda self: "runtime")
+    monkeypatch.setattr(RuntimeArtifacts, "seed", lambda self: None)
+    monkeypatch.setattr(RuntimeArtifacts, "tool_context", lambda self, actor_id: actor_ctx)
 
     window = MagicMock()
     window.core.agents_v2.editor.resolve_selection.return_value = (
@@ -282,17 +279,17 @@ def test_agents_v2_runtime_init_reads_tool_chain_and_preset_capability_flags(mon
     assert runtime.index_id == "fallback-index"
     assert runtime.shared_context_text == "shared"
     assert runtime.runtime_system_context == "runtime"
-    assert runtime.workflow_final_requested is False
-    assert runtime.workflow_final_stream_started is False
-    assert runtime.workflow_final_hint == ""
+    assert runtime.workflow.final_requested is False
+    assert runtime.workflow.final_stream_started is False
+    assert runtime.workflow.final_hint == ""
     assert isinstance(runtime.timeline, RuntimeTimeline)
     assert isinstance(runtime.tool_history, RuntimeToolHistory)
-    assert isinstance(runtime.context_api, RuntimeContext)
-    assert isinstance(runtime.status_api, RuntimeStatus)
-    assert isinstance(runtime.artifact_api, RuntimeArtifacts)
-    assert isinstance(runtime.worker_api, WorkerRuntime)
-    assert isinstance(runtime.toolset_api, RuntimeToolset)
-    assert isinstance(runtime.prompt_api, RuntimePromptBuilder)
+    assert isinstance(runtime.inputs, RuntimeContext)
+    assert isinstance(runtime.status, RuntimeStatus)
+    assert isinstance(runtime.artifacts, RuntimeArtifacts)
+    assert isinstance(runtime.workers, WorkerRuntime)
+    assert isinstance(runtime.tools, RuntimeToolset)
+    assert isinstance(runtime.prompts, RuntimePromptBuilder)
     actor_ctx.set_input.assert_called_once_with("prompt", "orchestrator")
     actor_ctx.set_output.assert_called_once_with("", "Primary Agent")
 
@@ -303,6 +300,7 @@ def test_agents_v2_runtime_build_agent_prefers_function_calling_and_disables_par
     class FakeFunctionAgent:
         def __init__(self, **kwargs):
             captured.update(kwargs)
+            self.configure_completion = MagicMock()
 
     class FakeReactAgent:
         def __init__(self, **kwargs):
@@ -315,7 +313,7 @@ def test_agents_v2_runtime_build_agent_prefers_function_calling_and_disables_par
     runtime.verbose = MagicMock()
     llm = SimpleNamespace(metadata=SimpleNamespace(is_function_calling_model=True))
 
-    agent = runtime.build_agent("Worker", "desc", llm, "system", ["tool"])
+    agent = runtime.inputs.agent("Worker", "desc", llm, "system", ["tool"])
 
     assert isinstance(agent, FakeFunctionAgent)
     assert captured["allow_parallel_tool_calls"] is False
@@ -333,6 +331,7 @@ def test_agents_v2_runtime_build_agent_uses_react_for_non_function_calling_model
     class FakeReactAgent:
         def __init__(self, **kwargs):
             captured.update(kwargs)
+            self.configure_completion = MagicMock()
 
     monkeypatch.setattr(context_module, "FunctionAgent", FakeFunctionAgent)
     monkeypatch.setattr(context_module, "ReActAgent", FakeReactAgent)
@@ -341,7 +340,7 @@ def test_agents_v2_runtime_build_agent_uses_react_for_non_function_calling_model
     runtime.verbose = MagicMock()
     llm = SimpleNamespace(metadata=SimpleNamespace(is_function_calling_model=False))
 
-    agent = runtime.build_agent("Worker", "desc", llm, "system", [])
+    agent = runtime.inputs.agent("Worker", "desc", llm, "system", [])
 
     assert isinstance(agent, FakeReactAgent)
     assert "allow_parallel_tool_calls" not in captured
@@ -351,7 +350,7 @@ def test_agents_v2_runtime_collect_artifacts_stages_non_file_values_for_final_de
     runtime = bare_runtime()
     main = SimpleNamespace(files=["existing"], images=[], urls=[], attachments=[])
     runtime.context.ctx = main
-    runtime._artifact_seen = {
+    runtime.artifacts.seen = {
         "files": {json.dumps("existing")},
         "images": set(),
         "urls": set(),
@@ -369,7 +368,7 @@ def test_agents_v2_runtime_collect_artifacts_stages_non_file_values_for_final_de
         artifacts={"files": [], "images": [], "urls": [], "attachments": []},
     )
 
-    runtime.collect_artifacts(source, worker)
+    runtime.artifacts.collect(source, worker)
 
     assert main.files == ["existing"]
     assert main.images == []
@@ -378,7 +377,7 @@ def test_agents_v2_runtime_collect_artifacts_stages_non_file_values_for_final_de
     assert worker.artifacts["files"] == []
     assert worker.artifacts["images"] == ["img.png"]
     assert worker.artifacts["urls"] == ["https://example.com"]
-    assert runtime.pending_artifacts() == {
+    assert runtime.artifacts.pending() == {
         "images": ["img.png"],
         "urls": ["https://example.com"],
     }
@@ -387,18 +386,18 @@ def test_agents_v2_runtime_collect_artifacts_stages_non_file_values_for_final_de
 
 def test_agents_v2_runtime_collect_llm_artifacts_deduplicates_provider_urls():
     runtime = bare_runtime()
-    runtime._artifact_seen = {"files": set(), "images": set(), "urls": set(), "attachments": set()}
+    runtime.artifacts.seen = {"files": set(), "images": set(), "urls": set(), "attachments": set()}
     main = SimpleNamespace(files=[], images=[], urls=[], attachments=[])
     tool_ctx = SimpleNamespace(files=[], images=[], urls=["https://old"], attachments=[])
     runtime.context.ctx = main
-    runtime.orchestrator_actor = SimpleNamespace(id="orchestrator", tool_ctx=tool_ctx)
+    runtime.primary_actor = SimpleNamespace(id="orchestrator", tool_ctx=tool_ctx)
     llm = SimpleNamespace(pop_pygpt_urls=lambda: ["https://old", "https://new", "https://new"])
 
-    runtime.collect_llm_artifacts(llm)
+    runtime.artifacts.collect_from_llm(llm)
 
     assert tool_ctx.urls == ["https://old", "https://new"]
     assert main.urls == []
-    assert runtime.pending_artifacts() == {
+    assert runtime.artifacts.pending() == {
         "urls": ["https://old", "https://new"],
     }
 

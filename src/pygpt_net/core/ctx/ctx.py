@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 14:35:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import copy
@@ -17,6 +17,7 @@ from typing import Optional, Tuple, List, Dict
 
 from packaging.version import Version
 
+from pygpt_net.plugin.base.execution import output_text
 from pygpt_net.core.types import (
     MODE_AGENT,
     MODE_AGENT_LLAMA,
@@ -759,7 +760,7 @@ class Ctx:
         extra = task.extra if isinstance(getattr(task, "extra", None), dict) else {}
         return extra.get("provider_history") is not False
 
-    def _part_max_tool_round(self, part: Optional[CtxItemPart]) -> int:
+    def part_max_tool_round(self, part: Optional[CtxItemPart]) -> int:
         if part is None:
             return 0
         rounds = [
@@ -984,7 +985,7 @@ class Ctx:
         # round. All sibling calls from that response share the same round, while
         # later tool-only continuations stay in this same CtxItemPart and receive
         # the next round number.
-        next_tool_round = self._part_max_tool_round(part) + 1
+        next_tool_round = self.part_max_tool_round(part) + 1
         new_round_used = False
         tasks = []
         for index, call in enumerate(tool_calls or []):
@@ -1149,7 +1150,8 @@ class Ctx:
                 task = fallback.pop(0)
             if task is None:
                 continue
-            result = response.get("result") if isinstance(response, dict) and "result" in response else response
+            result = (output_text(response) if isinstance(response, dict) and ("stdout" in response or "stderr" in response)
+                      else response.get("result") if isinstance(response, dict) and "result" in response else response)
             provider = ""
             try:
                 model_item = self.window.core.models.get(item.model) if getattr(item, "model", None) else None
@@ -1249,7 +1251,7 @@ class Ctx:
         part = current_part
         if has_text:
             if (self._part_has_text(current_part)
-                    or self._part_max_tool_round(current_part) > 0):
+                    or self.part_max_tool_round(current_part) > 0):
                 part = self.begin_part(
                     parent,
                     name=continuation.output_name,
@@ -1264,7 +1266,7 @@ class Ctx:
             # A newly allocated text partial has no preceding tool rounds. For
             # legacy/reused empty parts retain ordering metadata so old contexts
             # can still be projected correctly after reload.
-            part.extra.setdefault("text_after_tool_round", self._part_max_tool_round(part))
+            part.extra.setdefault("text_after_tool_round", self.part_max_tool_round(part))
             part.output = visible_output
             if continuation.output_name:
                 part.name = continuation.output_name

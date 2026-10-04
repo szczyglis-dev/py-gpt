@@ -30,7 +30,7 @@ def _capture():
 def test_painter_screenshot_playwright_uses_fixed_clock_and_mocks_browser_page():
     capture, window = _capture()
     page = MagicMock()
-    expected_name = "cap-2025-01-02_03-04-05"
+    expected_name = "cap-2025-01-02_03-04-05-000000"
     expected_path = os.path.join("/capture", expected_name + ".png")
 
     with patch("pygpt_net.controller.painter.capture.datetime.datetime", FixedDateTime), \
@@ -50,7 +50,7 @@ def test_painter_screenshot_playwright_uses_fixed_clock_and_mocks_browser_page()
 
 def test_painter_use_uses_fixed_clock_without_wall_clock_assumption():
     capture, window = _capture()
-    expected_name = "cap-2025-01-02_03-04-05"
+    expected_name = "cap-2025-01-02_03-04-05-000000"
     expected_path = os.path.join("/capture", expected_name + ".png")
 
     with patch("pygpt_net.controller.painter.capture.datetime.datetime", FixedDateTime), \

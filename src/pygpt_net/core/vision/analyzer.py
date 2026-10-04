@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+from pygpt_net.item.render_attachment import AttachmentPath
 
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.types import MODE_CHAT
@@ -120,7 +121,7 @@ class Analyzer:
             output = self._call(context).strip()
             for file_id, attachment in image_files.items():
                 if attachment.path:
-                    ctx.images_before.append(attachment.path)
+                    ctx.images_before.append(AttachmentPath(attachment.path, 'user'))
                 attachment.consumed = True  # allow for deletion
             return output
         finally:

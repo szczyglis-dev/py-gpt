@@ -6,13 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.20 14:35:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os
 
 from pygpt_net.core.docker.docker import migrate_default_dockerfile
 from pygpt_net.utils import trans
+
+from pygpt_net.plugin.base.execution import execution_response
 
 from .base import ExecutionBackend
 from ..dockerfile import SYSTEM_DOCKERFILE, SYSTEM_DOCKERFILE_39
@@ -78,17 +80,18 @@ class DockerBackend(ExecutionBackend):
         runner.log("Running command: {}".format(command), prefix=self.log_prefix)
         runner.send_interpreter_output_begin("stdout")
         try:
-            response = self.plugin.docker.execute(command, ctx=ctx)
+            response = self.plugin.docker.execute(command, ctx=ctx, demux=True)
         except Exception as e:
-            response = str(e).encode("utf-8")
+            response = (b"", str(e).encode("utf-8"))
 
-        result = runner.handle_result_sandbox(response, prefix=self.log_prefix)
+        process_output = response
+        stdout, stderr = response or (b"", b"")
+        result = runner.handle_result(stdout, stderr)
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def get_runtime_workdir(self, ctx=None) -> str:
         return self.sandbox_workdir

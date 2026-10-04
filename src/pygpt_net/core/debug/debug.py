@@ -384,7 +384,7 @@ class Debug:
             sum_by_type = summary.summarize(objs)
             summary.print_(sum_by_type)
 
-            pids = self.window.controller.chat.render.web_renderer.pids
+            pids = self.window.controller.chat.render.web_renderer.state.pids
             total_bytes = asizeof.asizeof(pids)
             pids_total_mb = total_bytes / (1024 * 1024)
             count_pids = len(pids)

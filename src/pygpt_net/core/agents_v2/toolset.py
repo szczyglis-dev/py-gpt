@@ -53,13 +53,13 @@ class RuntimeToolset:
                 existing.add(name)
         return out
 
-    def primary_agent_tools(self) -> List[FunctionTool]:
+    def primary(self) -> List[FunctionTool]:
         """Build the Primary Agent surface: normal tools + one agent-as-tool bridge."""
         tools: List[FunctionTool] = list(
             self.runtime.tool_factory.build_orchestrator(self.runtime.primary_actor)
         )
         tools.append(FunctionTool.from_defaults(
-            async_fn=self.runtime.delegate_task,
+            async_fn=self.runtime.delegation.delegate,
             name="delegate_task",
             description=(
                 "Delegate one substantial, self-contained subtask to an ephemeral specialist agent. "
@@ -72,7 +72,7 @@ class RuntimeToolset:
             ),
         ))
         tools.append(FunctionTool.from_defaults(
-            async_fn=self.runtime.set_status,
+            async_fn=self.runtime.status.update,
             name="workflow_status",
             description=(
                 "Set/replace the single transient user-visible workflow status line. Describe the current user-level "
@@ -84,11 +84,11 @@ class RuntimeToolset:
         ))
         return self._with_context_tools(tools)
 
-    def orchestrator_tools(self) -> List[FunctionTool]:
+    def orchestrator(self) -> List[FunctionTool]:
         """Build the legacy Orchestrator surface with explicit worker lifecycle tools."""
         tools: List[FunctionTool] = [
             FunctionTool.from_defaults(
-                async_fn=self.runtime.create_worker,
+                async_fn=self.runtime.workers.create,
                 name="agent_create",
                 description=(
                     "Create a runtime worker. Parameters: name, instruction, language, optional system_prompt, optional task. "
@@ -97,27 +97,27 @@ class RuntimeToolset:
                 ),
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.update_worker,
+                async_fn=self.runtime.workers.update,
                 name="agent_update",
                 description="Update an idle worker's name/role/language/system prompt while preserving its in-memory history.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.start_worker,
+                async_fn=self.runtime.workers.start,
                 name="agent_run",
                 description="Start/reuse an existing idle/completed worker on a new task. Its in-memory history is retained.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.worker_status,
+                async_fn=self.runtime.workers.status,
                 name="agent_status",
                 description="Return one worker's state, latest progress, result, error and produced artifacts as JSON.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.worker_list,
+                async_fn=self.runtime.workers.list,
                 name="agent_list",
                 description="Return all runtime workers and their states as JSON.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.wait_workers,
+                async_fn=self.runtime.workers.wait,
                 name="agent_wait",
                 description=(
                     "Wait asynchronously for comma-separated agent_ids, or all workers when empty. "
@@ -125,17 +125,17 @@ class RuntimeToolset:
                 ),
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.stop_worker,
+                async_fn=self.runtime.workers.stop,
                 name="agent_stop",
                 description="Cooperatively stop/cancel a running worker by ID.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.remove_worker,
+                async_fn=self.runtime.workers.remove,
                 name="agent_remove",
                 description="Stop if needed and remove a runtime worker by ID.",
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.set_status,
+                async_fn=self.runtime.status.update,
                 name="workflow_status",
                 description=(
                     "Set/replace the single transient user-visible workflow status line. Describe user-level activity "
@@ -145,7 +145,7 @@ class RuntimeToolset:
                 ),
             ),
             FunctionTool.from_defaults(
-                async_fn=self.runtime.request_workflow_finish,
+                async_fn=self.runtime.workflow.request_finish,
                 name="workflow_finish",
                 description=(
                     "Validate that the whole user task is ready to finalize. Call once after "
@@ -158,16 +158,16 @@ class RuntimeToolset:
         ]
         # The Orchestrator remains a full PyGPT actor; delegation is a strategy,
         # not a capability boundary.
-        tools.extend(self.runtime.tool_factory.build_orchestrator(self.runtime.orchestrator_actor))
+        tools.extend(self.runtime.tool_factory.build_orchestrator(self.runtime.primary_actor))
         return self._with_context_tools(tools)
 
-    def swarm_tools(self) -> List[FunctionTool]:
+    def swarm(self) -> List[FunctionTool]:
         """Build Swarm surface: explicit lifecycle plus swarm declaration/status tools."""
-        tools = self.runtime.orchestrator_tools()
+        tools = self.orchestrator()
         # Insert Swarm-specific controls before the generic lifecycle tools to
         # make the required declaration/status contract prominent to the model.
         tools.insert(0, FunctionTool.from_defaults(
-            async_fn=self.runtime.swarm_status,
+            async_fn=self.runtime.workflow.status,
             name="swarm_status",
             description=(
                 "Emit and return an aggregate swarm snapshot: declared/created/running/completed/failed/stopped counts "
@@ -175,7 +175,7 @@ class RuntimeToolset:
             ),
         ))
         tools.insert(0, FunctionTool.from_defaults(
-            async_fn=self.runtime.start_swarm,
+            async_fn=self.runtime.workflow.declare_swarm,
             name="swarm_start",
             description=(
                 "Declare a positive swarm size: use the user-requested count or choose a small purposeful team. "
@@ -184,14 +184,14 @@ class RuntimeToolset:
                 "the exact size of this swarm for the run."
             ),
         ))
-        tools.extend(self.runtime.worker_api.communication_tools("orchestrator"))
+        tools.extend(self.runtime.workers.communication.tools("orchestrator"))
         return tools
 
-    def main_agent_tools(self) -> List[FunctionTool]:
+    def main(self) -> List[FunctionTool]:
         """Return the tool surface declared by the selected runtime strategy."""
         surface = self.runtime.strategy.tool_surface
         if surface == AgentToolSurface.SWARM:
-            return self.runtime.swarm_tools()
+            return self.swarm()
         if surface == AgentToolSurface.ORCHESTRATOR:
-            return self.runtime.orchestrator_tools()
-        return self.runtime.primary_agent_tools()
+            return self.orchestrator()
+        return self.primary()

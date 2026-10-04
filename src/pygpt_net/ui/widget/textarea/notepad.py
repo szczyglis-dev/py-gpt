@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 22:05:00                  #
+# Updated Date: 2026.09.30 23:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QEvent, QTimer, QSize
@@ -24,6 +24,7 @@ from PySide6.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QHBoxLayout, QSiz
 from pygpt_net.core.events import Event
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.core.text.finder import Finder
+from pygpt_net.ui.widget.audio.bar import InputRecordWidget
 from pygpt_net.ui.widget.element.labels import HelpLabel
 from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
@@ -76,19 +77,25 @@ class NotepadWidget(QWidget):
         self.mic_button.setToolTip(trans('audio.note.btn.tooltip'))
         self.mic_button.clicked.connect(self.toggle_microphone)
 
+        # Reuse the same input recording widget as ChatInput so colors,
+        # elapsed time, level rendering and animations stay identical.
+        self.record_status = InputRecordWidget(self.window, self)
+        policy = self.record_status.sizePolicy()
+        policy.setRetainSizeWhenHidden(True)
+        self.record_status.setSizePolicy(policy)
+
         self.mic_container = QWidget(self)
-        mic_layout = QHBoxLayout(self.mic_container)
+        mic_layout = QVBoxLayout(self.mic_container)
         mic_layout.setContentsMargins(15, 15, 15, 15)
-        mic_layout.setSpacing(0)
-        mic_layout.addStretch(1)
+        mic_layout.setSpacing(8)
         mic_layout.addWidget(self.mic_button, 0, Qt.AlignCenter)
-        mic_layout.addStretch(1)
+        mic_layout.addWidget(self.record_status, 0, Qt.AlignCenter)
         self.mic_container.setVisible(False)
 
         layout = QVBoxLayout()
         layout.addWidget(self.textarea, 1)
         layout.addWidget(self.mic_container, 0)
-        layout.addWidget(self.window.ui.nodes['tip.output.tab.notepad'], 0)
+        self.window.ui.nodes['tip.output.tab.notepad'].hide()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self.setLayout(layout)
@@ -109,6 +116,11 @@ class NotepadWidget(QWidget):
 
     def toggle_microphone(self):
         """Toggle simple microphone recording from the Notepad tab."""
+        try:
+            if not self.window.controller.audio.is_recording():
+                self.window.controller.audio.ui.on_input_toggle_requested("input")
+        except Exception:
+            pass
         self.window.dispatch(Event(Event.AUDIO_INPUT_RECORD_TOGGLE))
 
     def set_mic_visible(self, visible: bool):
@@ -123,6 +135,22 @@ class NotepadWidget(QWidget):
         else:
             self.mic_button.setIcon(QIcon(':/icons/mic.svg'))
             self.mic_button.setToolTip(trans('audio.note.btn.tooltip'))
+
+    def set_record_pending(self):
+        """Show the compact recording-pending state in the Notepad row."""
+        self.record_status.show_pending()
+
+    def set_recording_active(self):
+        """Show the full input record meter in the Notepad row."""
+        self.record_status.show_recording()
+
+    def set_record_level(self, level: int):
+        """Update the Notepad input meter level."""
+        self.record_status.setLevel(level)
+
+    def reset_recording_ui(self):
+        """Hide the Notepad recording status widgets."""
+        self.record_status.reset()
 
     def setText(self, text: str):
         """

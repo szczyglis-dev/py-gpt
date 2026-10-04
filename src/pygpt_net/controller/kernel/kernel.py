@@ -373,7 +373,7 @@ class Kernel:
                 event.data.get("part_uuid"),
             )
         elif name == KernelEvent.AGENT_V2_STATUS:
-            return resp.agent_v2_status(context, extra, event.data.get("status", ""))
+            return resp.agent_v2_status(context, extra, event.data.get("status", ""), owner=event.data.get("owner"))
         elif name == KernelEvent.AGENT_V2_TOOL_EXEC:
             return resp.agent_v2_tool_exec(context, extra, event.data.get("request"))
         elif name == KernelEvent.AGENT_V2_END:
@@ -393,12 +393,16 @@ class Kernel:
 
     def terminate(self):
         """
-        Terminate the kernel by dispatching a terminate event, stopping the window, and destroying plugins.
+        Terminate the kernel and force-release realtime/audio resources.
         """
         self.window.dispatch(KernelEvent(KernelEvent.TERMINATE))
+        # Stop microphone/output immediately, before generic STOP can allow any
+        # final realtime input callback to race with provider shutdown.
+        self.window.controller.audio.force_stop()
         self.stop(exit=True)
-        self.window.controller.plugins.destroy()
         self.window.controller.realtime.shutdown()
+        self.window.controller.audio.shutdown()
+        self.window.controller.plugins.destroy()
 
     def stop(self, exit: bool = False):
         """
@@ -407,6 +411,9 @@ class Kernel:
         :param exit: If True, exit the application after stopping.
         """
         self.halt = True
+        badge = getattr(self.window, "computer_use_badge", None)
+        if badge is not None:
+            badge.stop()
         w = self.window
         w.controller.chat.common.stop(exit=exit)
         w.controller.audio.stop_audio()
@@ -457,6 +464,12 @@ class Kernel:
             tray.set_icon(self.STATE_ERROR)
             if is_main:
                 w.dispatch(RenderEvent(RenderEvent.STATE_ERROR, render_data))
+
+        if name in (KernelEvent.STATE_IDLE, KernelEvent.STATE_ERROR):
+            badge = getattr(w, "computer_use_badge", None)
+            if badge is not None:
+                # State updates may originate outside the GUI thread.
+                badge.stop_requested.emit()
 
         msg = event.data.get("msg", None)
         if msg is not None:

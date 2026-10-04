@@ -470,3 +470,40 @@ def test_execute_internal_override_locked():
     inp.execute(text="internal", force=False, reply=False, internal=True, prev_ctx=None, multimodal_ctx=mm_ctx)
     win.controller.kernel.resume.assert_called_once()
     win.controller.chat.text.send.assert_called_once()
+
+@pytest.mark.parametrize("text", ["", "   \n\t"])
+def test_empty_send_does_not_start_request_or_change_status(text):
+    window = create_dummy_window()
+    window.controller.realtime.is_enabled.return_value = False
+    window.core.plugins.get.return_value.handler_simple.is_recording = False
+    window.controller.audio.is_recording.return_value = False
+    window.core.attachments.has.return_value = False
+    window.ui.nodes['input'].toPlainText.return_value = text
+    ctrl = Input(window)
+
+    ctrl.send_input()
+
+    window.dispatch.assert_not_called()
+    window.update_status.assert_not_called()
+    window.core.ctx.output.begin_request.assert_not_called()
+    window.controller.tabs.get_effective_current_pid.assert_not_called()
+
+
+@pytest.mark.parametrize("text,attachments", [("hello", False), ("", True)])
+def test_send_with_text_or_attachments_still_begins_input(text, attachments):
+    window = create_dummy_window()
+    window.controller.realtime.is_enabled.return_value = False
+    window.core.plugins.get.return_value.handler_simple.is_recording = False
+    window.controller.audio.is_recording.return_value = False
+    window.core.attachments.has.return_value = attachments
+    window.ui.nodes['input'].toPlainText.return_value = text
+
+    def stop_after_begin(event):
+        if event.name == Event.INPUT_BEGIN:
+            event.data['stop'] = True
+
+    window.dispatch.side_effect = stop_after_begin
+    ctrl = Input(window)
+    ctrl.send_input()
+
+    assert window.dispatch.call_args_list[0].args[0].name == Event.INPUT_BEGIN

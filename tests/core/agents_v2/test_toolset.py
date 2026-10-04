@@ -21,24 +21,27 @@ class FakeFunctionTool:
 
 def make_runtime():
     runtime = SimpleNamespace(
-        worker_api=SimpleNamespace(communication_tools=MagicMock(return_value=[])),
         primary_actor="primary",
-        orchestrator_actor="orchestrator",
         tool_factory=MagicMock(),
-        delegate_task=AsyncMock(),
-        create_worker=AsyncMock(),
-        update_worker=AsyncMock(),
-        start_worker=AsyncMock(),
-        worker_status=AsyncMock(),
-        worker_list=AsyncMock(),
-        wait_workers=AsyncMock(),
-        stop_worker=AsyncMock(),
-        remove_worker=AsyncMock(),
-        set_status=AsyncMock(),
-        request_workflow_finish=AsyncMock(),
-        finish_workflow=AsyncMock(),
-        swarm_status=AsyncMock(),
-        start_swarm=AsyncMock(),
+        delegation=SimpleNamespace(delegate=AsyncMock()),
+        workers=SimpleNamespace(
+            communication=SimpleNamespace(tools=MagicMock(return_value=[])),
+            create=AsyncMock(),
+            update=AsyncMock(),
+            start=AsyncMock(),
+            status=AsyncMock(),
+            list=AsyncMock(),
+            wait=AsyncMock(),
+            stop=AsyncMock(),
+            remove=AsyncMock(),
+        ),
+        status=SimpleNamespace(update=AsyncMock()),
+        workflow=SimpleNamespace(
+            request_finish=AsyncMock(),
+            finish=AsyncMock(),
+            status=AsyncMock(),
+            declare_swarm=AsyncMock(),
+        ),
     )
     runtime.tool_factory.build_orchestrator.side_effect = lambda actor: [
         SimpleNamespace(metadata=SimpleNamespace(name=f"local:{actor}"))
@@ -48,8 +51,9 @@ def make_runtime():
         core=SimpleNamespace(
             context_manager=SimpleNamespace(build_agent_tools=MagicMock(return_value=[])),
             debug=SimpleNamespace(log=MagicMock()),
-        )
+        ),
     )
+    runtime.tools = RuntimeToolset(runtime)
     return runtime
 
 
@@ -61,11 +65,11 @@ def test_primary_agent_tools_expose_normal_tools_and_single_delegate_bridge(monk
     monkeypatch.setattr(toolset_module, "FunctionTool", FakeFunctionTool)
     runtime = make_runtime()
 
-    tools = RuntimeToolset(runtime).primary_agent_tools()
+    tools = RuntimeToolset(runtime).primary()
 
     assert names(tools) == ["local:primary", "delegate_task", "workflow_status"]
-    assert tools[-2].async_fn is runtime.delegate_task
-    assert tools[-1].async_fn is runtime.set_status
+    assert tools[-2].async_fn is runtime.delegation.delegate
+    assert tools[-1].async_fn is runtime.status.update
     runtime.tool_factory.build_orchestrator.assert_called_once_with("primary")
 
 
@@ -73,35 +77,35 @@ def test_orchestrator_tools_expose_worker_lifecycle_then_normal_tools(monkeypatc
     monkeypatch.setattr(toolset_module, "FunctionTool", FakeFunctionTool)
     runtime = make_runtime()
 
-    tools = RuntimeToolset(runtime).orchestrator_tools()
+    tools = RuntimeToolset(runtime).orchestrator()
 
     assert names(tools) == [
         "agent_create", "agent_update", "agent_run", "agent_status", "agent_list",
         "agent_wait", "agent_stop", "agent_remove", "workflow_status", "workflow_finish",
-        "local:orchestrator",
+        "local:primary",
     ]
-    assert tools[-2].async_fn is runtime.request_workflow_finish
-    runtime.tool_factory.build_orchestrator.assert_called_once_with("orchestrator")
+    assert tools[-2].async_fn is runtime.workflow.request_finish
+    runtime.tool_factory.build_orchestrator.assert_called_once_with("primary")
 
 
 def test_swarm_tools_prepend_swarm_contract_to_orchestrator_surface(monkeypatch):
     monkeypatch.setattr(toolset_module, "FunctionTool", FakeFunctionTool)
     runtime = make_runtime()
-    runtime.orchestrator_tools = lambda: RuntimeToolset(runtime).orchestrator_tools()
+    runtime.tools.orchestrator = lambda: RuntimeToolset(runtime).orchestrator()
 
-    tools = RuntimeToolset(runtime).swarm_tools()
+    tools = RuntimeToolset(runtime).swarm()
 
     assert names(tools)[:4] == ["swarm_start", "swarm_status", "agent_create", "agent_update"]
-    assert names(tools)[-1] == "local:orchestrator"
+    assert names(tools)[-1] == "local:primary"
 
 
 def test_main_agent_tools_dispatch_by_strategy_surface(monkeypatch):
     monkeypatch.setattr(toolset_module, "FunctionTool", FakeFunctionTool)
     runtime = make_runtime()
-    toolset = RuntimeToolset(runtime)
-    runtime.primary_agent_tools = MagicMock(return_value=["primary"])
-    runtime.orchestrator_tools = MagicMock(return_value=["orchestrator"])
-    runtime.swarm_tools = MagicMock(return_value=["swarm"])
+    toolset = runtime.tools
+    runtime.tools.primary = MagicMock(return_value=["primary"])
+    runtime.tools.orchestrator = MagicMock(return_value=["orchestrator"])
+    runtime.tools.swarm = MagicMock(return_value=["swarm"])
 
     for surface, expected in [
         (AgentToolSurface.PRIMARY, ["primary"]),
@@ -109,4 +113,4 @@ def test_main_agent_tools_dispatch_by_strategy_surface(monkeypatch):
         (AgentToolSurface.SWARM, ["swarm"]),
     ]:
         runtime.strategy = SimpleNamespace(tool_surface=surface)
-        assert toolset.main_agent_tools() == expected
+        assert toolset.main() == expected

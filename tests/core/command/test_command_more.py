@@ -347,3 +347,13 @@ def test_is_model_supports_tools_always_true():
         def get_provider(self):
             return "ollama"
     assert command.is_model_supports_tools("any", M()) is True
+
+def test_native_function_output_keeps_streams_and_exit_status():
+    command = Command(make_window())
+    response = {'request': {'cmd': 'sys_exec'}, 'result': False,
+                'stdout': 'stdout once', 'stderr': 'stderr once', 'return_code': 4}
+    ctx = SimpleNamespace(tool_calls=[{'id': 'call-1', 'function': {'name': 'sys_exec'}}],
+                          input=json.dumps([response]), extra={})
+    outputs = command.get_tool_calls_outputs(ctx)
+    assert outputs == [{'tool_call_id': 'call-1', 'output': {
+        'result': False, 'stdout': 'stdout once', 'stderr': 'stderr once', 'return_code': 4}}]

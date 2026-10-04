@@ -3,7 +3,7 @@
 
 from unittest.mock import MagicMock
 
-from pygpt_net.item.ctx import CtxItem
+from pygpt_net.item.ctx import CtxItem, CtxMeta
 from tests.mocks import mock_window
 from pygpt_net.controller.chat.render import Render
 
@@ -135,3 +135,20 @@ def test_append_chunk(mock_window):
     meta = MagicMock()
     render.append_chunk(meta, ctx, "test")
     active.append_chunk.assert_called_once_with(meta, ctx, "test", False)
+
+
+def test_stream_event_forwards_partial_key_without_private_helper_detection(mock_window):
+    """Logical partial keys are part of the shared renderer streaming interface."""
+    from pygpt_net.core.events import RenderEvent
+
+    render = Render(mock_window)
+    active = MagicMock(spec_set=["append_chunk"])
+    render.renderer = active
+    meta, ctx = CtxMeta(), CtxItem()
+    render.handle(RenderEvent(RenderEvent.STREAM_APPEND, {
+        "meta": meta, "ctx": ctx, "chunk": "fragment", "begin": True,
+        "part_key": "part-1",
+    }))
+    active.append_chunk.assert_called_once_with(
+        meta, ctx, "fragment", True, part_key="part-1",
+    )

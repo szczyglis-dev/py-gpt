@@ -45,7 +45,11 @@ class Plugin(BasePlugin):
 
         # In-memory discovery cache (per server)
         self._tools_cache: Dict[str, Dict[str, Any]] = {}
-        self._last_config_signature: Optional[str] = None
+        self._last_config_signature: Dict[str, str] = {}
+
+        # Model-defined MCP connections are runtime-only and scoped to a chat.
+        # They are deliberately not written into the persistent `servers` option.
+        self._self_servers: Dict[str, List[dict]] = {}
 
         # Stdio connectors without an explicit cwd must never inherit the app's
         # process cwd (for source runs this can be the repository root). Keep a
@@ -69,7 +73,7 @@ class Plugin(BasePlugin):
         ctx = event.ctx
 
         if name == Event.CMD_SYNTAX:
-            self.cmd_syntax(data)
+            self.cmd_syntax(data, ctx)
 
         elif name == Event.CMD_EXECUTE:
             self.cmd(
@@ -77,26 +81,33 @@ class Plugin(BasePlugin):
                 data['commands'],
             )
 
-    def cmd_syntax(self, data: dict):
+    def cmd_syntax(self, data: dict, ctx: Optional[CtxItem] = None):
         """
-        Event: CMD_SYNTAX
-        Build "cmd" entries based on tools discovered from active MCP servers.
-        Applies allow/deny per server. Uses cache with TTL.
+        Event: CMD_SYNTAX.
 
-        :param data: event data dict
+        Expose the model self-connect tool only when at least one self-MCP
+        transport is explicitly allowed. Model-defined servers are runtime-only
+        and scoped to the current conversation. Their discovered tools share the
+        same cache/index path as configured MCP servers.
         """
+        allow_http = bool(self.get_option_value("allow_self_mcp"))
+        allow_stdio = bool(self.get_option_value("allow_self_mcp_stdio"))
+        if allow_http or allow_stdio:
+            data['cmd'].append(self._get_self_connect_cmd(allow_http, allow_stdio))
+
         servers: List[dict] = self.get_option_value("servers") or []
         active_servers = [(i, s) for i, s in enumerate(servers) if s.get("active", False)]
+
+        scope = self._self_scope(ctx)
+        self_servers = self._allowed_self_servers(scope, allow_http, allow_stdio)
+        base_idx = len(servers) + 1000
+        active_servers.extend((base_idx + i, s) for i, s in enumerate(self_servers))
         self.tools_index.clear()
 
         if len(active_servers) == 0:
             return
 
-        # Invalidate cache if config changed
-        current_sig = self._config_signature(active_servers)
-        if current_sig != self._last_config_signature:
-            self._tools_cache.clear()
-            self._last_config_signature = current_sig
+        self._last_config_signature[scope] = self._config_signature(active_servers)
 
         try:
             discovered = self._discover_tools_sync(active_servers)
@@ -105,14 +116,13 @@ class Plugin(BasePlugin):
             self.error(f"MCP: discovery failed: {e}")
             return
 
-        used_names = set()  # to ensure unique tool names in this batch
+        used_names = {"mcp_connect"}
 
         for (server_idx, server_tag, transport, tool, server_cfg) in discovered:
             tool_name = getattr(tool, "name", None) or tool.get("name")
             description = getattr(tool, "description", None) or tool.get("description")
             input_schema = getattr(tool, "inputSchema", None) or tool.get("inputSchema")
 
-            # Human-friendly display name
             display_name = tool_name
             try:
                 from mcp.shared.metadata_utils import get_display_name  # type: ignore
@@ -120,17 +130,12 @@ class Plugin(BasePlugin):
             except Exception:
                 pass
 
-            # Server label -> used in tool name (avoid dots and other invalid chars)
             server_label = (server_cfg.get("label") or server_tag or f"srv{server_idx}").strip()
             server_slug = self._slugify(server_label)
-
-            # Compose final tool "cmd" name acceptable by OpenAI: ^[a-zA-Z0-9_-]+$, <=64 chars
             cmd_name = self._compose_cmd_name(server_slug, tool_name, used_names)
             used_names.add(cmd_name)
-
             params = self.extract_params_from_schema(input_schema)
 
-            # Instruction for the model
             if description and display_name and display_name != tool_name:
                 instruction = f"{display_name}: {description} (server: {server_label})"
             elif description:
@@ -138,15 +143,12 @@ class Plugin(BasePlugin):
             else:
                 instruction = f"Call remote MCP tool '{display_name}' on server '{server_label}'."
 
-            cmd_syntax = {
+            data['cmd'].append({
                 "cmd": cmd_name,
                 "instruction": instruction,
                 "params": params,
                 "enabled": True,
-            }
-            data['cmd'].append(cmd_syntax)
-
-            # Index for execution
+            })
             self.tools_index[cmd_name] = {
                 "server_idx": server_idx,
                 "server": server_cfg,
@@ -159,26 +161,36 @@ class Plugin(BasePlugin):
             }
 
     def cmd(self, ctx: CtxItem, cmds: list):
-        """
-        Event: CMD_EXECUTE
-
-        :param ctx: CtxItem
-        :param cmds: commands dict
-        """
+        """Event: CMD_EXECUTE."""
         from .worker import Worker
 
-        my_commands = [item for item in cmds if item.get("cmd") in self.tools_index]
-        if len(my_commands) == 0:
+        connect_commands = [item for item in cmds if item.get("cmd") == "mcp_connect"]
+        remote_commands = [item for item in cmds if item.get("cmd") in self.tools_index]
+        if not connect_commands and not remote_commands:
             return
 
-        # set state: busy
-        self.cmd_prepare(ctx, my_commands)
+        self.cmd_prepare(ctx, connect_commands + remote_commands)
+
+        # The connect operation must complete before the next model request so
+        # the next CMD_SYNTAX build can immediately expose discovered tools.
+        for item in connect_commands:
+            try:
+                result = self._connect_self_server(ctx, item.get("params") or {})
+            except Exception as e:
+                result = f"MCP self-connect failed: {e}"
+            self.reply({
+                "request": {"cmd": "mcp_connect"},
+                "result": result,
+            }, ctx)
+
+        if not remote_commands:
+            return
 
         try:
             worker = Worker()
             worker.from_defaults(self)
             worker.plugin = self
-            worker.cmds = my_commands
+            worker.cmds = remote_commands
             worker.ctx = ctx
             worker.tools_index = self.tools_index
 
@@ -186,9 +198,147 @@ class Plugin(BasePlugin):
                 worker.run()
                 return
             worker.run_async()
-
         except Exception as e:
             self.error(e)
+
+    def _get_self_connect_cmd(self, allow_http: bool, allow_stdio: bool) -> dict:
+        transports = []
+        if allow_http:
+            transports.extend(["http", "sse"])
+        if allow_stdio:
+            transports.append("stdio")
+        transport_text = ", ".join(transports) or "none"
+        return {
+            "cmd": "mcp_connect",
+            "instruction": (
+                "Define a runtime MCP server connection, discover its tools, and make them available "
+                "on the next tool-selection step. The connection is scoped to the current chat. "
+                "Allowed transports: {transport_text}. "
+                "For HTTP/SSE use an http:// or https:// URL. For stdio use 'stdio: <command ...>' "
+                "or set transport=stdio. JSON fields accept JSON object strings."
+            ),
+            "params": [
+                {"name": "server_address", "type": "str", "description": "MCP URL or stdio command. [required]"},
+                {"name": "label", "type": "str", "description": "Short server label used in generated tool names."},
+                {"name": "transport", "type": "str", "description": "auto, http, sse, or stdio. Default: auto."},
+                {"name": "authorization", "type": "str", "description": "Authorization header value for HTTP/SSE."},
+                {"name": "headers", "type": "str", "description": "JSON object with HTTP/SSE headers."},
+                {"name": "env_http_headers", "type": "str", "description": "JSON object mapping HTTP header names to environment variable names."},
+                {"name": "bearer_token_env_var", "type": "str", "description": "Environment variable containing a bearer token."},
+                {"name": "env", "type": "str", "description": "JSON object with environment variables for stdio."},
+                {"name": "cwd", "type": "str", "description": "Working directory for stdio. Empty uses an isolated temporary directory."},
+            ],
+            "enabled": True,
+        }
+
+    def _self_scope(self, ctx: Optional[CtxItem]) -> str:
+        meta_id = getattr(ctx, "meta_id", None) if ctx is not None else None
+        if meta_id not in (None, ""):
+            return f"meta:{meta_id}"
+        meta = getattr(ctx, "meta", None) if ctx is not None else None
+        meta_id = getattr(meta, "id", None) if meta is not None else None
+        if meta_id not in (None, ""):
+            return f"meta:{meta_id}"
+        return "current"
+
+    def _allowed_self_servers(self, scope: str, allow_http: bool, allow_stdio: bool) -> List[dict]:
+        allowed = []
+        for server in self._self_servers.get(scope, []):
+            address = str(server.get("server_address") or "").strip()
+            transport = self._detect_transport(address, server)
+            if transport == "stdio" and allow_stdio:
+                allowed.append(server)
+            elif transport in ("http", "sse") and allow_http:
+                allowed.append(server)
+        return allowed
+
+    def _connect_self_server(self, ctx: Optional[CtxItem], params: dict) -> str:
+        address = str(params.get("server_address") or "").strip()
+        if not address:
+            raise ValueError("server_address is required")
+
+        explicit_transport = str(params.get("transport") or "auto").strip().lower()
+        if explicit_transport not in ("", "auto", "http", "sse", "stdio"):
+            raise ValueError("transport must be one of: auto, http, sse, stdio")
+
+        server = {
+            "active": True,
+            "label": str(params.get("label") or "").strip(),
+            "server_address": address,
+            "authorization": str(params.get("authorization") or ""),
+            "allowed_commands": str(params.get("allowed_commands") or ""),
+            "disabled_commands": str(params.get("disabled_commands") or ""),
+            "transport": explicit_transport or "auto",
+            "env": params.get("env") or "",
+            "headers": params.get("headers") or "",
+            "env_http_headers": params.get("env_http_headers") or "",
+            "bearer_token_env_var": str(params.get("bearer_token_env_var") or ""),
+            "cwd": str(params.get("cwd") or ""),
+            "startup_timeout_sec": str(params.get("startup_timeout_sec") or ""),
+            "tool_timeout_sec": str(params.get("tool_timeout_sec") or ""),
+            "source": "model-runtime",
+            "extra": "",
+        }
+        transport = self._detect_transport(address, server)
+
+        if transport in ("http", "sse"):
+            if not bool(self.get_option_value("allow_self_mcp")):
+                raise PermissionError("model-defined MCP HTTP/SSE connections are disabled")
+            lower = address.lower()
+            if not lower.startswith(("http://", "https://", "sse://", "sse+http://", "sse+https://")):
+                raise ValueError("HTTP/SSE self-MCP requires an http(s) or SSE URL")
+        elif transport == "stdio":
+            if not bool(self.get_option_value("allow_self_mcp_stdio")):
+                raise PermissionError("model-defined MCP stdio connections are disabled")
+            if not address.lower().startswith("stdio:"):
+                server["server_address"] = f"stdio: {address}"
+                address = server["server_address"]
+        else:
+            raise ValueError(f"unsupported MCP transport: {transport}")
+
+        if not server["label"]:
+            server["label"] = self._make_server_tag(server, 0)
+
+        scope = self._self_scope(ctx)
+        runtime_servers = self._self_servers.setdefault(scope, [])
+        key = self._server_key(server)
+        replaced = False
+        for i, existing in enumerate(runtime_servers):
+            if self._server_key(existing) == key:
+                runtime_servers[i] = server
+                replaced = True
+                break
+        if not replaced:
+            runtime_servers.append(server)
+
+        # Force a fresh discovery for this explicit connect call. The result is
+        # then stored in the normal per-server cache (when cache is enabled),
+        # so the immediately following syntax rebuild does not reconnect.
+        self._tools_cache.pop(key, None)
+        discovered = self._discover_tools_sync([(100000, server)])
+        tool_names = []
+        for _, _, _, tool, _ in discovered:
+            name = getattr(tool, "name", None)
+            if name is None and isinstance(tool, dict):
+                name = tool.get("name")
+            if name:
+                tool_names.append(str(name))
+
+        self._last_config_signature.pop(scope, None)
+        if not tool_names:
+            if replaced:
+                runtime_servers[i] = existing
+            else:
+                runtime_servers[:] = [item for item in runtime_servers if item is not server]
+            self._tools_cache.pop(key, None)
+            raise RuntimeError("connection failed or no MCP tools were discovered")
+
+        action = "updated" if replaced else "connected"
+        return (
+            f"MCP server {action}: {server['label']} ({transport}). "
+            f"Discovered {len(tool_names)} tool(s): {', '.join(tool_names)}. "
+            "They will be exposed on the next tool-selection step."
+        )
 
     # ---------------------------
     # Discovery + caching
@@ -318,16 +468,21 @@ class Plugin(BasePlugin):
             disabled = self._parse_csv(server.get("disabled_commands"))
 
             cached_tools = None
+            cache_signature = self._server_cache_signature(server, transport)
             if cache_enabled:
                 cached = self._tools_cache.get(server_key)
-                if cached and cached.get("transport") == transport:
+                if (
+                    cached
+                    and cached.get("transport") == transport
+                    and cached.get("signature") == cache_signature
+                ):
                     if (time.time() - float(cached.get("ts", 0))) <= ttl:
                         cached_tools = cached.get("tools", None)
 
             async def _with_cache(server_idx=server_idx, server=server, address=address,
                                   transport=transport, server_tag=server_tag, server_key=server_key,
                                   headers=headers, allowed=allowed, disabled=disabled,
-                                  cached_tools=cached_tools):
+                                  cached_tools=cached_tools, cache_signature=cache_signature):
                 try:
                     tools = cached_tools
                     if tools is None:
@@ -338,6 +493,7 @@ class Plugin(BasePlugin):
                             self._tools_cache[server_key] = {
                                 "ts": time.time(),
                                 "transport": transport,
+                                "signature": cache_signature,
                                 "tools": tools,
                             }
                     return (server_idx, server_tag, transport, allowed, disabled, tools, server)
@@ -590,6 +746,26 @@ class Plugin(BasePlugin):
             except Exception:
                 pass
         self._stdio_tempdirs.clear()
+        self._self_servers.clear()
+        self._last_config_signature.clear()
+
+    def _server_cache_signature(self, server: dict, transport: str) -> str:
+        """Signature of all connection/discovery fields that affect a server's tool list."""
+        fields = [
+            str(server.get("label") or ""),
+            str(server.get("server_address") or ""),
+            str(transport or ""),
+            str(server.get("authorization") or ""),
+            str(server.get("headers") or ""),
+            str(server.get("env_http_headers") or ""),
+            str(server.get("bearer_token_env_var") or ""),
+            str(server.get("env") or ""),
+            str(server.get("cwd") or ""),
+            str(server.get("startup_timeout_sec") or ""),
+            str(server.get("allowed_commands") or ""),
+            str(server.get("disabled_commands") or ""),
+        ]
+        return hashlib.sha256("|".join(fields).encode("utf-8")).hexdigest()
 
     def _config_signature(self, active_servers: List[Tuple[int, dict]]) -> str:
         """Signature of current config to invalidate cache when config changes."""

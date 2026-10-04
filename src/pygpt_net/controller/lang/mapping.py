@@ -25,15 +25,21 @@ class Mapping:
         self.window = window
         self.mapping = {}
 
+    @staticmethod
+    def _translate_mapping(value):
+        """Translate a legacy mapping value, optionally scoped to a domain."""
+        if isinstance(value, dict):
+            return trans(value.get("key", ""), domain=value.get("domain"))
+        return trans(value)
+
     def _apply_map(self, items, targets, getter_name: str, setter_name: str):
-        t = trans
         get = getattr
         for k, key in items.items():
             w = targets.get(k)
             if w is None:
                 continue
             try:
-                v = t(key)
+                v = self._translate_mapping(key)
                 getter = get(w, getter_name, None)
                 setter = get(w, setter_name, None)
                 if setter is None:
@@ -50,13 +56,12 @@ class Mapping:
 
     def _apply_tooltips(self, items, targets):
         """Apply translated tooltips, including nested toggle controls."""
-        t = trans
         for k, key in items.items():
             widget = targets.get(k)
             if widget is None:
                 continue
             try:
-                value = t(key)
+                value = self._translate_mapping(key)
                 widget.setToolTip(value)
 
                 # ToggleLabel stores the interactive checkbox in ``box``.
@@ -174,7 +179,6 @@ class Mapping:
         nodes['preset.use'] = 'preset.use'
         nodes['cmd.enabled'] = 'cmd.enabled'
         nodes['audio.auto_turn'] = 'audio.auto_turn'
-        nodes['audio.loop'] = 'audio.loop'
         nodes["indexes.label"] = "toolbox.indexes.label"
         nodes["agent.llama.loop.score.label"] = "toolbox.agent.llama.loop.score.label"
         nodes["agent.llama.loop.label"] = "toolbox.agent.llama.loop.label"
@@ -437,6 +441,7 @@ class Mapping:
         menu_text['config.access'] = 'menu.config.access'
         menu_text['config.open_dir'] = 'menu.config.open_dir'
         menu_text['config.change_dir'] = 'menu.config.change_dir'
+        menu_text['config.open_base_dir'] = 'menu.config.open_base_directory'
         menu_text['config.profile.edit'] = 'menu.config.profile.edit'
         menu_text['config.profile.new'] = 'menu.config.profile.new'
         menu_text['config.save'] = 'menu.config.save'
@@ -462,6 +467,7 @@ class Mapping:
         menu_text['info.snap'] = 'menu.info.snap'
         menu_text['info.website'] = 'menu.info.website'
         menu_text['info.github'] = 'menu.info.github'
+        menu_text['info.addons'] = 'menu.info.addons'
         menu_text['info.report'] = 'menu.info.report'
         menu_text['menu.audio.section.audio'] = 'menu.audio.section.audio'
         menu_text['menu.audio.section.video'] = 'menu.audio.section.video'
@@ -519,6 +525,7 @@ class Mapping:
         tooltips = {}
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
+        tooltips['ctx.new'] = 'ctx.new.tooltip'
         tooltips['indexes.select'] = 'toolbox.indexes.select.tooltip'
         tooltips['indexes.new'] = 'toolbox.indexes.edit.tooltip'
         tooltips['layout.split'] = 'layout.split.tooltip'
@@ -529,8 +536,8 @@ class Mapping:
         tooltips['icon.remote_tool.web'] = 'icon.remote_tool.web'
         tooltips['remote_store.btn.refresh_status'] = 'dialog.remote_store.btn.refresh_status'
         tooltips['agent.llama.loop.score'] = 'toolbox.agent.llama.loop.score.tooltip'
-        tooltips['attachments.btn.options'] = 'attachments.options.label'
-        tooltips['attachments_ctx.btn.options'] = 'attachments.options.label'
+        tooltips['attachments.btn.options'] = 'action.options'
+        tooltips['attachments_ctx.btn.options'] = 'action.options'
         tooltips['models.importer.add'] = 'models.importer.add.tooltip'
         tooltips['models.importer.remove'] = 'models.importer.remove.tooltip'
 

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.09.30 16:40:00                  #
 # ================================================== #
 
 from typing import Optional, Any, Dict
@@ -191,6 +191,11 @@ class Input:
 
         context = BridgeContext()
         context.prompt = text
+        input_node = self.window.ui.nodes.get("input")
+        strip = getattr(input_node, "attachment_strip", None)
+        if strip is not None:
+            strip.mark_sent()
+
         self.window.dispatch(KernelEvent(KernelEvent.INPUT_USER, {
             'context': context,
             'extra': {
@@ -233,6 +238,23 @@ class Input:
 
         :param force: force send
         """
+        # Send during ordinary microphone capture submits the recording first.
+        # Do this before INPUT_BEGIN can change the focused tab or claim a request.
+        if not force and not self.window.controller.realtime.is_enabled():
+            handler = self.window.core.plugins.get("audio_input").handler_simple
+            if handler.is_recording:
+                handler.stop_recording()
+                return
+
+        # Ignore an empty user send before input events can claim a request or
+        # show the busy status. Attachments and microphone capture are valid input.
+        mode = self.window.core.config.get('mode')
+        if (not force
+                and not self.window.ui.nodes['input'].toPlainText().strip()
+                and not self.window.core.attachments.has(mode)
+                and not self.window.controller.audio.is_recording()):
+            return
+
         dispatch = self.window.dispatch
         # Snapshot the invoker before any input/plugin event can move focus.
         # get_effective_current_pid() also sees the latest deferred column-focus
@@ -270,6 +292,11 @@ class Input:
             self.window.controller.kernel.stop()  # TODO: to chat main
             dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
             return
+
+        # The realtime controller owns text barge-in semantics. ENTER stays usable
+        # while the composer shows STOP: a new typed message first finalizes the
+        # current realtime turn/playback, then proceeds as a normal new request.
+        self.window.controller.realtime.on_user_text_submit(mode=mode, text=text)
 
         # A top-level request may already own a chat while attachments are still
         # being processed (generating can still be False in that phase). Never

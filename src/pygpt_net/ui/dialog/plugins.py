@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.01.06 20:00:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -175,7 +175,7 @@ class Plugins:
             desc_key = f"plugin.settings.{id}.desc"
             desc_txt = plugin.description
             if plugin.use_locale:
-                domain = f"plugin.{plugin.id}"
+                domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f"plugin.{plugin.id}"
                 translated_name = trans('plugin.name', False, domain)
                 translated_desc = trans('plugin.description', False, domain)
                 if translated_name != 'plugin.name':
@@ -202,11 +202,17 @@ class Plugins:
                     tab_name = tab_id
                     translated_tab_name = None
                     if plugin.use_locale:
-                        domain = f"plugin.{plugin.id}"
-                        plugin_tab_key = f"tab.{tab_id}"
-                        translated = trans(plugin_tab_key, False, domain)
-                        if translated != plugin_tab_key:
-                            translated_tab_name = translated
+                        domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f"plugin.{plugin.id}"
+                        provider_domain = getattr(plugin, 'tab_locale_domains', {}).get(tab_id)
+                        if provider_domain:
+                            translated = trans('provider.name', False, provider_domain)
+                            if translated != 'provider.name':
+                                translated_tab_name = translated
+                        if translated_tab_name is None:
+                            plugin_tab_key = f"tab.{tab_id}"
+                            translated = trans(plugin_tab_key, False, domain)
+                            if translated != plugin_tab_key:
+                                translated_tab_name = translated
                     if translated_tab_name is None:
                         global_tab_key = f"plugin.tab.{tab_id}"
                         translated = trans(global_tab_key)
@@ -373,6 +379,15 @@ class Plugins:
                 widgets[key] = OptionCombo(self.window, parent, key, option)  # combobox
             elif t == 'cmd':
                 widgets[key] = OptionCmd(self.window, plugin, parent, key, option)  # command
+            elif t == 'button':
+                button = QPushButton()
+                button.setAutoDefault(False)
+                callback = option.get('callback')
+                if isinstance(callback, str):
+                    callback = getattr(plugin, callback, None)
+                if callable(callback):
+                    button.clicked.connect(lambda checked=False, cb=callback: cb())
+                widgets[key] = button
 
         return widgets
 
@@ -421,8 +436,8 @@ class Plugins:
         :param option: option dict
         :return: QVBoxLayout
         """
-        one_column_types = ('textarea', 'dict', 'bool', 'cmd')
-        no_label_types = ('bool', 'cmd')
+        one_column_types = ('textarea', 'dict', 'bool', 'cmd', 'button')
+        no_label_types = ('bool', 'cmd', 'button')
         no_desc_types = 'cmd'
         allow_locale = True
 
@@ -440,7 +455,8 @@ class Plugins:
 
         # translate if localization is enabled
         if plugin.use_locale and allow_locale:
-            domain = f"plugin.{plugin.id}"
+            plugin_domain = plugin.get_locale_domain() if hasattr(plugin, 'get_locale_domain') else f"plugin.{plugin.id}"
+            domain = option.get('_locale_domain') or plugin_domain
             translated_label = trans(f"{key}.label", False, domain)
             translated_description = trans(f"{key}.description", False, domain)
             if translated_label != f"{key}.label":
@@ -454,6 +470,10 @@ class Plugins:
                 # txt_tooltip = txt_desc
 
         txt_desc = trans_placeholder_apply(txt_desc)
+
+        if option['type'] == 'button':
+            widget.setText(txt_title)
+            widget.setToolTip(txt_desc)
 
         """
         if option['type'] not in no_desc_types:

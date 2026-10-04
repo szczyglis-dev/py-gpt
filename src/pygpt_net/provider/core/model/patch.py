@@ -48,6 +48,15 @@ class Patch:
                 updated = updated or provider_updated
             # --------------------------------------------
 
+            # New default models introduced in 2.8.38; preserve user edits.
+            if old < parse_version("2.8.38"):
+                for model_id in ("gpt-6.1-sol", "claude-opus-5-5", "grok-4.7"):
+                    if model_id not in data:
+                        model = self.window.core.models.from_base(model_id)
+                        if model is not None:
+                            data[model_id] = model
+                            updated = True
+
         # update file
         if updated:
             # fix empty/broken data

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 18:00:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 import os
@@ -23,6 +23,8 @@ from ..dockerfile import (
     PYTHON_LEGACY_DOCKERFILE_39,
     PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
 )
+
+from pygpt_net.plugin.base.execution import execution_response
 
 from .base import ExecutionBackend
 from ..sandbox import SandboxMode
@@ -155,11 +157,11 @@ class DockerBackend(ExecutionBackend):
     def restart_ipython(self, ctx=None):
         return self.get_ipython_interpreter().restart_kernel(ctx=ctx)
 
-    def _run(self, command: str, ctx=None) -> bytes | None:
+    def _run(self, command: str, ctx=None) -> tuple[bytes | None, bytes | None]:
         try:
-            return self.plugin.docker.execute(command, ctx=ctx)
+            return self.plugin.docker.execute(command, ctx=ctx, demux=True)
         except Exception as e:
-            return str(e).encode("utf-8")
+            return (b"", str(e).encode("utf-8"))
 
     def python_exec_file(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
@@ -171,13 +173,14 @@ class DockerBackend(ExecutionBackend):
         runner.log("Running command: {}".format(cmd), sandbox=True)
         runner.send_interpreter_output_begin("stdout")
         response = self._run(cmd, ctx=ctx)
-        result = runner.handle_result_sandbox(response)
+        process_output = response
+        stdout, stderr = response or (b"", b"")
+        result = runner.handle_result(stdout, stderr)
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def python_exec(self, ctx, item: dict, request: dict, all: bool = False) -> dict:
         runner = self.runner
@@ -211,14 +214,15 @@ class DockerBackend(ExecutionBackend):
             runner.log("Running command: {}".format(cmd), sandbox=True)
             runner.send_interpreter_output_begin("stdout")
             response = self._run(cmd, ctx=ctx)
-            result = runner.handle_result_sandbox(response)
+            process_output = response
+            stdout, stderr = response or (b"", b"")
+            result = runner.handle_result(stdout, stderr)
             runner.send_interpreter_output_end("stdout")
 
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="PYTHON OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def ipython_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
@@ -228,14 +232,15 @@ class DockerBackend(ExecutionBackend):
         runner.log("Running command: {}".format(command), sandbox=True, category="exec")
         runner.send_interpreter_input(command)
         runner.send_interpreter_output_begin("stdout")
-        response = self.plugin.ipython_docker.execute_system(command, ctx=ctx)
-        result = runner.handle_result_sandbox(response, log_category="exec")
+        response = self.plugin.ipython_docker.execute_system(command, ctx=ctx, demux=True)
+        process_output = response
+        stdout, stderr = response or (b"", b"")
+        result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def python_sys_exec(self, ctx, item: dict, request: dict) -> dict:
         runner = self.runner
@@ -245,14 +250,15 @@ class DockerBackend(ExecutionBackend):
         runner.log("Running command: {}".format(command), sandbox=True, category="exec")
         runner.send_interpreter_input(command)
         runner.send_interpreter_output_begin("stdout")
-        response = self.plugin.docker.execute(command, ctx=ctx)
-        result = runner.handle_result_sandbox(response, log_category="exec")
+        response = self.plugin.docker.execute(command, ctx=ctx, demux=True)
+        process_output = response
+        stdout, stderr = response or (b"", b"")
+        result = runner.handle_result(stdout, stderr, log_category="exec")
         runner.send_interpreter_output_end("stdout")
-        return {
-            "request": request,
-            "result": str(result),
-            "context": "SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
-        }
+        return execution_response(
+            request, stdout, stderr, getattr(process_output, "return_code", None),
+            context="SYS OUTPUT:\n--------------------------------\n" + runner.parse_result(result, ctx=ctx),
+        )
 
     def get_runtime_workdir(self, ctx=None) -> str:
         return self.sandbox_workdir

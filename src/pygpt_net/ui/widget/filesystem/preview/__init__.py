@@ -8,10 +8,12 @@ from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
                               QScrollArea, QMenu, QFileDialog, QMessageBox)
 from pygpt_net.utils import trans
-from .readers import ReaderRegistry
+from .readers import ReaderRegistry, TextReader
 from .directories import DirectoryPopup
 from .text import TextPreview
 from .media import ImagePreview, MediaPreview
+from .markdown import MarkdownPreview
+from pygpt_net.core.file_preview import FilePreviews
 
 
 class PreviewPanel(QWidget):
@@ -23,10 +25,11 @@ class PreviewPanel(QWidget):
         self.root = os.path.abspath(root)
         self.path = None
         self.viewer = None
+        self._preview_provider = None
         self.encoding = 'utf-8'
         self.newline = '\n'
         self.registry = ReaderRegistry()
-        self.viewer_factories = {'image': ImagePreview, 'media': MediaPreview}
+        self.viewer_factories = {'image': ImagePreview, 'media': MediaPreview, 'markdown': MarkdownPreview}
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.breadcrumbs = QHBoxLayout()
@@ -46,6 +49,11 @@ class PreviewPanel(QWidget):
         self.show_empty()
         if isinstance(window, QWidget):
             window.installEventFilter(self)
+
+    def event(self, event):
+        if event.type() == QEvent.DeferredDelete:
+            self._clear()
+        return super().event(event)
 
     def eventFilter(self, watched, event):
         if watched is self.window and event.type() == QEvent.Close and not self.may_replace():
@@ -69,7 +77,14 @@ class PreviewPanel(QWidget):
         return True
 
     def _clear(self):
+        provider = self._preview_provider
+        self._preview_provider = None
         if self.viewer is not None:
+            if provider is not None:
+                try:
+                    provider.release_widget(self.viewer)
+                except Exception as error:
+                    print(f"File preview cleanup failed: {error}")
             if isinstance(self.viewer, TextPreview):
                 self.viewer.on_destroy()
             if isinstance(self.viewer, MediaPreview):
@@ -119,11 +134,11 @@ class PreviewPanel(QWidget):
         for i, (name, path) in enumerate(paths):
             if i:
                 self.breadcrumbs.addWidget(QLabel('›'))
-            if path == self.path and isinstance(self.viewer, TextPreview) and self.viewer.document().isModified():
+            if path == self.path and isinstance(self.viewer, TextPreview) and self.viewer.is_content_modified():
                 name += ' *'
             button = QPushButton(name)
             button.setFlat(True)
-            button.setToolTip(path)
+            button.setToolTip(os.path.relpath(path, self.root))
             if os.path.isdir(path):
                 button.clicked.connect(lambda checked=False, p=path, b=button: self.directory_menu(p, b))
             else:
@@ -132,7 +147,7 @@ class PreviewPanel(QWidget):
         self.breadcrumbs.addStretch()
 
     def directory_menu(self, path, button):
-        popup = DirectoryPopup(path, self.open_file, self)
+        popup = DirectoryPopup(path, self.open_file, self, workdir_root=self.root)
         position = button.mapToGlobal(QPoint(0, button.height()))
         screen = button.screen().availableGeometry()
         popup.resize(min(420, screen.width()), min(350, screen.height()))
@@ -145,7 +160,7 @@ class PreviewPanel(QWidget):
 
 
     def may_replace(self):
-        if not isinstance(self.viewer, TextPreview) or not self.viewer.document().isModified():
+        if not isinstance(self.viewer, TextPreview) or not self.viewer.is_content_modified():
             return True
         choice = QMessageBox.question(self, trans('action.save'), trans('files.preview.unsaved'),
                                       QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
@@ -164,6 +179,18 @@ class PreviewPanel(QWidget):
         self.path = path
         self._update_breadcrumbs()
         try:
+            providers = getattr(getattr(self.window, 'core', None), 'file_previews', None)
+            provider = providers.resolve(path) if isinstance(providers, FilePreviews) else None
+            if provider is not None:
+                self._preview_provider = provider
+                self.viewer = provider.create_widget(path, self)
+                if not isinstance(self.viewer, QWidget):
+                    self.viewer = None
+                    self._preview_provider = None
+                    raise TypeError('File preview must return a QWidget')
+                self.viewer.setParent(self)
+                self.layout.addWidget(self.viewer, 1)
+                return True
             reader = self.registry.resolve(path)
             if reader is None:
                 self._message(trans('files.preview.unsupported'), external=True)
@@ -180,9 +207,35 @@ class PreviewPanel(QWidget):
                 self.viewer.customContextMenuRequested.connect(
                     lambda pos: self.context_menu(self.viewer.mapTo(self, pos)))
             self.layout.addWidget(self.viewer, 1)
-        except (OSError, ValueError, UnicodeError, ImportError) as error:
+        except Exception as error:
             self._message(trans('files.preview.unsupported') + '\n' + str(error), external=True)
         return True
+
+    def edit_markdown_source(self):
+        if not isinstance(self.viewer, MarkdownPreview):
+            return
+        try:
+            text, encoding = TextReader().read(self.path)
+            stamp = self._file_stamp(self.path)
+            self._clear()
+            self.encoding = encoding
+            self.newline = '\r\n' if '\r\n' in text else '\n'
+            self.viewer = TextPreview(self, self.path, text)
+            self._stamp = stamp
+            self.viewer.document().modificationChanged.connect(self._update_breadcrumbs)
+            self.layout.addWidget(self.viewer, 1)
+            self._update_breadcrumbs()
+        except (OSError, UnicodeError, ValueError) as error:
+            QMessageBox.warning(self, trans('files.preview.edit_source'), str(error))
+
+    def back_to_markdown_preview(self):
+        if not self.may_replace():
+            return
+        path = self.path
+        self._clear()
+        # Reload through the normal reader dispatch after saving/discarding edits.
+        self.path = None
+        self.open_file(path)
 
     @staticmethod
     def _file_stamp(path):
@@ -209,7 +262,7 @@ class PreviewPanel(QWidget):
                 raise OSError(output.errorString())
             if target == self.path:
                 self._stamp = self._file_stamp(target)
-                self.viewer.document().setModified(False)
+                self.viewer.set_baseline_content()
             return True
         except (OSError, UnicodeError) as error:
             QMessageBox.warning(self, trans('action.save'), str(error))
@@ -236,6 +289,16 @@ class PreviewPanel(QWidget):
     def add_file_actions(self, menu):
         if not self.path:
             return
+        if isinstance(self.viewer, MarkdownPreview):
+            menu.addAction(QIcon(':/icons/edit.svg'), trans('files.preview.edit_source'), self.edit_markdown_source)
+            menu.addSeparator()
+            copy = menu.addAction(QIcon(':/icons/copy.svg'), trans('action.copy'), self.viewer.copy)
+            copy.setEnabled(self.viewer.textCursor().hasSelection())
+            menu.addAction(trans('action.select_all'), self.viewer.selectAll)
+            menu.addSeparator()
+        elif isinstance(self.viewer, TextPreview) and Path(self.path).suffix.lower() in ('.md', '.markdown'):
+            menu.addAction(trans('files.preview.back_to_preview'), self.back_to_markdown_preview)
+            menu.addSeparator()
         menu.addAction(trans('files.preview.external'), self.open_external)
         menu.addAction(trans('action.open_dir'), lambda: self.window.controller.files.open_dir(self.path))
         if isinstance(self.viewer, TextPreview):

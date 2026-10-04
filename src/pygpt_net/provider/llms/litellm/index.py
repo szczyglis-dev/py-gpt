@@ -6,194 +6,75 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : RheagalFire                          #
-# Updated Date: 2026.09.23 15:05:00                  #
+# Updated Date: 2026.09.29 13:00:00                  #
 # ================================================== #
 
-from typing import Any, Dict, List, Optional, Sequence
+"""Thin PyGPT metadata adapter for LlamaIndex's native LiteLLM LLM.
 
-from llama_index.core.llms import (
-    ChatMessage,
-    ChatResponse,
-    ChatResponseGen,
-    CompletionResponse,
-    CompletionResponseGen,
-    CustomLLM,
-    LLMMetadata,
+All request handling (chat/completion, streaming, multimodal message blocks,
+function/tool calls and async methods) is provided by
+``llama_index.llms.litellm.LiteLLM``. This subclass only keeps PyGPT's model
+metadata authoritative for context size and the user-configurable tool-calling
+flag, which is important for custom/unknown LiteLLM model IDs.
+"""
+
+from typing import Optional
+
+from llama_index.core.base.llms.types import LLMMetadata
+from llama_index.core.bridge.pydantic import PrivateAttr
+from llama_index.llms.litellm import LiteLLM
+from llama_index.llms.litellm.utils import (
+    is_function_calling_model,
+    openai_modelname_to_contextsize,
 )
-from llama_index.core.llms.callbacks import llm_chat_callback, llm_completion_callback
-from llama_index.core.constants import DEFAULT_CONTEXT_WINDOW
 
-class LiteLLMIndex(CustomLLM):
-    """LlamaIndex CustomLLM that routes to 100+ providers via litellm.completion()."""
 
-    model_name: str = "openai/gpt-4o-mini"
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    context_window: Optional[int] = None
-    api_key: Optional[str] = None
-    api_base: Optional[str] = None
-    reasoning_effort: Optional[str] = None
-    completion_kwargs: Dict[str, Any] = {}
+class LiteLLMIndex(LiteLLM):
+    """Native LlamaIndex LiteLLM with PyGPT model metadata overrides."""
+
+    _pygpt_context_window: Optional[int] = PrivateAttr(default=None)
+    _pygpt_tool_calls: Optional[bool] = PrivateAttr(default=None)
+
+    def __init__(
+            self,
+            *args,
+            pygpt_context_window: Optional[int] = None,
+            pygpt_tool_calls: Optional[bool] = None,
+            **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self._pygpt_context_window = pygpt_context_window
+        self._pygpt_tool_calls = pygpt_tool_calls
 
     @property
     def metadata(self) -> LLMMetadata:
-        context_window = self.context_window
+        """Return native LiteLLM metadata with explicit PyGPT overrides.
+
+        Avoid asking LiteLLM to rediscover function-calling support when PyGPT
+        already has an explicit model capability flag. This also keeps custom
+        model IDs usable when they are absent from LiteLLM's bundled catalog.
+        """
+        context_window = self._pygpt_context_window
         if not context_window:
-            # Prefer LiteLLM's model catalog when PyGPT has no context size.
+            context_window = openai_modelname_to_contextsize(self._get_model_name())
+
+        tool_calls = self._pygpt_tool_calls
+        if tool_calls is None:
             try:
-                import litellm
-                info = (getattr(litellm, "model_cost", {}) or {}).get(self.model_name, {})
-                context_window = int(info.get("max_input_tokens") or info.get("max_tokens") or 0)
-            except (TypeError, ValueError, AttributeError, ImportError):
-                pass
+                tool_calls = is_function_calling_model(
+                    self._get_model_name(),
+                    self._custom_llm_provider,
+                )
+            except Exception:
+                tool_calls = False
+
         return LLMMetadata(
-            model_name=self.model_name,
+            context_window=context_window,
             num_output=self.max_tokens or -1,
-            context_window=context_window or DEFAULT_CONTEXT_WINDOW,
+            is_chat_model=True,
+            is_function_calling_model=bool(tool_calls),
+            model_name=self.model,
         )
 
-    def _build_kwargs(self, messages: List[Dict[str, str]], stream: bool = False) -> Dict[str, Any]:
-        """Build the shared litellm.completion kwargs from current settings."""
-        completion_kwargs: Dict[str, Any] = {
-            **self.completion_kwargs,
-            "model": self.model_name,
-            "messages": messages,
-            # drop_params silently drops provider-unsupported kwargs
-            # to prevent cross-provider errors
-            "drop_params": True,
-        }
-        if self.temperature is not None:
-            completion_kwargs["temperature"] = self.temperature
-        if self.max_tokens is not None:
-            completion_kwargs["max_tokens"] = self.max_tokens
-        if stream:
-            completion_kwargs["stream"] = True
-        if self.api_key:
-            completion_kwargs["api_key"] = self.api_key
-        if self.api_base:
-            completion_kwargs["api_base"] = self.api_base
-        if self.reasoning_effort:
-            completion_kwargs["reasoning_effort"] = self.reasoning_effort
-        return completion_kwargs
 
-    @staticmethod
-    def _coerce_role(role: Any) -> str:
-        """Normalize a message role (str or enum) to a string."""
-        if isinstance(role, str):
-            return role
-        value = getattr(role, "value", None)
-        return value if isinstance(value, str) else "user"
-
-    @staticmethod
-    def _get_messages(prompt: str, kwargs: Any) -> List[Dict[str, str]]:
-        """Build litellm messages, preferring provided chat history."""
-        messages = kwargs.get("messages") or kwargs.get("chat_messages")
-        if messages:
-            out = []
-            for m in messages:
-                if isinstance(m, ChatMessage):
-                    out.append({
-                        "role": LiteLLMIndex._coerce_role(m.role),
-                        "content": m.content,
-                    })
-                elif isinstance(m, dict):
-                    out.append({
-                        "role": LiteLLMIndex._coerce_role(m.get("role", "user")),
-                        "content": m.get("content", ""),
-                    })
-                else:
-                    content = getattr(m, "content", str(m))
-                    role = getattr(m, "role", None)
-                    out.append({
-                        "role": LiteLLMIndex._coerce_role(role),
-                        "content": content,
-                    })
-            return out
-        return [{"role": "user", "content": prompt}]
-
-    @staticmethod
-    def _chat_messages_to_litellm(
-        messages: Sequence[ChatMessage],
-    ) -> List[Dict[str, str]]:
-        return [
-            {
-                "role": LiteLLMIndex._coerce_role(msg.role),
-                "content": msg.content,
-            }
-            for msg in messages
-        ]
-
-    @llm_completion_callback()
-    def complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        import litellm
-
-        completion_kwargs = self._build_kwargs(self._get_messages(prompt, kwargs))
-
-        response = litellm.completion(**completion_kwargs)
-        text = response.choices[0].message.content or ""
-        return CompletionResponse(text=text, raw=response.model_dump())
-
-    @llm_completion_callback()
-    def stream_complete(self, prompt: str, **kwargs: Any) -> CompletionResponseGen:
-        import litellm
-
-        completion_kwargs = self._build_kwargs(
-            self._get_messages(prompt, kwargs), stream=True
-        )
-
-        def gen() -> CompletionResponseGen:
-            text = ""
-            stream = litellm.completion(**completion_kwargs)
-            for chunk in stream:
-                if not chunk.choices:
-                    continue
-                delta = chunk.choices[0].delta
-                content = getattr(delta, "content", "") or ""
-                text += content
-                yield CompletionResponse(
-                    delta=content, text=text, raw=chunk.model_dump()
-                )
-
-        return gen()
-
-    @llm_chat_callback()
-    def chat(self, messages: Sequence[ChatMessage], **kwargs: Any) -> ChatResponse:
-        import litellm
-
-        completion_kwargs = self._build_kwargs(
-            self._chat_messages_to_litellm(messages)
-        )
-
-        response = litellm.completion(**completion_kwargs)
-        content = response.choices[0].message.content or ""
-        return ChatResponse(
-            message=ChatMessage(role="assistant", content=content),
-            raw=response.model_dump(),
-        )
-
-    @llm_chat_callback()
-    def stream_chat(
-        self, messages: Sequence[ChatMessage], **kwargs: Any
-    ) -> ChatResponseGen:
-        import litellm
-
-        completion_kwargs = self._build_kwargs(
-            self._chat_messages_to_litellm(messages), stream=True
-        )
-
-        def gen() -> ChatResponseGen:
-            stream = litellm.completion(**completion_kwargs)
-            text = ""
-            for chunk in stream:
-                if not chunk.choices:
-                    continue
-                delta = chunk.choices[0].delta
-                content = getattr(delta, "content", "") or ""
-                text += content
-                yield ChatResponse(
-                    message=ChatMessage(role="assistant", content=text),
-                    delta=content,
-                    raw=chunk.model_dump(),
-                )
-
-        return gen()
+__all__ = ["LiteLLMIndex"]

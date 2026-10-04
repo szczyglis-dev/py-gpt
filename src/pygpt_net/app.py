@@ -611,7 +611,13 @@ def run(**kwargs):
             for tool in tools:
                 launcher.add_tool(tool)
 
-        # register profile-scoped external add-ons
+        # Register custom Files preview widgets before installed Add-ons.
+        file_previews = kwargs.get('file_previews', None)
+        if isinstance(file_previews, list):
+            for provider in file_previews:
+                launcher.add_file_preview(provider)
+
+        # register application-wide external add-ons
         # Broken or incompatible add-ons are isolated and reported as warnings.
         # The external loader itself is also non-fatal: third-party code must not
         # prevent PyGPT from reaching the normal application startup path.

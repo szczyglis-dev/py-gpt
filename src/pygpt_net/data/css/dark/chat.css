@@ -171,7 +171,7 @@ code {{
 }}
 
 .tool-output .tool-output-name {{
-  color: #fff;
+  color: #8d8d8c;
 }}
 
 /* Loaders and live output */
@@ -189,3 +189,21 @@ code {{
 .tips p {{
   color: #5e5e5e;
 }}
+
+/* Tool input RAW / human-friendly switch. */
+:root {{ --tool-output-separator-color: #444444; }}
+.code-header-tool-view {{ color: #686868; }}
+.code-header-tool-view:hover {{ color: #d4d4d4; background: rgba(255,255,255,.08); }}
+.code-header-tool-view:focus-visible {{ outline: 1px solid #9c9c9c; outline-offset: 2px; }}
+
+/* Match Tool/Processed hover for expandable agent status headers. */
+.workflow-status-progress .progress-details > summary:hover > .agents-v2-status__text,
+.workflow-status-progress .progress-worker > summary:hover > span {{
+  color: #fff;
+  background: none;
+  animation: none;
+}}
+
+.user-message-actions {{ --user-actions-color: #a0a0a0; }}
+
+:root {{ --user-file-border: rgba(255, 255, 255, 0.14); --user-file-bg: rgba(255, 255, 255, 0.025); --user-file-hover: rgba(255, 255, 255, 0.065); }}

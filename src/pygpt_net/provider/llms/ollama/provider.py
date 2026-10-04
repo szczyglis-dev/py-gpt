@@ -6,19 +6,16 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.13 19:42:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
 
-import os
 from typing import Optional, List, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
     from llama_index.core.llms.llm import BaseLLM as LlamaBaseLLM
-
-# from langchain_community.chat_models import ChatOllama
 
 
 from pygpt_net.core.types import (
@@ -29,96 +26,23 @@ from pygpt_net.core.types import (
 from pygpt_net.provider.llms.base import BaseLLM
 from pygpt_net.item.model import ModelItem
 
+from .agents import OllamaAgents
+from .parameters import OllamaParameters
+
+
 
 class OllamaLLM(BaseLLM):
+    agents_class = OllamaAgents
+
     def __init__(self, *args, **kwargs):
         super(OllamaLLM, self).__init__(*args, **kwargs)
+        self.parameters = OllamaParameters(self)
         self.id = "ollama"
         self.name = "Ollama"
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
-    def completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return LLM provider instance for completion
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-        """
-        pass
-
-    def chat(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return LLM provider instance for chat
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-
-        args = self.parse_args(model.langchain)
-        if "model" not in args:
-            args["model"] = model.id
-        return ChatOllama(**args)
-        """
-        pass
-
-    def llama_completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ) -> LlamaBaseLLM:
-        """Return native Ollama text completion through ``/api/generate``."""
-        from .completion import OllamaCompletion
-
-        args = self.parse_args(model.llama_index, window)
-        model_id = (model.get_ollama_model() or model.id or "").strip()
-        if not model_id:
-            raise ValueError("Ollama model name is required")
-
-        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
-        base_url = str(
-            client_args.get("base_url") or window.core.models.ollama.get_base_url()
-        ).rstrip("/")
-        if base_url.endswith("/v1"):
-            base_url = base_url[:-3].rstrip("/")
-
-        # LlamaIndex OpenAILike-only options are invalid for the native Ollama client.
-        args.pop("api_key", None)
-        args.pop("api_base", None)
-        args.pop("base_url", None)
-        args.pop("is_chat_model", None)
-        if "timeout" in args and "request_timeout" not in args:
-            args["request_timeout"] = args.pop("timeout")
-        args.setdefault("request_timeout", 300.0)
-        args["model"] = model_id
-        args["base_url"] = base_url
-        args["is_function_calling_model"] = False
-
-        ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
-        if ctx_size <= 0:
-            ctx_size = window.core.config.get("max_total_tokens") or 0
-        if ctx_size > 0 and "context_window" not in args:
-            args["context_window"] = int(ctx_size)
-
-        reasoning_effort = window.core.models.get_reasoning_effort(model)
-        if reasoning_effort:
-            args["think"] = reasoning_effort
-
-        self.log_llama_create(window, model, args, "OllamaCompletion")
-        return OllamaCompletion(**args)
+    def setup(self) -> dict:
+        return {"openai_compatible": True}
 
     def llama(
             self,
@@ -127,7 +51,7 @@ class OllamaLLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for LlamaIndex.
+        Return LlamaIndex chat provider
 
         When PyGPT tools are enabled, tool-capable Ollama models must use the
         native ``/api/chat`` protocol. The OpenAI-compatible
@@ -145,7 +69,7 @@ class OllamaLLM(BaseLLM):
         :return: LLM provider instance
         """
         if bool(model.tool_calls) and bool(window.core.config.get("cmd", False)):
-            return self._llama_native(window, model)
+            return self.agents.create(window, model, stream=stream)
 
         import nest_asyncio
         from llama_index.llms.openai_like import OpenAILike
@@ -189,72 +113,26 @@ class OllamaLLM(BaseLLM):
         self.log_llama_create(window, model, args, "OpenAILike")
         return OpenAILike(**args)
 
-    def _llama_native(
+    def llama_completion(
             self,
             window,
             model: ModelItem,
+            stream: bool = False
     ) -> LlamaBaseLLM:
-        """Build the native Ollama LlamaIndex adapter used by tool loops."""
-        from .custom import Ollama
+        """Return native Ollama text completion through ``/api/generate``."""
+        from .completion import OllamaCompletion
 
-        args = self.parse_args(model.llama_index, window)
-        model_id = (model.get_ollama_model() or model.id or "").strip()
-        if not model_id:
-            raise ValueError("Ollama model name is required")
+        args = self.parameters.native(window, model, function_calling=False)
+        self.log_llama_create(window, model, args, "OllamaCompletion")
+        return OllamaCompletion(**args)
 
-        # Resolve the same configured endpoint as normal Chat, then convert the
-        # OpenAI-compatible /v1 base back to Ollama's native server root.
-        client_args = window.core.models.prepare_client_args(MODE_CHAT, model)
-        base_url = str(
-            client_args.get("base_url") or window.core.models.ollama.get_base_url()
-        ).rstrip("/")
-        if base_url.endswith("/v1"):
-            base_url = base_url[:-3].rstrip("/")
-
-        # model.llama_index args may contain OpenAI/OpenAILike-only options.
-        # Keep native Ollama options and normalize common aliases.
-        args.pop("api_key", None)
-        args.pop("api_base", None)
-        args.pop("base_url", None)
-        args.pop("is_chat_model", None)
-        if "timeout" in args and "request_timeout" not in args:
-            args["request_timeout"] = args.pop("timeout")
-        args.setdefault("request_timeout", 300.0)
-        args["model"] = model_id
-        args["base_url"] = base_url
-        args["is_function_calling_model"] = bool(model.tool_calls)
-
-        ctx_size = window.core.models.get_num_ctx(model.id) if model.id else 0
-        if ctx_size <= 0:
-            ctx_size = window.core.config.get("max_total_tokens") or 0
-        if ctx_size > 0 and "context_window" not in args:
-            args["context_window"] = int(ctx_size)
-
-        reasoning_effort = window.core.models.get_reasoning_effort(model)
-        if reasoning_effort:
-            args["think"] = reasoning_effort
-
-        self.log_llama_create(window, model, args, "llama_index.llms.ollama.Ollama")
-        return Ollama(**args)
-
-    def llama_agent(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False,
-            allow_remote_tools: bool = True,
-            force_computer_use: bool = False,
-    ) -> LlamaBaseLLM:
-        """Return native Ollama LLM for agent workflows."""
-        return self._llama_native(window, model)
-
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
         """
-        Return provider instance for embeddings
+        Return LlamaIndex embeddings provider
 
         :param window: window instance
         :param config: config keyword arguments list
@@ -290,6 +168,9 @@ class OllamaLLM(BaseLLM):
         client_kwargs = dict(args.get("client_kwargs") or {})
         client_kwargs.setdefault("timeout", self.get_embeddings_timeout(window.core.config))
         args["client_kwargs"] = client_kwargs
+        self.log_llama_create(
+            window, None, args, "OllamaEmbedding", kind="embeddings",
+        )
         return OllamaEmbedding(**args)
 
     def init_embeddings(
@@ -307,5 +188,5 @@ class OllamaLLM(BaseLLM):
 
         # Local embeddings must not write a fake OPENAI_API_KEY into the global
         # environment, as that would leak into subsequent OpenAI API calls.
-        # The Ollama embedding provider (get_embeddings_model) does not require
+        # The Ollama embedding provider (llama_embeddings) does not require
         # an OpenAI key, so no injection is needed here.

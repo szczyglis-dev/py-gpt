@@ -10,6 +10,19 @@
 from pygpt_net.provider.llms.base import BaseLLM
 
 
+def setup() -> dict:
+    return {
+        "settings": {
+            "api_key": {
+                "type": "str",
+                "default": "",
+                "secret": True,
+                "urls": {"API Keys": "https://dashboard.voyageai.com/organization/api-keys"},
+            },
+        }
+    }
+
+
 class VoyageConfigLLM(BaseLLM):
     """Configuration-only provider for Voyage embedding credentials."""
 
@@ -20,13 +33,4 @@ class VoyageConfigLLM(BaseLLM):
         self.type = []
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {
-                    "type": "str",
-                    "default": "",
-                    "secret": True,
-                    "urls": {"API Keys": "https://dashboard.voyageai.com/organization/api-keys"},
-                },
-            }
-        }
+        return setup()

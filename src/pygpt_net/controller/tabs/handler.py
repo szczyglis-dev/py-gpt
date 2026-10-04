@@ -161,6 +161,8 @@ class TabEventHandler:
             tab = self.tabs.get_current_tab()
         if tab is None:
             return
+        if tab.type == Tab.TAB_CHAT:
+            self.tabs._last_active_chat_pid = tab.pid
         self.window.controller.audio.on_tab_changed(tab)
         self.tabs.debug()
 

@@ -16,8 +16,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from llama_index.core.readers.base import BaseReader
 
-class BaseLoader:
+from pygpt_net.core.locale import LocaleDomain
+
+
+class BaseLoader(LocaleDomain):
     def __init__(self, *args, **kwargs):
+        self.init_locale_domain()
         self.window = None
         self.id = ""
         self.name = ""

@@ -51,6 +51,7 @@ def test_handle_complete(mock_window):
 def test_annotations_clear_after_stream_output_not_when_stream_is_started(mock_window):
     from pygpt_net.ui.widget.textarea.annotations import ChatAnnotations
     session = ChatAnnotations(mock_window, 1)
+    mock_window.core.config.data['ctx.annotations.clear_on_send.files'] = True
     session.add_file_annotation('file.py', 1, 1, 'text', 'fix')
     output = Output(mock_window)
     output.handle_complete = MagicMock()

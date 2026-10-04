@@ -62,22 +62,26 @@ class RuntimeArtifacts:
 
     def __init__(self, runtime):
         self.runtime = runtime
+        self.seen = {key: set() for key in ("files", "images", "urls", "attachments")}
+        # One delivery identity across file, image and attachment channels.
+        self.delivery_seen = set()
+        self.pending_values = {key: [] for key in self.seen}
 
-    def _seed_artifact_seen(self):
+    def seed(self):
         """Do not re-export user inputs that were already attached to the main message."""
         main = self.runtime.context.ctx
         if main is None:
             return
-        for attr in self.runtime._artifact_seen:
+        for attr in self.seen:
             for value in (getattr(main, attr, None) or []):
                 try:
                     key = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
                 except Exception:
                     key = repr(value)
-                self.runtime._artifact_seen[attr].add(key)
-                self.runtime._artifact_delivery_seen.add(artifact_identity(attr, value))
+                self.seen[attr].add(key)
+                self.delivery_seen.add(artifact_identity(attr, value))
 
-    def _provider_id(self) -> str:
+    def provider_id(self) -> str:
         try:
             getter = getattr(self.runtime.model, "get_provider", None)
             if callable(getter):
@@ -89,11 +93,11 @@ class RuntimeArtifacts:
     def _actor_context(self, actor_id: Optional[str] = None):
         """Return (actor, worker, private tool context) for a provider artifact."""
         resolved_id = str(actor_id or "orchestrator")
-        worker = None if resolved_id == "orchestrator" else self.runtime.workers.get(resolved_id)
-        actor = worker if worker is not None else self.runtime.orchestrator_actor
+        worker = None if resolved_id == "orchestrator" else self.runtime.workers.states.get(resolved_id)
+        actor = worker if worker is not None else self.runtime.primary_actor
         return actor, worker, getattr(actor, "tool_ctx", None)
 
-    def register_provider_image_base64(
+    def register_image(
             self,
             data: str,
             actor_id: Optional[str] = None,
@@ -125,13 +129,13 @@ class RuntimeArtifacts:
                 {"path": local, "runtime_artifact": runtime_artifact},
                 actor=getattr(actor, "id", actor_id or "orchestrator"),
             )
-            self.collect_artifacts(source_ctx, worker)
+            self.collect(source_ctx, worker)
             return runtime_artifact
         except Exception as exc:
             self.runtime.window.core.debug.log(exc)
             return None
 
-    def register_provider_container_files(
+    def register_container_files(
             self,
             files,
             actor_id: Optional[str] = None,
@@ -150,13 +154,13 @@ class RuntimeArtifacts:
                     {"files": downloaded},
                     actor=getattr(actor, "id", actor_id or "orchestrator"),
                 )
-                self.collect_artifacts(source_ctx, worker)
+                self.collect(source_ctx, worker)
             return downloaded or []
         except Exception as exc:
             self.runtime.window.core.debug.log(exc)
             return []
 
-    def collect_llm_artifacts(
+    def collect_from_llm(
             self,
             llm=None,
             worker: Optional[WorkerState] = None,
@@ -172,20 +176,20 @@ class RuntimeArtifacts:
         """
         resolved_id = str(actor_id or getattr(worker, "id", "") or "orchestrator")
         if worker is None and resolved_id != "orchestrator":
-            worker = self.runtime.workers.get(resolved_id)
+            worker = self.runtime.workers.states.get(resolved_id)
 
-        actor = worker if worker is not None else self.runtime.orchestrator_actor
+        actor = worker if worker is not None else self.runtime.primary_actor
         source_ctx = getattr(actor, "tool_ctx", None)
         if source_ctx is None:
             return []
         if llm is None:
-            llm = self.runtime._actor_llms.get(resolved_id)
+            llm = self.runtime.inputs.actor_llms.get(resolved_id)
 
         urls = drain_llm_urls(
             source_ctx,
             llm,
             response=response,
-            provider=self.runtime._provider_id(),
+            provider=self.provider_id(),
             on_error=self.runtime.window.core.debug.log,
         )
         if not urls:
@@ -196,7 +200,7 @@ class RuntimeArtifacts:
             {"urls": urls},
             actor=resolved_id,
         )
-        self.runtime.collect_artifacts(source_ctx, worker)
+        self.collect(source_ctx, worker)
         return urls
 
     def _stage_artifact(self, attr: str, value: Any, worker: Optional[WorkerState] = None) -> bool:
@@ -208,11 +212,11 @@ class RuntimeArtifacts:
         except Exception:
             key = repr(value)
         delivery_key = artifact_identity(attr, value)
-        if key in self.runtime._artifact_seen[attr] or delivery_key in self.runtime._artifact_delivery_seen:
+        if key in self.seen[attr] or delivery_key in self.delivery_seen:
             return False
-        self.runtime._artifact_seen[attr].add(key)
-        self.runtime._artifact_delivery_seen.add(delivery_key)
-        self.runtime._pending_artifacts[attr].append(value)
+        self.seen[attr].add(key)
+        self.delivery_seen.add(delivery_key)
+        self.pending_values[attr].append(value)
         if worker is not None:
             worker.artifacts[attr].append(value)
         self.runtime.verbose.log(
@@ -226,15 +230,15 @@ class RuntimeArtifacts:
     def _append_artifact(self, attr: str, value: Any, worker: Optional[WorkerState] = None) -> bool:
         return self._stage_artifact(attr, value, worker)
 
-    def pending_artifacts(self) -> dict:
+    def pending(self) -> dict:
         """Return a detached snapshot for AGENT_V2_END delivery on the UI thread."""
         return {
             key: list(values or [])
-            for key, values in self.runtime._pending_artifacts.items()
+            for key, values in self.pending_values.items()
             if values
         }
 
-    def register_delivery_files(
+    def register_files(
             self,
             files,
             worker: Optional[WorkerState] = None,
@@ -259,7 +263,7 @@ class RuntimeArtifacts:
                 exported.append(path)
         return exported
 
-    def collect_artifacts(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
+    def collect(self, source_ctx: CtxItem, worker: Optional[WorkerState] = None):
         """Stage durable non-file artifacts for final response delivery.
 
         ``source_ctx.files`` is intentionally excluded. Generic tool/code output can
@@ -278,7 +282,7 @@ class RuntimeArtifacts:
             for value in (getattr(source_ctx, attr, None) or []):
                 self._stage_artifact(attr, value, worker)
 
-    def _make_tool_ctx(self, actor_id: str) -> CtxItem:
+    def tool_context(self, actor_id: str) -> CtxItem:
         """Create an isolated plugin/tool context for an Agents v2 actor.
 
         PyGPT plugins are built around CtxItem and may set `reply`, `results`,
@@ -312,7 +316,7 @@ class RuntimeArtifacts:
         }
         return ctx
 
-    def _make_worker_ctx(self, worker_id: str) -> CtxItem:
-        ctx = self.runtime._make_tool_ctx(worker_id)
+    def worker_context(self, worker_id: str) -> CtxItem:
+        ctx = self.tool_context(worker_id)
         ctx.extra["agents_v2_worker"] = worker_id
         return ctx

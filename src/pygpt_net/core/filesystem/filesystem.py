@@ -971,7 +971,9 @@ class Filesystem:
         :return: True if working directory is copied
         """
         excluded_files = []
-        excluded_dirs = []
+        # Application-wide directories must never be duplicated into a profile
+        # workdir. They remain under the base directory that owns path.cfg.
+        excluded_dirs = ["addons", "sandbox", "extra_packages"]
         if not copy_db:
             excluded_files.append("db.sqlite")
             excluded_files.append("db.sqlite.backup")
@@ -1015,6 +1017,15 @@ class Filesystem:
         """
         excluded_files = ["app.log", "path.cfg", "profile.json"]
         excluded_dirs = []
+        # When resetting the default/base profile, preserve resources shared by
+        # every profile. A redirected profile may still contain stale legacy
+        # copies and those may be cleared normally.
+        try:
+            if os.path.normcase(os.path.realpath(path)) == os.path.normcase(
+                    os.path.realpath(self.window.core.config.get_base_workdir())):
+                excluded_dirs.extend(("addons", "sandbox", "extra_packages"))
+        except OSError:
+            pass
         if not remove_datadir:
             excluded_dirs.append("data")
         if not remove_db:

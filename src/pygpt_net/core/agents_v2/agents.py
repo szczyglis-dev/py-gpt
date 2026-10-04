@@ -16,6 +16,14 @@ from .mode import AGENT_MODE_CONFIG_DEFAULT, AGENT_MODE_CONFIG_KEY, AgentMode
 from .strategy import get_agent_strategy
 
 
+class _PreviewVerbose:
+    def log(self, *args, **kwargs):
+        pass
+
+    def text(self, *args, **kwargs):
+        pass
+
+
 class _PromptPreviewRuntime:
     """Lightweight, side-effect-free runtime view used by the live token counter.
 
@@ -74,11 +82,12 @@ class _PromptPreviewRuntime:
         self.rag_context_text = ""
         self.bridge_system_prompt = str(bridge_system_prompt or "").strip()
 
-        self.context_api = RuntimeContext(self)
-        self.shared_context_text = self.context_api._build_shared_context()
-        self.runtime_system_context = self.context_api._build_runtime_system_context()
+        self.verbose = _PreviewVerbose()
+        self.inputs = RuntimeContext(self)
+        self.shared_context_text = self.inputs.shared_context()
+        self.runtime_system_context = self.inputs.system_context()
         self.agents_directory_exists = agents_directory_exists(window, ctx=ctx)
-        self.prompt_api = RuntimePromptBuilder(self)
+        self.prompts = RuntimePromptBuilder(self)
 
     @property
     def is_swarm_mode(self) -> bool:
@@ -96,22 +105,6 @@ class _PromptPreviewRuntime:
         except (TypeError, ValueError):
             value = self.MAX_WORKERS_DEFAULT
         return max(0, value)
-
-    def verbose_log(self, *args, **kwargs):
-        # Live token updates must not produce Agents v2 workflow/debug entries.
-        return None
-
-    def verbose_text(self, *args, **kwargs):
-        return None
-
-    def has_rag_index(self) -> bool:
-        return self.context_api.has_rag_index()
-
-    def _rag_prompt_context(self) -> str:
-        return self.context_api._rag_prompt_context()
-
-    def main_agent_prompt(self) -> str:
-        return self.prompt_api.main_agent_prompt()
 
 
 class AgentsV2:
@@ -171,7 +164,7 @@ class AgentsV2:
             index_id=index_id,
             bridge_system_prompt=system_prompt,
         )
-        return preview.main_agent_prompt()
+        return preview.prompts.main()
 
     def count_current_history_tokens(
             self,

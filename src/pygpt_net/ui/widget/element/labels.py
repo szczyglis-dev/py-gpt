@@ -11,7 +11,7 @@
 
 from PySide6.QtCore import Qt, QTimer, QRect, QSize, Signal, QUrl, QEvent
 from PySide6.QtGui import QCursor, QAction, QIcon, QDesktopServices, QPainter, QPixmap, QColor
-from PySide6.QtWidgets import QLabel, QLineEdit, QSizePolicy, QToolTip
+from PySide6.QtWidgets import QLabel, QLineEdit, QSizePolicy, QToolTip, QWidget, QHBoxLayout
 
 from pygpt_net.utils import trans
 
@@ -114,6 +114,63 @@ class ChatStatusLabel(QLabel):
         self.setAlignment(Qt.AlignRight)
         self.setProperty('class', 'label-chat-status')
         self.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+
+class StatusIconLabel(QLabel):
+    """Small fixed-size status icon aligned to the same vertical center as text."""
+
+    def __init__(self, icon: str, window=None, icon_size: int = 16):
+        super().__init__("", window)
+        self.window = window
+        self.icon_size = int(icon_size)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setAlignment(Qt.AlignCenter)
+        self.setFixedSize(self.icon_size, self.icon_size)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.set_icon(icon)
+
+    def set_icon(self, icon: str):
+        pixmap = QIcon(icon).pixmap(QSize(self.icon_size, self.icon_size))
+        self.setPixmap(pixmap)
+
+
+class StatusIconCounter(QWidget):
+    """Compact inline status item rendered as an icon followed by a numeric count.
+
+    The label receives a tiny optical downward nudge so digits sit on the same
+    visual baseline as small SVG icons across light/dark themes.
+    """
+
+    def __init__(self, icon: str, window=None, icon_size: int = 16, spacing: int = 3, text_top_margin: int = 1):
+        super().__init__(window)
+        self.window = window
+        self.icon = StatusIconLabel(icon, self, icon_size)
+        self.label = ChatStatusLabel("", self)
+        self.label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.label.setContentsMargins(0, max(0, int(text_top_margin)), 0, 0)
+        self.label.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(int(spacing))
+        layout.addWidget(self.icon, alignment=Qt.AlignVCenter)
+        layout.addWidget(self.label, alignment=Qt.AlignVCenter)
+        layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+
+    def setCount(self, value: int):
+        self.label.setText(str(max(0, int(value))))
+
+    def clear(self):
+        self.label.clear()
+
+    def text(self) -> str:
+        return self.label.text()
+
+    def setToolTip(self, text: str):
+        super().setToolTip(text)
+        self.icon.setToolTip(text)
+        self.label.setToolTip(text)
 
 
 class UrlLabel(QLabel):

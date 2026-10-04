@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.16 14:35:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -18,6 +18,7 @@ from typing import Dict, Optional, Tuple, List
 
 from sqlalchemy import text
 
+from pygpt_net.plugin.base.execution import output_text
 from pygpt_net.utils import get_tz_offset
 from pygpt_net.core.types import CTX_TOOL_HISTORY_EXTRA_KEY, should_persist_ctx_partials
 from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup
@@ -33,6 +34,9 @@ from .utils import \
     get_month_start_end_timestamps, \
     get_year_start_end_timestamps, \
     unpack_group
+
+
+from pygpt_net.item.render_attachment import attachment_records, attachment_paths
 
 
 class Storage:
@@ -54,11 +58,11 @@ class Storage:
 
     def _pack_ctx_images(self, item: CtxItem) -> str:
         """Pack ctx images while defensively excluding transport-only attachments."""
-        images = list(item.images or []) if isinstance(item.images, list) else item.images
+        images = attachment_paths(item.images)
         attachments = getattr(getattr(self.window, "core", None), "attachments", None)
         if isinstance(images, list) and attachments is not None and hasattr(attachments, "is_ctx_excluded_path"):
             images = [value for value in images if not attachments.is_ctx_excluded_path(value)]
-        return pack_item_value(images)
+        return pack_item_value(attachment_records(images))
 
     @staticmethod
     def _match_ctx_tool_history_response(call: dict, outputs: list, used: set):
@@ -158,7 +162,9 @@ class Storage:
                     used_outputs.add(response_index)
                     response = copy.deepcopy(matched)
             completed = bool(entry.get("completed") or response is not None)
-            if isinstance(response, dict) and "result" in response:
+            if isinstance(response, dict) and ("stdout" in response or "stderr" in response):
+                output = output_text(response)
+            elif isinstance(response, dict) and "result" in response:
                 output = response.get("result")
             else:
                 output = response
@@ -1219,7 +1225,7 @@ class Storage:
             results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
             images_json=self._pack_ctx_images(item),
-            files_json=pack_item_value(item.files),
+            files_json=pack_item_value(attachment_records(item.files)),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
             extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),
@@ -1329,7 +1335,7 @@ class Storage:
             results_json=pack_item_value(self.window.core.command.tool_results_for_storage(item.results)),
             urls_json=pack_item_value(item.urls),
             images_json=self._pack_ctx_images(item),
-            files_json=pack_item_value(item.files),
+            files_json=pack_item_value(attachment_records(item.files)),
             attachments_json=pack_item_value(item.attachments),
             additional_ctx_json=pack_item_value(item.additional_ctx),
             extra=pack_item_value(self.window.core.command.extra_for_storage(item.extra)),

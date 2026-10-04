@@ -807,7 +807,7 @@ class Chat:
             )
 
         is_first_turn = (len(items) == 0)
-        is_sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        is_sandbox = bool(self.window.core.config.get("computer_use.sandbox", False))
 
         contents: List[Content] = []
 

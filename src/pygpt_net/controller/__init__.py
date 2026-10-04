@@ -9,6 +9,7 @@
 # Updated Date: 2026.09.24 12:31:00
 # ================================================== #
 
+from .packages import Packages
 from .access import Access
 from .agent import Agent
 from .agents_v2 import AgentsV2
@@ -83,6 +84,7 @@ class Controller:
         self.files = Files(window)
         self.finder = Finder(window)
         self.extensions = Extensions(window)
+        self.packages = Packages(window)
         self.idx = Idx(window)
         self.kernel = Kernel(window)
         self.lang = Lang(window)
@@ -170,6 +172,7 @@ class Controller:
         """After-setup, after all loaded"""
         self.plugins.update()
         self.launcher.after_setup()
+        QTimer.singleShot(0, self.packages.check_addons)
 
         # Run after the Qt event loop starts, when the main window, dialogs,
         # plugins and restored tabs are already fully initialized.

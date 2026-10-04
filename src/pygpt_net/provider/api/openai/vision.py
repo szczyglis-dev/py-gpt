@@ -13,6 +13,7 @@ import base64
 import os
 import re
 from typing import Optional, Union, Dict, Any, List
+from pygpt_net.item.render_attachment import attachment_paths
 
 from pygpt_net.core.types import (
     MODE_VISION,
@@ -436,7 +437,7 @@ class Vision:
         if len(images) > 0:
             visible = [path for id_, path in images.items() if id_ not in self.hidden_attachments]
             if visible:
-                ctx.images = self.window.core.filesystem.make_local_list(visible, ctx=ctx)
+                ctx.images = attachment_paths(self.window.core.filesystem.make_local_list(visible, ctx=ctx), 'user')
         if len(urls) > 0:
-            ctx.images = urls
+            ctx.images = attachment_paths(urls, 'user')
             ctx.urls = urls

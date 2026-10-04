@@ -2,6 +2,7 @@
 
 REM Set variables
 SET CurrentDir=%CD%
+SET ProductVersion=2.8.38
 SET SIGNTOOL=C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool
 
 REM Build app
@@ -13,6 +14,7 @@ cd "%CurrentDir%"
 
 REM Create installer (download)
 call build_installer.bat
+if errorlevel 1 exit /b 1
 
 REM Sign
 IF EXIST "%CD%\..\dist\pygpt-%ProductVersion%.msi" (
@@ -24,6 +26,7 @@ IF EXIST "%CD%\..\dist\pygpt-%ProductVersion%.msi" (
 
 REM Create installer (MS Store)
 call build_installer_store.bat
+if errorlevel 1 exit /b 1
 
 REM Sign
 IF EXIST "%CD%\..\dist\store\pygpt-%ProductVersion%.msi" (

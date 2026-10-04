@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.34** | build: **2026-09-28** | Python: **>=3.10, <3.14**
+Release: **2.8.38** | build: **2026-10-03** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -44,7 +44,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Extensible plugin system with `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and more.
 - Model Context Protocol (MCP) support.
 - Built-in `MCP Connectors` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
-- Agentsmulti-agent workflows with Chat, Orchestrator, and Swarm runtimes.
+- Agents multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
 - Optional project-specific `.agents/` directory support for Agents and Custom agents.
 - Portable `SKILL.md`-based `Agent Skills` with GitHub/local import, catalog browsing, per-profile enable/disable, and on-demand loading.
 - Built-in `Python/OS` tool for real-time Python, IPython, and system command execution.
@@ -502,10 +502,16 @@ See the **Agent Skills** documentation for supported formats, resources and runt
 
 This mode provides native, low-latency voice conversations with **OpenAI Realtime**, **Google Gemini Live**, and **xAI Grok** real-time models. Audio is streamed directly between PyGPT and the selected provider without the regular audio input/output plugins.
 
-The audio toolbox provides two options for controlling voice turns:
+The audio toolbox exposes a single turn-control option: **Auto (VAD)**. The separate **Loop** switch has been removed. Auto VAD now owns the complete continuous `listen -> respond -> listen` cycle. Fresh profiles start with Auto VAD disabled.
 
-- **Auto (VAD)** - enables automatic voice activity detection. While you speak, microphone audio is streamed to the active real-time model/provider, which detects when speech starts and when you stop speaking. The turn is then committed automatically and the model can respond without requiring you to manually stop the recording.
-- **Loop** - automatically starts microphone recording again after the model finishes playing its audio response. This enables continuous back-and-forth voice conversation without having to click the microphone button before every next turn. When used together with **Auto (VAD)**, each new turn can start automatically and end automatically when you stop speaking.
+- **Auto (VAD)** - enables automatic voice activity detection for the live microphone stream. While you speak, microphone audio is streamed to the active real-time provider. The provider detects speech boundaries using the configured VAD prefix padding and end-silence values, commits the utterance automatically, and PyGPT stops the current capture as the model response begins.
+- After the model's audio response finishes playing, PyGPT automatically starts the microphone again for the next VAD turn. There is no separate Loop setting to enable for this behavior.
+- You can click the microphone while a response is still pending or playing to start a new turn immediately. PyGPT interrupts the current response/playback, preserves the partial assistant output already received, keeps the live provider session open, and starts the new microphone capture.
+- Pressing **Esc** or using **Stop** cancels the current capture/response, stops playback, and cancels any queued automatic VAD restart. Auto VAD remains enabled, but the automatic cycle stays paused until you explicitly start the microphone again.
+- Sending a normal typed message while Auto VAD is active also pauses the automatic listen/respond/listen cycle. Click the microphone to resume voice turns; the live provider session/conversation is kept.
+- With **Auto (VAD)** disabled, microphone turns are manual and PyGPT does not automatically restart listening after a response.
+
+The VAD timing can be adjusted in `Config -> Settings -> Audio -> Options` with **VAD prefix padding (in ms)** (default: `300`) and **VAD end silence (in ms)** (default: `2000`). Prefix padding preserves audio immediately before detected speech starts; end silence controls how long silence must last before the utterance is considered complete.
 
 
 ## Research
@@ -899,10 +905,10 @@ Config -> Settings -> Context -> Tools -> Store tool calls in database
 The available modes are:
 
 - `Do not store` - tool calls and results are used normally during the live request, but are not written to durable history.
-- `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved.
-- `Store full input/output` - stores complete tool requests and results, matching the previous behavior. This is the default for backward compatibility.
+- `Store truncated` - keeps the tool-call structure for history and UI rendering, but recursively truncates every stored string value in tool input/output to 20 characters and appends `....`. Object keys and nesting are preserved. **This is the default for fresh profiles.**
+- `Store full input/output` - stores complete tool requests and results, matching the previous full-storage behavior. Enable it when you explicitly need complete persisted tool payloads or want to restore persisted tool protocol after reloading a conversation.
 
-The storage policy applies to all modes that use tools, including Chat (with or without RAG), legacy Agents, and Agents. It affects only durable database persistence.
+The storage policy applies to all modes that use tools, including Chat (with or without RAG), Custom agents, and Agents. It affects only durable database persistence.
 
 **Restore tool calls in runtime** controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
@@ -1052,7 +1058,7 @@ The name of the currently active profile is shown as (Profile Name) in the windo
 
 ### Importing and exporting profiles
 
-Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files** (including installed external Add-ons), **Files**, and optionally the shared **Workdir data/** directory. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
+Use `File -> Export profile...` to save the active profile as a ZIP archive. You can include the **Database**, **Config files**, **Files**, and optionally the shared **Workdir data/** directory. Application-wide Add-ons are not part of a profile export. Temporary files, caches, logs, and project data stored outside the profile workdir are not included.
 
 Use `File -> Import profile...` to restore an exported archive as a new profile. Choose which available sections to import, provide a unique profile name, and select its workdir.
 
@@ -1122,6 +1128,7 @@ PyGPT has a preconfigured list of models (as of 2026-09-24):
 - `gpt-6-astra` (OpenAI)
 - `gpt-6-luna` (OpenAI)
 - `gpt-6-sol` (OpenAI)
+- `gpt-6.1-sol` (OpenAI)
 - `gpt-image-1.5` (OpenAI)
 - `gpt-image-2` (OpenAI)
 - `gpt-image-2.5-flare` (OpenAI)
@@ -1147,6 +1154,7 @@ PyGPT has a preconfigured list of models (as of 2026-09-24):
 - `grok-4.3` (xAI)
 - `grok-4.5` (xAI)
 - `grok-4.6` (xAI)
+- `grok-4.7` (xAI)
 - `grok-imagine-image` (xAI)
 - `grok-imagine-image-quality-latest` (xAI)
 - `grok-imagine-video` (xAI)
@@ -1299,7 +1307,7 @@ The following plugins are currently available:
 
 - `Autonomous mode` - runs an autonomous multi-step conversation loop inside standard chat modes and can cooperate with other enabled plugins to complete tasks.
 
-- `Canvas (inline)` - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
+- `Canvas (inline)` - provides an interactive browser/canvas workspace for live HTML/CSS/JavaScript rendering, page interaction, annotations, external websites, configurable search/history, Playwright automation, and local HTML preview servers. It works independently of the global `Tools` switch.
 
 - `Bitbucket` - connects to Bitbucket Cloud for repository, file, issue, pull request, workspace, and account operations.
 
@@ -1377,7 +1385,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#api-calls
 
 ## Audio input
 
-The Audio input plugin captures microphone audio and converts speech to text for chat input and voice commands. It supports OpenAI Whisper, local Whisper, Google, Google Cloud, Google GenAI, Bing and xAI Grok Voice, with configurable device, language and recognition behavior.
+The Audio input plugin captures microphone audio and converts speech to text for chat input and voice commands. It supports OpenAI Whisper, local Whisper, Google, Google Cloud, Google GenAI, Bing and xAI Grok Voice, with configurable device, language and recognition behavior. Local Whisper is an optional dependency; if `openai-whisper` is missing, PyGPT can install it through `Config -> Package Manager` and then download the selected checkpoint on first use.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-input
 
@@ -1688,9 +1696,9 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mailer
 
 ## MCP (Model Context Protocol)
 
-The MCP (Model Context Protocol) plugin connects PyGPT to Model Context Protocol servers over stdio, Streamable HTTP or SSE, discovers their tools and exposes allowed tools to the model.
+The MCP (Model Context Protocol) plugin connects PyGPT to Model Context Protocol servers over stdio, Streamable HTTP or SSE, discovers their tools and exposes allowed tools to the model. 
 
-To configure MCP connections, open `Config -> MCP...` or use `Plugins -> Settings -> MCP`. For easier setup and management, use [MCP Connectors](#mcp-connectors) from `Config -> MCP... -> Connectors...` to browse, import and manage connector definitions. See the [MCP Connectors](#mcp-connectors) section for more details.
+To configure persistent MCP connections, open `Config -> MCP...` or use `Plugins -> Settings -> MCP`. For easier setup and management, use [MCP Connectors](#mcp-connectors) from `Config -> MCP... -> Connectors...` to browse, import and manage connector definitions. See the [MCP Connectors](#mcp-connectors) section for more details.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#mcp
 
@@ -1761,6 +1769,8 @@ The two execution tool sets are never exposed together.
 **Standard Python:** `python_exec` executes Python code directly and accepts only the `code` argument. PyGPT manages the temporary script path internally. Use `python_exec_file(path)` only when an existing Python file should be executed. `python_sys_exec` runs shell/system commands in the same selected host or sandbox runtime as standard Python.
 
 **Sandbox:** The **Sandbox** selector is available at the beginning of the plugin's **General** tab. **Disabled** runs Python/IPython directly on the host and is unsafe for untrusted code. **Built-in sandbox** uses a separate uv-managed CPython environment and does not require Docker; it isolates the Python environment from PyGPT itself, but it is not a filesystem/network security boundary. **Docker** requires Docker to be installed and running and provides the strongest isolation of the available options. In both sandbox modes, the active conversation's `data` workdir is used as the runtime working directory; Docker exposes it as `/mnt/data`, while the built-in sandbox uses the host path.
+
+The built-in Python/System environments are stored application-wide under `<application base workdir>/sandbox`. The **application base workdir** is the directory that owns `path.cfg` (by default `{HOME_DIR}/.config/pygpt-net/`, unless `PYGPT_WORKDIR` overrides it). If `path.cfg` redirects the active profile/workdir elsewhere, the `sandbox` directory remains in the application base workdir.
 
 **Built-in packages:** Add persistent packages in `Plugins -> Settings -> Python interpreter -> Built-in sandbox`, one requirement per line. Package-list changes rebuild the environment on the next use; use `Tools -> Sandbox / Docker` to rebuild it immediately. Packages installed manually with `pip` are removed by a rebuild unless they are also listed there.
 
@@ -1842,7 +1852,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#slack
 The System (OS) plugin gives the model a `sys_exec` tool for running shell commands in the active data workdir. Commands can run on the host, in the built-in uv-managed environment, or in Docker.
 
 - **Disabled** executes `sys_exec` directly on the host and is unsafe for untrusted commands.
-- **Built-in sandbox** executes commands in a separate uv-managed CPython environment and does not require Docker. It separates the command environment from PyGPT's own Python installation, but it is not a filesystem/network security boundary.
+- **Built-in sandbox** executes commands in a separate uv-managed CPython environment and does not require Docker. It separates the command environment from PyGPT's own Python installation, but it is not a filesystem/network security boundary. Its environment is stored under the shared `<application base workdir>/sandbox/os` path.
 - **Docker** executes `sys_exec` inside the Docker sandbox. Docker must be installed and running; this backend provides the strongest isolation of the available options.
 
 When Docker is selected, the active conversation's runtime `data` directory is mounted as `/mnt/data` and used as the command working directory. Project-specific data workdirs are mapped automatically. The stock Docker image runs as the unprivileged `pygpt` user by default and provides passwordless `sudo`; **Run as root** can be enabled when required.
@@ -1960,11 +1970,19 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#x-twitter
 
 # Creating Your Own Plugins and Add-ons
 
-PyGPT can install profile-scoped external Add-ons from `Config -> Install Add-on...`. Supported packages include plugins, LLM/provider wrappers, vector stores, data loaders, audio input/output providers, web providers, GUI tools, agents, themes, and locale packs. Each package uses a `manifest.json` and is stored below `%workdir%/addons`; Python Add-ons are loaded into the same runtime registries as built-in components and also work with compiled builds.
+PyGPT can install application-wide external Add-ons from `Config -> Install Add-on...`. Supported packages include plugins, LLM/provider wrappers, vector stores, data loaders, audio input/output providers, web providers, GUI tools, agents, themes, and locale packs. Each package uses a `manifest.json` and is stored below `<application base workdir>/addons`; Python Add-ons are loaded into the same runtime registries as built-in components and also work with compiled builds.
+
+Starting with **2.8.36**, the same installed Add-on set is available in every profile. On upgrade, a legacy `<profile workdir>/addons` directory is migrated to the application base workdir. Missing packages are merged into an existing global tree, identical duplicates are deduplicated, and conflicting packages with the same type/ID but different contents are left untouched with a warning instead of being overwritten.
 
 Add-ons can be imported from a directory, ZIP, GitHub, or the Explore registry. The default public registry is `https://raw.githubusercontent.com/szczyglis-dev/py-gpt-addons/master/addons.json`. External code runs with the same permissions as PyGPT, so review untrusted source before installing it.
 
-For installation, manifest format, examples, publishing/registry instructions, custom launcher compatibility, plugin APIs, and complete code samples, see the full documentation:
+Add-ons can declare required Python packages in `external_dependencies`. Missing required packages are installed through the shared **Config -> Package Manager** into the application-wide, Python-version-specific `extra_packages/<major.minor>` directory; this is separate from the Python/System execution sandboxes. The same manager can be opened manually to install or remove optional runtime packages.
+
+For packaging, manifests, local testing, publishing, Package Manager integration, plugin events, and a method-by-method API reference for every Add-on type, see:
+
+https://pygpt.readthedocs.io/en/latest/addons_api.html
+
+For custom launcher registration, themes and other non-package extension topics, see:
 
 https://pygpt.readthedocs.io/en/latest/extending.html
 
@@ -2047,7 +2065,7 @@ A simple image browser that lets you preview images directly within the app.
 ## Text Editor
 
 
-A simple text editor that enables you to edit text files directly within the app.
+The built-in text editor provides syntax highlighting, line numbers, search, zoom, configurable indentation/tabs, and optional word wrapping. The same editor core is used by the Files preview/editor and Canvas source editor. Its context menu exposes application-wide **Indent using spaces**, **Tab width** (default 4), indentation conversion, and **Word wrap** (default off) controls.
 
 
 ## Transcribe Audio/Video Files
@@ -2282,12 +2300,12 @@ Config -> Settings...
 
 ![v2_settings](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_settings.png)
 
-The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
+The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Context**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
 
 - **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI, Jev
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
-- **Chats:** List, Render, Options
+- **Chats:** List, Render, Annotations, Options
 - **Context:** General, Tools, Advanced handling
 - **Remote tools:** OpenAI, Google, Anthropic, xAI
 - **Images and video:** Image, Video
@@ -2301,6 +2319,12 @@ For the complete configuration options reference, including descriptions and def
 
 https://pygpt.readthedocs.io/en/latest/configuration.html#settings
 
+## Package Manager
+
+Open `Config -> Package Manager` to install or remove optional Python dependencies used by PyGPT itself. This is separate from the Python/System execution sandboxes. Packages are installed with `uv` into the application-wide, Python-version-specific directory `extra_packages/<major.minor>` (for example `extra_packages/3.13`) so packages from a previous bundled/runtime Python version are not reused accidentally after an upgrade.
+
+The manager works on a temporary copy and swaps the package directory only after a successful operation. External Add-ons can request their declared dependencies through the same installer, and local Whisper can request installation of `openai-whisper`. Some packages become available immediately, while compiled extensions or already-imported modules may still require restarting PyGPT.
+
 ## JSON files
 
 The configuration is stored in JSON files for easy manual modification outside of the application. 
@@ -2312,13 +2336,29 @@ These configuration files are located in the user's work directory within the fo
 
 ## Manual configuration
 
-PyGPT stores its configuration and user data in the working directory, which by default is:
+PyGPT uses an **application base workdir**, which by default is:
 
 ```ini
 {HOME_DIR}/.config/pygpt-net/
 ```
 
-Configuration files such as `config.json` and `models.json` can also be edited manually.
+This base directory owns `path.cfg`. If `path.cfg` redirects the active profile/workdir to another directory, profile files such as `config.json`, `models.json`, and `db.sqlite` are read from that redirected workdir, while application-wide runtime data stays in the base directory. In particular:
+
+```text
+<application base workdir>/
+├── path.cfg
+├── addons/
+│   ├── themes/      # application-wide Theme Add-ons
+│   └── locale/      # application-wide Locale Add-ons
+├── css/             # optional application-wide custom CSS/themes
+├── locale/          # optional application-wide locale overrides
+├── sandbox/         # shared built-in Python/System runtime
+└── extra_packages/  # shared Package Manager dependencies
+```
+
+`extra_packages` stores Package Manager-installed runtime dependencies in a Python-version subdirectory such as `extra_packages/3.13`. `addons`, `sandbox`, and `extra_packages` are shared across profiles and remain under the application base workdir when the active profile/workdir changes. Application-base `css/` and `locale/` are also read as global customization layers; an active profile may still provide its own `css/` or `locale/` as the final explicit override.
+
+Configuration files such as `config.json` and `models.json` can also be edited manually in the active profile/workdir.
 
 A project's custom workdir does **not** replace this profile/application workdir. It overrides only the logical `data` directory for conversations assigned to that project. The **Files** tab, file tools and Docker `/mnt/data` mapping follow the active project data directory at runtime, while `tmp`, configuration, database, cache, CSS, locale, fonts and logs remain in the base profile workdir.
 
@@ -2343,9 +2383,11 @@ This command-line option changes the entire profile/application workdir. It is d
 
 ## Translations / Locale
 
-PyGPT supports custom translations and profile-specific themes. Locale files use the `.ini` format and are loaded automatically by the application.
+PyGPT supports custom translations and custom themes at both application-wide and profile-override scope. Locale files use the `.ini` format and are loaded automatically.
 
-Custom themes use a directory-per-theme layout under `%workdir%/css/<theme-id>/`, with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A user theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the PyGPT working directory.
+Application-wide custom themes can be placed under `<application base workdir>/css/<theme-id>/`, while Theme Add-ons are read directly from `<application base workdir>/addons/themes/<id>/[theme/]`. Locale overrides can be placed in `<application base workdir>/locale/`, while Locale Add-ons are read directly from `<application base workdir>/addons/locale/<id>/[locale/]`. Theme/locale Add-ons are never copied into a profile. If an active profile also contains `%workdir%/css` or `%workdir%/locale`, those files remain the final explicit override layer.
+
+Custom themes use a directory-per-theme layout with optional `app.css`, `app.xml`, and `chat.css` files. New custom theme IDs can end in `-dark` or `-light` to define their runtime Dark/Light compatibility; the suffix is omitted from the normal menu title. Unsuffixed custom IDs default to Dark. A custom theme can use the same ID as a built-in theme to override/extend it while keeping the built-in compatibility type. Custom fonts can also be placed in the active profile workdir.
 
 For the complete translation, locale, CSS override, and custom font reference, see:
 
@@ -2467,17 +2509,19 @@ PyGPT can be extended with custom:
 The repository's ``examples`` directory contains tutorial implementations for every add-on type:
 
 - `examples/custom_launcher.py`
-- `examples/example_plugin.py`
-- `examples/example_tool.py`
-- `examples/example_agent.py`
-- `examples/example_llm.py`
-- `examples/example_vector_store.py`
-- `examples/example_data_loader.py`
-- `examples/example_audio_input.py`
-- `examples/example_audio_output.py`
-- `examples/example_web_search.py`
+- `examples/addons/plugins/example_plugin`
+- `examples/addons/tools/example_tool`
+- `examples/addons/agents/example_agent`
+- `examples/addons/llms/example_llm`
+- `examples/addons/vector_stores/example_vector_store`
+- `examples/addons/loaders/example_loader`
+- `examples/addons/audio_input/example_audio_input`
+- `examples/addons/audio_output/example_audio_output`
+- `examples/addons/web/example_web`
+- `examples/addons/themes/example-extension-dark`
+- `examples/addons/locale/example-locale`
 
-PyGPT can be also extended with external Add-ons installed under `%workdir%/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
+PyGPT can be also extended with external Add-ons installed under `<application base workdir>/addons` (plugins, LLM wrappers, vector stores, loaders, audio/web providers, tools, agents, themes and locale packs).
 
 You can install external Add-ons from `Config -> Install Add-on...` using a local directory/ZIP, GitHub, or the **Explore** catalog. The official catalog and community submissions are maintained in the [PyGPT Add-ons repository](https://github.com/szczyglis-dev/py-gpt-addons).
 
@@ -2485,7 +2529,7 @@ The repository also contains ready-to-use examples in the `examples` directory.
 
 For complete Python examples, manifest format, publishing instructions, event handling, custom model configuration, provider interfaces, launcher code, and the Add-ons API reference, see:
 
-https://pygpt.readthedocs.io/en/latest/extending.html
+https://pygpt.readthedocs.io/en/latest/addons_api.html
 
 # DISCLAIMER
 
@@ -2503,59 +2547,44 @@ may consume additional tokens that are not displayed in the main window.
 
 ## Recent changes:
 
-**2.8.34 (2026-09-28)**
+**2.8.38 (2026-10-03)**
 
-- Fixed LiteLLM issues by downgrading to version 1.81.16; fixed issue #214.
-- Added line numbers and annotations to file previews in the Files tab.
-- Added a recent chats list to the tray menu.
-- Added agent final result summaries to system notifications.
-- Added support for the `.agents` directory convention in Agents and Custom Agents.
-- Optimized file search in the Files tab.
-- Improved annotation handling.
-- Improved markers in Notepad.
-- Improved CSS/QSS styling.
+- Improved attachment handling and attachments display.
+- Optimized and improved Computer Use, fixed the Computer Use flow in agents, and added a full-screen indicator while Computer Use is active.
+- Added support for Markdown (.md) files in the Files preview.
+- Added a new File Preview add-on type, allowing support for additional file formats to be extended through add-ons.
+- Added GPT-6.1 Sol model.
+- Added a "Group models by provider" option.
+- Added a "Show tools in agents" option.
+- Other UI/UX improvements and fixes.
 
-**2.8.33 (2026-09-27)**
+**2.8.37 (2026-10-01)**
 
-- Moved old legacy agent modes to Custom Agents; refactored legacy agent workflows; legacy agents now use the same runtime as Agents v2.
-- Added column sorting to the Files tool.
-- Added search engine support to the Canvas browser.
-- Added file preview and editing support to the Files tab.
-- Added filters and search input to the Skills, Connectors, and Add-ons lists.
-- Added pop-up daily notes to the Calendar tool.
-- Added annotations to the chat view via RMB → Annotate for AI.
-- Moved the Skills menu to Config.
-- Refactored LLM providers; setup options were moved to provider classes.
-- Improved toolbox responsiveness.
-- UI fixes.
+- Added SHA-256 integrity verification for public trusted Add-ons, including manifest/registry hash pinning and validation during installation.
+- Added helper scripts in `bin/` for generating SHA-256 signatures for community Add-ons and updated the Add-ons documentation accordingly.
+- Fixed main window frame and shadow rendering on Windows.
+- Fixed tray menu focus handling on Windows.
+- 
+**2.8.36 (2026-09-30)**
 
-**2.8.32 (2026-09-26)**
+- Moved external Add-ons to the shared application-wide `addons` directory, with automatic migration from profile workdirs.
+- Theme and Locale Add-ons are now loaded directly from the global Add-ons directory without copying files into profiles.
+- Improved Add-on localization with private locale directories and dynamic locale domains for plugins, tools and providers.
+- Improved Realtime + audio flow, stability and voice interaction handling.
+- Added a separate audio input level bar for microphone input.
 
-- Added support for external **Add-ons** (beta), allowing users to extend PyGPT with custom plugins, LLM/providers, vector stores, data loaders, audio input/output providers, web providers, tools, agents, themes, and locale packs. Add-ons can be installed from the public catalog, local files and directories, ZIP archives, and external GitHub repositories.
-- Added a public **PyGPT Add-ons repository and catalog**, where anyone can publish and submit their own Add-ons for discovery and installation directly from PyGPT.
-- Improved realtime audio flow: added interruption of the previous response when a new request is sent and fixed auto-follow scrolling.
-- Fixed equal split-screen column widths when enabling split-screen mode.
-- Agent Workflow tool connected to legacy agents.
-- Added auto-updater.
-- UI improvements.
+**2.8.35 (2026-09-29)**
 
-**2.8.31 (2026-09-25)**
+- Refactored the LiteLLM provider and migrated it to the native LlamaIndex LiteLLM integration. Vision input and tool calling are now supported by compatible LiteLLM models.
+- Added an application-wide **Package Manager** for optional runtime dependencies, with packages stored per Python version under `<application base workdir>/extra_packages/<major.minor>`.
+- Added shared text editor preferences for indentation, tab width, and word wrap across the Text Editor, Files preview/editor, and Canvas source editor.
+- Added a search field to the Model Importer.
+- Added optional model-defined runtime MCP connections, with separate permissions for HTTP/SSE and stdio transports and integration with MCP tool discovery and caching.
+- Improved Canvas browser controls, source editing, and persistent address history/search behavior.
+- Improved local Whisper dependency installation through the Package Manager.
+- Added comprehensive Add-ons examples and API reference documentation. See **Documentation -> Add-ons API**.
+- Added various UI and CSS/QSS fixes and refinements.
 
-- Refactored and improved tab management.
-- Refactored and improved message rendering and event flow.
-- Improved the Canvas plugin.
-- Added the ability to send sketches and images directly from Painter to the model in real time via the Canvas plugin.
-- Improved and fixed runtime attachment and image handling.
-- Optimized memory usage and Python module initialization.
-- Added a new Jev / System One plugin - see the documentation for more information.
-- Various UI fixes and improvements.
-- Other fixes and improvements.
-
-**2.8.30 (2026-09-24)**
-
-- Added a new **Canvas (inline)** plugin featuring an interactive, real-time canvas with HTML and JavaScript support. It enables visual prototyping, live annotations, HTML generation, opening and editing websites, a built-in web server, and much more. As an inline plugin, it works independently of the global **Tools** switch. See the new **Canvas** section in the documentation for details.
-- The chat input field is now pinned to its corresponding chat column.
-- Added support for new models: **Claude Opus 5.5**, **GPT-6 Sol**, and **GPT-6 Luna**.
 
 # Credits and links
 
@@ -2645,3 +2674,5 @@ Markdown parsing powered by: https://github.com/markdown-it/markdown-it
 LaTeX support by: https://katex.org
 
 Playwright: https://playwright.dev/
+
+Filetypes icons by: https://github.com/dmhendricks/file-icon-vectors/

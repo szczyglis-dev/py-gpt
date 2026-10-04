@@ -62,7 +62,7 @@ def test_build_widgets_maps_supported_types_and_respects_excluded():
 
 def test_trans_or_not_shortens_unknown_dictionary_label():
     dialog = BaseConfigDialog(_window())
-    with patch("pygpt_net.ui.base.config_dialog.trans", side_effect=lambda value: value):
+    with patch("pygpt_net.ui.base.config_dialog.trans", side_effect=lambda value, **kwargs: value):
         assert dialog.trans_or_not("dictionary.some_value") == "Some_value"
         assert dialog.trans_or_not("plain") == "plain"
     with patch("pygpt_net.ui.base.config_dialog.trans", return_value="Translated"):

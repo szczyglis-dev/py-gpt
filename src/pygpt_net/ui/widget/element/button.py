@@ -9,7 +9,7 @@
 # Updated Date: 2026.09.27 17:35:00                  #
 # ================================================== #
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QMenu
 
@@ -29,6 +29,66 @@ class ContextMenuButton(QPushButton):
             super().mousePressEvent(event)
 
 
+class ButtonPopupMenu(QPushButton):
+    """Reusable icon-only button that opens a popup menu above itself."""
+
+    def __init__(
+        self,
+        parent=None,
+        menu_builder=None,
+        tooltip_key: str = 'action.options',
+        object_name: str = None,
+        menu_object_name: str = None,
+    ):
+        super().__init__(QIcon(':/icons/more_horizontal.svg'), '', parent)
+        self.menu_builder = menu_builder
+        self.tooltip_key = tooltip_key
+        self.menu_object_name = menu_object_name
+        self._popup_menu = None
+
+        if object_name:
+            self.setObjectName(object_name)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setFocusPolicy(Qt.NoFocus)
+        self.retranslate()
+        self.clicked.connect(self.show_popup_menu)
+
+    def retranslate(self):
+        """Refresh the default tooltip after a runtime language change."""
+        self.setToolTip(trans(self.tooltip_key))
+
+    def set_menu_builder(self, menu_builder):
+        """Replace the callback used to populate a freshly-created QMenu."""
+        self.menu_builder = menu_builder
+
+    def show_popup_menu(self):
+        """Build and show a fresh menu aligned to the button's right edge."""
+        self._clear_popup_menu()
+
+        menu = QMenu(self)
+        if self.menu_object_name:
+            menu.setObjectName(self.menu_object_name)
+        if self.menu_builder is not None:
+            self.menu_builder(menu)
+
+        if menu.isEmpty():
+            menu.deleteLater()
+            return
+
+        self._popup_menu = menu
+        menu.aboutToHide.connect(self._clear_popup_menu)
+        menu.adjustSize()
+        size = menu.sizeHint()
+        global_pos = self.mapToGlobal(QPoint(self.width() - size.width(), -size.height()))
+        menu.popup(global_pos)
+
+    def _clear_popup_menu(self):
+        menu = self._popup_menu
+        self._popup_menu = None
+        if menu is not None:
+            menu.deleteLater()
+
+
 class NewCtxButton(QPushButton):
     _icon_add = None
     _icon_folder_filled = None
@@ -36,6 +96,7 @@ class NewCtxButton(QPushButton):
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
+        self.setToolTip(trans('ctx.new.tooltip'))
         self.clicked.connect(lambda: self.window.controller.ctx.new(force=False))
 
     @classmethod

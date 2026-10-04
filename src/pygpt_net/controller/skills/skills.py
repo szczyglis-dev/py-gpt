@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.25 12:35:00                  #
+# Updated Date: 2026.10.01 22:20:00                  #
 # ================================================== #
 
 import os
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt, QThreadPool, QUrl, Slot
 from PySide6.QtGui import QDesktopServices, QIcon, QPixmap
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox, QTreeWidgetItem
 
+from pygpt_net.ui.dialog.list_details import set_item_tooltips, show_item_details
 from pygpt_net.utils import trans
 
 from .worker import SkillsWorker
@@ -77,15 +78,10 @@ class Skills:
                 item.setText(2, skill.get("description", ""))
                 item.setText(3, skill.get("standard", "agent-skills"))
                 source = skill.get("source", "local")
-                if skill.get("issues"):
+                issues = "\n".join(skill.get("issues") or [])
+                if issues:
                     source += " ⚠"
-                    item.setToolTip(1, "\n".join(skill["issues"]))
                 item.setText(4, source)
-                if source:
-                    item.setToolTip(4, source)
-                description = str(skill.get("description") or "")
-                if description:
-                    item.setToolTip(2, description)
                 item.setData(0, Qt.ItemDataRole.UserRole, skill["name"])
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(
@@ -95,6 +91,7 @@ class Skills:
                 icon_path = skill.get("icon_path")
                 if icon_path and os.path.isfile(icon_path):
                     item.setIcon(1, QIcon(icon_path))
+                set_item_tooltips(tree, item, {1: issues} if issues else None)
             tree.resizeColumnToContents(0)
             self._apply_filter()
             self._update_installed_status()
@@ -195,9 +192,13 @@ class Skills:
         if not name:
             return
         menu = QMenu(tree)
-        remove_action = menu.addAction(QIcon(":/icons/delete.svg"), trans("skills.remove"))
+        details_action = menu.addAction(QIcon(":/icons/info.svg"), trans("action.show_details"))
+        menu.addSeparator()
+        uninstall_action = menu.addAction(QIcon(":/icons/delete.svg"), trans("action.uninstall"))
         selected = menu.exec(tree.viewport().mapToGlobal(pos))
-        if selected == remove_action:
+        if selected == details_action:
+            show_item_details(self.window, tree, item)
+        elif selected == uninstall_action:
             self.remove_skill(name, item.text(1) or name)
 
     def remove_skill(self, name: str, display_name: str = ""):
@@ -276,12 +277,20 @@ class Skills:
             return
         name = str(entry.get("name") or "")
         installed = {x["name"] for x in self.window.core.skills.list_installed()}
-        if name in installed:
-            return
+        is_installed = name in installed
         menu = QMenu(tree)
-        install_action = menu.addAction(QIcon(":/icons/download.svg"), trans("action.install"))
+        details_action = menu.addAction(QIcon(":/icons/info.svg"), trans("action.show_details"))
+        menu.addSeparator()
+        if is_installed:
+            action = menu.addAction(QIcon(":/icons/delete.svg"), trans("action.uninstall"))
+        else:
+            action = menu.addAction(QIcon(":/icons/download.svg"), trans("action.install"))
         selected = menu.exec(tree.viewport().mapToGlobal(pos))
-        if selected == install_action:
+        if selected == details_action:
+            show_item_details(self.window, tree, item)
+        elif selected == action and is_installed:
+            self.remove_skill(name, str(entry.get("display_name") or name))
+        elif selected == action:
             button = self.window.ui.nodes.get("skills.explore.btn.install")
             if button is not None:
                 button.setEnabled(False)
@@ -347,19 +356,13 @@ class Skills:
             item.setText(4, str(entry.get("standard") or "Agent Skills"))
             source = str(entry.get("url") or entry.get("homepage") or "")
             item.setText(5, source)
-            if source:
-                item.setToolTip(5, source)
             raw_icon = entry.get("_icon_bytes")
             if raw_icon:
                 pixmap = QPixmap()
                 if pixmap.loadFromData(raw_icon):
                     item.setIcon(1, QIcon(pixmap))
             homepage = str(entry.get("homepage") or entry.get("url") or "")
-            if homepage:
-                item.setToolTip(1, homepage)
-            description = item.text(2)
-            if description:
-                item.setToolTip(2, description)
+            set_item_tooltips(tree, item, {1: homepage} if homepage else None)
         tree.resizeColumnToContents(0)
         # QTreeWidget may make the first inserted item current automatically.
         # Keep the catalog visually neutral until the user explicitly clicks a

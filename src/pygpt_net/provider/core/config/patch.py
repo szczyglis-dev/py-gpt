@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 13:00:00                  #
+# Updated Date: 2026.09.29 09:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -82,6 +82,59 @@ class Patch:
                 ):
                     if key in data:
                         del data[key]
+                        updated = True
+
+            # --------------------------------------------
+            # Global filesystem text-editor settings and application runtime
+            # directories introduced in 2.8.35.
+            if old < parse_version("2.8.35"):
+                from .patches.patch_before_2_8_35 import (
+                    migrate_application_runtime_dirs,
+                    migrate_remote_tools,
+                )
+                migrate_application_runtime_dirs(self.window)
+                updated = migrate_remote_tools(data) or updated
+                defaults = {
+                    "filesystem.text_editor.tabs.indent_spaces": True,
+                    "filesystem.text_editor.tabs.width": 4,
+                    "filesystem.text_editor.word_wrap": False,
+                    "layout.canvas.auto_open": True,
+                    "ctx.annotations.clear_on_send.canvas": False,
+                    "ctx.annotations.clear_on_send.files": False,
+                    "ctx.annotations.clear_on_send.chat": True,
+                }
+                for key, value in defaults.items():
+                    if key not in data:
+                        data[key] = value
+                        updated = True
+
+            # --------------------------------------------
+            # Application-wide Add-ons storage introduced in 2.8.36.
+            if old < parse_version("2.8.36"):
+                from .patches.patch_before_2_8_36 import (
+                    migrate_addons_to_application_base,
+                )
+                updated = migrate_addons_to_application_base(self.window) or updated
+
+            if old < parse_version("2.8.38"):
+                if "security.computer.show_warning" not in data:
+                    data["security.computer.show_warning"] = True
+                    updated = True
+                if "model.group_providers" not in data:
+                    data["model.group_providers"] = False
+                    updated = True
+                if data.get("access.microphone.notify") is not True:
+                    data["access.microphone.notify"] = True
+                    updated = True
+                if data.get("attachments_capture_clear") is not False:
+                    data["attachments_capture_clear"] = False
+                    updated = True
+                if "agent.v2.show_tools" not in data:
+                    data["agent.v2.show_tools"] = False
+                    updated = True
+                for key in ("filesystem.preview.markdown.font_size", "filesystem.preview.text.font_size"):
+                    if key not in data:
+                        data[key] = 0  # Use the default font until the first zoom gesture.
                         updated = True
 
         # update file

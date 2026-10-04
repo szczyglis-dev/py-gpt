@@ -6,8 +6,10 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.10 15:50:00                  #
+# Updated Date: 2026.10.02 14:00:00                  #
 # ================================================== #
+
+from pygpt_net.core.process_output import ProcessOutput
 
 import base64
 import queue
@@ -516,7 +518,7 @@ del _pygpt_make_system_noninteractive
         """
         return self.plugin.window.core.filesystem.get_data_dir(ctx=ctx)
 
-    def execute_system(self, command: str, ctx=None) -> bytes:
+    def execute_system(self, command: str, ctx=None, demux: bool = False):
         """
         Execute a shell command inside the same container as the IPython kernel.
 
@@ -545,13 +547,14 @@ del _pygpt_make_system_noninteractive
                 ["/bin/sh", "-c", command],
                 stdin=False,
                 stdout=True,
+                **({"demux": True} if demux else {}),
                 stderr=True,
                 workdir="/mnt/data",
             )
-            return result.output or b""
+            return ProcessOutput(*(result.output or (b"", b"")), return_code=result.exit_code) if demux else (result.output or b"")
         except Exception as e:
             self.log(f"Error executing command in IPython container: {e}")
-            return str(e).encode("utf-8")
+            return (b"", str(e).encode("utf-8")) if demux else str(e).encode("utf-8")
 
     def check_ready(self):
         """
@@ -580,6 +583,7 @@ del _pygpt_make_system_noninteractive
         :param auto_init: Automatically recover the kernel once if it is unavailable.
         :return: Output from the kernel.
         """
+        self._signals_local.streams = {"stdout": "", "stderr": ""}
         if self.restarting:
             self.log("IPython kernel restart is already in progress; execution deferred.")
             self.send_output(self.RESTARTING_MSG)
@@ -684,6 +688,9 @@ del _pygpt_make_system_noninteractive
                 chunk = str(self.process_message(msg))
                 if chunk.strip() != "":
                     output += chunk
+                    stream = "stderr" if msg['msg_type'] == 'error' else msg['content'].get('name', 'stdout')
+                    if stream in ('stdout', 'stderr'):
+                        self._signals_local.streams[stream] += chunk
                     self.send_output(chunk)
 
                 if (msg['msg_type'] == 'status' and
@@ -901,9 +908,11 @@ del _pygpt_make_system_noninteractive
 
     def log(self, msg):
         """
-        Log the message.
+        Log the message to console only when plugin logging is enabled.
 
         :param msg: Message to log.
         """
-        print(msg)
-        self.plugin.window.update_status(msg)
+        if self.plugin is not None and self.plugin.is_log():
+            print(msg)
+        if self.plugin is not None:
+            self.plugin.window.update_status(msg)

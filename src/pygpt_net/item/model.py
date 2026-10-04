@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.21 13:22:00
+# Updated Date: 2026.09.30 08:14:00
 # ================================================== #
 
 import json
@@ -20,7 +20,6 @@ from pygpt_net.core.types import (
     MULTIMODAL_IMAGE,
     MODE_AUDIO,
     MULTIMODAL_AUDIO,
-    OPENAI_COMPATIBLE_PROVIDERS,
     MULTIMODAL_VIDEO,
 )
 from pygpt_net.provider.core.model.compat import is_openai_o_series
@@ -234,15 +233,6 @@ class ModelItem:
         :return: True if multimodal
         """
         return len(self.multimodal) > 0
-
-    def is_openai_supported(self) -> bool:
-        """
-        Check if model is supported by OpenAI API (or compatible)
-
-        :return: True if OpenAI compatible
-        """
-        return (self.provider in OPENAI_COMPATIBLE_PROVIDERS
-                or (isinstance(self.provider, str) and self.provider.startswith("custom_")))
 
     def is_gpt(self) -> bool:
         """

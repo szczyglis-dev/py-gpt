@@ -307,3 +307,27 @@ def test_run_executes_window_lifecycle_without_real_qt_or_process_exit(launcher_
     signal_mock.assert_any_call(signal_module.SIGTERM, launcher.handle_signal)
     signal_mock.assert_any_call(signal_module.SIGINT, launcher.handle_signal)
     exit_mock.assert_called_once_with(7)
+
+
+@pytest.mark.parametrize("platform,visible,minimized,focus", [
+    ("win32", True, False, True),
+    ("win32", False, False, False),
+    ("win32", True, True, False),
+    ("linux", True, False, False),
+])
+def test_startup_focus_follows_splash_close(launcher_module, monkeypatch, platform, visible, minimized, focus):
+    monkeypatch.setattr(launcher_module.sys, "platform", platform)
+    launcher = launcher_module.Launcher()
+    launcher.window = MagicMock()
+    launcher.window.isVisible.return_value = visible
+    launcher.window.isMinimized.return_value = minimized
+    launcher._preloader = MagicMock()
+    order = []
+    launcher._preloader.close.side_effect = lambda: order.append("close splash")
+    launcher.window.raise_.side_effect = lambda: order.append("raise")
+    launcher.window.activateWindow.side_effect = lambda: order.append("activate")
+
+    launcher._on_window_ready()
+
+    assert order == (["close splash", "raise", "activate"] if focus else ["close splash"])
+    assert launcher._preloader is None

@@ -39,7 +39,7 @@ class OptionCheckbox(QWidget):
         if self.option is not None:
             if "label" in self.option and self.option["label"] is not None \
                     and self.option["label"] != "":
-                self.title = trans(self.option["label"])
+                self.title = trans(self.option["label"], domain=self.option.get('_locale_domain')) if self.option.get('_use_locale', True) else str(self.option["label"])
             if "value" in self.option:
                 self.value = self.option["value"]
             if "real_time" in self.option:

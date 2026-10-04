@@ -365,3 +365,18 @@ def test_agents_v2_legacy_memory_write_helpers_do_not_create_duplicate_ctx_items
     assert appended is master
     window.core.ctx.add_to_meta.assert_not_called()
     window.core.ctx.update_item.assert_not_called()
+
+
+def test_history_compatibility_helpers_use_authoritative_final_output():
+    from pygpt_net.core.agents_v2.memory import AgentsV2MemoryStore
+    from pygpt_net.item.ctx import CtxItem
+    store = AgentsV2MemoryStore(make_window())
+    source = source_item('question', 'answer', parts=[agent_part('answer')])
+    assert store._compose_source_history(source) == 'answer'
+    assert store.compose_turn_output(None) == ''
+    assert store.compose_turn_output(None, final_answer=' final ') == 'final'
+    item = MagicMock()
+    item.get_agents_v2_final_output.return_value = 'final'
+    assert store.compose_turn_output(item) == 'final'
+    item.get_agents_v2_final_output.side_effect = RuntimeError('invalid')
+    assert store.compose_turn_output(item) == ''

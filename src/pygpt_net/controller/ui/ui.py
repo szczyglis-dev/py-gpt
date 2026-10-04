@@ -67,6 +67,7 @@ class UI:
         self.mode.update()
         self.update_tokens()
         self.vision.update()
+        self.window.controller.plugins.update_annotations_info()
         self.window.controller.agent.legacy.update()
         self.img_update_available_modes()
         self.img_update_available_resolutions()
@@ -106,7 +107,7 @@ class UI:
 
     def init_computer_env(self):
         """Init computer environment"""
-        env = self.window.core.config.get("remote_tools.computer_use.env", "linux")
+        env = self.window.core.config.get("computer_use.env", "linux")
         if env == "" or env is None:
             if self.window.core.platforms.is_windows():
                 env = "windows"
@@ -121,7 +122,7 @@ class UI:
 
     def init_computer_sandbox(self):
         """Init computer sandbox"""
-        sandbox = bool(self.window.core.config.get("remote_tools.computer_use.sandbox", False))
+        sandbox = bool(self.window.core.config.get("computer_use.sandbox", False))
         node = self.window.ui.nodes["computer_sandbox"]
         if node.isChecked() != sandbox:
             node.box.setChecked(sandbox)
@@ -133,8 +134,8 @@ class UI:
         :param env: selected environment
         """
         cfg = self.window.core.config
-        if cfg.get("remote_tools.computer_use.env") != env:
-            cfg.set("remote_tools.computer_use.env", env)
+        if cfg.get("computer_use.env") != env:
+            cfg.set("computer_use.env", env)
             cfg.save()
 
     def on_computer_sandbox_toggled(self, checked: bool):
@@ -144,8 +145,8 @@ class UI:
         :param checked: bool
         """
         cfg = self.window.core.config
-        if cfg.get("remote_tools.computer_use.sandbox") != checked:
-            cfg.set("remote_tools.computer_use.sandbox", checked)
+        if cfg.get("computer_use.sandbox") != checked:
+            cfg.set("computer_use.sandbox", checked)
             cfg.save()
 
     def update_toolbox(self):

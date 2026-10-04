@@ -164,7 +164,7 @@ code {{
 }}
 
 .tool-output .tool-output-name {{
-  color: #b8f4ff;
+  color: #7096a8;
 }}
 
 /* Loaders and live output */
@@ -182,3 +182,15 @@ code {{
 .tips p {{
   color: #568ba0;
 }}
+
+/* Match Tool/Processed hover for expandable agent status headers. */
+.workflow-status-progress .progress-details > summary:hover > .agents-v2-status__text,
+.workflow-status-progress .progress-worker > summary:hover > span {{
+  color: #fff;
+  background: none;
+  animation: none;
+}}
+
+.user-message-actions {{ --user-actions-color: #a0a0a0; }}
+
+:root {{ --user-file-border: rgba(255, 255, 255, 0.14); --user-file-bg: rgba(255, 255, 255, 0.025); --user-file-hover: rgba(255, 255, 255, 0.065); }}

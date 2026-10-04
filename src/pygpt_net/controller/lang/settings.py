@@ -37,7 +37,14 @@ class Settings:
         ui_config = ui.config['config']
 
         for opt_id, option in options.items():
-            t_label = tr(option['label']) if option.get('_use_locale', True) else str(option['label'])
+            domain = option.get('_locale_domain')
+            widget = ui_config.get(opt_id)
+            if widget is not None and hasattr(widget, 'update_locale'):
+                try:
+                    widget.update_locale()
+                except Exception:
+                    pass
+            t_label = tr(option['label'], domain=domain) if option.get('_use_locale', True) else str(option['label'])
             try:
                 t_label = t_label.format(**(option.get('_label_params') or {}))
             except (KeyError, ValueError):
@@ -56,7 +63,7 @@ class Settings:
 
             if 'description' in option and option['description'] is not None and option['description'].strip() != "":
                 desc = option['description']
-                t_desc = tr(desc) if option.get('_use_locale', True) else str(desc)
+                t_desc = tr(desc, domain=domain) if option.get('_use_locale', True) else str(desc)
                 try:
                     t_desc = t_desc.format(**(option.get('_description_params') or {}))
                 except (KeyError, ValueError):
@@ -88,7 +95,11 @@ class Settings:
             for i, meta in enumerate(tab_meta):
                 if i >= section_tabs_widget.count():
                     break
-                if isinstance(meta, dict) and meta.get('label'):
+                if isinstance(meta, dict) and meta.get('key') and meta.get('domain'):
+                    tab_name = tr(meta['key'], domain=meta['domain'])
+                    if tab_name == meta['key'] and meta.get('fallback') is not None:
+                        tab_name = str(meta['fallback'])
+                elif isinstance(meta, dict) and meta.get('label'):
                     tab_name = meta['label']
                 else:
                     locale_key = meta.get('locale') if isinstance(meta, dict) else meta

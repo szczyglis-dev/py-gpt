@@ -80,7 +80,16 @@ A simple image browser that lets you preview images directly within the app.
 Text Editor
 -----------
 
-A simple text editor that enables you to edit text files directly within the app.
+The built-in text editor provides syntax highlighting, line numbers, find/search support, zoom, configurable tabs and optional word wrapping. The same shared editor core is also used by the Files preview/editor and the Canvas source editor, so the editing behavior is consistent across these surfaces.
+
+The editor context menu contains global tab settings:
+
+* **Indent using spaces** - inserts spaces instead of literal tab characters. Default: enabled.
+* **Tab width** - sets the shared tab/indent width from 1 to 8 columns. Default: ``4``.
+* **Convert indentation to spaces/tabs** - rewrites indentation in the current document without changing the global preference.
+* **Word wrap** - toggles wrapping of long lines. Default: disabled. This is an application-wide editor preference and is shared by the Text Editor, Files editor and Canvas source editor.
+
+These preferences are stored in ``config.json`` as ``filesystem.text_editor.tabs.indent_spaces``, ``filesystem.text_editor.tabs.width`` and ``filesystem.text_editor.word_wrap``.
 
 
 Transcribe Audio/Video Files

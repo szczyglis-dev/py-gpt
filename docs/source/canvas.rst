@@ -50,6 +50,8 @@ Websites and local HTML server
 
 Canvas can open external webpages and work with them through the same scoped browser interaction tools. The default backend is the built-in Chromium/QWebEngine runtime. An optional Playwright backend can be enabled in the plugin settings when a more isolated automation environment or Playwright-specific capabilities are needed.
 
+The address bar also works as a search field: non-URL text is sent to the configured search engine. Visited HTTP/HTTPS addresses can be stored in a profile-local ``browser_history.json`` file (enabled by default, limit 100). Clicking or typing in the address field exposes the newest matching history entries; the history can be disabled, resized or deleted from the Canvas plugin's **Browser** settings.
+
 For local websites and web applications, the plugin also provides a lightweight loopback-only HTTP preview server. The model can serve a directory from the PyGPT work/data area, open that local site in Canvas, inspect it, interact with it, and continue modifying or testing the project in an interactive workflow.
 
 Enabling Canvas

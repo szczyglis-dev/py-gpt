@@ -204,7 +204,7 @@ def test_custom_web_page_find_result_updates_finder():
 def test_web_bridge_routes_ready_code_and_scroll_state():
     window = _window()
     ready = SimpleNamespace(emit=MagicMock())
-    bridge = SimpleNamespace(window=window, readyChanged=ready, deleteLater=MagicMock())
+    bridge = MagicMock(window=window, readyChanged=ready)
     Bridge.js_ready(bridge, 123)
     ready.emit.assert_called_once_with(True)
     window.controller.chat.render.on_js_ready.assert_called_once_with(123)

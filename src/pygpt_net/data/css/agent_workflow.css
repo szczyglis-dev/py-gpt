@@ -6,9 +6,21 @@ html, body {
     min-height: 100%;
 }
 body.agent-workflow {
+    min-height: 100vh;
+    isolation: isolate;
+    font-size: 0.8rem;
     box-sizing: border-box;
     padding: 12px 14px 18px 10px;
     overflow-wrap: anywhere;
+}
+/* Paint the viewport explicitly; Qt WebEngine can retain a partial page background. */
+body.agent-workflow::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: inherit;
+    z-index: -1;
+    pointer-events: none;
 }
 body.theme-dark {
     --wf-text: #e7e7e7;
@@ -152,6 +164,7 @@ body.theme-light {
 .agent-card.agent-role-orchestrator { border-color: color-mix(in srgb, var(--wf-accent) 30%, var(--wf-card-border)); }
 .agent-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
@@ -159,25 +172,44 @@ body.theme-light {
     padding: 5px 8px 5px 10px;
     border-bottom: 1px solid var(--wf-card-border);
 }
-.agent-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.agent-name { font-weight: 700; color: var(--wf-text); }
+.agent-title {
+    display: flex;
+    flex: 1 1 220px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.agent-name {
+    flex: 1 0 110px;
+    min-width: 0;
+    max-width: 100%;
+    font-weight: 700;
+    color: var(--wf-text);
+}
+.agent-title > .agent-id,
+.agent-title > .agent-status,
+.agent-title > .agent-elapsed,
+.agent-header > .agent-details-button { flex-shrink: 0; }
 .agent-id {
     color: var(--wf-muted);
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 400;
     opacity: .82;
     white-space: nowrap;
 }
 .agent-elapsed {
     color: var(--wf-muted);
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
     font-variant-numeric: tabular-nums;
     opacity: .72;
     white-space: nowrap;
 }
 .agent-status, .tool-state {
-    font-size: 11px;
+    font-size: 9px;
     line-height: 18px;
     padding: 0 7px;
     border-radius: 10px;
@@ -197,7 +229,7 @@ body.theme-light {
     border-radius: 7px;
     padding: 3px 8px;
     font: inherit;
-    font-size: 11px;
+    font-size: 9px;
     cursor: pointer;
     white-space: nowrap;
 }
@@ -212,7 +244,7 @@ body.theme-light {
 .detail-row + .detail-row { margin-top: 9px; }
 .detail-label {
     color: var(--wf-muted);
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .025em;
@@ -230,7 +262,7 @@ body.theme-light {
     background: transparent;
     color: var(--wf-text);
     font-family: 'Monaspace Neon', monospace !important;
-    font-size: 12px;
+    font-size: 10px;
     tab-size: 4;
     line-height: 1.45;
 }
@@ -265,12 +297,12 @@ body.theme-light {
 .turn {
     min-width: 22px;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 9px;
     color: var(--wf-accent);
 }
 .time {
     color: var(--wf-muted);
-    font-size: 11px;
+    font-size: 9px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
@@ -331,7 +363,7 @@ body.theme-light {
     width: 13px;
     flex: 0 0 13px;
     color: var(--wf-muted);
-    font-size: 11px;
+    font-size: 9px;
     line-height: 1;
 }
 .agent-card.agent-collapsed > .agent-details,

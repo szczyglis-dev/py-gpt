@@ -131,13 +131,12 @@ class Reply:
                     ctx.results = []
                     return []
 
-                # Tool results stay transient for the whole consecutive tool
-                # series. Do not expose durable Tool/Tools controls and do not
-                # alter the live Tool row here: it keeps animating while the
-                # provider decides whether another tool call follows. Each next
-                # TOOL_BEGIN reuses the same DOM row and only replaces its label.
-                # Completed tasks are promoted at a non-tool/final boundary.
+                # Update the live accordion as replies arrive while retaining
+                # the running series header until the next provider boundary.
                 self.append(ctx)
+                renderer = self.window.controller.chat.render.instance()
+                if hasattr(renderer, "tool_output_snapshot"):
+                    renderer.tool_output_snapshot(ctx.meta, ctx)
             else:
                 # Legacy contexts keep the old pid-based guard for backward
                 # compatibility with flows which do not use partial tasks.

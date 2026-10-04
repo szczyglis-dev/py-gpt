@@ -131,7 +131,7 @@ class Prompt:
         mode_select_layout.addWidget(mode_label, 0)
         mode_select_layout.addWidget(mode_combo, 1)
         mode_select_layout.addWidget(manage_agents, 0, Qt.AlignRight | Qt.AlignVCenter)
-        mode_select_layout.setContentsMargins(0, 0, 5, 0)
+        mode_select_layout.setContentsMargins(0, 0, 9, 0)
 
         mode_layout.addWidget(mode_select_widget)
         mode_layout.setContentsMargins(3, 0, 0, 0)

@@ -216,14 +216,15 @@ class Theme:
         directories.
 
         Layer order for ``app.css`` is:
-        1. bundled ``data/css/app.css`` (always the global base),
-        2. bundled ``data/css/<theme-id>/app.css``,
-        3. profile ``%workdir%/css/app.css`` when present,
-        4. profile ``%workdir%/css/<theme-id>/app.css`` when present.
+        1. bundled ``data/css/app.css`` and bundled theme CSS,
+        2. application-base ``css/app.css`` and ``css/<theme-id>/app.css``,
+        3. application-wide ``addons/themes/<id>/[theme/]/app.css``,
+        4. active-profile ``%workdir%/css`` overrides when present.
 
-        ``app.xml`` is resolved from the profile theme first, then the bundled
-        theme. A completely custom theme without XML falls back to the bundled
-        Light/Dark XML selected by its runtime compatibility type.
+        ``app.xml`` uses the same precedence in reverse lookup order: the
+        active-profile theme wins, then the Theme Add-on, application-base
+        custom CSS, and finally the bundled theme/fallback Light/Dark XML.
+        Theme Add-ons are read in place and are never copied into a profile.
         """
         window = self.window
         core = window.core

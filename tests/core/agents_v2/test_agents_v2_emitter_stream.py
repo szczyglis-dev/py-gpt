@@ -164,3 +164,47 @@ def test_agents_v2_emitter_append_streamed_splits_large_post_tool_delta_when_str
     assert len(append_events) > 1
     assert "".join(event.data["chunk"] for event in append_events) == "one two three four five"
     assert all(event.data["part_uuid"] == "part-1" for event in append_events)
+
+
+def test_identical_tool_statuses_from_different_actors_are_not_deduplicated():
+    emitter, signals = make_emitter()
+    first = {"part_uuid": "supervisor-part", "agent_name": "Supervisor", "placement": "before"}
+    second = {"part_uuid": "worker-part", "agent_name": "Worker", "placement": "before"}
+    emitter.status("Using tool: read_file", owner=first)
+    emitter.status("Using tool: read_file", owner=second)
+    emitter.status("Using tool: read_file", owner=second)
+    statuses = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_STATUS]
+    assert [e.data["owner"] for e in statuses] == [first, second]
+
+
+def test_computer_status_is_runtime_only_and_lasts_until_prose():
+    emitter, signals = make_emitter()
+    emitter.status_owner_provider = MagicMock()
+    emitter.computer_use(True)
+    emitter.computer_use(True)
+    statuses = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_STATUS]
+    assert len(statuses) == 1
+    assert statuses[0].data['owner'] == {'computer_use': True, 'active': True}
+    assert emitter.status_text == ''
+    emitter.status_owner_provider.assert_not_called()
+    emitter.append('Non-tool answer')
+    statuses = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_STATUS]
+    assert statuses[-1].data['owner'] == {'computer_use': True, 'active': False}
+
+
+def test_computer_status_is_removed_when_agent_finishes():
+    emitter, signals = make_emitter()
+    emitter.computer_use(True)
+    emitter.clear_status()
+    statuses = [e for e in emitted_events(signals) if e.name == KernelEvent.AGENT_V2_STATUS]
+    assert any(e.data.get('owner') == {'computer_use': True, 'active': False} for e in statuses)
+
+
+def test_materialized_final_stream_preserves_chunks_and_uuid():
+    emitter, signals = make_emitter()
+    emitter._final_stream_delay = 0
+    asyncio.run(emitter.stream_final('The final answer.', part_uuid='final-part'))
+    appends = [event for event in emitted_events(signals) if event.name == KernelEvent.AGENT_V2_APPEND]
+    assert ''.join(event.data['chunk'] for event in appends) == 'The final answer.'
+    assert all(event.data['part_uuid'] == 'final-part' for event in appends)
+    assert emitter.text.endswith('The final answer.')

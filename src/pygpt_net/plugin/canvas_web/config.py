@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 12:30:00                  #
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 from pygpt_net.core.types.canvas import CanvasSearchEngine
@@ -43,8 +43,17 @@ class Config(BaseConfig):
             "default_height", type="int", value=800, label="Default viewport height",
             description="Default browser viewport height in pixels.", min=240, max=4320, tab="browser")
         plugin.add_option(
-            "auto_open_split", type="bool", value=True, label="Auto-open browser in split screen",
-            description="On the first agent browser open in an application session, create/focus the Canvas tab in the second column and reveal split screen. If the user hides split screen afterwards, it is not forced open again in the same app session.", tab="browser")
+            "store_history", type="bool", value=True, label="Store history",
+            description="Store visited HTTP/HTTPS addresses in browser_history.json in the current PyGPT workdir.",
+            tab="browser")
+        plugin.add_option(
+            "history_limit", type="int", value=100, label="History limit",
+            description="Maximum number of the most recently visited HTTP/HTTPS addresses kept in browser history.",
+            min=1, max=10000, tab="browser")
+        plugin.add_option(
+            "delete_history", type="button", value=None, label="Delete history",
+            description="Delete all stored Canvas browser address history for the current PyGPT workdir.",
+            callback="clear_browser_history", tab="browser")
         plugin.add_option(
             "annotation_prompt", type="bool", value=True, label="Expose user annotations to the model",
             description="Append pending browser/canvas annotations to the runtime system prompt.", tab="annotations")

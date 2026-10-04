@@ -8,7 +8,7 @@ def _tray():
     window = SimpleNamespace(
         restore=MagicMock(),
         controller=SimpleNamespace(
-            ctx=MagicMock(), notepad=MagicMock(), plugins=MagicMock(), launcher=MagicMock(),
+            tabs=MagicMock(), ctx=MagicMock(), notepad=MagicMock(), plugins=MagicMock(), launcher=MagicMock(),
             painter=SimpleNamespace(capture=MagicMock()), chat=SimpleNamespace(common=MagicMock()),
         ),
         ui=SimpleNamespace(tray_menu={}),
@@ -46,6 +46,7 @@ def test_fullscreen_screenshot_flashes_only_on_success():
     Tray.make_screenshot(tray)
     tray.show_capture_flash.assert_called_once_with(0)
     tray.window.restore.assert_called_once_with()
+    tray.window.controller.tabs.switch_to_last_chat.assert_called_once_with()
     tray.window.controller.chat.common.focus_input.assert_called_once_with()
 
 
@@ -75,6 +76,7 @@ def test_capture_region_restores_and_focuses_input():
     )
     tray.show_capture_flash.assert_called_once_with(3)
     tray.window.restore.assert_called_once_with()
+    tray.window.controller.tabs.switch_to_last_chat.assert_called_once_with()
     tray.window.controller.chat.common.focus_input.assert_called_once_with()
 
 

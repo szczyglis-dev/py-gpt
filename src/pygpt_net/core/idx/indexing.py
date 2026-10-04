@@ -15,6 +15,7 @@ import os
 import time
 
 from pathlib import Path
+import copy
 from typing import TYPE_CHECKING, Optional, Tuple, List, Dict, Any
 
 from sqlalchemy import text
@@ -79,7 +80,16 @@ class Indexing:
                 if loader.instructions:
                     for item in loader.instructions:
                         cmd = list(item.keys())[0]
-                        self.external_instructions[cmd] = item[cmd]
+                        instruction = copy.deepcopy(item[cmd])
+                        domain = loader.get_locale_domain() if hasattr(loader, 'get_locale_domain') else None
+                        if domain and isinstance(instruction, dict):
+                            instruction['_locale_domain'] = domain
+                            args = instruction.get('args', {})
+                            if isinstance(args, dict):
+                                for arg in args.values():
+                                    if isinstance(arg, dict):
+                                        arg.setdefault('_locale_domain', domain)
+                        self.external_instructions[cmd] = instruction
                 if loader.init_args:
                     for key in loader.init_args:
                         if loader.id not in self.external_config:
@@ -90,6 +100,8 @@ class Indexing:
                             "type": "str",  # default = str
                             "label": key,
                             "description": None,
+                            "_locale_domain": loader.get_locale_domain()
+                            if hasattr(loader, 'get_locale_domain') else None,
                         }
                         # from config
                         if key in loader.args:

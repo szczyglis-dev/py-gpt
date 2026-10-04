@@ -58,8 +58,6 @@ class Models:
             QPushButton(QIcon(":/icons/add.svg"), trans("dialog.models.editor.btn.new"))
         self.window.ui.nodes['models.editor.btn.import'] = \
             QPushButton(QIcon(":/icons/download.svg"), trans("dialog.models.editor.btn.import"))
-        self.window.ui.nodes['models.editor.btn.defaults.user'] = \
-            QPushButton(trans("dialog.models.editor.btn.defaults.user"))
         self.window.ui.nodes['models.editor.btn.defaults.app'] = \
             QPushButton(trans("dialog.models.editor.btn.defaults.app"))
         self.window.ui.nodes['models.editor.btn.save'] = \
@@ -71,9 +69,6 @@ class Models:
         self.window.ui.nodes['models.editor.btn.import'].clicked.connect(
             lambda: self.window.controller.model.importer.open()
         )
-        self.window.ui.nodes['models.editor.btn.defaults.user'].clicked.connect(
-            lambda: self.window.controller.model.editor.load_defaults_user()
-        )
         self.window.ui.nodes['models.editor.btn.defaults.app'].clicked.connect(
             lambda: self.window.controller.model.editor.load_defaults_app()
         )
@@ -84,7 +79,6 @@ class Models:
         # set enter key to save button
         self.window.ui.nodes['models.editor.btn.new'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.import'].setAutoDefault(False)
-        self.window.ui.nodes['models.editor.btn.defaults.user'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.defaults.app'].setAutoDefault(False)
         self.window.ui.nodes['models.editor.btn.save'].setAutoDefault(True)
 
@@ -92,7 +86,6 @@ class Models:
         footer = QHBoxLayout()
         footer.addWidget(self.window.ui.nodes['models.editor.btn.new'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.import'])
-        footer.addWidget(self.window.ui.nodes['models.editor.btn.defaults.user'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.defaults.app'])
         footer.addWidget(self.window.ui.nodes['models.editor.btn.save'])
 
@@ -231,7 +224,6 @@ class Models:
         static_nodes = {
             'models.editor.btn.new': 'dialog.models.editor.btn.new',
             'models.editor.btn.import': 'dialog.models.editor.btn.import',
-            'models.editor.btn.defaults.user': 'dialog.models.editor.btn.defaults.user',
             'models.editor.btn.defaults.app': 'dialog.models.editor.btn.defaults.app',
             'models.editor.btn.save': 'dialog.models.editor.btn.save',
         }

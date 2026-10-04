@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.15 01:00:00                  #
+# Updated Date: 2026.10.02 12:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -41,59 +41,9 @@ class AzureOpenAILLM(BaseLLM):
         self.type = [MODE_LLAMA_INDEX, MODE_EMBEDDINGS]
 
     def setup(self) -> dict:
-        return {
-            "settings": {
-                "api_key": {"type": "str", "default": "", "secret": True},
-                "api_base": {"type": "str", "default": "https://<your-resource-name>.openai.azure.com/"},
-                "extra": {
-                    "api_version": {
-                        "type": "str",
-                        "default": "2023-07-01-preview",
-                        "label": "settings.api_azure_version",
-                        "desc": "settings.api_azure_version.desc",
-                        "use_locale": True,
-                    },
-                },
-            }
-        }
+        from .config import setup
+        return setup()
 
-    def completion(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return LLM provider instance for completion
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-
-        args = self.parse_args(model.langchain)
-        return AzureOpenAI(**args)
-        """
-        pass
-
-    def chat(
-            self,
-            window,
-            model: ModelItem,
-            stream: bool = False
-    ):
-        """
-        Return LLM provider instance for chat
-
-        :param window: window instance
-        :param model: model instance
-        :param stream: stream mode
-        :return: LLM provider instance
-
-        args = self.parse_args(model.langchain)
-        return AzureChatOpenAI(**args)
-        """
-        pass
 
     def llama(
             self,
@@ -102,7 +52,7 @@ class AzureOpenAILLM(BaseLLM):
             stream: bool = False
     ) -> LlamaBaseLLM:
         """
-        Return LLM provider instance for llama
+        Return LlamaIndex chat provider
 
         :param window: window instance
         :param model: model instance
@@ -142,13 +92,13 @@ class AzureOpenAILLM(BaseLLM):
         self.log_llama_create(window, model, args, "LlamaAzureOpenAI")
         return LlamaAzureOpenAI(**args)
 
-    def get_embeddings_model(
+    def llama_embeddings(
             self,
             window,
             config: Optional[List[Dict]] = None
     ) -> BaseEmbedding:
         """
-        Return provider instance for embeddings
+        Return LlamaIndex embeddings provider
 
         :param window: window instance
         :param config: config keyword arguments list
@@ -183,4 +133,8 @@ class AzureOpenAILLM(BaseLLM):
             if api_version:
                 args["api_version"] = api_version
         args = self.inject_llamaindex_embedding_http_clients(args, window.core.config)
+        self.log_llama_create(
+            window, None, args, "AzureOpenAIEmbedding",
+            kind="embeddings",
+        )
         return AzureOpenAIEmbedding(**args)

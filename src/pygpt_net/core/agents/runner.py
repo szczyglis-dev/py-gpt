@@ -9,30 +9,14 @@
 # Updated Date: 2026.09.10 17:58:00                  #
 # ================================================== #
 
-import asyncio
 from typing import Optional, Dict, Any, Union
 
-from llama_index.core.base.llms.types import ChatMessage, MessageRole
-
-from pygpt_net.core.agent_workflow import AgentWorkflowBridge
-from pygpt_net.core.agents_v2.prompts import (
-    agents_directory_exists,
-    append_agents_directory_support,
-)
 from pygpt_net.core.bridge.context import BridgeContext
 from pygpt_net.core.bridge.worker import BridgeSignals
-from pygpt_net.core.types import (
-    AGENT_MODE_ASSISTANT,
-    AGENT_MODE_PLAN,
-    AGENT_MODE_STEP,
-    AGENT_MODE_WORKFLOW,
-    AGENT_MODE_OPENAI,
-)
-
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.provider.llms.computer import ComputerRuntime
-from pygpt_net.provider.agents.base import BaseAgent
 
+from .preparation import AgentPreparation
+from .execution import AgentExecution
 from .runners.llama_assistant import LlamaAssistant
 from .runners.llama_plan import LlamaPlan
 from .runners.llama_steps import LlamaSteps
@@ -40,10 +24,10 @@ from .runners.llama_workflow import LlamaWorkflow
 from .runners.openai_workflow import OpenAIWorkflow
 from .runners.helpers import Helpers
 from .runners.loop import Loop
-from .runners.llama_session import LlamaSession
-from .tools import Tools
+
 
 class Runner:
+    """Prepare a legacy request, select its execution mode and report errors."""
 
     APPEND_SYSTEM_PROMPT_TO_MSG = [
         "react",  # llama-index
@@ -68,385 +52,48 @@ class Runner:
         self.llama_workflow = LlamaWorkflow(window)
         self.openai_workflow = OpenAIWorkflow(window)
 
-    def call(
-            self,
-            context: BridgeContext,
-            extra: Dict[str, Any],
-            signals: BridgeSignals
-    ) -> bool:
-        """
-        Call an agent
+        self.preparation = AgentPreparation(
+            window, self.APPEND_SYSTEM_PROMPT_TO_MSG, self.ADDITIONAL_CONTEXT_PREFIX)
 
-        :param context: BridgeContext
-        :param extra: extra data
-        :param signals: BridgeSignals
-        :return: True if success
-        """
+    # ========================================
+    # Agent calls
+    # ========================================
+
+    def call(self, context: BridgeContext, extra: Dict[str, Any], signals: BridgeSignals) -> bool:
+        """Execute a user-facing agent request."""
         if self.window.controller.kernel.stopped():
-            return True  # abort if stopped
-
+            return True
         self.last_error = None
         agent_id = self.window.core.agents.provider.resolve_id(
             extra.get("agent_provider", "llama_agent_base"), context.mode)
         verbose = self.is_verbose()
-        workflow_bridge = None
-
+        execution = AgentExecution(self)
         try:
-            # first, check if agent exists
-            if not self.window.core.agents.provider.has(agent_id, context.mode):
-                raise Exception(f"Agent not found: {agent_id}")
-
-            provider = self.window.core.agents.provider.get(agent_id, context.mode)
-            session = None
-            if provider.get_mode() == AGENT_MODE_WORKFLOW:
-                session = LlamaSession(self.window, context, extra, signals)
-
-            # prepare input ctx
-            ctx = context.ctx
-            ctx.extra["agent_input"] = True  # mark as user input
-            ctx.agent_call = True  # disables reply from plugin commands
-            prompt = context.prompt
-
-            # prepare agent
-            model = context.model
-            vector_store_idx = extra.get("agent_idx", None)
-            # Preserve the fully composed request system prompt on the durable
-            # turn for loop/evaluate continuations. REQUEST_NEXT bypasses the
-            # normal chat BridgeWorker prompt hooks, so without this the next
-            # improvement pass silently lost the preset/plugin system prompt.
-            base_system_prompt = context.system_prompt or ""
-            if (
-                    provider.get_mode() == AGENT_MODE_WORKFLOW
-                    and self.window.core.config.get("agent.llama.agents_dir.enabled", True)
-            ):
-                base_system_prompt = append_agents_directory_support(
-                    base_system_prompt,
-                    directory_exists=agents_directory_exists(self.window, ctx=ctx),
-                )
-            ctx.agents_v2_system_prompt = base_system_prompt
-            system_prompt = BaseAgent.append_security_rule(base_system_prompt)
-            preset = context.preset
-            max_steps = self.window.core.config.get("agent.llama.steps", 10)
-            is_stream = self.window.core.config.get("stream", False)
-            is_cmd = self.window.core.command.is_cmd(inline=False)
-            history = self.window.core.agents.memory.prepare(context)
-            computer_runtime = ComputerRuntime(self.window, context, artifact_runtime=session)
-            # Legacy LlamaIndex agents are agent workflows, so use the same
-            # provider adapter path as Agents v2. This preserves provider-native
-            # remote tools and lets the adapter own Computer Use continuations.
-            llm = self.window.core.idx.llm.get_agent(
-                model,
-                stream=True,
-                allow_remote_tools=True,
-                computer_runtime=computer_runtime,
-            )
-            if session is not None:
-                session.bind_llm(llm)
-            workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
-
-            # vector store idx from preset
-            if preset:
-                vector_store_idx = preset.idx
-                extra["agent_idx"] = vector_store_idx
-
-            # tools
-            agent_tools = (Tools(self.window, executor=session.execute_plugin)
-                           if session is not None else self.window.core.agents.tools)
-            agent_tools.cmd_blacklist = list(self.window.core.agents.tools.cmd_blacklist)
-            agent_tools.set_context(context)
-            agent_tools.set_computer_runtime(computer_runtime)
-            agent_tools.set_idx(vector_store_idx)
-
-            tools = agent_tools.prepare(context, extra, force=True)
-            function_tools = agent_tools.get_function_tools(ctx, extra, force=True)
-            plugin_tools = agent_tools.get_plugin_tools(context, extra, force=True)
-            plugin_specs = agent_tools.get_plugin_specs(context, extra, force=True)
-            retriever_tool = agent_tools.get_retriever_tool(context, extra)
-
-            # disable tools if cmd is not enabled
-            if not is_cmd:
-                function_tools = []
-                plugin_tools = []
-                plugin_specs = []
-                tools = []
-
-            # --- ADDITIONAL CONTEXT ---
-            # append additional context from RAG if available
-            if (vector_store_idx
-                    and vector_store_idx != "_"
-                    and self.window.core.config.get("agent.idx.auto_retrieve", True)):
-                ad_context = self.window.core.idx.chat.query_retrieval(
-                    query=prompt,
-                    idx=vector_store_idx,
-                    model=context.model,
-                )
-                if ad_context:
-                    to_append = ""
-                    if ctx.hidden_input is None:
-                        ctx.hidden_input = ""
-                    if not ctx.hidden_input:  # may be not empty (appended before from attachments)
-                        to_append = self.ADDITIONAL_CONTEXT_PREFIX
-                        ctx.hidden_input += to_append
-                    to_append += "\n" + ad_context
-                    ctx.hidden_input += to_append
-                    prompt += "\n\n" + to_append
-            
-            # append system prompt
-            if agent_id in self.APPEND_SYSTEM_PROMPT_TO_MSG:
-                if system_prompt:
-                    msg = ChatMessage(
-                        role=MessageRole.SYSTEM,
-                        content=system_prompt,
-                    )
-                    history.insert(0, msg)
-
-            # append custom schema if available
-            schema = self.window.core.agents.custom.get_schema(agent_id)
-            agent_kwargs = {
-                "context": context,
-                "tools": tools,
-                "function_tools": function_tools,
-                "plugin_tools": plugin_tools,
-                "plugin_specs": plugin_specs,
-                "retriever_tool": retriever_tool,
-                "llm": llm,
-                "model": model,
-                "chat_history": history,
-                "max_iterations": max_steps,
-                "verbose": verbose,
-                "system_prompt": system_prompt,
-                "are_commands": is_cmd,
-                "workdir": workdir,
-                "preset": context.preset if context else None,
-                "schema": schema,
-                "computer_runtime": computer_runtime,
-                "agent_tools": agent_tools,
-                "input_builder": session.build_worker_message if session is not None else None,
-                "stream": bool(getattr(context, "stream", False)),
-            }
-            provider = self.window.core.agents.provider.get(agent_id, context.mode)
-            # LlamaIndex legacy agents build their own role prompts (planner,
-            # supervisor/worker, mode agents, custom flow, CodeAct, etc.). Feed
-            # them the *final* BridgeContext system prompt verbatim, just like
-            # Agents v2 does. At this point BridgeWorker has already run the
-            # SYSTEM/POST/POST_PROMPT_ASYNC/POST_PROMPT_END pipeline and the
-            # global prompt-injection guard, so this preserves Real Time, Files
-            # I/O, Extra Prompt, personalization and any other runtime additions.
-            # OpenAI legacy providers keep the historical extracted-extra path.
-            if provider.get_mode() == AGENT_MODE_WORKFLOW:
-                agent_kwargs["system_prompt_extra"] = system_prompt
-            else:
-                agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
-            agent = provider.get_agent(self.window, agent_kwargs)
-            agent_run = provider.run
-            if verbose:
-                print(f"Using Agent: {agent_id}, model: {model.id}")
-
-            # run agent
-            mode = provider.get_mode()
-            kwargs = {
-                "agent": agent,
-                "ctx": ctx,
-                "prompt": prompt,
-                "signals": signals,
-                "verbose": verbose,
-            }
-            if schema:
-                kwargs["schema"] = schema
-
-            # Feed legacy agent runtimes into the same runtime-only Agent Workflow
-            # monitor used by Agents v2. The bridge translates native LlamaIndex /
-            # OpenAI Agents events, while the monitor remains the single owner of
-            # state, timers, limits and rendering semantics.
-            if mode in (AGENT_MODE_WORKFLOW, AGENT_MODE_OPENAI):
-                workflow_bridge = AgentWorkflowBridge(
-                    self.window,
-                    source="llama_index" if mode == AGENT_MODE_WORKFLOW else "openai_agents",
-                    root_name=(
-                        getattr(agent, "name", None)
-                        or getattr(provider, "name", None)
-                        or str(agent_id)
-                    ),
-                    model=model,
-                    preset=context.preset if context else None,
-                    system_prompt=system_prompt,
-                    prompt=prompt,
-                )
-                workflow_bridge.start()
-                kwargs["workflow_bridge"] = workflow_bridge
-
-            if mode == AGENT_MODE_PLAN:
-                return self.llama_plan.run(**kwargs)
-            elif mode == AGENT_MODE_STEP:
-                return self.llama_steps.run(**kwargs)
-            elif mode == AGENT_MODE_ASSISTANT:
-                return self.llama_assistant.run(**kwargs)
-            elif mode == AGENT_MODE_WORKFLOW:
-                kwargs["session"] = session
-                kwargs["history"] = history
-                kwargs["llm"] = llm
-                return asyncio.run(self.llama_workflow.run(**kwargs))
-            elif mode == AGENT_MODE_OPENAI:
-                kwargs["run"] = agent_run  # callable
-                kwargs["agent_kwargs"] = agent_kwargs  # as dict
-                kwargs["stream"] = is_stream # from global
-                return asyncio.run(self.openai_workflow.run(**kwargs))
-
-        except Exception as e:
-            if workflow_bridge is not None:
-                workflow_bridge.fail(e)
-            self.window.core.debug.log(e)
-            self.last_error = e
+            prepared = self.preparation.prepare(context, extra, signals, agent_id, verbose)
+            return execution.run(prepared)
+        except Exception as error:
+            execution.fail(error)
+            self._record_error(error)
             return False
 
-    def call_once(
-            self,
-            context: BridgeContext,
-            extra: Dict[str, Any],
-            signals: BridgeSignals
-    ) -> Union[CtxItem, bool, None]:
-        """
-        Call an agent once (quick call to the agent)
-
-        :param context: BridgeContext
-        :param extra: extra data
-        :param signals: BridgeSignals
-        :return: CtxItem if success, True if stopped, None on error
-        """
+    def call_once(self, context: BridgeContext, extra: Dict[str, Any],
+                  signals: BridgeSignals) -> Union[CtxItem, bool, None]:
+        """Execute an invisible expert/evaluation call and return its context."""
         if self.window.controller.kernel.stopped():
-            return True  # abort if stopped
-
+            return True
         self.last_error = None
         agent_id = self.window.core.agents.provider.resolve_id(
             extra.get("agent_provider", "llama_agent_base"), context.mode)
         verbose = self.is_verbose()
-
         try:
-            # first, check if agent exists
-            if not self.window.core.agents.provider.has(agent_id):
-                raise Exception(f"Agent not found: {agent_id}")
+            prepared = self.preparation.prepare(context, extra, signals, agent_id, verbose, once=True)
+            return AgentExecution(self).run_once(prepared)
+        except Exception as error:
+            self._record_error(error)
 
-            provider = self.window.core.agents.provider.get(agent_id)
-            session = LlamaSession(self.window, context, extra, signals, visible=False)
-
-            # prepare input ctx
-            ctx = context.ctx
-            ctx.extra["agent_input"] = True  # mark as user input
-            ctx.extra["agent_output"] = True  # mark as user input
-            ctx.agent_call = True  # disables reply from plugin commands
-            prompt = context.prompt
-
-            # prepare agent
-            model = context.model
-            vector_store_idx = extra.get("agent_idx", None)
-            base_system_prompt = context.system_prompt or ""
-            if (
-                    provider.get_mode() == AGENT_MODE_WORKFLOW
-                    and self.window.core.config.get("agent.llama.agents_dir.enabled", True)
-            ):
-                base_system_prompt = append_agents_directory_support(
-                    base_system_prompt,
-                    directory_exists=agents_directory_exists(self.window, ctx=ctx),
-                )
-            system_prompt = BaseAgent.append_security_rule(base_system_prompt)
-            is_expert_call = context.is_expert_call
-            max_steps = self.window.core.config.get("agent.llama.steps", 10)
-            is_cmd = self.window.core.command.is_cmd(inline=False)
-            computer_runtime = ComputerRuntime(self.window, context, artifact_runtime=session)
-            # Legacy LlamaIndex agents are agent workflows, so use the same
-            # provider adapter path as Agents v2. This preserves provider-native
-            # remote tools and lets the adapter own Computer Use continuations.
-            llm = self.window.core.idx.llm.get_agent(
-                model,
-                stream=True,
-                allow_remote_tools=True,
-                computer_runtime=computer_runtime,
-            )
-            if session is not None:
-                session.bind_llm(llm)
-            workdir = self.window.core.config.get_workdir_prefix(ctx=ctx)
-
-            # tools
-            agent_tools = (Tools(self.window, executor=session.execute_plugin)
-                           if session is not None else self.window.core.agents.tools)
-            agent_tools.cmd_blacklist = list(self.window.core.agents.tools.cmd_blacklist)
-            agent_tools.set_context(context)
-            agent_tools.set_computer_runtime(computer_runtime)
-            agent_tools.set_idx(vector_store_idx)
-
-            if "agent_tools" in extra:
-                tools = extra["agent_tools"]  # use tools from extra if provided
-            else:
-                tools = agent_tools.prepare(context, extra, force=True)
-                if not is_cmd:
-                    tools = []  # disable tools if cmd is not enabled, force agent tools
-
-            if "agent_history" in extra:
-                history = extra["agent_history"]
-            else:
-                history = self.window.core.agents.memory.prepare(context)
-
-            # append system prompt
-            if agent_id in self.APPEND_SYSTEM_PROMPT_TO_MSG:
-                if system_prompt:
-                    msg = ChatMessage(
-                        role=MessageRole.SYSTEM,
-                        content=system_prompt,
-                    )
-                    history.insert(0, msg)
-
-            agent_kwargs = {
-                "context": context,
-                "tools": tools,
-                "plugin_tools": agent_tools.get_plugin_tools(context, extra, force=True) if is_cmd else {},
-                "plugin_specs": agent_tools.get_plugin_specs(context, extra, force=True) if is_cmd else [],
-                "schema": self.window.core.agents.custom.get_schema(agent_id),
-                "llm": llm,
-                "model": model,
-                "chat_history": history,
-                "max_iterations": max_steps,
-                "verbose": verbose,
-                "system_prompt": system_prompt,
-                "are_commands": is_cmd,
-                "workdir": workdir,
-                "preset": context.preset if context else None,
-                "computer_runtime": computer_runtime,
-                "agent_tools": agent_tools,
-                "input_builder": session.build_worker_message if session is not None else None,
-                "stream": bool(getattr(context, "stream", False)),
-            }
-            provider = self.window.core.agents.provider.get(agent_id)
-            # call_once() is also used by legacy LlamaIndex evaluation/expert
-            # continuations. Keep the same full BridgeContext system prompt here
-            # so nested/next-step agents do not lose late plugin additions.
-            if provider.get_mode() == AGENT_MODE_WORKFLOW:
-                agent_kwargs["system_prompt_extra"] = system_prompt
-            else:
-                agent_kwargs["system_prompt_extra"] = provider.get_system_prompt_extra(agent_kwargs)
-            agent = provider.get_agent(self.window, agent_kwargs)
-            if verbose:
-                print(f"Using Agent: {agent_id}, model: {model.id}")
-
-            # run agent and return result
-            mode = provider.get_mode()
-            kwargs = {
-                "agent": agent,
-                "ctx": ctx,
-                "prompt": prompt,
-                "signals": signals,
-                "verbose": verbose,
-                "history": history,
-                "llm": llm,
-                "is_expert_call": is_expert_call,
-            }
-            # TODO: add support for other modes
-            if mode == AGENT_MODE_WORKFLOW:
-                kwargs["session"] = session
-                return asyncio.run(self.llama_workflow.run_once(**kwargs))  # return CtxItem
-
-        except Exception as e:
-            self.window.core.debug.log(e)
-            self.last_error = e
+    # ========================================
+    # Diagnostics
+    # ========================================
 
     def is_verbose(self) -> bool:
         """
@@ -463,3 +110,7 @@ class Runner:
         :return: last exception or None if no error
         """
         return self.last_error
+
+    def _record_error(self, error):
+        self.window.core.debug.log(error)
+        self.last_error = error

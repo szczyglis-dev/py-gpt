@@ -208,6 +208,10 @@ class Realtime:
         """Manually commit audio input to realtime session"""
         self.handler.force_response_now_sync()
 
+    def cancel_response(self):
+        """Cancel only the active model response, keeping the realtime session open."""
+        self.handler.cancel_response_sync()
+
     def shutdown(self):
         """Shutdown realtime loops"""
         if self.handler.is_session_active():

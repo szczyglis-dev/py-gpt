@@ -4,6 +4,10 @@
 
 class RafManager {
 
+	// ========================================
+	// Composition
+	// ========================================
+
 	// rAF-only task pump with soft budget per flush to prevent long frames.
 	constructor(cfg) {
 		this.cfg = cfg || {
@@ -28,50 +32,9 @@ class RafManager {
 		this.USE_VISIBILITY_FALLBACK = (R.USE_VISIBILITY_FALLBACK ?? true);
 	}
 
-	// Normalize a key into a string/symbol/number/DOM token.
-	_normalizeKey(key) {
-		if (!key) return Symbol('raf:anon');
-		const typ = typeof key;
-		if (typ === 'string' || typ === 'symbol' || typ === 'number') return key;
-		try {
-			if (typeof Node !== 'undefined' && key instanceof Node) {
-				let tok = this._weakKeyTokens.get(key);
-				if (!tok) {
-					tok = Symbol('raf:k');
-					this._weakKeyTokens.set(key, tok);
-				}
-				return tok;
-			}
-		} catch (_) {}
-		return key; // plain object key is ok
-	}
-
-	// Start the pumping loop if needed.
-	_armPump() {
-		if (this.scheduled) return;
-		this.scheduled = true;
-
-		const canRAF = typeof requestAnimationFrame === 'function';
-		if (canRAF) {
-			this._mode = 'raf';
-			try {
-				this.tickId = requestAnimationFrame(() => this.flush());
-				if (this.USE_VISIBILITY_FALLBACK && !this._watchdogId) {
-					this._watchdogId = setTimeout(() => {
-						if (this.scheduled || this.tickId) {
-							try {
-								this.flush();
-							} catch (_) {}
-						}
-					}, this.VISIBILITY_FALLBACK_MS);
-				}
-				return;
-			} catch (_) {}
-		}
-		// Fallback without timers: schedule a microtask flush.
-		this._mode = 'raf';
-		Promise.resolve().then(() => this.flush());
-	}
+	// ========================================
+	// Scheduling and cancellation
+	// ========================================
 
 	// Schedule a function with an optional group and priority.
 	schedule(key, fn, group = 'default', priority = 0) {
@@ -191,9 +154,7 @@ class RafManager {
 		this._armPump();
 	}
 
-	// Cancel a specific scheduled task by key.
 	cancel(key) {
-		key = this._normalizeKey(key);
 		const t = this.tasks.get(key);
 		if (!t) return;
 		this.tasks.delete(key);
@@ -241,6 +202,89 @@ class RafManager {
 			this.schedule(key, () => resolve(), 'RafNext', 0);
 		});
 	}
+
+	// ========================================
+	// Diagnostics
+	// ========================================
+
+	stats() {
+		const byGroup = new Map();
+		for (const task of this.tasks.values()) {
+			const group = task.group || 'default';
+			byGroup.set(group, (byGroup.get(group) || 0) + 1);
+		}
+		return {
+			tasks: this.tasks.size,
+			groups: Array.from(byGroup, ([group, count]) => ({group, count}))
+				.sort((a, b) => b.count - a.count)
+		};
+	}
+
+	dumpHotGroups(label = '') {
+		const stats = this.stats();
+		console.log('[RAF]', label, 'tasks=', stats.tasks, 'byGroup=', stats.groups.slice(0, 8));
+	}
+
+	findDomTasks() {
+		const result = [];
+		for (const [key, task] of this.tasks) {
+			let element = null;
+			if (key && key.nodeType === 1) element = key;
+			else if (key && key.el && key.el.nodeType === 1) element = key.el;
+			if (element) result.push({group: task.group, tag: element.tagName, connected: element.isConnected});
+		}
+		return result;
+	}
+
+	// ========================================
+	// Scheduling and cancellation internals
+	// ========================================
+
+	// Normalize a key into a string/symbol/number/DOM token.
+	_normalizeKey(key) {
+		if (!key) return Symbol('raf:anon');
+		const typ = typeof key;
+		if (typ === 'string' || typ === 'symbol' || typ === 'number') return key;
+		try {
+			if (typeof Node !== 'undefined' && key instanceof Node) {
+				let tok = this._weakKeyTokens.get(key);
+				if (!tok) {
+					tok = Symbol('raf:k');
+					this._weakKeyTokens.set(key, tok);
+				}
+				return tok;
+			}
+		} catch (_) {}
+		return key; // plain object key is ok
+	}
+
+	// Start the pumping loop if needed.
+	_armPump() {
+		if (this.scheduled) return;
+		this.scheduled = true;
+
+		const canRAF = typeof requestAnimationFrame === 'function';
+		if (canRAF) {
+			this._mode = 'raf';
+			try {
+				this.tickId = requestAnimationFrame(() => this.flush());
+				if (this.USE_VISIBILITY_FALLBACK && !this._watchdogId) {
+					this._watchdogId = setTimeout(() => {
+						if (this.scheduled || this.tickId) {
+							try {
+								this.flush();
+							} catch (_) {}
+						}
+					}, this.VISIBILITY_FALLBACK_MS);
+				}
+				return;
+			} catch (_) {}
+		}
+		// Fallback without timers: schedule a microtask flush.
+		this._mode = 'raf';
+		Promise.resolve().then(() => this.flush());
+	}
+
 }
 
 // Return math rendering policy from window.MATH_STREAM_MODE.

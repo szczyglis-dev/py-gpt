@@ -11,7 +11,7 @@
 
 import os
 
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt, QPoint, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import QPushButton, QMenu
 
@@ -172,9 +172,16 @@ class CompactModelCombo(QPushButton):
         group.setExclusive(True)
 
         has_items = False
+        grouped = bool(self.window.core.config.get("model.group_providers", True))
+        target_menu = menu
+        provider_label = None
         for key, label in self._iter_entries():
             key_str = str(key)
             if key_str.startswith(("separator::", "section::")):
+                if grouped:
+                    provider_label = str(label)
+                    target_menu = None
+                    continue
                 if has_items:
                     menu.addSeparator()
                 header = QAction(str(label), menu)
@@ -185,15 +192,19 @@ class CompactModelCombo(QPushButton):
                 menu.addAction(header)
                 continue
 
+            if grouped and target_menu is None:
+                target_menu = QMenu(provider_label, menu)
+                menu.addMenu(target_menu)
+                target_menu.setObjectName("chatInputModelMenu")
             has_items = True
-            action = QAction(str(label), menu)
+            action = QAction(str(label), target_menu)
             action.setCheckable(True)
             action.setChecked(key == self.current_id)
             group.addAction(action)
             action.triggered.connect(
                 lambda checked=False, value=key: self._select_model(value, checked)
             )
-            menu.addAction(action)
+            target_menu.addAction(action)
 
         if not has_items:
             menu.deleteLater()
@@ -203,8 +214,52 @@ class CompactModelCombo(QPushButton):
         menu.aboutToHide.connect(self._clear_menu)
         menu.adjustSize()
         size = menu.sizeHint()
-        global_pos = self.mapToGlobal(QPoint(self.width() - size.width(), -size.height()))
+        global_pos = self._centered_menu_pos(size.width(), size.height())
         menu.popup(global_pos)
+        # QMenu may switch to a multi-column layout only after it is shown when
+        # the model list is taller than the available screen. Recenter once more
+        # using the final native popup width so the menu stays exactly centered.
+        QTimer.singleShot(0, lambda current=menu: self._recenter_visible_menu(current))
+
+    def _menu_anchor(self):
+        """Anchor provider submenus over the selector, flat lists over the input."""
+        if self.window.core.config.get("model.group_providers", True):
+            return self
+        return self.window.ui.nodes.get("input") or self
+
+    def _menu_x(self, anchor, width: int) -> int:
+        if self.window.core.config.get("model.group_providers", True):
+            return anchor.mapToGlobal(QPoint(anchor.width(), 0)).x() - width
+        center = anchor.mapToGlobal(QPoint(anchor.width() // 2, 0))
+        return int(center.x() - width / 2)
+
+    def _centered_menu_pos(self, width: int, height: int) -> QPoint:
+        """Return an upward popup position aligned with its selection anchor."""
+        anchor = self._menu_anchor()
+
+        x = self._menu_x(anchor, max(0, int(width)))
+        y = self.mapToGlobal(QPoint(0, -max(0, int(height)))).y()
+
+        screen = anchor.screen() or self.screen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            max_x = available.right() - max(0, int(width)) + 1
+            x = max(available.left(), min(x, max_x))
+        return QPoint(x, y)
+
+    def _recenter_visible_menu(self, menu: QMenu):
+        """Align the popup again after Qt finalizes its real geometry."""
+        if self._menu is not menu or not menu.isVisible():
+            return
+        width = menu.width() or menu.sizeHint().width()
+        anchor = self._menu_anchor()
+        x = self._menu_x(anchor, width)
+        screen = menu.screen() or anchor.screen() or self.screen()
+        if screen is not None:
+            available = screen.availableGeometry()
+            max_x = available.right() - width + 1
+            x = max(available.left(), min(x, max_x))
+        menu.move(x, menu.y())
 
     def _select_model(self, model_id, checked=True):
         if not checked:

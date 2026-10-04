@@ -14,7 +14,7 @@ def _bare_controller():
         "remote_store", "agent", "agents_v2", "tools", "ctx", "presets", "idx",
         "dialogs", "audio", "attachment", "camera", "access", "realtime",
         "media", "settings", "plugins", "model", "mode", "launcher", "calendar",
-        "painter", "notepad", "files", "theme", "profile_exporter", "skills", "connectors", "extensions",
+        "painter", "notepad", "files", "theme", "profile_exporter", "skills", "connectors", "extensions", "packages",
     ):
         setattr(controller, name, MagicMock())
 
@@ -100,10 +100,12 @@ def test_controller_post_setup_opens_license_when_not_accepted():
 def test_controller_after_setup_updates_plugins():
     controller = _bare_controller()
 
-    controller.after_setup()
+    with patch("pygpt_net.controller.QTimer.singleShot", side_effect=lambda delay, callback: callback()):
+        controller.after_setup()
 
     controller.plugins.update.assert_called_once_with()
     controller.launcher.after_setup.assert_called_once_with()
+    controller.packages.check_addons.assert_called_once_with()
 
 
 def test_controller_init_loads_settings():

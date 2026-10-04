@@ -63,3 +63,23 @@ def test_agents_v2_verbose_full_mode_prints_header_and_redacted_payload(capsys):
     assert "[w01][TEST]" in output
     assert "<redacted>" in output
     assert "secret" not in output
+
+
+def test_verbose_text_inventory_and_llm_diagnostics_redact_sensitive_values(capsys):
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    from pygpt_net.core.agents_v2.verbose import AgentsV2VerboseLogger
+    window = MagicMock()
+    window.core.config.get.side_effect = lambda key, default=None: True
+    logger = AgentsV2VerboseLogger(window, 'run')
+    logger.text('FINAL ANSWER', 'done')
+    tool = SimpleNamespace(metadata=SimpleNamespace(name='read', description='Read',
+                           get_parameters_dict=lambda: {'api_key': 'secret', 'path': 'file'}))
+    logger.tool_inventory([tool])
+    logger.llm_state(SimpleNamespace(metadata={'password': 'private'}, tools=[{'name': 'search'}]))
+    output = capsys.readouterr().out
+    assert 'done' in output and 'read' in output and 'search' in output
+    assert 'private' not in output and '"secret"' not in output
+    assert '<redacted>' in output
+    assert logger._tool_output({'tool_output': SimpleNamespace(content='answer')}) == 'answer'
+    assert logger._tool_output({}) == ''

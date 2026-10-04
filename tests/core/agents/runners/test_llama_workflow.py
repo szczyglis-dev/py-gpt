@@ -172,7 +172,7 @@ def test_plugin_results_wait_for_reply_and_use_private_contexts():
     # it to the final agent response. Files are exported only through the
     # explicit delivery-files path.
     assert all(c.files == ['file.txt'] for c in tool_contexts)
-    assert session.artifacts['files'] == []
+    assert session.artifacts.values['files'] == []
     assert ctx.files == []
 
 
@@ -377,13 +377,13 @@ def test_completed_legacy_timeline_is_rendered_with_shared_preferences():
     renderer = Renderer(window)
     renderer.helpers.pre_format_text = lambda value, **kwargs: value
     renderer.helpers.post_format_text = lambda value: value
-    timeline = renderer._build_partial_timeline(ctx, include_workflow_statuses=False, include_tool_calls=False)
+    timeline = renderer.timeline.build_partial_timeline(ctx, include_workflow_statuses=False, include_tool_calls=False)
     assert [item['text'] for item in timeline] == ['first', 'final']
-    assert renderer._display_full_agent_workflow_for_ctx(ctx) is True
+    assert renderer.agents.display_full_agent_workflow_for_ctx(ctx) is True
     # Old legacy rows retain their old layout and storage policy.
     old = CtxItem()
     old.mode = 'agent_llama'
-    assert renderer._display_full_agent_workflow_for_ctx(old) is False
+    assert renderer.agents.display_full_agent_workflow_for_ctx(old) is False
     assert window.core.ctx.should_persist_parts(old) is False
 
 
@@ -530,3 +530,133 @@ def test_legacy_chat_policy_delivers_text_to_renderer_before_workflow_finishes()
         assert session.context.stream is False  # generic chat lifecycle stays disabled
 
     asyncio.run(run())
+
+
+@pytest.mark.parametrize("named_tool", [False, True])
+def test_worker_tool_before_first_prose_owns_its_partial(named_tool):
+    window, ctx, signals, session = setup()
+
+    async def run():
+        await session.event(stream("Delegating.", "Supervisor"))
+        tool = call("worker-read", path="notes.txt")
+        if named_tool:
+            tool = tool.model_copy(update={"current_agent_name": "Worker"})
+        else:
+            await session.event(StepEvent(name="worker", meta={"agent_name": "Worker"}))
+        await session.event(tool)
+        await session.event(result("worker-read", "notes"))
+        await session.event(stream("Checked.", "Worker"))
+        await session.finish("Checked.")
+
+    asyncio.run(run())
+    deliver(window, signals)
+    supervisor = next(p for p in ctx.parts if p.name == "Supervisor")
+    worker = next(p for p in ctx.parts if p.tasks)
+    assert supervisor.tasks == []
+    assert worker.name == "Worker"
+    assert worker.tasks[0].tool_output == "notes"
+    assert worker.tasks[0].agent_id == "orchestrator"
+
+
+def test_forwarded_child_tools_keep_display_actor_without_text():
+    parent = MagicMock()
+    child = Handler(values=[call("x"), result("x", "done")])
+    asyncio.run(forward_handler(child, parent, lambda: False, name="Worker"))
+    assert [c.args[0].current_agent_name for c in parent.write_event_to_stream.call_args_list] == ["Worker", "Worker"]
+
+
+def test_tool_status_carries_worker_owner_even_when_ui_is_delayed():
+    window, ctx, signals, session = setup()
+
+    async def run():
+        await session.event(stream("Delegating.", "Supervisor"))
+        await session.event(StepEvent(name="worker", meta={"agent_name": "Worker"}))
+        await session.event(call("worker-read"))
+        await session.event(result("worker-read", "notes"))
+        await session.event(stream("Checked.", "Worker"))
+        await session.event(stream("Done.", "Supervisor"))
+        await session.finish("Done.")
+
+    asyncio.run(run())
+    tool_status = next(e for e in events(signals)
+                      if e.name == KernelEvent.AGENT_V2_STATUS and e.data.get("owner"))
+    owner = tool_status.data["owner"]
+    tool_part = next(p for p in ctx.parts if p.tasks)
+    assert ctx.get_active_part().name == "Supervisor"
+    assert owner == {"part_uuid": tool_part.uuid, "agent_name": "Worker", "placement": "before"}
+    Response(window).agent_v2_status(session.context, {}, tool_status.data["status"], owner=owner)
+    assert window.dispatch.call_args.args[0].data["owner"] == owner
+
+
+@pytest.mark.parametrize('outcome', ['success', 'stopped', 'cancelled', 'error'])
+def test_workflow_entrypoint_terminal_lifecycle(outcome):
+    from unittest.mock import AsyncMock, patch
+    window, ctx, signals, session = setup()
+    workflow = LlamaWorkflow(window)
+    workflow.set_busy = MagicMock()
+    workflow.set_idle = MagicMock()
+    workflow.set_error = MagicMock()
+    session.emitter.begin = MagicMock()
+    session.abort = MagicMock()
+    monitor = MagicMock()
+    workflow.is_stopped = MagicMock(return_value=outcome == 'stopped')
+    async def run_agent(*args, **kwargs):
+        if outcome == 'error':
+            raise RuntimeError('provider failed')
+        if outcome == 'cancelled':
+            raise asyncio.CancelledError()
+        session.final_answer = 'done'
+        return ctx
+    workflow.run_agent = AsyncMock(side_effect=run_agent)
+    with patch('pygpt_net.core.agents.runners.llama_workflow.Context'):
+        result = asyncio.run(workflow.run(MagicMock(), ctx, 'task', signals, session=session, workflow_bridge=monitor))
+    assert result is (outcome != 'error')
+    if outcome == 'success':
+        monitor.finish.assert_called_once_with('done')
+        session.abort.assert_not_called()
+        workflow.set_idle.assert_not_called()
+    else:
+        session.abort.assert_called_once()
+        workflow.set_idle.assert_called_once_with(signals)
+        if outcome == 'error':
+            assert ctx.extra['error'] == 'provider failed'
+            monitor.fail.assert_called_once()
+        else:
+            monitor.stop.assert_called_once()
+
+
+def test_hidden_workflow_entrypoint_and_session_helpers():
+    from unittest.mock import AsyncMock, patch
+    window, ctx, signals, session = setup()
+    workflow = LlamaWorkflow(window)
+    workflow.is_stopped = MagicMock(return_value=False)
+    workflow.run_agent = AsyncMock(return_value=ctx)
+    with patch('pygpt_net.core.agents.runners.llama_workflow.Context'):
+        assert asyncio.run(workflow.run_once(MagicMock(), ctx, 'task', signals, session=session)) is ctx
+    assert workflow.run_agent.call_args.kwargs['flush'] is False
+    hidden = workflow._session(ctx, signals, visible=False)
+    assert hidden.visible is False
+    assert hidden.build_worker_message('request')
+    llm = MagicMock()
+    hidden.bind_llm(llm)
+    assert hidden.llm is llm
+    assert workflow._tool_output_to_text(SimpleNamespace(content=' output ')) == 'output'
+    assert workflow._tool_output_to_text(None) == ''
+
+
+def test_session_component_tool_history_and_visibility_contracts():
+    from pygpt_net.core.agents.runners.session_components import SessionStatus, SessionToolHistory
+    from unittest.mock import patch
+    window, ctx, signals, session = setup()
+    status = SessionStatus(session)
+    assert status.show_tool('read') is True
+    window.core.command.is_tool_hidden.return_value = True
+    assert status.show_tool('read') is False
+    history = SessionToolHistory(session)
+    assert history.register_plugin('read') is None
+    with patch.object(history, 'persist_call', return_value='call') as call, \
+         patch.object(history, 'persist_result') as result:
+        assert history.record_local_call('read', {'path': 'x'}) == 'call'
+        history.record_local_result('call', 'read', 'output')
+    call.assert_called_once_with('read', {'path': 'x'}, 'orchestrator')
+    result.assert_called_once_with('output', 'orchestrator', 'read', 'call')

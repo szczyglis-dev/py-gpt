@@ -192,6 +192,7 @@ class ApiXAI:
                     rt_signals=rt_signals
                 )
                 if is_realtime:
+                    context.realtime = True
                     return True
 
             # Audio TTS is not exposed via public SDK; treat MODE_AUDIO as chat input.

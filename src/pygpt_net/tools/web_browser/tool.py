@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ================================================== #
 # This file is a part of PYGPT package               #
@@ -6,7 +7,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 12:30:00
+# Updated Date: 2026.09.29 19:30:00                  #
 # ================================================== #
 
 import json
@@ -15,6 +16,7 @@ import re
 import threading
 import time
 import uuid
+from datetime import datetime, timezone
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -98,6 +100,7 @@ class WebBrowser(AnnotationMixin, BaseTool):
     """Single persistent browser runtime exposed through one Canvas tab."""
 
     HISTORY_LIMIT = 30
+    BROWSER_HISTORY_FILE = "browser_history.json"
 
     BLANK_CANVAS_HTML_LIGHT = """<!doctype html>
 <html>
@@ -113,9 +116,9 @@ body {
     min-height: 100vh;
     background-color: #f5f5f5;
     background-image:
-        linear-gradient(rgba(0, 0, 0, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.055) 1px, transparent 1px);
-    background-size: 24px 24px;
+        linear-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.55) 1px, transparent 1px);
+    background-size: 18px 18px;
 }
 </style>
 </head>
@@ -136,9 +139,9 @@ body {
     min-height: 100vh;
     background-color: #1b1c1f;
     background-image:
-        linear-gradient(#2a2c30 1px, transparent 1px),
-        linear-gradient(90deg, #2a2c30 1px, transparent 1px);
-    background-size: 24px 24px;
+        linear-gradient(#16171a 1px, transparent 1px),
+        linear-gradient(90deg, #16171a 1px, transparent 1px);
+    background-size: 18px 18px;
 }
 </style>
 </head>
@@ -212,7 +215,6 @@ body {
         self.surface_owner = None
         self.hidden_host = None
         self.hidden_layout = None
-        self.split_auto_expanded = False
 
         self.backend = "qt"  # qt | playwright
         self.agent_backend_locked = False
@@ -260,8 +262,16 @@ body {
         self.canvas_history = []
         self.canvas_history_index = -1
         self._history_loading = False
+        self._source_reload_pending = False
+
+        # Persistent address history is intentionally separate from the Canvas
+        # Back/Forward history above. It stores only visited HTTP(S) URLs and is
+        # profile/workdir-scoped in browser_history.json.
+        self.browser_history = []
+        self._browser_history_lock = threading.RLock()
 
     def setup(self):
+        self._load_browser_history()
         self.update()
 
     def post_setup(self):
@@ -270,6 +280,7 @@ body {
         pass
 
     def on_reload(self):
+        self._load_browser_history()
         self.update()
         # Canvas is profile-scoped. If a runtime already exists, discard the
         # previous profile's page/session state and start the new profile from
@@ -306,9 +317,219 @@ body {
         except Exception:
             return default
 
+    def _browser_history_path(self) -> str:
+        """Return the persistent browser-history file for the active workdir/profile."""
+        return os.path.join(self.window.core.config.get_user_path(), self.BROWSER_HISTORY_FILE)
+
+    def _browser_history_limit(self) -> int:
+        """Return the configured persistent history limit with a safe clamp."""
+        try:
+            value = int(self._opt("history_limit", 100) or 100)
+        except (TypeError, ValueError):
+            value = 100
+        return max(1, min(value, 10000))
+
+    def _browser_history_enabled(self) -> bool:
+        return bool(self._opt("store_history", True))
+
+    @staticmethod
+    def _normalize_browser_history_url(url: str) -> str:
+        """Return an HTTP(S) URL eligible for persistent address history."""
+        value = str(url or "").strip()
+        if not value:
+            return ""
+        try:
+            parsed = QUrl(value)
+            if parsed.scheme().lower() not in ("http", "https"):
+                return ""
+        except Exception:
+            return ""
+        return value
+
+    def _load_browser_history(self):
+        """Load, sanitize, sort and trim persistent HTTP(S) address history."""
+        entries = []
+        path = self._browser_history_path()
+        try:
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                if isinstance(raw, dict):
+                    raw = raw.get("entries", [])
+                if isinstance(raw, list):
+                    entries = raw
+        except (OSError, ValueError, TypeError):
+            entries = []
+
+        cleaned = []
+        for item in entries:
+            if isinstance(item, str):
+                url = self._normalize_browser_history_url(item)
+                timestamp = ""
+            elif isinstance(item, dict):
+                url = self._normalize_browser_history_url(item.get("url", ""))
+                timestamp = str(item.get("timestamp") or "")
+                title = str(item.get("title") or "").strip()
+            else:
+                continue
+            if not url:
+                continue
+            if isinstance(item, str):
+                title = ""
+            cleaned.append({"url": url, "timestamp": timestamp, "title": title})
+
+        # ISO-8601 UTC timestamps sort lexicographically. Empty/malformed legacy
+        # timestamps naturally fall to the end. De-duplicate after sorting so the
+        # newest visit wins.
+        cleaned.sort(key=lambda item: item.get("timestamp", ""), reverse=True)
+        unique = []
+        seen = set()
+        for item in cleaned:
+            url = item["url"]
+            if url in seen:
+                continue
+            seen.add(url)
+            unique.append(item)
+            if len(unique) >= self._browser_history_limit():
+                break
+        with self._browser_history_lock:
+            self.browser_history = unique
+        if os.path.exists(path) and entries != unique:
+            self._save_browser_history()
+        self._notify_browser_history()
+
+    def _save_browser_history(self):
+        """Persist the current address history atomically."""
+        path = self._browser_history_path()
+        directory = os.path.dirname(path)
+        os.makedirs(directory, exist_ok=True)
+        with self._browser_history_lock:
+            payload = {
+                "version": 1,
+                "entries": list(self.browser_history[:self._browser_history_limit()]),
+            }
+        tmp = path + ".tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(payload, f, ensure_ascii=False, indent=2)
+                f.write("\n")
+            os.replace(tmp, path)
+        except OSError:
+            try:
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+            except OSError:
+                pass
+
+    def _record_browser_history(self, url: str, title: str = ""):
+        """Move one visited HTTP(S) URL to the top and persist its timestamp/title."""
+        if not self._browser_history_enabled():
+            return
+        url = self._normalize_browser_history_url(url)
+        if not url:
+            return
+        timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        title = str(title or "").strip()
+        limit = self._browser_history_limit()
+        with self._browser_history_lock:
+            previous = next((item for item in self.browser_history if item.get("url") == url), None)
+            if not title and previous is not None:
+                title = str(previous.get("title") or "").strip()
+            items = [item for item in self.browser_history if item.get("url") != url]
+            items.insert(0, {"url": url, "timestamp": timestamp, "title": title})
+            self.browser_history = items[:limit]
+        self._save_browser_history()
+        self._notify_browser_history()
+
+    def _update_browser_history_title(self, url: str, title: str):
+        """Update the last known title for an existing history URL without reordering it."""
+        if not self._browser_history_enabled():
+            return
+        url = self._normalize_browser_history_url(url)
+        title = str(title or "").strip()
+        if not url or not title:
+            return
+        changed = False
+        with self._browser_history_lock:
+            for item in self.browser_history:
+                if item.get("url") == url:
+                    if item.get("title", "") != title:
+                        item["title"] = title
+                        changed = True
+                    break
+        if changed:
+            self._save_browser_history()
+            self._notify_browser_history()
+
+    def get_browser_history_entries(self) -> list:
+        """Return persistent history entries in newest-first order for address UI."""
+        with self._browser_history_lock:
+            return [dict(item) for item in self.browser_history if item.get("url")]
+
+    def get_browser_history_urls(self) -> list:
+        """Return persistent history URLs in newest-first order."""
+        return [item.get("url", "") for item in self.get_browser_history_entries()]
+
+    def clear_browser_history(self):
+        """Delete persistent address history for the active workdir and refresh UI."""
+        with self._browser_history_lock:
+            self.browser_history = []
+        path = self._browser_history_path()
+        for candidate in (path, path + ".tmp"):
+            try:
+                if os.path.exists(candidate):
+                    os.remove(candidate)
+            except OSError:
+                pass
+        self._notify_browser_history()
+
+    def apply_browser_history_settings(self):
+        """Apply changed history limit/settings without touching Canvas Back/Forward state."""
+        limit = self._browser_history_limit()
+        changed = False
+        with self._browser_history_lock:
+            if len(self.browser_history) > limit:
+                self.browser_history = self.browser_history[:limit]
+                changed = True
+        if changed:
+            self._save_browser_history()
+        self._notify_browser_history()
+
+    def _notify_browser_history(self):
+        owner = self.surface_owner
+        if owner is not None:
+            try:
+                owner.update_address_history(self.get_browser_history_entries())
+            except Exception:
+                pass
+
+    def _on_qt_url_changed(self, url: QUrl):
+        value = url.toString() if url is not None else ""
+        if value:
+            self.virtual_url = value
+        self._notify_state()
+
+    def _on_qt_title_changed(self, title: str):
+        """Persist the latest page title for a real HTTP(S) navigation."""
+        if self.surface is not None and self._current_canvas_history_is_url():
+            self._update_browser_history_title(self.surface.web.url().toString(), title)
+        self._notify_state()
+
+    def _current_canvas_history_is_url(self) -> bool:
+        if not (0 <= self.canvas_history_index < len(self.canvas_history)):
+            return False
+        return self.canvas_history[self.canvas_history_index].get("kind") == "url"
+
     def _sandbox_enabled(self) -> bool:
         """Return whether Playwright is explicitly enabled in plugin settings."""
         return bool(self._opt("use_sandbox", False))
+
+    def _auto_open_enabled(self) -> bool:
+        """Return whether Canvas should be surfaced automatically when used."""
+        try:
+            return bool(self.window.core.config.get("layout.canvas.auto_open", True))
+        except Exception:
+            return True
 
     def _start_page(self) -> str:
         """Return the profile start page, normalizing an empty value to about:blank."""
@@ -341,11 +562,13 @@ body {
         self.console = []
         self.annotations = []
         self.annotation_seq = 0
+        self._notify_annotation_count_changed()
         self.runtime_html = ""
         self.blank_canvas_active = False
         self.canvas_history = []
         self.canvas_history_index = -1
         self._history_loading = False
+        self._source_reload_pending = False
 
         width = int(self._opt("default_width", 1280) or 1280)
         height = int(self._opt("default_height", 800) or 800)
@@ -402,8 +625,8 @@ body {
         self.pw_frame_timer.timeout.connect(self._poll_playwright_frame)
         self.hidden_host.hide()
         try:
-            self.surface.web.urlChanged.connect(lambda _url: self._notify_state())
-            self.surface.web.titleChanged.connect(lambda _title: self._notify_state())
+            self.surface.web.urlChanged.connect(self._on_qt_url_changed)
+            self.surface.web.titleChanged.connect(self._on_qt_title_changed)
         except Exception:
             pass
         # The start page is loaded only when the Canvas runtime is actually
@@ -557,18 +780,19 @@ body {
         return tab
 
     def auto_open(self, load: bool = True):
-        self.ensure_agent_surface()
+        if self._auto_open_enabled():
+            self.ensure_visible_surface()
 
     def ensure_agent_surface(self):
-        """Ensure the single browser tab exists without stealing user focus.
+        """Ensure the Canvas tab exists/reveals only when global auto-open is enabled.
 
-        Agent/tool operations must never switch the active tab merely because the
-        canvas runtime is being used.  The only automatic UI action allowed here
-        is creating the missing singleton tab and revealing column 2 once per app
-        session.  Manual Tools -> Canvas still uses ``open()`` and may
-        explicitly focus the canvas tab.
+        This compatibility path does not switch an already existing tab. Manual
+        Tools -> Canvas always uses ``open()`` and is unaffected by the setting.
         """
         self._ensure_surface()
+        if not self._auto_open_enabled():
+            return "hidden"
+
         tabs = self.window.controller.tabs
         tab = tabs.get_first_tab_by_tool(self.id)
 
@@ -576,14 +800,10 @@ body {
             # Respect a legacy/user-moved tab in the primary column.  Do not
             # focus it: model-side browser operations must not steal the chat
             # input focus or change the globally selected context.
-            self.split_auto_expanded = True
             return "tab"
 
-        first_reveal = bool(self._opt("auto_open_split", True)) and not self.split_auto_expanded
-        if first_reveal:
-            if not tabs.is_split_screen_enabled():
-                tabs.enable_split_screen(update_switch=True)
-            self.split_auto_expanded = True
+        if not tabs.is_split_screen_enabled():
+            tabs.enable_split_screen(update_switch=True)
 
         if tab is None:
             idx = self.window.core.tabs.get_max_idx_by_column(1)
@@ -840,7 +1060,16 @@ body {
         self._ensure_surface()
         current = str(self.current_url() or "")
         current_qurl = QUrl(current)
-        url = current if current_qurl.scheme() in ("http", "https", "file") else str(self.base_url or "")
+        entry = None
+        if 0 <= self.canvas_history_index < len(self.canvas_history):
+            entry = self.canvas_history[self.canvas_history_index]
+        if isinstance(entry, dict) and entry.get("kind") == "html":
+            # set_html under Playwright is served from a loopback URL. Preserve
+            # the document's original base URL instead of leaking that runtime
+            # transport URL into later Source edits/reloads.
+            url = str(entry.get("base_url") or self.base_url or "")
+        else:
+            url = current if current_qurl.scheme() in ("http", "https", "file") else str(self.base_url or "")
         if self.backend == "playwright":
             self._ensure_playwright()
             html = str(self.pw_page.evaluate(self.JS_SERIALIZE_HTML) or self.runtime_html or "")
@@ -928,8 +1157,8 @@ body {
         return result
 
     def _cmd_open(self, p):
-        if not p.get("__startup"):
-            self.ensure_agent_surface()
+        if not p.get("__startup") and self._auto_open_enabled():
+            self.ensure_visible_surface()
         sandbox_arg = p.get("sandbox")
         sandbox_enabled = self._sandbox_enabled()
         if not sandbox_enabled:
@@ -992,7 +1221,8 @@ body {
         return self.current_state()
 
     def _cmd_set_html(self, p):
-        self.ensure_visible_surface()
+        if self._auto_open_enabled():
+            self.ensure_visible_surface()
         if (self._sandbox_enabled() and p.get("__agent")
                 and not self.agent_backend_locked and self.backend != "playwright"):
             self._set_backend("playwright")
@@ -1002,12 +1232,20 @@ body {
         runtime_base = base_url
         self.base_url = base_url
         if not p.get("__history_restore"):
-            self._history_push({
+            entry = {
                 "kind": "html",
                 "html": html,
                 "base_url": base_url,
                 "workdir": workdir,
-            })
+            }
+            # Keep the fetched page's origin across repeated source edits.
+            if p.get("__source_edit") and 0 <= self.canvas_history_index < len(self.canvas_history):
+                previous = self.canvas_history[self.canvas_history_index]
+                reload_url = (previous.get("url") if previous.get("kind") == "url"
+                              else previous.get("reload_url"))
+                if reload_url and QUrl(reload_url).scheme().lower() in ("http", "https", "file"):
+                    entry["reload_url"] = reload_url
+            self._history_push(entry)
         self._history_loading = True
         if self.backend == "playwright":
             self._ensure_playwright()
@@ -1085,20 +1323,100 @@ body {
         return self.current_state()
 
     def _cmd_reload(self, p):
+        """Reload the current Canvas document from its committed source.
+
+        URL-backed documents (http/https/file) are loaded again from their URL.
+        Synthetic documents (set_html and similar runtime HTML) are rebuilt from
+        the last committed Canvas history/runtime state. Uncommitted edits in
+        Source view are deliberately discarded in both cases; Source becomes a
+        committed state only after returning to the Canvas view.
+        """
+        entry = None
         if 0 <= self.canvas_history_index < len(self.canvas_history):
             entry = self.canvas_history[self.canvas_history_index]
-            if entry.get("kind") == "html":
-                return self._history_restore(self.canvas_history_index)
-        if self.backend == "playwright":
-            self._ensure_playwright()
-            self.pw_history_mode = "reload"
-            self.pw_page.reload(wait_until="domcontentloaded")
-            self.pw_history_mode = None
-            self._refresh_playwright_frame()
-        else:
+
+        url = ""
+        if isinstance(entry, dict) and entry.get("kind") == "url":
+            url = str(entry.get("url") or "").strip()
+        reload_url = str(entry.get("reload_url") or "") if isinstance(entry, dict) else ""
+        if reload_url:
+            url = reload_url
+        if not url:
+            url = str(self.current_url() or "").strip()
+        scheme = QUrl(url).scheme().lower() if url else ""
+        source_visible = bool(self.surface is not None and getattr(self.surface, "_source_visible", False))
+
+        # Real URL/file reload: navigate from the external source again. Never
+        # apply the editor buffer first -- F5 and the toolbar Reload button must
+        # behave like a normal browser reload and discard uncommitted Source edits.
+        is_html_entry = isinstance(entry, dict) and entry.get("kind") == "html"
+        if (not is_html_entry or reload_url) and scheme in ("http", "https", "file"):
+            if source_visible:
+                self.surface.source.document().setModified(False)
+                self._source_reload_pending = True
             self._history_loading = True
-            self.surface.web.reload()
-        return self.current_state()
+            if reload_url:
+                self.canvas_history[self.canvas_history_index] = {"kind": "url", "url": url}
+            if self.backend == "playwright":
+                self._ensure_playwright()
+                self.pw_history_mode = "reload"
+                try:
+                    if reload_url:
+                        self.pw_page.goto(url, wait_until="domcontentloaded")
+                    else:
+                        self.pw_page.reload(wait_until="domcontentloaded")
+                finally:
+                    self.pw_history_mode = None
+                    self._history_loading = False
+                self.virtual_url = self.pw_page.url or url
+                self._refresh_playwright_frame()
+                if source_visible:
+                    self._source_reload_pending = False
+                    self.show_source()
+            else:
+                if reload_url:
+                    self.surface.web.setUrl(QUrl(url))
+                else:
+                    self.surface.web.reload()
+            return self.current_state()
+
+        # Runtime/set_html documents are reloaded from the last committed HTML,
+        # never from the currently edited Source buffer. This is intentionally
+        # different from Back to canvas, which commits Source edits via
+        # apply_source_html().
+        if isinstance(entry, dict) and entry.get("kind") == "html":
+            html = str(entry.get("html") or "")
+            base_url = str(entry.get("base_url") or self.base_url or "")
+            workdir = entry.get("workdir") or os.getcwd()
+        elif self.blank_canvas_active:
+            self._render_blank_canvas()
+            return self.current_state()
+        else:
+            # data:/about:/other synthetic content has no external source. The
+            # rendered browser document is authoritative; Source edits have not
+            # touched it until Back to canvas is used.
+            html = str(self._eval(self.JS_SERIALIZE_HTML) or self.runtime_html or "")
+            base_url = str(self.base_url or "")
+            workdir = os.getcwd()
+
+        if source_visible:
+            # Reset the visible editor immediately, before the asynchronous Qt
+            # setHtml() load completes. After load we serialize once more so the
+            # editor reflects the exact browser-normalized document.
+            self.surface.show_source(html, base_url=base_url)
+            if self.backend != "playwright":
+                self._source_reload_pending = True
+
+        result = self._cmd_set_html({
+            "html": html,
+            "base_url": base_url,
+            "__workdir": workdir,
+            "__ui": True,
+            "__history_restore": True,
+        })
+        if source_visible and self.backend == "playwright":
+            self.show_source()
+        return result
 
     def _cmd_screenshot(self, p):
         path = p.get("path")
@@ -1377,12 +1695,15 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         if p.get("clear"):
             self.annotations.clear()
             self._render_annotations()
+            self._notify_annotation_count_changed()
         return {"annotations": result, "count": len(result)}
 
     def _clear_annotations(self):
         count = len(self.annotations)
         self.annotations.clear()
         self._render_annotations()
+        if count:
+            self._notify_annotation_count_changed()
         return {"cleared": count}
 
     # ------------------------------------------------------------------
@@ -1524,6 +1845,7 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self.blank_canvas_active = True
             self.virtual_url = "about:blank"
             self.pw_page.on("framenavigated", self._on_playwright_navigated)
+            self.pw_page.on("load", lambda: self._on_playwright_loaded())
             if self.pw_frame_timer is not None and not self.pw_frame_timer.isActive():
                 self.pw_frame_timer.start()
             self._refresh_playwright_frame()
@@ -1548,6 +1870,16 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
         self.pw_history_index = -1
         self.pw_history_mode = None
 
+    def _on_playwright_loaded(self):
+        """Persist the final document title after a Playwright page load."""
+        if self.pw_page is None or not self._current_canvas_history_is_url():
+            return
+        try:
+            self._update_browser_history_title(self.pw_page.url, self.pw_page.title())
+        except Exception:
+            pass
+        self._notify_state()
+
     def _on_playwright_navigated(self, frame):
         if self.pw_page is None:
             return
@@ -1563,6 +1895,12 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self._history_update_current_url(url)
         else:
             self._history_record_navigation(url)
+        if self._current_canvas_history_is_url():
+            try:
+                title = self.pw_page.title() if self.pw_page is not None else ""
+            except Exception:
+                title = ""
+            self._record_browser_history(url, title)
         mode = self.pw_history_mode
         if mode == "back":
             if self.pw_history_index > 0:
@@ -1622,6 +1960,8 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
     def _poll_playwright_frame(self):
         """Refresh the remote framebuffer while it is actually visible to the user."""
         if self.backend != "playwright" or self.pw_page is None or self.surface_owner is None:
+            return
+        if self.surface is not None and self.surface._source_visible:
             return
         scroll = getattr(self.surface_owner, "scroll", None)
         if scroll is not None and not scroll.isVisible():
@@ -1725,9 +2065,21 @@ for (const [t,x,y,buttons] of [['mousedown',{x1},{y1},1],['mousemove',{x2},{y2},
             self._history_loading = False
         elif not self.blank_canvas_active:
             self._history_record_navigation(self.virtual_url)
+        if success and self._current_canvas_history_is_url():
+            try:
+                title = self.surface.web.title()
+            except Exception:
+                title = ""
+            self._record_browser_history(self.virtual_url, title)
         self._update_qt_virtual_cursor()
         self._render_annotations()
         self._notify_state()
+        if self._source_reload_pending:
+            self._source_reload_pending = False
+            # Source was visible when a real URL/file was reloaded. Replace the
+            # edited buffer with the freshly loaded document instead of letting
+            # those discarded edits linger in the editor.
+            QTimer.singleShot(0, self.show_source)
 
     def _update_qt_virtual_cursor(self):
         if self.backend != "qt":
