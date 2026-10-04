@@ -67,38 +67,16 @@ class FileExplorer(QWidget):
         except Exception:
             pass
 
-        header = QHBoxLayout()
-
-        self.btn_open = QPushButton(QIcon(":/icons/folder_open.svg"), "")
-        self.btn_open.setToolTip(trans('action.open'))
-        self.btn_open.setMaximumHeight(40)
-        self.btn_open.clicked.connect(
-                lambda: self.tool.paths.open(self.directory)
-        )
-        self.btn_open.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
-        self.btn_upload = QPushButton(QIcon(":/icons/upload.svg"), "")
-        self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
-        self.btn_upload.setMaximumHeight(40)
-        self.btn_upload.clicked.connect(self.tool.transfers.upload)
-        self.btn_upload.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-
         self.btn_options = ButtonPopupMenu(
             self,
             menu_builder=self.menus.options,
             object_name='filesOptionsButton',
             menu_object_name='filesOptionsMenu',
         )
-        self.btn_options.setMaximumHeight(40)
-        self.btn_options.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.btn_options.setFixedSize(32, 32)
+        self.btn_options.setStyleSheet("QPushButton#filesOptionsButton { padding: 4px; }")
+        self.btn_options.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        self.btn_swap = QPushButton(QIcon(":/icons/sync.svg"), "")
-        self.btn_swap.setToolTip(trans('files.columns.swap'))
-        self.btn_swap.setMaximumHeight(40)
-        self.btn_swap.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.btn_swap.clicked.connect(self.toggle_columns)
-
-        self.controls_layout = header
         self.layout = QVBoxLayout()
 
         self.preview = PreviewPanel(self.window, self.directory, self)
@@ -111,9 +89,10 @@ class FileExplorer(QWidget):
         self.search.addAction(QIcon(':/icons/search.svg'), QLineEdit.LeadingPosition)
         self.search_status = QLabel()
         self.searching_text = trans('files.search.searching')
-        search_bar = QHBoxLayout()
+        self.search_header = QWidget(self)
+        search_bar = QHBoxLayout(self.search_header)
+        search_bar.setContentsMargins(0, 0, 0, 0)
         search_bar.addWidget(self.search, 1)
-        search_bar.addWidget(self.search_status)
 
         self.empty_files = EmptyFilesState(self.tool, self.directory, self)
         self.empty_files_wrapper = QWidget(self)
@@ -129,7 +108,7 @@ class FileExplorer(QWidget):
         self.files_panel.setMinimumWidth(220)
         files_layout = QVBoxLayout(self.files_panel)
         files_layout.setContentsMargins(0, 0, 0, 0)
-        files_layout.addLayout(search_bar)
+        files_layout.addWidget(self.search_header)
         files_layout.addWidget(self.files_stack)
         self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.setChildrenCollapsible(False)
@@ -142,10 +121,13 @@ class FileExplorer(QWidget):
         self.columns_swapped = self._load_columns_swap()
         self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
         self.preview.layout.removeWidget(self.preview.breadcrumbs_widget)
-        breadcrumbs_row = QHBoxLayout()
-        breadcrumbs_row.addWidget(self.preview.breadcrumbs_widget, 1)
-        breadcrumbs_row.addLayout(header)
-        self.layout.addLayout(breadcrumbs_row)
+        self.header_layout = QHBoxLayout()
+        self.header_layout.setContentsMargins(0, 0, 0, 0)
+        self.header_layout.setSpacing(self.splitter.handleWidth())
+        self.header_layout.addWidget(self.preview.breadcrumbs_widget, 1)
+        self.header_layout.addWidget(self.search_status)
+        self.header_layout.addWidget(self.btn_options, 0, Qt.AlignRight)
+        self.layout.addLayout(self.header_layout)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.treeView.clicked.connect(self.on_tree_clicked)
@@ -249,14 +231,6 @@ class FileExplorer(QWidget):
         except Exception:
             return False
 
-    def _rebuild_controls(self):
-        """Keep Files actions on the right of the shared breadcrumbs row."""
-        self.controls_layout.setContentsMargins(0, 0, 0, 0)
-        while self.controls_layout.count():
-            self.controls_layout.takeAt(0)
-        for widget in (self.btn_upload, self.btn_open, self.btn_swap, self.btn_options):
-            self.controls_layout.addWidget(widget)
-
     def _resize_columns(self):
         """Allocate one third to files, with a 220 px minimum."""
         available = max(0, self.splitter.width() - self.splitter.handleWidth())
@@ -293,7 +267,6 @@ class FileExplorer(QWidget):
             self.splitter.setSizes([files_size, preview_size])
 
         self.columns_swapped = swapped
-        self._rebuild_controls()
         self._columns_resize_timer.start(0)
 
     def toggle_columns(self):
@@ -328,9 +301,6 @@ class FileExplorer(QWidget):
 
     def retranslate(self):
         """Refresh Files labels/tooltips after a runtime language change."""
-        self.btn_open.setToolTip(trans('action.open'))
-        self.btn_upload.setToolTip(trans('files.local.upload.tooltip'))
-        self.btn_swap.setToolTip(trans('files.columns.swap'))
         self.btn_options.retranslate()
         self.search.setPlaceholderText(trans('files.search.placeholder'))
         self.searching_text = trans('files.search.searching')

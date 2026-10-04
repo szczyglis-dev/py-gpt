@@ -25,22 +25,14 @@ class Menus:
         self.explorer = explorer
 
     def options(self, menu: QMenu):
-        """Populate the Files footer options popup."""
+        """Populate the Files header options popup."""
         explorer = self.explorer
-        action = menu.addAction(QIcon(":/icons/db.svg"), trans('files.indexer.open'))
-        action.triggered.connect(
-            lambda checked=False: explorer.window.tools.get("indexer").toggle()
-        )
-
-        menu.addSeparator()
-
-        idx_menu = menu.addMenu(trans('idx.btn.index_all'))
-        if not self.index_all(idx_menu):
-            idx_menu.setEnabled(False)
-
-        clear_menu = menu.addMenu(trans('idx.btn.clear'))
-        if not self.clear_index(clear_menu):
-            clear_menu.setEnabled(False)
+        action = menu.addAction(QIcon(":/icons/upload.svg"), trans('files.local.upload.tooltip'))
+        action.triggered.connect(lambda checked=False: explorer.tool.transfers.upload())
+        action = menu.addAction(QIcon(":/icons/folder_open.svg"), trans('action.open'))
+        action.triggered.connect(lambda checked=False: explorer.tool.paths.open(explorer.directory))
+        action = menu.addAction(QIcon(":/icons/sync.svg"), trans('files.columns.swap'))
+        action.triggered.connect(lambda checked=False: explorer.toggle_columns())
 
     def index_all(self, menu: QMenu) -> bool:
         """Add available indexes to an Index all menu and return whether any were added."""
