@@ -809,7 +809,7 @@ QComboBox[class="LabelCombo"] {{
   background-color: transparent;
   border: none;
   font-weight: bold;
-  padding: 8px 24px 8px 28px;
+  padding: 8px 24px 8px 5px;
 }}
 QComboBox[class="LabelCombo"]:hover {{
   background-color: rgba(128, 128, 128, 20);

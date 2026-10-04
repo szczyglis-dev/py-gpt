@@ -64,6 +64,7 @@ class Mode:
             combo.setMinimumWidth(0)
             ui_nodes[self.id] = combo
 
+        combo.setToolTip(trans('toolbox.mode.tooltip'))
         combo.combo.setProperty('class', 'LabelCombo')
         combo.combo.setCursor(Qt.PointingHandCursor)
 

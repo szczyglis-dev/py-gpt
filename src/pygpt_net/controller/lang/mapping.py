@@ -503,6 +503,7 @@ class Mapping:
         tooltips = {}
         tooltips['inline.vision'] = 'vision.checkbox.tooltip'
         tooltips['cmd.enabled'] = 'cmd.tip'
+        tooltips['prompt.mode'] = 'toolbox.mode.tooltip'
         tooltips['ctx.new'] = 'ctx.new.tooltip'
         tooltips['ctx.search.toggle'] = 'ctx.list.search.placeholder'
         tooltips['toolbar.home'] = 'output.tab.chat'

@@ -81,7 +81,7 @@ class CtxList:
 
         new_btn_row = QWidget()
         new_btn_row_layout = QHBoxLayout(new_btn_row)
-        new_btn_row_layout.setContentsMargins(5, 0, 5, 0)
+        new_btn_row_layout.setContentsMargins(0, 0, 5, 0)
         new_btn_row_layout.addWidget(new_btn, 1)
         search_btn = LabelButton()
         search_btn.setIcon(QIcon(':/icons/search.svg'))

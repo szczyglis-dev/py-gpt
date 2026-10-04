@@ -36,7 +36,7 @@ class ModePopupCombo(SeparatorComboBox):
         menu.setMinimumWidth(self.width())
         # Checked state supplies the current-row background; no indicator is drawn.
         menu.setStyleSheet('QMenu#modeSelectorMenu { margin: 0; padding: 0; }'
-                           'QMenu#modeSelectorMenu::item { padding: 10px 24px 10px 27px; }'
+                           'QMenu#modeSelectorMenu::item { padding: 4px 24px 4px 10px; min-height: 0; }'
                            'QMenu#modeSelectorMenu::indicator { width: 0; height: 0; image: none; }'
                            'QMenu#modeSelectorMenu::item:checked {'
                            ' background-color: rgba(128, 128, 128, 24); }')
