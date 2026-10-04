@@ -264,6 +264,35 @@
             "reasoning_effort": false,
             "tool_calls": true
         },
+        "deepseek_api_flash": {
+            "id": "deepseek-flash",
+            "name": "DeepSeek API (V4.1 Flash)",
+            "mode": [
+                "agent",
+                "agent_llama",
+                "expert",
+                "chat",
+                "agent_v2",
+                "vision",
+                "agent_openai",
+                "completion"
+            ],
+            "ctx": 1048576,
+            "tokens": 393216,
+            "default": false,
+            "input": [
+                "text",
+                "image"
+            ],
+            "output": [
+                "text"
+            ],
+            "extra": {},
+            "imported": false,
+            "provider": "deepseek_api",
+            "reasoning_effort": true,
+            "tool_calls": true
+        },
         "deepseek_api_v4_flash": {
             "id": "deepseek-v4-flash",
             "name": "DeepSeek API (V4 Flash)",

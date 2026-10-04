@@ -57,6 +57,15 @@ class Patch:
                             data[model_id] = model
                             updated = True
 
+            # DeepSeek V4.1 Flash is added in 2.9.0 without replacing user models.
+            if old < parse_version("2.9.0") <= version:
+                model_id = "deepseek_api_flash"
+                if model_id not in data:
+                    model = self.window.core.models.from_base(model_id)
+                    if model is not None:
+                        data[model_id] = model
+                        updated = True
+
         # update file
         if updated:
             # fix empty/broken data
