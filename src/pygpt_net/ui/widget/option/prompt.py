@@ -83,4 +83,4 @@ class PromptTextarea(QTextEdit):
             self.window.ui.nodes['preset.prompt'].toPlainText(),
         )
         #self.window.core.config.set('prompt', self.toPlainText().strip())
-        self.window.controller.ui.update_tokens()
+        self.window.controller.ui.request_tokens_update()

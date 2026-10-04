@@ -35,6 +35,8 @@ class Presets:
         self.footer = Footer(window)
         self.id = 'preset.presets'
         self._skills_refreshing = False
+        self._preset_signature = None
+        self._preset_model = None
 
     def setup(self) -> QWidget:
         """
@@ -217,6 +219,15 @@ class Presets:
         view: PresetList = nodes[self.id]
         model = models.get(self.id)
 
+        signature = (mode, bool(self.window.core.config.get('presets.drag_and_drop.enabled')),
+                     tuple((key, item.name, str(item.prompt)[:80], len(str(item.prompt)) > 80, item.uuid,
+                            bool(item.enabled)) for key, item in (data or {}).items()))
+        if (model is not None and model is self._preset_model
+                and signature == self._preset_signature
+                and model.rowCount() == len(data or {})
+                and not getattr(view, '_selection_override_ids', None)):
+            return
+
         # If view requested selection override, do NOT override it by backup
         selection_override_ids = getattr(view, "_selection_override_ids", None)
         if not selection_override_ids:
@@ -301,3 +312,5 @@ class Presets:
         # Clear one-shot pending scroll values and re-enable user interaction
         view.clear_pending_scroll()
         view.end_model_update()
+        self._preset_signature = signature
+        self._preset_model = model

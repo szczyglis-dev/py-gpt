@@ -11,6 +11,7 @@
 
 from typing import Optional
 
+from PySide6.QtCore import QObject, QTimer
 from PySide6.QtGui import QColor
 
 from pygpt_net.core.types import MODE_IMAGE
@@ -50,6 +51,11 @@ class UI:
         self._last_chat_model = None
         self._last_chat_label = None
 
+        self._tokens_update_timer = QTimer(window if issubclass(type(window), QObject) else None)
+        self._tokens_update_timer.setSingleShot(True)
+        self._tokens_update_timer.setInterval(30)
+        self._tokens_update_timer.timeout.connect(self.update_tokens)
+
         self._input_extra_tab_idx = 4
 
     def setup(self):
@@ -63,7 +69,7 @@ class UI:
         self.update_toolbox()
         self.update_chat_label()
         self.mode.update()
-        self.update_tokens()
+        self.request_tokens_update()
         self.vision.update()
         self.window.controller.plugins.update_annotations_info()
         self.window.controller.agent.legacy.update()
@@ -180,8 +186,14 @@ class UI:
             return f"{num // 1_000}k"
         return str(num)
 
+    def request_tokens_update(self):
+        """Count once after the mode/model/preset transaction has settled."""
+        if not self._tokens_update_timer.isActive():
+            self._tokens_update_timer.start()
+
     def update_tokens(self):
         """Update tokens counter in real-time"""
+        self._tokens_update_timer.stop()
         ui_nodes = self.window.ui.nodes
 
         # Keep the character count aligned with the visible editor text, but

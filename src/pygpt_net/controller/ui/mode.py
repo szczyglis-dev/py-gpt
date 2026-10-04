@@ -43,6 +43,7 @@ class Mode:
         :param window: Window instance
         """
         self.window = window
+        self._presets_header_target = None
 
     def update(self):
         """Update mode, model, preset and rest of the toolbox"""
@@ -152,7 +153,8 @@ class Mode:
             presets_tabs.tabBar().setVisible(is_agent_v2)
             header = ui_nodes.get('preset.header')
             add_preset = ui_nodes.get('preset.presets.new')
-            if header is not None and add_preset is not None:
+            target = (header, presets_tabs, add_preset, is_agent_v2)
+            if header is not None and add_preset is not None and target != self._presets_header_target:
                 if is_agent_v2:
                     header.layout().removeWidget(add_preset)
                     presets_tabs.setCornerWidget(add_preset, Qt.TopRightCorner)
@@ -162,6 +164,7 @@ class Mode:
                     header.layout().addWidget(add_preset, alignment=Qt.AlignRight)
                     header.show()
                 add_preset.show()
+                self._presets_header_target = target
             if not is_agent_v2 and presets_tabs.currentIndex() != 0:
                 presets_tabs.setCurrentIndex(0)
             if is_agent_v2:

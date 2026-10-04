@@ -9,7 +9,10 @@
 # Updated Date: 2025.12.27 02:00:00                  #
 # ================================================== #
 
+import copy
+
 from PySide6.QtWidgets import QHBoxLayout, QWidget, QComboBox
+
 from PySide6.QtCore import QSignalBlocker
 
 from pygpt_net.ui.widget.option.combo import SeparatorComboBox, NoScrollCombo
@@ -37,6 +40,8 @@ class BaseListCombo(QWidget):
         self._keys_cache = None
         self._keys_cache_id = 0
 
+        self._rendered_keys = None
+        self._rendered_count = None
         self.update()
 
         self.layout = QHBoxLayout()
@@ -165,12 +170,20 @@ class BaseListCombo(QWidget):
 
         :param keys: keys
         """
+        rendered_keys = list(keys.items()) if isinstance(keys, dict) else keys
+        if self._rendered_keys == rendered_keys and self._rendered_count == self.combo.count():
+            return
+        previous_lock = self.locked
         self.locked = True
-        self.keys = keys
-        self._keys_cache = None
-        self._keys_cache_id = 0
-        self.update()
-        self.locked = False
+        try:
+            self.keys = keys
+            self._keys_cache = None
+            self._keys_cache_id = 0
+            self.update()
+            self._rendered_keys = copy.deepcopy(rendered_keys)
+            self._rendered_count = self.combo.count()
+        finally:
+            self.locked = previous_lock
 
     def on_combo_change(self, index):
         """

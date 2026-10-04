@@ -582,7 +582,9 @@ class Presets:
             w.controller.mode.reset_current()
             return
         preset = w.core.presets.items[preset_id]
-        w.ui.nodes['preset.prompt'].setPlainText(preset.prompt)
+        prompt_node = w.ui.nodes['preset.prompt']
+        if prompt_node.toPlainText() != preset.prompt:
+            prompt_node.setPlainText(preset.prompt)
         w.core.config.set('prompt', preset.prompt)
         w.core.config.set('ai_name', preset.ai_name)
         w.core.config.set('user_name', preset.user_name)
@@ -699,7 +701,9 @@ class Presets:
 
     def reset(self):
         """Reset preset data"""
-        self.window.ui.nodes['preset.prompt'].setPlainText("")
+        node = self.window.ui.nodes['preset.prompt']
+        if node.toPlainText():
+            node.setPlainText("")
 
     def make_filename(self, name: str) -> str:
         """

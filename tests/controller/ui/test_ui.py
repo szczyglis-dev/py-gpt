@@ -36,14 +36,14 @@ def test_update(mock_window):
     ui.update_toolbox = MagicMock()
     ui.update_chat_label = MagicMock()
     ui.mode.update = MagicMock()
-    ui.update_tokens = MagicMock()
+    ui.request_tokens_update = MagicMock()
 
     ui.update()
 
     ui.update_toolbox.assert_called_once()
     ui.update_chat_label.assert_called_once()
     ui.mode.update.assert_called_once()
-    ui.update_tokens.assert_called_once()
+    ui.request_tokens_update.assert_called_once()
     ui.vision.update.assert_called_once()
 
 

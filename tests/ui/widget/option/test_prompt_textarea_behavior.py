@@ -15,7 +15,7 @@ def _window(locked=False):
         controller=SimpleNamespace(
             mode=SimpleNamespace(locked=locked),
             config=SimpleNamespace(input=SimpleNamespace(on_update=MagicMock())),
-            ui=SimpleNamespace(update_tokens=MagicMock()),
+            ui=SimpleNamespace(request_tokens_update=MagicMock()),
         ),
         ui=SimpleNamespace(nodes={"preset.prompt": node}),
         core=SimpleNamespace(
@@ -32,7 +32,7 @@ def test_prompt_change_is_ignored_while_mode_is_locked():
     window = _window(locked=True)
     PromptTextarea.on_prompt_changed(SimpleNamespace(window=window))
     window.controller.config.input.on_update.assert_not_called()
-    window.controller.ui.update_tokens.assert_not_called()
+    window.controller.ui.request_tokens_update.assert_not_called()
 
 
 def test_prompt_change_updates_config_and_token_count():
@@ -43,7 +43,7 @@ def test_prompt_change_updates_config_and_token_count():
         "preset", "prompt", {"value": "x"}, "hello"
     )
     node.toPlainText.assert_called_once_with()
-    window.controller.ui.update_tokens.assert_called_once_with()
+    window.controller.ui.request_tokens_update.assert_called_once_with()
 
 
 def test_prompt_context_menu_adds_template_and_custom_options():

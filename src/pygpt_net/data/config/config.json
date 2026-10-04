@@ -131,7 +131,7 @@
   "context.max_history_items": 0,
   "context.tool_calls.restore": false,
   "context.tool_calls.restore_runtime": true,
-  "context.tool_calls.store": "truncated",
+  "context.tool_calls.store": "full",
   "context_threshold": 200,
   "ctx": "",
   "ctx.annotations.clear_on_send.canvas": false,
