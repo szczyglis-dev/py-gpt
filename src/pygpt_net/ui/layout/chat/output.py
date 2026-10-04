@@ -11,7 +11,6 @@
 
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pygpt_net.ui.widget.tabs.layout import OutputLayout
-from .calendar import Calendar
 
 
 class Output:
@@ -22,7 +21,6 @@ class Output:
         :param window: Window instance
         """
         self.window = window
-        self.calendar = Calendar(window)
 
     def setup(self) -> QWidget:
         """

@@ -178,6 +178,8 @@ class Tabs:
         :param tool_id: Tool ID
         :return: Tab
         """
+        if type == Tab.TAB_TOOL_CALENDAR:
+            type, tool_id = Tab.TAB_TOOL, "calendar"
         if type == Tab.TAB_NOTEPAD:
             type, tool_id = Tab.TAB_TOOL, "notepad"
         if type == Tab.TAB_FILES:
@@ -205,8 +207,6 @@ class Tabs:
 
         if type == Tab.TAB_CHAT:
             self.add_chat(tab)
-        elif type == Tab.TAB_TOOL_CALENDAR:
-            self.add_tool_calendar(tab)
         elif type == Tab.TAB_TOOL:
             self.add_tool(tab)
 
@@ -229,6 +229,8 @@ class Tabs:
         :param column_idx: index of the column in which the tab will be added
         :return: Tab
         """
+        if type == Tab.TAB_TOOL_CALENDAR:
+            type, tool_id = Tab.TAB_TOOL, "calendar"
         if type == Tab.TAB_NOTEPAD:
             type, tool_id = Tab.TAB_TOOL, "notepad"
         existing = self._get_existing_single_instance_tool(type, tool_id)
@@ -279,6 +281,8 @@ class Tabs:
 
         :param data: Tab data
         """
+        if data.get("type") == Tab.TAB_TOOL_CALENDAR:
+            data = dict(data, type=Tab.TAB_TOOL, tool_id="calendar")
         if data.get("type") == Tab.TAB_NOTEPAD:
             data = dict(data, type=Tab.TAB_TOOL, tool_id="notepad")
         if data.get("type") == Tab.TAB_FILES:
@@ -331,11 +335,6 @@ class Tabs:
                 output.last_pid = tab.pid
             except Exception as e:
                 print("Error restoring chat tab:", e)
-        elif tab.type == Tab.TAB_TOOL_CALENDAR:  # calendar
-            try:
-                self.add_tool_calendar(tab)
-            except Exception as e:
-                print("Error restoring calendar tab:", e)
         elif tab.type == Tab.TAB_TOOL:  # custom tools, id 100+
             try:
                 self.add_tool(tab)
@@ -732,24 +731,6 @@ class Tabs:
         if tab.tooltip is not None:
             tabs.setTabToolTip(tab.idx, tab.tooltip)
 
-    def add_tool_calendar(self, tab: Tab):
-        """
-        Add calendar tab
-
-        :param tab: Tab instance
-        """
-        column = self.window.ui.layout.get_column_by_idx(tab.column_idx)
-        tabs = column.get_tabs()
-        tab.parent = column
-        tab.child = self.window.ui.chat.output.calendar.setup()
-        self._sync_tooltip_with_title(tab)
-        tab.idx = self.insert_tab(tabs, tab)
-        if hasattr(tab.child, "setOwner"):
-            tab.child.setOwner(tab)
-        tabs.setTabIcon(tab.idx, QIcon(tab.icon))
-        if tab.tooltip is not None:
-            tabs.setTabToolTip(tab.idx, tab.tooltip)
-
     def add_tool(self, tab: Tab):
         """
         Add custom tool tab
@@ -860,7 +841,7 @@ class Tabs:
             "uuid": uuid.uuid4(),
             "pid": 2,
             "idx": 2,
-            "type": Tab.TAB_TOOL_CALENDAR,
+            "type": Tab.TAB_TOOL,
             "data_id": None,
             "title": "Calendar",
             "tooltip": "Calendar",
@@ -939,7 +920,7 @@ class Tabs:
 
         # check for required tabs
         tmp_pid = -1  # tmp PID only for loading
-        required = [Tab.TAB_CHAT, Tab.TAB_TOOL_CALENDAR]
+        required = [Tab.TAB_CHAT]
         for type in required:
             found = False
             for pid in data:

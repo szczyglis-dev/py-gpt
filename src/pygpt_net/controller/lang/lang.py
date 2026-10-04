@@ -149,7 +149,6 @@ class Lang:
 
         c.tabs.reload_titles()
         c.agent_workflow.reload()
-        c.calendar.note.update_current()
         self.settings.apply()
 
         try:

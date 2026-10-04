@@ -40,7 +40,6 @@ class UI:
         self.window = window
 
         # bags
-        self.calendar = {}
         self.config = {
             "assistant": {},
             "config": {},

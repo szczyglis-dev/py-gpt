@@ -23,7 +23,6 @@ _COMPONENTS = {
     "audio": ("pygpt_net.core.audio", "Audio"),
     "bridge": ("pygpt_net.core.bridge", "Bridge"),
     "banners": ("pygpt_net.core.banners", "Banners"),
-    "calendar": ("pygpt_net.core.calendar", "Calendar"),
     "camera": ("pygpt_net.core.camera", "Camera"),
     "command": ("pygpt_net.core.command", "Command"),
     "config": ("pygpt_net.config", "Config"),

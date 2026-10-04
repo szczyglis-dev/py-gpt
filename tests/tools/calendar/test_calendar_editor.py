@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from PySide6.QtCore import Qt
 
-from pygpt_net.ui.widget.textarea.calendar_note import CalendarNote
+from pygpt_net.tools.calendar.ui.editor import CalendarNote
 
 
 def _note():
@@ -16,6 +16,7 @@ def _note():
                 settings=SimpleNamespace(editor=MagicMock()), config=MagicMock(), ui=MagicMock(),
             ),
         ),
+        session=SimpleNamespace(note=MagicMock()),
         finder=MagicMock(), tab=None, value=12, min_font_size=8, max_font_size=42,
         find_open=MagicMock(), textCursor=MagicMock(),
     )
@@ -27,7 +28,7 @@ def test_set_tab_and_text_changed_delegate():
     CalendarNote.set_tab(n, tab)
     assert n.tab is tab
     CalendarNote.text_changed(n)
-    n.window.controller.calendar.note.update.assert_called_once_with()
+    n.session.note.update.assert_called_once_with()
     n.finder.text_changed.assert_called_once_with()
 
 
@@ -49,7 +50,7 @@ def test_on_update_clears_finder():
 def test_ctrl_wheel_uses_shared_zoom_scheduler(monkeypatch):
     n = _note()
     zoom = MagicMock()
-    monkeypatch.setattr('pygpt_net.ui.widget.textarea.calendar_note.zoom_text', zoom)
+    monkeypatch.setattr('pygpt_net.tools.calendar.ui.editor.zoom_text', zoom)
     event = MagicMock()
     event.modifiers.return_value = Qt.ControlModifier
     event.angleDelta.return_value.y.return_value = 120

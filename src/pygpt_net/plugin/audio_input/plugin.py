@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.01 00:45:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -646,8 +646,8 @@ class Plugin(BasePlugin):
                 self.window.dispatch(event)  # clear here
 
             # to: calendar
-            elif self.window.controller.calendar.is_active():
-                self.window.controller.calendar.note.append_text(text)
+            elif self.window.tools.get("calendar").is_active():
+                self.window.tools.get("calendar").resolve_surface(create=True).note.append_text(text)
                 self.set_status('')
 
                 data = {}

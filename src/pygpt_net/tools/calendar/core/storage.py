@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.09.16 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import datetime
@@ -18,16 +18,38 @@ from pygpt_net.item.calendar_note import CalendarNoteItem
 from pygpt_net.provider.core.calendar.db_sqlite import DbSqliteProvider
 
 
-class Calendar:
+class Storage:
     def __init__(self, window=None):
         """
-        Calendar core
+        Calendar note repository
 
         :param window: Window instance
         """
         self.window = window
         self.provider = DbSqliteProvider(window)
         self.items = {}
+        self._database = None
+
+    def ensure_profile(self):
+        database = self.window.core.db.get_db()
+        if database is not self._database:
+            self.items = {}
+            self._database = database
+
+    def reset(self):
+        self.items = {}
+        self._database = None
+
+    def get_or_load(self, year, month, day):
+        self.ensure_profile()
+        note = self.get_by_date(year, month, day)
+        if note is None:
+            note = self.provider.load(year, month, day)
+            if note is not None and (note.year, note.month, note.day) == (year, month, day):
+                self.items[f'{year:04d}-{month:02d}-{day:02d}'] = note
+            else:
+                note = None
+        return note
 
     def install(self):
         """Install provider data"""
@@ -53,7 +75,7 @@ class Calendar:
         :param year: year
         :param month: month
         :param day: day
-        :return: notepad instance
+        :return: calendar note instance
         """
         # convert to format: YYYY-MM-DD:
         dt_key = datetime.datetime(year, month, day).strftime("%Y-%m-%d")
@@ -65,7 +87,7 @@ class Calendar:
         """
         Get all notes
 
-        :return: notepads dict
+        :return: calendar notes dict
         """
         return self.items
 
@@ -193,9 +215,9 @@ class Calendar:
         current = self.provider.load(year, month, day)
         if current is None:
             current = self.build()
-            current.year = year
-            current.month = month
-            current.day = day
+        current.year = year
+        current.month = month
+        current.day = day
         current.content = text
         self.provider.save(current)
         self.load(year, month, day)
@@ -233,7 +255,8 @@ class Calendar:
         :param year: year
         :param month: month
         """
-        self.items = self.provider.load_by_month(year, month)
+        self.ensure_profile()
+        self.items.update(self.provider.load_by_month(year, month))
 
     def get_notes_existence_by_day(
             self,
@@ -269,8 +292,9 @@ class Calendar:
             return False
 
         self.provider.save(self.items[dt_key])
-        return False
+        return True
 
     def save_all(self):
         """Save all notes"""
+        self.ensure_profile()
         self.provider.save_all(self.items)

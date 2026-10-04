@@ -75,7 +75,6 @@ def test_controller_post_setup_does_not_open_license_when_accepted():
     controller.plugins.settings.setup.assert_called_once_with()
     controller.model.editor.setup.assert_called_once_with()
     controller.agents_v2.setup.assert_called_once_with()
-    controller.calendar.setup.assert_called_once_with()
     controller.debug.post_setup.assert_called_once_with()
     controller.tabs.restore_data.assert_called_once_with()
     controller.dialogs.info.toggle.assert_not_called()

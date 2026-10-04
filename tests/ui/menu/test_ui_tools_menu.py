@@ -104,3 +104,21 @@ def test_tools_setup_adds_plugin_remote_store_and_docker_actions():
     assert "menu.tools.system_builtin.rebuild" in window.ui.menu
     assert menu.addSeparator.call_count == 3
     assert docker_menu.addAction.call_count == 5
+
+
+def test_calendar_tool_menu_action_follows_web_browser():
+    keys = ('tools.calendar', 'tools.web_browser', 'tools.files', 'tools.notepad', 'tools.painter')
+    actions = {key: MagicMock(name=key) for key in keys}
+    window, menu = _window({}, actions.copy())
+    widget = SimpleNamespace(
+        window=window, _toggle_remote_store=MagicMock(),
+        _rebuild_ipython=MagicMock(), _rebuild_python_legacy=MagicMock(),
+        _rebuild_system=MagicMock(), _rebuild_python_builtin=MagicMock(),
+        _rebuild_system_builtin=MagicMock())
+    with patch('pygpt_net.ui.menu.tools.QAction', side_effect=lambda *args, **kwargs: MagicMock()), \
+            patch('pygpt_net.ui.menu.tools.QIcon'), \
+            patch('pygpt_net.ui.menu.tools.trans', side_effect=lambda key: key):
+        Tools.setup(widget)
+    added = [item.args[0] for item in menu.addAction.call_args_list]
+    assert added[:5] == [actions[key] for key in (
+        'tools.notepad', 'tools.files', 'tools.painter', 'tools.web_browser', 'tools.calendar')]

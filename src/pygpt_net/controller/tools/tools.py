@@ -26,9 +26,7 @@ class Tools:
         :param window: Window instance
         """
         self.window = window
-        self.tab_tools = {
-            'tools.calendar': ['calendar', 'calendar', Tab.TAB_TOOL_CALENDAR],
-        }
+        self.tab_tools = {}
 
     def setup(self):
         """Setup tools"""

@@ -47,6 +47,8 @@ To quick capture the screenshot click on the option ``Ask with screenshot`` in t
 Calendar
 --------
 
+Choose ``Tools → Calendar`` to open Calendar in a separate dialog. The menu reuses the existing dialog. You can also add a Calendar tab through ``[+] → Add Tool → Calendar``; only one Calendar tab is allowed across all columns. The dialog and tab can stay open together with independent selected dates while sharing saved daily notes.
+
 Using the calendar, you can go back to selected conversations from a specific day and add daily notes. After adding a note, it will be marked on the list, and you can change the color of its label by right-clicking and selecting ``Set label color`` option. By clicking on a particular day of the week, conversations from that day will be displayed.
 
 

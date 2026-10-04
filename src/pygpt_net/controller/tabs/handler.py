@@ -145,9 +145,6 @@ class TabEventHandler:
             tool = w.tools.get(tab.tool_id)
             if tool is not None and hasattr(tool, 'on_selected'):
                 tool.on_selected(tab)
-        elif tab.type == Tab.TAB_TOOL_CALENDAR:
-            w.controller.calendar.update()
-            w.controller.calendar.update_ctx_counters()
 
         if prev is None or prev.pid != tab.pid or prev.column_idx != column_idx:
             w.dispatch(AppEvent(AppEvent.TAB_SELECTED))

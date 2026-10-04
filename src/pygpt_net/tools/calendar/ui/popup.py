@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 14:10:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt, QDate, QLocale, QRect, QSize
@@ -73,8 +73,8 @@ class CalendarNotePopup(QFrame):
     DEFAULT_HEIGHT = 260
     MARGIN = 8
 
-    def __init__(self, window=None, editor=None):
-        super().__init__(window, Qt.Tool | Qt.FramelessWindowHint)
+    def __init__(self, window=None, editor=None, parent=None):
+        super().__init__(parent or window, Qt.Tool | Qt.FramelessWindowHint)
         self.window = window
         self.editor = editor
         self.current_date = None

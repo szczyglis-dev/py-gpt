@@ -99,10 +99,10 @@ def test_cmd_filters_disabled_commands_and_routes_worker(mock_window):
 
 def test_calendar_note_and_context_helpers_delegate(mock_window):
     plugin = Plugin(window=mock_window)
-    mock_window.core.calendar.load_note.return_value = "note"
-    mock_window.core.calendar.append_to_note.return_value = True
-    mock_window.core.calendar.update_note.return_value = True
-    mock_window.core.calendar.remove_note.return_value = True
+    mock_window.tools.get("calendar").storage.load_note.return_value = "note"
+    mock_window.tools.get("calendar").storage.append_to_note.return_value = True
+    mock_window.tools.get("calendar").storage.update_note.return_value = True
+    mock_window.tools.get("calendar").storage.remove_note.return_value = True
     assert plugin.get_day_note(2026, 9, 6) == "note"
     assert plugin.add_day_note(2026, 9, 6, "x") is True
     assert plugin.update_day_note(2026, 9, 6, "x") is True
@@ -202,7 +202,7 @@ def test_normalize_summary_filters_empty_and_legacy_sentinel(mock_window):
 def test_handle_updated_refreshes_calendar(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.handle_updated()
-    mock_window.controller.calendar.setup.assert_called_once_with()
+    mock_window.tools.get("calendar").on_reload.assert_called_once_with()
 
 
 @pytest.mark.parametrize(

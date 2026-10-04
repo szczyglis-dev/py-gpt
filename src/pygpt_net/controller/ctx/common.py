@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Optional, Union
@@ -114,37 +114,17 @@ class Common:
 
     def restore_display_filter(self):
         """Restore display filter"""
-        nodes = self.window.ui.nodes
-        all_radio = nodes['filter.ctx.radio.all']
-        pinned_radio = nodes['filter.ctx.radio.pinned']
-        indexed_radio = nodes['filter.ctx.radio.indexed']
-
-        all_radio.setChecked(False)
-        pinned_radio.setChecked(False)
-        indexed_radio.setChecked(False)
-
-        if self.window.core.config.has('ctx.records.filter'):
-            filter_value = self.window.core.config.get('ctx.records.filter')
-            self.toggle_display_filter(filter_value)
-
-            if filter_value == 'pinned':
-                pinned_radio.setChecked(True)
-            elif filter_value == 'indexed':
-                indexed_radio.setChecked(True)
-            else:
-                all_radio.setChecked(True)
-        else:
-            all_radio.setChecked(True)
-            self.toggle_display_filter('all')
-
+        filter_value = self.window.core.config.get('ctx.records.filter', 'all')
+        self.toggle_display_filter(filter_value)
         self.restore_filters_labels()
 
     def restore_filters_labels(self):
-        """Restore filters labels"""
+        """Restore chat-label filters independently of Calendar frontends."""
         labels = self.window.core.config.get('ctx.records.filter.labels')
         if labels is not None:
             self.window.core.ctx.filters_labels = labels
-            self.window.ui.nodes['filter.ctx.labels'].restore(labels)
+            self.window.controller.ctx.label_filters_changed(labels)
+        self.window.tools.get('calendar').refresh()
 
     def toggle_display_filter(self, filter: str):
         """

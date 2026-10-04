@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from PySide6.QtCore import Qt
 
-from pygpt_net.ui.widget.element.checkbox import ColorCheckbox
+from pygpt_net.tools.calendar.ui.labels import ColorCheckbox
 
 
 def _widget(selected=None, boxes=None):
@@ -46,4 +46,4 @@ def test_restore_checks_known_boxes_with_signals_blocked():
     assert one.blockSignals.call_args_list[0].args == (True,)
     one.setChecked.assert_called_once_with(True)
     assert one.blockSignals.call_args_list[1].args == (False,)
-    widget.window.controller.ctx.label_filters_changed.assert_called_once_with([1, 99])
+    widget.window.controller.ctx.label_filters_changed.assert_not_called()

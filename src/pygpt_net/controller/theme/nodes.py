@@ -109,12 +109,6 @@ class Nodes:
         size = w.core.config.get('font_size')
         style_output = ctrl.theme.style('font.chat.output')
 
-        # apply to calendar
-        note = ui.calendar.get('note')
-        if note is not None:
-            note.setStyleSheet(style_output)
-            note.value = size
-
         # plain-text output
         output_plain = ui.nodes.get('output_plain', {})
         for obj in output_plain.values():

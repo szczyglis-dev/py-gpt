@@ -17,7 +17,6 @@ from .agent_workflow import AgentWorkflow
 from .assistant import Assistant
 from .attachment import Attachment
 from .audio import Audio
-from .calendar import Calendar
 from .camera import Camera
 from .chat import Chat
 from .command import Command
@@ -71,7 +70,6 @@ class Controller:
         self.assistant = Assistant(window)
         self.attachment = Attachment(window)
         self.audio = Audio(window)
-        self.calendar = Calendar(window)
         self.camera = Camera(window)
         self.chat = Chat(window)
         self.command = Command(window)
@@ -144,7 +142,6 @@ class Controller:
         self.plugins.settings.setup()
         self.model.editor.setup()
         self.agents_v2.setup()
-        self.calendar.setup()  # after everything is loaded
         self.debug.post_setup()  # post setup debug after all loaded
         self.tabs.restore_data()  # restore opened tabs data
 
@@ -225,7 +222,6 @@ class Controller:
             self.idx.reload()
             self.agent.reload()
             self.agents_v2.reload()
-            self.calendar.reload()
             self.plugins.reload()
             self.lang.reload()
             self.debug.reload()

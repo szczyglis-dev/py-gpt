@@ -54,11 +54,9 @@ class Tools:
         ui_menu['menu.tools'] = window.menuBar().addMenu(trans("menu.tools"))
         menu_tools = ui_menu['menu.tools']
 
-        # Canvas is a first-class visual tool, so keep it next to Painter
-        # instead of grouping it with the remaining dynamically registered
-        # tool actions below the separator.
+        # Keep document/visual tools together; Calendar follows Web/Canvas.
         actions = window.tools.setup_menu_actions()
-        visual_actions = [(key, actions.pop(key)) for key in ("tools.notepad", "tools.files", "tools.painter", "tools.web_browser") if key in actions]
+        visual_actions = [(key, actions.pop(key)) for key in ("tools.notepad", "tools.files", "tools.painter", "tools.web_browser", "tools.calendar") if key in actions]
 
         for key, val in tab_tools.items():
             label_key, icon_name, type_ = val[0], val[1], val[2]

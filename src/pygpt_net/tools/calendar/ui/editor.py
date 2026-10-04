@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtCore import Qt
@@ -20,14 +20,15 @@ from pygpt_net.utils import trans
 
 
 class CalendarNote(QTextEdit):
-    def __init__(self, window=None):
+    def __init__(self, session):
         """
         Calendar note widget
 
         :param window: main window
         """
-        super(CalendarNote, self).__init__(window)
-        self.window = window
+        super(CalendarNote, self).__init__()
+        self.session = session
+        window = self.window = session.window
         self.finder = Finder(window, self)
         self.setAcceptRichText(False)
         self.setStyleSheet(self.window.controller.theme.style('font.chat.output'))
@@ -66,7 +67,7 @@ class CalendarNote(QTextEdit):
 
     def text_changed(self):
         """On parent textarea text changed"""
-        self.window.controller.calendar.note.update()
+        self.session.note.update()
         self.finder.text_changed()
 
     def contextMenuEvent(self, event):

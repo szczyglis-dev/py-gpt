@@ -176,11 +176,11 @@ def test_on_tab_changed_dispatches_type_specific_actions(tabs_env, monkeypatch):
     handler.on_tab_changed(0, 0)
     window.tools.get("painter").on_selected.assert_called_once_with(painter)
 
-    calendar = tabs_env.make_tab(pid=22, idx=0, column_idx=0, type=Tab.TAB_TOOL_CALENDAR)
+    window.tools.reset_mock()
+    calendar = tabs_env.make_tab(pid=22, idx=0, column_idx=0, type=Tab.TAB_TOOL, tool_id="calendar")
     tabs_env.install(calendar)
     handler.on_tab_changed(0, 0)
-    window.controller.calendar.update.assert_called_once_with()
-    window.controller.calendar.update_ctx_counters.assert_called_once_with()
+    window.tools.get("calendar").on_selected.assert_called_once_with(calendar)
 
 
 def test_on_changed_uses_explicit_or_current_tab(tabs_env):

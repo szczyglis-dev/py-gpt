@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.30 19:20:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 import os
@@ -483,7 +483,6 @@ class Common:
         nodes = [
             "tip.input.attachments",
             "tip.input.attachments.uploaded",
-            "tip.output.tab.calendar",
             "tip.output.tab.draw",
             "tip.output.tab.files",
             "tip.output.tab.notepad",

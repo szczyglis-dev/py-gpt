@@ -171,7 +171,7 @@ class ContextMenu:
 
         if 'calendar' not in excluded:
             action = QAction(self._ICON_SCHEDULE, trans('text.context_menu.copy_to.calendar'), menu)
-            action.triggered.connect(lambda checked=False: ctrl.calendar.note.append_text_today(resolved_text()))
+            action.triggered.connect(lambda checked=False: self.window.tools.get("calendar").notes.append_today(resolved_text()))
             menu.addAction(action)
 
         if 'notepad' not in excluded:

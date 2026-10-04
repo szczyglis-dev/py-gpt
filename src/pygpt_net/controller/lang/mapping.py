@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.27 10:15:00
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Dict
@@ -151,14 +151,6 @@ class Mapping:
         # output
         nodes['output.edit'] = 'output.edit'
 
-
-        # calendar
-        nodes['filter.ctx.label.colors'] = 'filter.ctx.label.colors'
-        nodes['filter.ctx.label'] = 'filter.ctx.label'
-        nodes['filter.ctx.radio.all'] = 'filter.ctx.radio.all'
-        nodes['filter.ctx.radio.pinned'] = 'filter.ctx.radio.pinned'
-        nodes['filter.ctx.radio.indexed'] = 'filter.ctx.radio.indexed'
-        nodes['filter.ctx.counters.all'] = 'filter.ctx.counters.all'
 
         # context
         nodes['ctx.label'] = 'ctx.list.label'
@@ -319,7 +311,6 @@ class Mapping:
 
         # help tips
         nodes['tip.output.tab.files'] = 'tip.output.tab.files'
-        nodes['tip.output.tab.calendar'] = 'tip.output.tab.calendar'
         nodes['tip.output.tab.notepad'] = 'tip.output.tab.notepad'
         nodes['tip.input.attachments'] = 'tip.input.attachments'
         nodes['tip.input.attachments.uploaded'] = 'tip.input.attachments.uploaded'

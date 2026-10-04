@@ -6,33 +6,29 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 13:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
+"""Selection and navigation for one independent calendar frontend."""
+from .editor import NoteEditor
+from .counters import Counters
 
-from pygpt_net.core.tabs.tab import Tab
-
-from .note import Note
-
-
-class Calendar:
-    def __init__(self, window=None):
-        """
-        Calendar controller
-
-        :param window: Window instance
-        """
-        self.window = window
-        self.note = Note(window)
-        self.selected_year = None
-        self.selected_month = None
-        self.selected_day = None
+class Session:
+    def __init__(self, tool):
+        self.tool = tool
+        self.window = tool.window
+        self.widgets = {}
+        self.note = NoteEditor(self)
+        self.counters = Counters(self)
+        self.selected_year = self.selected_month = self.selected_day = None
+        self.widget = None
+        self.closed = False
 
     def setup(self):
         """Setup calendar"""
-        self.note.setup()
         self.load()
         self.update()  # update counters and load notes for current month
         self.set_current()  # set to current note at start
+
 
     def is_loaded(self) -> bool:
         """
@@ -40,7 +36,8 @@ class Calendar:
 
         :return: True if calendar is loaded
         """
-        return hasattr(self.window.ui, 'calendar') and "select" in self.window.ui.calendar
+        return not self.closed and 'select' in self.widgets
+
 
     def update(self, all: bool = True):
         """
@@ -50,21 +47,24 @@ class Calendar:
         """
         if not self.is_loaded():
             return
-        year = self.window.ui.calendar['select'].currentYear
-        month = self.window.ui.calendar['select'].currentMonth
+        year = self.widgets['select'].currentYear
+        month = self.widgets['select'].currentMonth
         self.on_page_changed(year, month, all=all)  # load notes for current month
+
 
     def update_ctx_counters(self):
         """Update context counters only"""
-        year = self.window.ui.calendar['select'].currentYear
-        month = self.window.ui.calendar['select'].currentMonth
-        self.note.refresh_ctx(year, month)
+        year = self.widgets['select'].currentYear
+        month = self.widgets['select'].currentMonth
+        self.counters.refresh_ctx(year, month)
+
 
     def set_current(self):
         """Set to current selected date"""
-        year = self.window.ui.calendar['select'].currentYear
-        month = self.window.ui.calendar['select'].currentMonth
-        day = self.window.ui.calendar['select'].currentDay
+        date = self.widgets['select'].selectedDate()
+        year = self.selected_year if self.selected_year is not None else date.year()
+        month = self.selected_month if self.selected_month is not None else date.month()
+        day = self.selected_day if self.selected_day is not None else date.day()
 
         self.note.update_content(year, month, day)
         self.note.update_label(year, month, day)
@@ -73,11 +73,13 @@ class Calendar:
         self.selected_month = month
         self.selected_day = day
 
+
     def load(self):
         """Load notes from current year and month from database"""
-        year = self.window.ui.calendar['select'].currentYear
-        month = self.window.ui.calendar['select'].currentMonth
-        self.window.core.calendar.load_by_month(year, month)
+        year = self.widgets['select'].currentYear
+        month = self.widgets['select'].currentMonth
+        self.tool.storage.load_by_month(year, month)
+
 
     def on_page_changed(
             self,
@@ -94,8 +96,9 @@ class Calendar:
         """
         if all:
             self.load()  # reload notes for current year and month
-        self.note.refresh_ctx(year, month)
-        self.note.refresh_num(year, month)
+        self.counters.refresh_ctx(year, month)
+        self.counters.refresh_num(year, month)
+
 
     def on_day_select(
             self,
@@ -116,6 +119,7 @@ class Calendar:
         self.note.update_content(year, month, day)
         self.note.update_label(year, month, day)
 
+
     def toggle_note_popup(
             self,
             year: int,
@@ -124,7 +128,7 @@ class Calendar:
             anchor_rect=None
     ):
         """Open, switch or close the floating day-note editor."""
-        popup = self.window.ui.calendar.get('note.popup')
+        popup = self.widgets.get('note.popup')
         if popup is None:
             return
 
@@ -146,17 +150,21 @@ class Calendar:
         popup.set_date(year, month, day)
 
         if anchor_rect is None:
-            select = self.window.ui.calendar.get('select')
+            select = self.widgets.get('select')
             if select is not None:
                 anchor_rect = select.get_cell_global_rect(year, month, day)
 
         popup.show_for(anchor_rect)
 
+
     def close_note_popup(self):
         """Close the floating day-note editor."""
-        popup = self.window.ui.calendar.get('note.popup')
+        if self.closed:
+            return
+        popup = self.widgets.get('note.popup')
         if popup is not None:
             popup.hide()
+
 
     def on_ctx_select(
             self,
@@ -177,18 +185,13 @@ class Calendar:
             toggle.setChecked(True)
         self.window.controller.ctx.append_search_string(search_string)
 
-    def save_all(self):
-        """Save all calendar notes"""
-        self.window.core.calendar.save_all()
 
-    def is_active(self) -> bool:
-        """
-        Check if calendar tab is active
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+        self.widget.stop()
+        self.tool.unregister_surface(self)
+        if self in self.tool.sessions:
+            self.tool.sessions.remove(self)
 
-        :return: True if calendar tab is active
-        """
-        return self.window.controller.tabs.get_current_type() == Tab.TAB_TOOL_CALENDAR
-
-    def reload(self):
-        """Reload calendar"""
-        self.setup()

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.08.24 23:00:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from PySide6.QtWidgets import QWidget, QCheckBox, QHBoxLayout, QLabel
@@ -26,9 +26,9 @@ class ColorCheckbox(QWidget):
 
     def build(self):
         """Build color labels checkboxes"""
-        self.window.ui.nodes['filter.ctx.label.colors'] = QLabel(trans("filter.ctx.label.colors"))
+        self.label = QLabel(trans("filter.ctx.label.colors"))
         layout = QHBoxLayout()
-        layout.addWidget(self.window.ui.nodes['filter.ctx.label.colors'])
+        layout.addWidget(self.label)
         layout.setContentsMargins(0, 0, 0, 0)
         labels = self.window.controller.ui.get_colors()
         icon_size = 20
@@ -75,11 +75,8 @@ class ColorCheckbox(QWidget):
 
         :param selected: selected colors
         """
-        self.selected = selected
-        for idx in selected:
-            cb = self.boxes.get(idx)
-            if cb is not None:
-                prev = cb.blockSignals(True)
-                cb.setChecked(True)
-                cb.blockSignals(prev)
-        self.window.controller.ctx.label_filters_changed(self.selected)
+        self.selected = list(selected)
+        for idx, cb in self.boxes.items():
+            prev = cb.blockSignals(True)
+            cb.setChecked(idx in self.selected)
+            cb.blockSignals(prev)

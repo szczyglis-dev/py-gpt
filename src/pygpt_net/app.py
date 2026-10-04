@@ -390,6 +390,7 @@ def run(**kwargs):
         from pygpt_net.tools.audio_transcriber import AudioTranscriber as AudioTranscriberTool
         from pygpt_net.tools.code_interpreter import CodeInterpreter as CodeInterpreterTool
         from pygpt_net.tools.image_viewer import ImageViewer as ImageViewerTool
+        from pygpt_net.tools.calendar import Calendar as CalendarTool
         from pygpt_net.tools.notepad import Notepad as NotepadTool
         from pygpt_net.tools.files import Files as FilesTool
         from pygpt_net.tools.painter import Painter as PainterTool
@@ -606,6 +607,7 @@ def run(**kwargs):
         launcher.add_tool(CodeInterpreterTool())
         launcher.add_tool(TranslatorTool())
         launcher.add_tool(WebBrowserTool())
+        launcher.add_tool(CalendarTool())
         launcher.add_tool(AgentBuilderTool())
         launcher.add_tool(AgentWorkflowTool())
 

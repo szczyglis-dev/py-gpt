@@ -99,7 +99,8 @@ def test_ctx_common_restore_filters_labels_restores_saved_values():
     common.restore_filters_labels()
 
     assert common.window.core.ctx.filters_labels == ["red", "blue"]
-    common.window.ui.nodes["filter.ctx.labels"].restore.assert_called_once_with(["red", "blue"])
+    common.window.controller.ctx.label_filters_changed.assert_called_once_with(["red", "blue"])
+    common.window.tools.get("calendar").refresh.assert_called_once_with()
 
 
 def test_ctx_common_copy_id_uses_clipboard_without_real_qt_clipboard():

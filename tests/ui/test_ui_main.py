@@ -135,7 +135,7 @@ def test_shutdown_runs_all_persistence_and_stops_timers():
     w.controller.ctx.save_all.assert_called_once_with()
     w.core.tabs.save.assert_called_once_with()
     w.tools.get("notepad").documents.save_all.assert_called_once_with()
-    w.controller.calendar.save_all.assert_called_once_with()
+    w.tools.on_exit.assert_called_once_with()
     w.controller.plugins.save_all.assert_called_once_with()
     w.tools.on_exit.assert_called_once_with()
     w.controller.kernel.close_clients.assert_called_once_with()

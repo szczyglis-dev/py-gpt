@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 from PySide6.QtCore import QDate
 from PySide6.QtGui import QColor
 
-from pygpt_net.ui.widget.calendar.select import CalendarSelect
+from pygpt_net.tools.calendar.ui.select import CalendarSelect
 
 
 def test_set_tab_and_page_change_update_state_and_controller():
@@ -13,7 +13,7 @@ def test_set_tab_and_page_change_update_state_and_controller():
         tab=None,
         currentYear=0,
         currentMonth=0,
-        window=window,
+        window=window, session=window.calendar_session,
         _cell_rects={},
         _note_marker_rects={},
     )
@@ -24,7 +24,7 @@ def test_set_tab_and_page_change_update_state_and_controller():
 
     assert widget.tab is tab
     assert (widget.currentYear, widget.currentMonth) == (2026, 9)
-    window.controller.calendar.on_page_changed.assert_called_once_with(2026, 9)
+    window.calendar_session.on_page_changed.assert_called_once_with(2026, 9)
 
 
 def test_calendar_color_properties_update_cached_values_and_cells():
@@ -46,7 +46,7 @@ def test_get_color_for_status_uses_mapping_or_defaults():
     mapped_font = QColor(4, 5, 6)
     window = MagicMock()
     window.controller.ui.get_colors.return_value = {2: {"color": mapped_bg, "font": mapped_font}}
-    widget = SimpleNamespace(window=window, _default_status_bg="bg", _default_status_font="font")
+    widget = SimpleNamespace(window=window, session=window.calendar_session, _default_status_bg="bg", _default_status_font="font")
 
     assert CalendarSelect.get_color_for_status(widget, 2) == (mapped_bg, mapped_font)
     assert CalendarSelect.get_color_for_status(widget, 99) == ("bg", "font")
@@ -55,13 +55,13 @@ def test_get_color_for_status_uses_mapping_or_defaults():
 def test_day_click_updates_date_and_dispatches_selection_and_focus():
     date = QDate(2026, 9, 7)
     window = MagicMock()
-    widget = SimpleNamespace(currentYear=0, currentMonth=0, currentDay=0, window=window, tab=SimpleNamespace(column_idx=3))
+    widget = SimpleNamespace(currentYear=0, currentMonth=0, currentDay=0, window=window, session=window.calendar_session, tab=SimpleNamespace(column_idx=3))
 
     CalendarSelect.on_day_clicked(widget, date)
 
     assert (widget.currentYear, widget.currentMonth, widget.currentDay) == (2026, 9, 7)
-    window.controller.calendar.on_day_select.assert_called_once_with(2026, 9, 7)
-    window.controller.calendar.on_ctx_select.assert_not_called()
+    window.calendar_session.on_day_select.assert_called_once_with(2026, 9, 7)
+    window.calendar_session.on_ctx_select.assert_not_called()
     window.controller.tabs.on_column_focus.assert_called_once_with(3)
 
 
@@ -90,13 +90,13 @@ def test_update_ctx_and_notes_parse_iso_dates_without_local_timezone_dependency(
 def test_execute_action_and_set_label_for_day_use_explicit_date_parts():
     date = QDate(2026, 9, 7)
     window = MagicMock()
-    widget = SimpleNamespace(window=window)
+    widget = SimpleNamespace(window=window, session=window.calendar_session)
 
     CalendarSelect.execute_action(widget, date)
     CalendarSelect.set_label_for_day(widget, date, 4)
 
-    window.controller.calendar.on_ctx_select.assert_called_once_with(2026, 9, 7)
-    window.controller.calendar.note.update_status.assert_called_once_with(4, 2026, 9, 7)
+    window.calendar_session.on_ctx_select.assert_called_once_with(2026, 9, 7)
+    window.calendar_session.note.update_status.assert_called_once_with(4, 2026, 9, 7)
 
 
 def test_context_menu_event_delegates_position():

@@ -416,8 +416,6 @@ class MainWindow(QMainWindow, QtStyleTools):
         self.core.tabs.save()
         print("Saving notepad...")
         self.tools.get("notepad").documents.save_all()
-        print("Saving calendar...")
-        self.controller.calendar.save_all()
         print("Saving plugins config...")
         self.controller.plugins.save_all()
         print("Saving tools...")

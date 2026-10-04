@@ -202,7 +202,7 @@ class Ctx:
             self.window.core.config.save()
 
         self.window.core.tabs.refresh_chat_icons()
-        self.window.controller.calendar.update(all=False)
+        self.window.tools.get("calendar").refresh()
         self.window.controller.chat.attachment.update()
 
     def select(

@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 
 from packaging.version import Version
 
-import pygpt_net.core.calendar.calendar as mod
-from pygpt_net.core.calendar.calendar import Calendar
+import pygpt_net.tools.calendar.core.storage as mod
+from pygpt_net.tools.calendar.core.storage import Storage
 from pygpt_net.item.calendar_note import CalendarNoteItem
 
 
@@ -21,8 +21,10 @@ class FixedDateTime(dt.datetime):
 
 
 def make_calendar():
-    calendar = Calendar.__new__(Calendar)
-    calendar.window = SimpleNamespace()
+    calendar = Storage.__new__(Storage)
+    database = object()
+    calendar.window = SimpleNamespace(core=SimpleNamespace(db=SimpleNamespace(get_db=lambda: database)))
+    calendar._database = database
     calendar.provider = MagicMock()
     calendar.items = {}
     return calendar
@@ -127,18 +129,17 @@ def test_remove_load_collections_and_existence_delegation():
     assert calendar.items == {"a": 1}
     calendar.provider.load_by_month.return_value = {"b": 2}
     calendar.load_by_month(2025, 1)
-    assert calendar.items == {"b": 2}
+    assert calendar.items == {"a": 1, "b": 2}
     calendar.provider.get_notes_existence_by_day.return_value = {"days": {1: 1}}
     assert calendar.get_notes_existence_by_day(2025, 1) == {"days": {1: 1}}
 
 
-def test_save_returns_false_for_missing_and_current_production_result_for_existing():
+def test_save_returns_false_for_missing_and_true_after_saving_existing():
     calendar = make_calendar()
     assert calendar.save(2025, 1, 2) is False
     note = make_note()
     calendar.items["2025-01-02"] = note
-    # Production currently returns False even after a successful provider.save; keep the contract explicit.
-    assert calendar.save(2025, 1, 2) is False
+    assert calendar.save(2025, 1, 2) is True
     calendar.provider.save.assert_called_once_with(note)
 
 

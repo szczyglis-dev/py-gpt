@@ -199,11 +199,11 @@ class Control:
             if event.data is not None and "params" in event.data:
                 msg = event.data["params"]
                 if msg != "":
-                    self.window.controller.calendar.note.append_text(msg)
+                    self.window.tools.get("calendar").resolve_surface(create=True).note.append_text(msg)
                     self.handle_result(event, True)
         elif event.name == ControlEvent.CALENDAR_CLEAR:
             if force:
-                self.window.controller.calendar.note.clear_note()
+                self.window.tools.get("calendar").resolve_surface(create=True).note.clear_note()
                 self.handle_result(event, True)
             else:
                 self.last_confirm = event
@@ -212,7 +212,7 @@ class Control:
                     event,
                 )
         elif event.name == ControlEvent.CALENDAR_READ:
-            text = self.window.controller.calendar.note.get_note_text()
+            text = self.window.tools.get("calendar").resolve_surface(create=True).note.get_note_text()
             self.window.controller.audio.play_event(
                 text,
                 event,
@@ -256,7 +256,7 @@ class Control:
         elif event.name == ControlEvent.TAB_FILES:
             self.window.tools.get("files").open_tab()
         elif event.name == ControlEvent.TAB_CALENDAR:
-            self.window.controller.tabs.switch_tab(Tab.TAB_TOOL_CALENDAR)
+            self.window.tools.get("calendar").open_tab()
         elif event.name == ControlEvent.TAB_DRAW:
             self.window.tools.get("painter").open_tab()
 

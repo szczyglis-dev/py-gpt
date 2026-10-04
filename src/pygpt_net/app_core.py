@@ -20,7 +20,6 @@ from .core.attachments import Attachments
 from .core.audio import Audio
 from .core.bridge import Bridge
 from .core.banners import Banners
-from .core.calendar import Calendar
 from .core.camera import Camera
 # from .core.chain import Chain
 from .core.command import Command
@@ -77,7 +76,6 @@ class Core:
         self.attachments = Attachments(window)
         self.audio = Audio(window)
         self.bridge = Bridge(window)
-        self.calendar = Calendar(window)
         self.camera = Camera(window)
         # self.chain = Chain(window)  # deprecated from v2.5.20
         self.command = Command(window)

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 19:30:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from datetime import datetime
@@ -98,7 +98,7 @@ class Plugin(BasePlugin):
     @Slot()
     def handle_updated(self):
         """Handle updated signal."""
-        self.window.controller.calendar.setup()
+        self.window.tools.get("calendar").on_reload()
 
     def cmd(self, ctx: CtxItem, cmds: list):
         """Events: CMD_EXECUTE."""
@@ -129,19 +129,19 @@ class Plugin(BasePlugin):
 
     def get_day_note(self, year: int, month: int, day: int) -> str:
         """Get day note."""
-        return self.window.core.calendar.load_note(year, month, day)
+        return self.window.tools.get("calendar").storage.load_note(year, month, day)
 
     def add_day_note(self, year: int, month: int, day: int, note: str) -> bool:
         """Add day note."""
-        return self.window.core.calendar.append_to_note(year, month, day, note)
+        return self.window.tools.get("calendar").storage.append_to_note(year, month, day, note)
 
     def update_day_note(self, year: int, month: int, day: int, note: str) -> bool:
         """Update day note."""
-        return self.window.core.calendar.update_note(year, month, day, note)
+        return self.window.tools.get("calendar").storage.update_note(year, month, day, note)
 
     def remove_day_note(self, year: int, month: int, day: int) -> bool:
         """Remove day note."""
-        return self.window.core.calendar.remove_note(year, month, day)
+        return self.window.tools.get("calendar").storage.remove_note(year, month, day)
 
     def get_list(self, range: str) -> list:
         """Get context list in date range."""

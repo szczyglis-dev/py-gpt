@@ -59,7 +59,7 @@ class Settings:
         self.window.core.config.save()
         self.window.core.presets.save_all()
         self.window.tools.get("notepad").documents.save_all()
-        self.window.controller.calendar.save_all()
+        self.window.tools.get("calendar").storage.save_all()
         self.window.tools.get("painter").storage.save()
         if not force:
             self.window.ui.dialogs.alert(info)

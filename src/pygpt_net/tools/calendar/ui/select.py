@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.26 21:15:00                  #
+# Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
 from typing import Tuple
@@ -19,56 +19,19 @@ from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.utils import trans
 
 
-class CalendarViewDelegate(QStyledItemDelegate):
-    """Keep Qt's calendar delegate and add the current-weekday header background."""
-
-    def __init__(self, calendar, base_delegate, parent=None):
-        super().__init__(parent)
-        self.calendar = calendar
-        self.base_delegate = base_delegate
-
-    def paint(self, painter, option, index):
-        # Preserve the native/private QCalendarWidget rendering for every item.
-        self.base_delegate.paint(painter, option, index)
-
-        if not self.calendar.is_today_weekday_header(index):
-            return
-
-        color = self.calendar.get_hover_day_background_color()
-        if not color.isValid() or color.alpha() == 0:
-            return
-
-        # QTextCharFormat background on weekday headers is not reliably painted
-        # by QCalendarWidget (notably with stylesheets). Paint only this header
-        # cell explicitly, then redraw its text so all other calendar rendering
-        # remains untouched.
-        painter.save()
-        painter.fillRect(option.rect, color)
-
-        font = QFont(option.font)
-        if self.calendar.get_header_font_bold():
-            font.setBold(True)
-        painter.setFont(font)
-        painter.setPen(option.palette.color(QPalette.ColorRole.Text))
-
-        text = index.data(Qt.ItemDataRole.DisplayRole)
-        if text is not None:
-            painter.drawText(option.rect, Qt.AlignmentFlag.AlignCenter, str(text))
-        painter.restore()
-
-    def sizeHint(self, option, index):
-        return self.base_delegate.sizeHint(option, index)
+from .delegate import CalendarViewDelegate
 
 
 class CalendarSelect(QCalendarWidget):
-    def __init__(self, window=None):
+    def __init__(self, session):
         """
         Calendar select widget
 
         :param window: main window
         """
-        super().__init__(window)
-        self.window = window
+        super().__init__()
+        self.session = session
+        self.window = session.window
         self._today_background_color = QColor()
         self._today_text_color = QColor()
         self._today_font_bold = False
@@ -352,7 +315,7 @@ class CalendarSelect(QCalendarWidget):
                     pos = event.pos()
                 date = self._date_at_viewport_pos(pos)
                 if date is not None and self.counters['notes'].get(date):
-                    preview = self.window.controller.calendar.note.get_preview(
+                    preview = self.session.note.get_preview(
                         date.year(),
                         date.month(),
                         date.day(),
@@ -381,7 +344,7 @@ class CalendarSelect(QCalendarWidget):
                     pos = event.pos()
                 date = self._date_at_viewport_pos(pos)
                 if date is not None:
-                    popup = self.window.ui.calendar.get('note.popup')
+                    popup = self.session.widgets.get('note.popup')
                     marker_rect = self._note_marker_rects.get(date)
                     marker_clicked = marker_rect is not None and marker_rect.contains(pos)
 
@@ -393,7 +356,7 @@ class CalendarSelect(QCalendarWidget):
                         self.currentYear = date.year()
                         self.currentMonth = date.month()
                         self.currentDay = date.day()
-                        self.window.controller.calendar.toggle_note_popup(
+                        self.session.toggle_note_popup(
                             date.year(),
                             date.month(),
                             date.day(),
@@ -434,7 +397,7 @@ class CalendarSelect(QCalendarWidget):
         self.currentMonth = month
         self._cell_rects.clear()
         self._note_marker_rects.clear()
-        self.window.controller.calendar.on_page_changed(year, month)
+        self.session.on_page_changed(year, month)
 
     def paintCell(self, painter, rect, date: QDate):
         """
@@ -630,7 +593,7 @@ class CalendarSelect(QCalendarWidget):
         self.currentYear = year
         self.currentMonth = month
         self.currentDay = day
-        self.window.controller.calendar.on_day_select(year, month, day)
+        self.session.on_day_select(year, month, day)
 
         if self.tab is not None:
             col_idx = self.tab.column_idx
@@ -693,7 +656,7 @@ class CalendarSelect(QCalendarWidget):
 
         note_action = QAction(QIcon(":/icons/edit.svg"), trans('calendar.note.edit'), self)
         note_action.triggered.connect(
-            lambda checked=False, date=selected_date: self.window.controller.calendar.toggle_note_popup(
+            lambda checked=False, date=selected_date: self.session.toggle_note_popup(
                 date.year(),
                 date.month(),
                 date.day(),
@@ -735,7 +698,7 @@ class CalendarSelect(QCalendarWidget):
         year = date.year()
         month = date.month()
         day = date.day()
-        self.window.controller.calendar.on_ctx_select(
+        self.session.on_ctx_select(
             year,
             month,
             day,
@@ -756,7 +719,7 @@ class CalendarSelect(QCalendarWidget):
         :param date: date
         :param status_id: status id
         """
-        self.window.controller.calendar.note.update_status(
+        self.session.note.update_status(
             status_id,
             date.year(),
             date.month(),

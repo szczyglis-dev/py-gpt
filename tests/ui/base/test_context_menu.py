@@ -48,7 +48,7 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
     controller.tabs.get_tabs_by_tool.return_value = tabs
     window = SimpleNamespace(
         controller=controller,
-        tools={"interpreter": interpreter, "translator": translator, "notepad": MagicMock()},
+        tools={"interpreter": interpreter, "translator": translator, "notepad": MagicMock(), "calendar": MagicMock()},
         core=SimpleNamespace(tabs=core_tabs),
     )
 
@@ -61,7 +61,7 @@ def test_copy_to_menu_routes_to_all_available_targets(qapp):
         action.trigger()
 
     controller.chat.common.append_to_input.assert_called_once_with("hello")
-    controller.calendar.note.append_text_today.assert_called_once_with("hello")
+    window.tools["calendar"].notes.append_today.assert_called_once_with("hello")
     window.tools["notepad"].documents.append.assert_any_call("hello", "a")
     window.tools["notepad"].documents.append.assert_any_call("hello", "b")
     interpreter.append_to_input.assert_called_once_with("hello")

@@ -33,7 +33,7 @@ def test_tools_get_tab_tools_returns_controller_mapping():
 
     assert result is tools.tab_tools
     assert "tools.files" not in result
-    assert "tools.calendar" in result
+    assert "tools.calendar" not in result
     assert "tools.notepad" not in result
     assert "tools.painter" not in result
 
