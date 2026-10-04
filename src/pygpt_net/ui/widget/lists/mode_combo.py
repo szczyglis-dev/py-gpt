@@ -34,10 +34,12 @@ class ModePopupCombo(SeparatorComboBox):
         # Keep the selector width as a minimum; let QMenu measure translated
         # labels and styled padding so longer mode names remain fully visible.
         menu.setMinimumWidth(self.width())
-        # Checked state supplies the current-row background; no indicator is drawn.
+        # Checked state supplies the row background; hide the complete indicator,
+        # including the border inherited from light themes (otherwise a dot remains).
         menu.setStyleSheet('QMenu#modeSelectorMenu { margin: 0; padding: 0; }'
-                           'QMenu#modeSelectorMenu::item { padding: 4px 24px 4px 10px; min-height: 0; }'
-                           'QMenu#modeSelectorMenu::indicator { width: 0; height: 0; image: none; }'
+                           'QMenu#modeSelectorMenu::item { padding: 2px 24px 2px 10px; min-height: 0; }'
+                           'QMenu#modeSelectorMenu::indicator { width: 0; height: 0; image: none;'
+                           ' border: none; background-color: transparent; padding: 0; margin: 0; }'
                            'QMenu#modeSelectorMenu::item:checked {'
                            ' background-color: rgba(128, 128, 128, 24); }')
         for index in range(self.count()):
@@ -50,6 +52,9 @@ class ModePopupCombo(SeparatorComboBox):
             if enabled:
                 action.setCheckable(True)
                 action.setChecked(index == self.currentIndex())
+                font = action.font()
+                font.setBold(index == self.currentIndex())
+                action.setFont(font)
                 action.triggered.connect(lambda checked=False, row=index: self.setCurrentIndex(row))
             else:
                 font = action.font()

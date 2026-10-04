@@ -265,12 +265,28 @@ class Theme:
             if os.path.isfile(path):
                 content_parts.append(self._read_file(path))
 
+        # Idle arrows follow the theme; highlighted rows use black arrows.
+        arrow_theme = "light" if is_light else "dark"
+        content_parts.append(
+            "QMenu::right-arrow { "
+            f"image: url(:/icons/menu_arrow_{arrow_theme}.svg); "
+            "}"
+            "QMenu::right-arrow:selected, QMenu::right-arrow:hover, "
+            "QMenu::right-arrow:pressed { image: url(:/icons/menu_arrow_light.svg); }"
+        )
+
         content = "".join(part for part in content_parts if part)
         if content:
             stylesheet = window.styleSheet()
             window.setStyleSheet(stylesheet + self.common.format_css(
                 content, self.common.get_css_variables(name)
             ))
+
+        # Refresh profile tooltip colors directly; menu-bar style events are
+        # not guaranteed when switching the application stylesheet at runtime.
+        chrome = getattr(window, "window_chrome", None)
+        if chrome is not None:
+            chrome.refresh_metadata()
 
     @staticmethod
     def _file_signature(path: str):

@@ -30,6 +30,7 @@ class TerminalWidget(QAbstractScrollArea):
         self.screen = None
         self.offset = 0
         self.error = ''
+        self.apply_theme()
         self.setFocusPolicy(Qt.StrongFocus)
         self.setAttribute(Qt.WA_InputMethodEnabled)
         self.viewport().setFocusProxy(self)
@@ -151,12 +152,21 @@ class TerminalWidget(QAbstractScrollArea):
 
     def color(self, value, foreground=True):
         if value == 'default':
-            return QColor('#eeeeee' if foreground else '#171717')
+            return self.foreground if foreground else self.background
         return QColor(self.colors.get(value, '#' + value))
+
+    def apply_theme(self):
+        window = getattr(self.tool, 'window', None)
+        common = getattr(getattr(getattr(window, 'controller', None), 'theme', None), 'common', None)
+        light = common is not None and common.is_light_theme_id(window.core.config.get('theme'))
+        self.foreground = QColor('#000000' if light else '#eeeeee')
+        self.background = QColor('#ffffff' if light else '#171717')
+        self.error_color = QColor('#b00020' if light else '#ff8080')
+        self.viewport().update()
 
     def paintEvent(self, event):
         painter = QPainter(self.viewport())
-        painter.fillRect(self.viewport().rect(), QColor('#171717'))
+        painter.fillRect(self.viewport().rect(), self.background)
         fm = self.metrics
         width, height = self.cell_width, self.cell_height
         painter.translate(self.padding, self.padding)
@@ -167,18 +177,19 @@ class TerminalWidget(QAbstractScrollArea):
             for x in range(self.screen.columns):
                 cell = line[x]
                 foreground, background = cell.fg, cell.bg
-                if cell.reverse:
-                    foreground, background = background, foreground
                 selected = self.is_selected(y, x)
-                key = (foreground, background, cell.bold, cell.italics, cell.underscore, selected)
+                key = (foreground, background, cell.bold, cell.italics, cell.underscore, selected, cell.reverse)
                 if runs and runs[-1][1] == key:
                     runs[-1][2].append(cell.data)
                 else:
                     runs.append((x, key, [cell.data]))
             for x, key, characters in runs:
-                foreground, background, bold, italic, underline, selected = key
-                fg = QColor('#ffffff') if selected else self.color(foreground)
-                bg = QColor('#365b80') if selected else self.color(background, False)
+                foreground, background, bold, italic, underline, selected, reverse = key
+                fg, bg = self.color(foreground), self.color(background, False)
+                if reverse:
+                    fg, bg = bg, fg
+                if selected:
+                    fg, bg = QColor('#ffffff'), QColor('#365b80')
                 style = (bold, italic, underline)
                 font = self.font_cache.get(style)
                 if font is None:
@@ -192,14 +203,14 @@ class TerminalWidget(QAbstractScrollArea):
                 painter.setPen(fg)
                 painter.drawText(round(x * width), round(y * height + fm.ascent() + 1), ''.join(characters))
         if self.screen is not None and self.hasFocus() and not self.offset and not self.screen.cursor.hidden and self.cursor_visible:
-            painter.setPen(QColor('#eeeeee'))
+            painter.setPen(self.foreground)
             x, y = self.screen.cursor.x, self.screen.cursor.y
-            painter.fillRect(round(x * width), y * height, math.ceil(width), height, QColor('#eeeeee'))
+            painter.fillRect(round(x * width), y * height, math.ceil(width), height, self.foreground)
             painter.setFont(self.terminal_font)
-            painter.setPen(QColor('#171717'))
+            painter.setPen(self.background)
             painter.drawText(round(x * width), round(y * height + fm.ascent() + 1), self.screen.buffer[y][x].data)
         if self.error:
-            painter.setPen(QColor('#ff8080'))
+            painter.setPen(self.error_color)
             painter.setFont(self.terminal_font)
             painter.drawText(0, round(self.viewport().height() - 2 * self.padding - fm.descent()), self.error)
 

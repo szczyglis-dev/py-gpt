@@ -272,12 +272,17 @@ class WindowChrome(QObject):
         # that margin changes both the apparent top offset and usable text
         # width between themes. Keep their box metrics theme-independent while
         # still inheriting the theme's .label-help text color.
-        label.setStyleSheet("margin: 0px; padding: 0px; background: transparent;")
+        label.setStyleSheet(f"QLabel#{object_name} {{ margin: 0px; padding: 0px; background: transparent; }}")
         return label
 
     def refresh_metadata(self):
         """Refresh current profile metadata in the title bar."""
         if self.profile_label is not None:
+            style = "QLabel#windowProfileLabel { margin: 0px; padding: 0px; background: transparent; }"
+            if self.window.controller.theme.common.is_light_theme_id(self.window.core.config.get('theme')):
+                style += " QToolTip { background-color: #ffffff; color: #000000; border: 1px solid #cccccc; padding: 4px; }"
+            if self.profile_label.styleSheet() != style:
+                self.profile_label.setStyleSheet(style)
             try:
                 name = self.window.core.config.profile.get_current_name()
             except (AttributeError, RuntimeError):

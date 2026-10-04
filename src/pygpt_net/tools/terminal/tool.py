@@ -77,8 +77,9 @@ class Terminal(BaseTool):
 
     def setup_theme(self):
         size = self.window.core.config.get('terminal.font_size', self.window.core.config.get('font_size'))
-        if isinstance(size, (int, float)):
-            for widget in self.widgets:
+        for widget in self.widgets:
+            widget.apply_theme()
+            if isinstance(size, (int, float)):
                 widget.apply_font(size)
 
     def on_exit(self):

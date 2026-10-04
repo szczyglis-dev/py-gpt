@@ -78,8 +78,10 @@ def test_apply(mock_window):
     mock_window.core.config.data['theme'] = 'light'
     theme = Theme(mock_window)
     mock_window.apply_stylesheet = MagicMock()
+    mock_window.window_chrome = MagicMock()
     theme.apply()
     mock_window.apply_stylesheet.assert_called()
+    mock_window.window_chrome.refresh_metadata.assert_called_once_with()
 
 
 def test_style(mock_window):

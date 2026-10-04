@@ -184,5 +184,7 @@
         <file alias="work.svg">data/icons/work.svg</file>
         <file alias="zoom_in.svg">data/icons/zoom_in.svg</file>
         <file alias="zoom_out.svg">data/icons/zoom_out.svg</file>
+        <file alias="menu_arrow_light.svg">data/icons/menu_arrow_light.svg</file>
+        <file alias="menu_arrow_dark.svg">data/icons/menu_arrow_dark.svg</file>
     </qresource>
 </RCC>

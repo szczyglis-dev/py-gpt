@@ -388,3 +388,42 @@ def test_reflow_rewraps_history_and_preserves_hard_line_breaks_and_colors():
         screen.resize(lines=8, columns=width)
     assert screen.display[:4] == original
     assert screen.cursor.y == 3 and screen.cursor.x == 4
+
+
+def test_light_theme_defaults_and_live_switch_preserve_terminal_state(qapp):
+    from pygpt_net.tools.terminal.ui.widget import TerminalWidget
+    theme = {'name': 'light'}
+    window = SimpleNamespace(
+        core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None:
+            theme['name'] if key == 'theme' else default)),
+        controller=SimpleNamespace(theme=SimpleNamespace(common=SimpleNamespace(
+            is_light_theme_id=lambda value: value == 'light'))),
+    )
+    widget = TerminalWidget(SimpleNamespace(window=window))
+    widget.timer.stop()
+    try:
+        screen = widget.screen = object()
+        assert widget.color('default').name() == '#000000'
+        assert widget.color('default', False).name() == '#ffffff'
+        assert widget.color('red').name() == '#cd3131'
+        assert widget.color('12ab34').name() == '#12ab34'
+        theme['name'] = 'dark'
+        widget.apply_theme()
+        assert widget.color('default').name() == '#eeeeee'
+        assert widget.color('default', False).name() == '#171717'
+        assert widget.screen is screen
+    finally:
+        widget.cursor_timer.stop()
+        widget.resize_timer.stop()
+        widget.deleteLater()
+
+
+def test_tool_theme_refreshes_colors_even_without_font_size():
+    from unittest.mock import Mock
+    widget = Mock()
+    tool = Terminal()
+    tool.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda *args: None)))
+    tool.widgets = [widget]
+    tool.setup_theme()
+    widget.apply_theme.assert_called_once_with()
+    widget.apply_font.assert_not_called()

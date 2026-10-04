@@ -18,10 +18,18 @@ def test_mode_popup_without_radio_or_search(qapp, monkeypatch):
     assert menu.width() == combo.width()
     assert choices[0].isChecked()
     assert not choices[1].isChecked()
-    assert "width: 0; height: 0; image: none" in menu.styleSheet()
+    assert 'border: none; background-color: transparent' in menu.styleSheet()
+    assert choices[0].font().bold()
+    assert not choices[1].font().bold()
     choices[1].trigger()
     assert combo.currentData() == 'agent'
     combo.hidePopup()
     menu.aboutToHide.emit()
     assert combo._popup_menu is None
+    combo.showPopup()
+    choices = [action for action in combo._popup_menu.actions()
+               if action.isEnabled() and not action.isSeparator()]
+    assert not choices[0].font().bold()
+    assert choices[1].font().bold()
+    combo._popup_menu.aboutToHide.emit()
     combo.close()
