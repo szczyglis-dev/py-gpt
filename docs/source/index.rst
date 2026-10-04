@@ -6,7 +6,7 @@
 PyGPT - pygpt.net
 ====================
 
-| **Release:** 2.8.38 (2026-10-03)
+| **Release:** 2.9.0 (2026-10-04)
 | **Official Website:** https://pygpt.net
 | **GitHub:** https://github.com/szczyglis-dev/py-gpt
 | **Add-ons:** https://github.com/szczyglis-dev/py-gpt-addons

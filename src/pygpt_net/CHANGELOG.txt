@@ -1,3 +1,17 @@
+2.9.0 (2026-10-04)
+
+ - Modernized the layout: moved the toolbox to the left, hidden it by default, and added a dynamic right column.
+- Added a toolbar on the left.
+- Added a new Terminal tool.
+- Added pending input submission during generation, with interruption and continuation of active turns.
+- Refined agent instructions, execution workflows, and progress reporting.
+- Improved UI and UX.
+- Simplified attachment uploads.
+- Refactored the tools core.
+- Improved tab management and added support for opening new browser tabs.
+- Optimized layout updates.
+- Added many other improvements and fixes.
+
 2.8.38 (2026-10-03)
 
 - Improved attachment handling and attachments display.

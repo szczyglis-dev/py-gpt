@@ -19,9 +19,10 @@ def _body(syntax="default", blocks=True, edit_icons=True, style="blocks"):
     body = Body.__new__(Body)
     body.window = SimpleNamespace(
         core=SimpleNamespace(config=config),
-        controller=SimpleNamespace(theme=SimpleNamespace(markdown=markdown)),
+        controller=SimpleNamespace(theme=SimpleNamespace(markdown=markdown, is_dark_theme=MagicMock(return_value=False))),
     )
     body.highlight = MagicMock()
+    body.highlight.get_style.return_value = syntax
     body.highlight.get_style_defs.return_value = ".hljs{}"
     return body
 

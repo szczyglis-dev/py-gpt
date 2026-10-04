@@ -199,7 +199,7 @@ def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
     panel.viewer.highlighter.timer.stop()
     panel.viewer.highlighter.refresh()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
-    assert color.name() == '#6e6693'
+    assert color.name() == '#8000ff'
     panel.close()
     panel.deleteLater()
 

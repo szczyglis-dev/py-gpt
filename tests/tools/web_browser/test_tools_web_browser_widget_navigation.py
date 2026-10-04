@@ -15,6 +15,7 @@ def _widget():
     scroll.viewport.return_value = viewport
 
     tool = SimpleNamespace(
+        runtime_root=SimpleNamespace(release_runtime=MagicMock()),
         viewport=SimpleNamespace(
             detach_surface=MagicMock(),
             request_viewport_policy=MagicMock(),
@@ -62,13 +63,14 @@ def _widget():
     )
 
 
-def test_web_browser_widget_on_delete_disconnects_hooks_and_detaches_surface():
+def test_web_browser_widget_on_delete_disconnects_hooks_and_releases_runtime():
     obj = _widget()
 
     ToolWidget.on_delete(obj)
 
     obj._disconnect_viewport_hooks.assert_called_once_with()
-    obj.tool.viewport.detach_surface.assert_called_once_with(obj)
+    obj.tool.runtime_root.release_runtime.assert_called_once_with(obj.tool)
+    obj.tool.viewport.detach_surface.assert_not_called()
 
 
 def test_web_browser_widget_set_tab_and_open_url_use_persistent_runtime():
@@ -213,6 +215,7 @@ def test_canvas_tracks_clicks_in_replaced_render_children_without_consuming_inpu
     monkeypatch.setattr(widgets, 'BrowserOutput', lambda *args: QWidget())
     monkeypatch.setattr(widgets, 'SourceEditor', lambda tool, parent: QPlainTextEdit(parent))
     tool = MagicMock()
+    tool._closing = False
     viewport = widgets.BrowserViewport(tool=tool)
     renderer = RenderChild(viewport.web)
     renderer.resize(200, 100)
@@ -241,6 +244,7 @@ def test_canvas_sandbox_and_source_clicks_select_the_session(qapp, monkeypatch):
     monkeypatch.setattr(widgets, 'BrowserOutput', lambda *args: QWidget())
     monkeypatch.setattr(widgets, 'SourceEditor', lambda tool, parent: QPlainTextEdit(parent))
     tool = MagicMock()
+    tool._closing = False
     viewport = widgets.BrowserViewport(tool=tool)
     viewport.set_mode('playwright')
     tool.viewport.on_user_interaction.reset_mock()

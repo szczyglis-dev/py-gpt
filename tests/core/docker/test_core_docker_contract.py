@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 import pygpt_net.core.docker.docker as mod
-from pygpt_net.core.docker.docker import Docker, _normalize_dockerfile, get_sandbox_user_ids, migrate_default_dockerfile
+from pygpt_net.core.docker.docker import Docker, get_sandbox_user_ids
 
 
 def make_plugin(values=None, options=None):
@@ -27,33 +27,6 @@ def make_plugin(values=None, options=None):
         get_option_value=MagicMock(side_effect=lambda key: values.get(key)),
     )
     return plugin, config
-
-
-def test_normalize_dockerfile_dedents_strips_and_trims_lines():
-    raw = """
-        FROM python:3.12   
-        RUN echo hi    
-    """
-    assert _normalize_dockerfile(raw) == "FROM python:3.12\nRUN echo hi"
-    assert _normalize_dockerfile(None) == ""
-
-
-def test_migrate_default_dockerfile_only_when_unchanged():
-    plugin, config = make_plugin(
-        values={"dockerfile": "  FROM old  \n"},
-        options={"dockerfile": {"value": "old"}},
-    )
-    assert migrate_default_dockerfile(plugin, "dockerfile", "FROM old", "FROM new") is True
-    assert plugin.options["dockerfile"]["value"] == "FROM new"
-    config.update_plugin_config.assert_called_once_with("plugin-x", "dockerfile", "FROM new")
-    config.save.assert_called_once_with()
-
-    plugin, config = make_plugin(
-        values={"dockerfile": "FROM custom"},
-        options={"dockerfile": {"value": "custom"}},
-    )
-    assert migrate_default_dockerfile(plugin, "dockerfile", "FROM old", "FROM new") is False
-    config.update_plugin_config.assert_not_called()
 
 
 def test_get_sandbox_user_ids_linux_and_fallback(monkeypatch):

@@ -81,7 +81,7 @@
 
   <Fragment>
   <DirectoryRef Id="INSTALLDIR">
-    <Component Id="ApplicationComponent" Guid="F7FB8DC8-0C02-41F3-B9C3-A3EC9429D574">
+    <Component Id="ApplicationComponent" Guid="18458712-FA82-44B5-BE3C-EF5F673EA9D8">
       <!-- pygpt.exe is owned once, by the harvested PYGPTFiles component. -->
       <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="PyGPT - Desktop AI Assistant" Target="[INSTALLDIR]pygpt.exe" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" />
       <Shortcut Id="StartMenuShortcut" Directory="ApplicationProgramsFolder" Name="PyGPT - Desktop AI Assistant" Target="[INSTALLDIR]pygpt.exe" WorkingDirectory="INSTALLDIR" Icon="PyGPTIcon.ico" />

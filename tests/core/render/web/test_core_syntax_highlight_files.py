@@ -11,7 +11,10 @@ def make_highlighter(tmp_path, current="monokai"):
     (styles / "monokai.min.css").write_text("mono")
     (styles / "monokai.css").write_text("duplicate")
     config = SimpleNamespace(get_app_path=MagicMock(return_value=str(tmp_path)), get=MagicMock(return_value=current))
-    window = SimpleNamespace(core=SimpleNamespace(config=config))
+    window = SimpleNamespace(
+        core=SimpleNamespace(config=config),
+        controller=SimpleNamespace(theme=SimpleNamespace(is_dark_theme=MagicMock(return_value=True))),
+    )
     return SyntaxHighlight(window)
 
 
@@ -28,4 +31,4 @@ def test_style_exists_current_fallback_and_defs(tmp_path):
 
 def test_get_styles_deduplicates_minified_and_regular_names(tmp_path):
     h = make_highlighter(tmp_path)
-    assert h.get_styles() == ["default", "monokai"]
+    assert h.get_styles() == ["-", "default", "monokai"]

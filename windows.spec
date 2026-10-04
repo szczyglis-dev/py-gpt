@@ -47,6 +47,13 @@ def find_uv_binary():
 
 uv_bins = find_uv_binary()
 
+# pywinpty loads its console helpers next to its native extension. The
+# standard DLL scan misses these executables, leaving a PTY that immediately
+# reaches EOF in the frozen application.
+terminal_bins = collect_dynamic_libs(
+    'winpty', search_patterns=['*.dll', '*.exe'],
+)
+
 
 hiddenimports = [
     'chromadb.api.segment',
@@ -225,7 +232,7 @@ datas += [
 a = Analysis(
     [r'src\pygpt_net\app.py'],
     pathex=[r'src', r'src\pygpt_net'],
-    binaries=litellm_bins + debugpy_bins + uv_bins,
+    binaries=litellm_bins + debugpy_bins + uv_bins + terminal_bins,
     datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],

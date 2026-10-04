@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.8.38** | build: **2026-10-03** | Python: **>=3.10, <3.14**
+Release: **2.9.0** | build: **2026-10-04** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -25,6 +25,9 @@ Dark theme:
 
 Light theme:
 ![v2_light](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_light.png)
+
+Split-screen:
+![v2_main4](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_main4.png)
 
 You can download compiled 64-bit versions for Windows and Linux here: https://pygpt.net/#download
 
@@ -1982,6 +1985,7 @@ PyGPT features several useful tools, including:
 - OpenAI Vector Stores
 - Google Vector Stores
 - Python/OS
+- Terminal
 - HTML/JS Canvas (built-in HTML renderer)
 - Translator
 - Canvas
@@ -2049,6 +2053,14 @@ Remote vector stores management.
 This tool allows you to run Python code directly from within the app. It is integrated with the `Python interpreter` plugin. **Use IPython** selects IPython (default) or standard Python, while **Sandbox** selects host execution (**Disabled**), the **Built-in sandbox** based on a uv-managed CPython environment, or **Docker**. Docker provides the strongest isolation; the built-in sandbox separates the execution environment from PyGPT itself and does not require Docker, but it is not a filesystem/network security boundary. In Docker mode the active conversation data workdir is available as `/mnt/data`.
 
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
+
+## Terminal
+
+The built-in Terminal runs an interactive system shell directly in PyGPT. Open it from **Tools -> Terminal**, the left toolbar, or **[+] -> Add a new terminal**. Each terminal tab and the dialog have an independent session, starting in the active Files working directory. Linux and macOS use the user's shell; Windows uses PowerShell 7 when available, otherwise Command Prompt.
+
+The terminal supports ANSI colors, fullscreen text applications, text selection, resizing, and 2000 lines of scrollback. Use the mouse wheel or scrollbar to browse output, **Ctrl+Shift+C** to copy, **Ctrl+Shift+V** to paste, and **Ctrl+C** to interrupt the foreground command. **Ctrl+mouse wheel** and the context-menu **Zoom** submenu adjust the terminal font size independently of the text editors.
+
+Commands run locally with the permissions of the user running PyGPT. Closing a terminal tab or dialog ends its shell; restoring a saved layout starts a new session rather than resuming previous processes. Graphics protocols and terminal mouse reporting are not supported.
 
 ## HTML/JS Canvas
 
@@ -2507,6 +2519,20 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.9.0 (2026-10-04)**
+
+ - Modernized the layout: moved the toolbox to the left, hidden it by default, and added a dynamic right column.
+- Added a toolbar on the left.
+- Added a new Terminal tool.
+- Added pending input submission during generation, with interruption and continuation of active turns.
+- Refined agent instructions, execution workflows, and progress reporting.
+- Improved UI and UX.
+- Simplified attachment uploads.
+- Refactored the tools core.
+- Improved tab management and added support for opening new browser tabs.
+- Optimized layout updates.
+- Added many other improvements and fixes.
 
 **2.8.38 (2026-10-03)**
 

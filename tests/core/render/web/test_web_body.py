@@ -100,6 +100,7 @@ def test_prepare_styles():
     win = FakeWindow(config_data)
     b = Body(win)
     b.highlight.get_style_defs = lambda: "dummy-style"
+    b.highlight.get_style = lambda: config_data["render.code_syntax"]
     style = b.prepare_styles()
     assert "dummy-style" in style
     assert "pre { color: #fff; }" in style
@@ -108,6 +109,7 @@ def test_prepare_styles():
     win = FakeWindow(config_data)
     b = Body(win)
     b.highlight.get_style_defs = lambda: "dummy-style"
+    b.highlight.get_style = lambda: config_data["render.code_syntax"]
     style = b.prepare_styles()
     assert "pre { color: #000; }" in style
 

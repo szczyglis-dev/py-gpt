@@ -224,6 +224,9 @@ for pkg in [
     'chromadb.migrations', 'chromadb.telemetry',
     'chromadb.api', 'chromadb.db',
     'httpx', 'httpx_socks', 'nbconvert', 'aiosqlite',
+    # Terminal dependencies are imported lazily. These Unix packages are pure
+    # Python; include wcwidth's Unicode tables, with no winpty DLL/EXE helpers.
+    'pyte', 'ptyprocess', 'wcwidth',
     # OpenAI Agents SDK imports parts of the sandbox/runtime stack lazily.
     'agents',
     # Kernel modules are partly imported lazily/dynamically at runtime.

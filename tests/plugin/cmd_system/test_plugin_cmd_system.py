@@ -6,7 +6,6 @@ from pygpt_net.item.ctx import CtxItem
 from pygpt_net.plugin.cmd_system import Plugin
 from pygpt_net.plugin.cmd_system.output import Output
 from pygpt_net.plugin.cmd_system.worker import Worker
-from pygpt_net.plugin.cmd_system.sandbox import SandboxMode
 from tests.mocks import mock_window
 
 
@@ -17,16 +16,6 @@ def test_system_defaults_include_new_attach_output_option(mock_window):
     assert options["attach_output"]["value"] is True
     assert options["winapi_enabled"]["value"] is True
     assert plugin.has_cmd("sys_exec") is True
-
-
-def test_migrate_docker_defaults_delegates(mock_window):
-    plugin = Plugin(window=mock_window)
-    backend = plugin.execution.get_backend(SandboxMode.DOCKER)
-    backend.migrate_defaults = MagicMock(return_value=True)
-
-    assert plugin.migrate_docker_defaults() is True
-
-    backend.migrate_defaults.assert_called_once_with()
 
 
 def test_cmd_syntax_linux_hides_winapi_and_appends_cwd(mock_window):

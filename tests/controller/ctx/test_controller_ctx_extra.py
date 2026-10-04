@@ -81,7 +81,7 @@ def test_ctx_extra_preview_uses_canvas_and_run_code_uses_code_interpreter():
     extra.window.tools.get.assert_called_once_with("web_browser")
     browser.runtime_call.assert_called_once_with(
         "canvas_set_html",
-        {"html": "<b>x</b>", "__workdir": "/data"},
+        {"html": "<b>x</b>", "__workdir": "/data", "__ui": True},
     )
     interpreter.handle_python_run.assert_called_once_with("print(1)")
 

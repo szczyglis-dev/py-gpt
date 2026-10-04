@@ -51,7 +51,7 @@ def _tool():
 
     # Core tests use a mocked viewport; real load completion is covered by
     # dedicated Qt backend tests and the WebEngine integration check.
-    tool.qt.load_html = MagicMock(side_effect=lambda html, base_url: tool.surface.web.setHtml(html, base_url))
+    tool.qt.load_html = MagicMock(side_effect=lambda html, base_url, *, wait=True: tool.surface.web.setHtml(html, base_url))
     return tool
 
 
@@ -415,7 +415,7 @@ def test_canvas_html_and_navigation_state_are_independent_per_runtime(qapp):
         runtime.surface = SimpleNamespace(web=MagicMock())
         runtime.viewport.ensure_surface = MagicMock(return_value=runtime.surface)
         runtime.qt.eval = lambda script, runtime=runtime: runtime.runtime_html
-        runtime.qt.load_html = lambda html, base_url, runtime=runtime: runtime.surface.web.setHtml(html, base_url)
+        runtime.qt.load_html = lambda html, base_url, runtime=runtime, *, wait=True: runtime.surface.web.setHtml(html, base_url)
         tool.register_surface(runtime, widget, tab=tab)
         runtimes.append(runtime)
         widgets.append(widget)

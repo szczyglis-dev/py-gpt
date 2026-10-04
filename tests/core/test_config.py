@@ -214,15 +214,30 @@ def test_get_user_dir_data_dir_and_unknown(tmp_path):
 
 def test_get_workdir_prefix_switches_for_sandbox():
     cfg = _bare_config()
-    cfg.get_user_dir = MagicMock(return_value="/user/data")
     plugins = MagicMock()
-    filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value='/user/data'))
-    cfg.window = SimpleNamespace(core=SimpleNamespace(plugins=plugins, filesystem=filesystem))
+    controller_plugins = MagicMock()
+    filesystem = SimpleNamespace(get_data_dir=MagicMock(return_value="/user/data"))
+    cfg.window = SimpleNamespace(
+        core=SimpleNamespace(plugins=plugins, filesystem=filesystem),
+        controller=SimpleNamespace(plugins=controller_plugins),
+    )
 
-    plugins.get_option.return_value = "disabled"
+    controller_plugins.is_enabled.return_value = False
     assert cfg.get_workdir_prefix() == "/user/data"
-    plugins.get_option.return_value = "docker"
-    assert cfg.get_workdir_prefix() == "/mnt/data"
+    plugins.get.assert_not_called()
+
+    controller_plugins.is_enabled.return_value = True
+    plugin = plugins.get.return_value
+    plugin.get_runtime_workdir.return_value = "/mnt/data"
+    ctx = object()
+    assert cfg.get_workdir_prefix(ctx=ctx) == "/mnt/data"
+    controller_plugins.is_enabled.assert_called_with("cmd_code_interpreter")
+    plugins.get.assert_called_once_with("cmd_code_interpreter")
+    plugin.get_runtime_workdir.assert_called_once_with(ctx=ctx)
+    filesystem.get_data_dir.assert_called_with(ctx=ctx)
+
+    plugins.get.return_value = None
+    assert cfg.get_workdir_prefix() == "/user/data"
 
 
 def test_plugin_config_update_and_remove():

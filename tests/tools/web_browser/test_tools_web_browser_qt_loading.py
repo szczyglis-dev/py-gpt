@@ -34,18 +34,19 @@ class Web:
 
     def setHtml(self, html, base_url):
         self.submitted = (html, base_url)
-        # Completion of the old document must not acknowledge this update.
-        self.old_page.loadFinished.emit(True)
+        # An interrupted load must not acknowledge the new document.
         self.current_page.loadFinished.emit(False)
         if self.succeed:
             self.current_page.loadFinished.emit(True)
 
 
-def test_html_load_waits_for_new_page_and_ignores_aborted_load(qapp):
+def test_html_load_preserves_page_and_ignores_aborted_load(qapp):
     web = Web()
     backend = QtBackend(SimpleNamespace(surface=SimpleNamespace(web=web)))
+    page = web.page()
     backend.load_html('<canvas>cat</canvas>', QUrl('about:blank'), timeout_ms=100)
-    assert web.old_page is not web.current_page
+    assert web.page() is page
+    assert web.old_page is None
     assert web.submitted[0] == '<canvas>cat</canvas>'
 
 

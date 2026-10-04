@@ -19,6 +19,11 @@ Beyond chat, PyGPT includes Agents with Chat, Orchestrator and Swarm workflows, 
 .. image:: images/v2_light.png
    :width: 800
 
+*Split-screen*
+
+.. image:: images/v2_main4.png
+   :width: 800
+
 Features
 ---------
 * Desktop AI assistant for ``Linux``, ``Windows`` and ``macOS``, written in Python.
