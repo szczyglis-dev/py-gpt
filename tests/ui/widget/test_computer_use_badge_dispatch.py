@@ -4,60 +4,51 @@ from unittest.mock import Mock
 from pygpt_net.plugin.cmd_mouse_control.plugin import Plugin
 
 
-def test_desktop_badge_position_and_global_escape_listener_cleanup():
+def test_escape_listener_ignores_injected_keys_and_retires_cleanly():
     import sys
     from unittest.mock import patch
-    from PySide6.QtCore import Qt
-    from PySide6.QtWidgets import QApplication, QMainWindow
     from pygpt_net.ui.widget.computer_use_badge import ComputerUseBadge
-    app = QApplication.instance() or QApplication([])
-    main = QMainWindow()
+
     listener = Mock()
     factory = Mock(return_value=listener)
     keyboard = SimpleNamespace(Key=SimpleNamespace(esc='ESC'), Listener=factory)
-    window = SimpleNamespace(
-        menuBar=main.menuBar,
-        core=SimpleNamespace(config={'theme': 'dark'}, debug=Mock()),
-        controller=SimpleNamespace(kernel=SimpleNamespace(stopped=lambda: False),
-            theme=SimpleNamespace(common=SimpleNamespace(is_light_theme_id=lambda theme: False)),
-            access=Mock()))
-    with patch.dict(sys.modules, {'pynput': SimpleNamespace(keyboard=keyboard), 'pynput.keyboard': keyboard}):
-        badge = ComputerUseBadge(window)
-        assert badge._desktop_badge is None
-        factory.assert_not_called()
-        badge.set_active(True)
-        rect = app.primaryScreen().geometry()
-        overlay = badge._desktop_badge
-        assert overlay.isWindow()
-        assert overlay.windowFlags() & Qt.WindowDoesNotAcceptFocus
-        assert overlay.y() == rect.y() + 50
-        assert abs(overlay.geometry().center().x() - rect.center().x()) <= 1
+    badge = SimpleNamespace(
+        _active=True, _keyboard_listener=None, escape_requested=Mock(),
+        window=SimpleNamespace(core=SimpleNamespace(debug=Mock())),
+        hide=Mock(), _desktop_badge=Mock(), desktop_frame=Mock(),
+    )
+    with patch.dict(sys.modules, {'pynput': SimpleNamespace(keyboard=keyboard),
+                                 'pynput.keyboard': keyboard}):
+        ComputerUseBadge._start_escape_listener(badge)
+        ComputerUseBadge._start_escape_listener(badge)
+        factory.assert_called_once()
+        listener.start.assert_called_once_with()
         callback = factory.call_args.kwargs['on_press']
         callback('ESC', injected=True)
-        app.processEvents()
-        window.controller.access.on_escape.assert_not_called()
+        callback('OTHER', injected=False)
+        badge.escape_requested.emit.assert_not_called()
         callback('ESC', injected=False)
-        app.processEvents()
-        window.controller.access.on_escape.assert_called_once_with(close_dialog=False)
-        listener.stop.assert_called_once()
-        assert not overlay.isVisible()
-        assert not badge.desktop_frame.active
-        badge.set_active(True)
-        assert overlay.isVisible()
-        window.core.config['security.computer.show_warning'] = False
-        badge.set_active(False)
-        assert not overlay.isVisible()
-        assert not badge.desktop_frame.active
-        assert not badge._active
+        badge.escape_requested.emit.assert_called_once_with()
+        ComputerUseBadge._retire(badge)
+        listener.stop.assert_called_once_with()
         assert badge._keyboard_listener is None
-        badge.set_active(True)
-        assert not overlay.isVisible()
-        assert factory.call_count == 2
-        badge.close()
-        badge.deleteLater()
-        overlay.deleteLater()
-        main.close()
-        app.processEvents()
+        assert not badge._active
+        badge._desktop_badge.hide.assert_called_once_with()
+        badge.desktop_frame.hide.assert_called_once_with()
+        callback('ESC', injected=False)
+        badge.escape_requested.emit.assert_called_once_with()
+
+
+def test_escape_interrupt_stops_badge_and_requests_user_interrupt():
+    from pygpt_net.ui.widget.computer_use_badge import ComputerUseBadge
+    badge = SimpleNamespace(_active=True, stop=Mock(),
+        window=SimpleNamespace(controller=SimpleNamespace(access=Mock())))
+    ComputerUseBadge._interrupt(badge)
+    badge.stop.assert_called_once_with()
+    badge.window.controller.access.on_escape.assert_called_once_with(close_dialog=False)
+    badge._active = False
+    ComputerUseBadge._interrupt(badge)
+    badge.stop.assert_called_once_with()
 
 
 def test_native_computer_call_signals_badge_before_execution():

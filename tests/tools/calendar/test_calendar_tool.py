@@ -49,7 +49,7 @@ def environment(qapp, tmp_path):
         session.close()
         session.widget.deleteLater()
     window.deleteLater()
-    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    QCoreApplication.sendPostedEvents(window, QEvent.DeferredDelete)
     db.dispose()
 
 

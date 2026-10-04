@@ -66,7 +66,7 @@ def test_real_frontend_refresh_focus_cleanup_and_reopen(qapp, tmp_path):
     new.on_delete()
     explorer.deleteLater()
     new.deleteLater()
-    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    QCoreApplication.sendPostedEvents(explorer, QEvent.DeferredDelete)
 
 
 @pytest.mark.parametrize('modifier', [Qt.ControlModifier, Qt.ShiftModifier,
@@ -88,4 +88,4 @@ def test_modified_folder_click_keeps_expansion(qapp, tmp_path, monkeypatch, modi
     assert explorer.treeView.isExpanded(index) != expanded
     explorer.on_delete()
     explorer.deleteLater()
-    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    QCoreApplication.sendPostedEvents(explorer, QEvent.DeferredDelete)

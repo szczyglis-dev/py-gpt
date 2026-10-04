@@ -171,7 +171,11 @@ def test_base_list_combo_set_value_missing_keeps_current_id():
 
 
 def test_base_list_combo_set_keys_invalidates_cache_updates_and_unlocks():
-    widget = SimpleNamespace(keys=[], locked=False, _keys_cache={"old"}, _keys_cache_id=99, update=MagicMock())
+    widget = SimpleNamespace(
+        keys=[], locked=False, _keys_cache={"old"}, _keys_cache_id=99,
+        update=MagicMock(), combo=MagicMock(), _rendered_keys=None,
+        _rendered_count=0,
+    )
     values = ["one", "two"]
     BaseListCombo.set_keys(widget, values)
     assert widget.keys is values

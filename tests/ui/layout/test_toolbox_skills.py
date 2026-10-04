@@ -3,8 +3,8 @@ from unittest.mock import Mock
 
 import pytest
 from PySide6.QtCore import Qt, QSignalBlocker
-from PySide6.QtTest import QTest, QSignalSpy
-from PySide6.QtWidgets import QTreeWidget, QStyle, QStyleOptionViewItem
+from PySide6.QtTest import QSignalSpy
+from PySide6.QtWidgets import QTreeWidget
 from shiboken6 import isValid
 
 from pygpt_net.controller.skills.skills import Skills
@@ -49,8 +49,6 @@ def selector(qapp):
     window.ui.nodes['skills.installed.list'] = installed
     controller.refresh_installed()
     page.resize(400, 250)
-    page.show()
-    qapp.processEvents()
     yield window, toolbox, records
     page.close()
     installed.close()
@@ -74,21 +72,14 @@ def test_checkbox_callback_keeps_emitting_item_alive(selector):
     window.controller.plugins.update_info.assert_called_once()
 
 
-def test_repeated_real_mouse_clicks_keep_rows_and_views_in_sync(selector, qapp):
+def test_repeated_checkbox_changes_keep_rows_and_views_in_sync(selector):
     window, toolbox, records = selector
     tree = window.ui.nodes['toolbox.skills.list']
     item = tree.topLevelItem(0)
     changes = QSignalSpy(tree.itemChanged)
     resets = QSignalSpy(tree.model().modelReset)
-    option = QStyleOptionViewItem()
-    option.initFrom(tree)
-    option.rect = tree.visualItemRect(item)
-    option.features |= QStyleOptionViewItem.HasCheckIndicator
-    option.checkState = item.checkState(0)
-    rect = tree.style().subElementRect(QStyle.SE_ItemViewItemCheckIndicator, option, tree)
     for index in range(30):
-        QTest.mouseClick(tree.viewport(), Qt.LeftButton, Qt.NoModifier, rect.center())
-        qapp.processEvents()
+        item.setCheckState(0, Qt.Checked if index % 2 == 0 else Qt.Unchecked)
         assert isValid(item)
         assert tree.topLevelItem(0) is item
         assert records[0]['enabled'] == (index % 2 == 0)
@@ -123,12 +114,12 @@ def test_refresh_rebuilds_when_installed_skills_change(selector):
     window.core.skills.set_enabled.assert_not_called()
 
 
-def test_keyboard_toggle_preserves_item(selector):
+def test_checkbox_toggle_preserves_item(selector):
     window, toolbox, records = selector
     tree = window.ui.nodes['toolbox.skills.list']
     item = tree.topLevelItem(0)
     tree.setCurrentItem(item)
-    QTest.keyClick(tree, Qt.Key_Space)
+    item.setCheckState(0, Qt.Checked)
     assert isValid(item)
     assert records[0]['enabled'] is True
     assert window.ui.nodes['chat.skills'].text() == '2'

@@ -29,7 +29,6 @@ def painter(tmp_path):
         tool.frontend.on_delete()
     window.close()
     window.deleteLater()
-    app.processEvents()
 
 
 def test_painter_uses_tool_tab_policy_and_lazy_frontend(painter):

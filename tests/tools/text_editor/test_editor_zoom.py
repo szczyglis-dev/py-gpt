@@ -2,7 +2,6 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 from PySide6.QtGui import QTextCursor
-from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QWidget
 from pygpt_net.tools.text_editor.ui.widgets import TextFileEditor
 from pygpt_net.tools.web_browser.ui.widgets import SourceEditor
@@ -26,7 +25,9 @@ def test_shared_zoom_coalesces_layout_and_preserves_content(qapp, monkeypatch, t
     preview = TextPreview(panel, str(tmp_path / 'large.py'), 'value = 42\n' * 1200)
     editor.setPlainText('example\n' * 1200)
     source.setPlainText('<p>example</p>\n' * 1200)
-    QTest.qWait(250)
+    for widget in (editor, source, preview):
+        widget.highlighter.timer.stop()
+        widget.highlighter.refresh()
     lex = MagicMock(wraps=syntax.lex)
     monkeypatch.setattr(syntax, 'lex', lex)
     font = MagicMock(wraps=base.local_font)
@@ -42,7 +43,8 @@ def test_shared_zoom_coalesces_layout_and_preserves_content(qapp, monkeypatch, t
         for size in range(15, 25):
             source.on_zoom_changed(size)
         font.assert_not_called()
-        QTest.qWait(60)
+        source.zoom_timer.stop()
+        source.zoom_timer.timeout.emit()
         assert font.call_count == 1
         assert source._applied_zoom == 24
         config.save.assert_not_called()
@@ -55,12 +57,14 @@ def test_shared_zoom_coalesces_layout_and_preserves_content(qapp, monkeypatch, t
         assert source.textCursor().selectedText() == before[3:9]
         assert source.document().isModified() == modified
         assert source.document().isUndoAvailable() == undo_available
-        QTest.qWait(220)
+        for widget in (editor, source, preview):
+            widget.highlighter.refresh()
         lex.assert_not_called()
         font.reset_mock()
         for size in range(14, 23):
             preview.on_zoom_changed(size)
-        QTest.qWait(60)
+        preview.zoom_timer.stop()
+        preview.zoom_timer.timeout.emit()
         assert font.call_count == 1
         window._text_zoom_commit.flush()
         assert preview.value == 22 and source.value == 24

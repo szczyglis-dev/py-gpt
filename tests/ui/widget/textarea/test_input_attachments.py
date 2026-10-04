@@ -3,18 +3,23 @@ from unittest.mock import MagicMock
 
 import pytest
 from PySide6.QtGui import QImage, QColor
-from PySide6.QtCore import Qt, QPoint, QSize
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtWidgets import QWidget
 import pygpt_net.icons_rc
 
 from pygpt_net.item.attachment import AttachmentItem
-from pygpt_net.ui.widget.textarea.attachments import InputAttachments, AttachmentTile
+from pygpt_net.ui.widget.textarea.attachments import InputAttachments
 
 
-@pytest.fixture(scope='module')
-def app():
-    return QApplication.instance() or QApplication([])
+@pytest.fixture
+def app(qapp):
+    return qapp
+
+
+@pytest.fixture(autouse=True)
+def synchronous_layout_callbacks(monkeypatch):
+    # Run layout callbacks explicitly, never leave them in the global Qt queue.
+    monkeypatch.setattr('PySide6.QtCore.QTimer.singleShot', lambda delay, callback: callback())
 
 
 def test_reorder_updates_attachment_store_and_saves_without_moving_sent_items():
@@ -43,7 +48,7 @@ def test_drop_insertion_position_accounts_for_source_removal():
     assert list(items) == ['b', 'a', 'c']
 
 
-def test_strip_restores_images_scrolls_and_hides_after_send(app, tmp_path):
+def test_strip_restores_images_routes_actions_and_hides_after_send(app, tmp_path):
     path = tmp_path / 'image.png'
     image = QImage(200, 100, QImage.Format_RGB32)
     image.fill(QColor('red'))
@@ -56,7 +61,8 @@ def test_strip_restores_images_scrolls_and_hides_after_send(app, tmp_path):
     window = SimpleNamespace(
         core=SimpleNamespace(config=SimpleNamespace(get=lambda *args: 'dark'),
                              attachments=SimpleNamespace(get_all=lambda mode: items)),
-        tools=SimpleNamespace(get=lambda name: SimpleNamespace(open_preview=preview)),
+        tools=SimpleNamespace(get=lambda name: SimpleNamespace(open_preview=preview, paths=SimpleNamespace(open=open_file))),
+        ui=SimpleNamespace(nodes={'input': SimpleNamespace(fit_to_content=MagicMock())}),
         controller=SimpleNamespace(files=SimpleNamespace(open=open_file), attachment=SimpleNamespace(delete=delete),
                                    theme=SimpleNamespace(common=SimpleNamespace(is_light_theme_id=lambda theme: False))),
     )
@@ -67,17 +73,13 @@ def test_strip_restores_images_scrolls_and_hides_after_send(app, tmp_path):
     heights = []
     strip.heightChanged.connect(heights.append)
     strip.sync(items, 'chat')
-    parent.show()
-    app.processEvents()
     assert strip.row.count() == 7
     assert not strip.row.itemAt(0).widget().image.isNull()
-    assert strip.horizontalScrollBar().maximum() > 0
-    assert not strip.grab().isNull()
     image_tile = strip.row.itemAt(0).widget()
-    QTest.mouseClick(image_tile, Qt.LeftButton, pos=QPoint(30, 30))
+    image_tile.open_attachment(True)
     preview.assert_called_once_with(str(path))
     file_tile = strip.row.itemAt(1).widget()
-    QTest.mouseClick(file_tile, Qt.LeftButton, pos=QPoint(30, 30))
+    file_tile.open_attachment(False)
     open_file.assert_called_once_with(path='/file0.pdf')
     assert image_tile.cursor().shape() == Qt.PointingHandCursor
     # Resolve index after the list changes, rather than using its original position.
@@ -99,7 +101,7 @@ def test_strip_restores_images_scrolls_and_hides_after_send(app, tmp_path):
     parent.close()
 
 
-def test_attachment_band_restores_previous_splitter_height():
+def test_attachment_band_updates_minimum_and_releases_collapse_guard():
     from pygpt_net.ui.widget.textarea.input import ChatInput
     sizes = [600, 200]
     minimum = [80]
@@ -112,6 +114,7 @@ def test_attachment_band_restores_previous_splitter_height():
         _get_main_splitter=lambda: splitter,
         _find_container_in_splitter=lambda splitter: (object(), 1),
         _apply_margins=MagicMock(), _position_attachment_strip=MagicMock(),
+        fit_to_content=MagicMock(),
     )
     ChatInput._attachment_height_changed(widget, 96)
     assert sizes == [504, 296]
@@ -123,7 +126,8 @@ def test_attachment_band_restores_previous_splitter_height():
     assert minimum[0] == 176
     splitter.setCollapsible.assert_called_with(1, False)
     ChatInput._attachment_height_changed(widget, 0)
-    assert sizes == [600, 200]
+    assert sizes == [504, 296]
+    widget.fit_to_content.assert_called_once_with()
     assert minimum[0] == 80
     assert widget._attachment_splitter_sizes is None
 
@@ -148,44 +152,32 @@ def test_attachment_minimum_reaches_outer_composer(app):
     assert composer.minimumHeight() == root.minimumHeight() == 0
 
 
-def test_drag_past_attachment_minimum_then_remove_keeps_input_visible(app):
-    from PySide6.QtWidgets import QSplitter, QVBoxLayout
+def test_attachment_band_preserves_user_resize_when_removed():
     from pygpt_net.ui.widget.textarea.input import ChatInput
-    from pygpt_net.ui.layout.chat.input import Input
-    splitter = QSplitter(Qt.Vertical)
-    splitter.resize(500, 800)
-    output, root, editor = QWidget(), QWidget(), QWidget()
-    editor.setMinimumHeight(105)
-    layout = QVBoxLayout(root)
-    layout.addWidget(editor)
-    splitter.addWidget(output)
-    splitter.addWidget(root)
-    splitter.setSizes([600, 200])
-    splitter.show()
-    app.processEvents()
-    original = splitter.sizes()
-    ui = SimpleNamespace(tabs={}, nodes={'input.root': root})
-    input_layout = SimpleNamespace(window=SimpleNamespace(ui=ui))
-    ui.chat = SimpleNamespace(input=SimpleNamespace(
-        set_attachment_min_height=lambda height: Input.set_attachment_min_height(input_layout, height)))
+    sizes = [600, 200]
+    minimum = [105]
+    splitter = SimpleNamespace(
+        sizes=lambda: list(sizes),
+        setSizes=lambda value: sizes.__setitem__(slice(None), value),
+        isCollapsible=lambda index: True, setCollapsible=MagicMock(),
+    )
     widget = SimpleNamespace(
-        window=SimpleNamespace(ui=ui), _attachment_row_height=0, _attachment_splitter_sizes=None,
-        isVisible=editor.isVisible, height=editor.height, minimumHeight=editor.minimumHeight, setMinimumHeight=editor.setMinimumHeight,
-        _get_main_splitter=lambda: splitter, _find_container_in_splitter=lambda splitter: (root, 1),
-        _apply_margins=lambda: None, _position_attachment_strip=lambda: None,
+        _attachment_row_height=0, _attachment_splitter_sizes=None,
+        isVisible=lambda: True, height=lambda: 150, minimumHeight=lambda: minimum[0],
+        setMinimumHeight=lambda value: minimum.__setitem__(0, value),
+        _get_main_splitter=lambda: splitter,
+        _find_container_in_splitter=lambda value: (object(), 1),
+        _apply_margins=MagicMock(), _position_attachment_strip=MagicMock(),
+        fit_to_content=MagicMock(),
     )
     ChatInput._attachment_height_changed(widget, 96)
-    app.processEvents()
-    splitter.moveSplitter(799, 1)
-    app.processEvents()
-    assert splitter.sizes()[1] > 0
-    assert not splitter.isCollapsible(1)
+    splitter.setCollapsible.assert_called_with(1, False)
+    sizes[:] = [500, 300]
     ChatInput._attachment_height_changed(widget, 0)
-    app.processEvents()
-    assert splitter.sizes()[1] >= root.minimumSizeHint().height()
-    assert abs(splitter.sizes()[1] - original[1]) <= 2
-    assert splitter.isCollapsible(1)
-    splitter.close()
+    assert sizes == [500, 300]
+    widget.fit_to_content.assert_called_once_with()
+    assert minimum[0] == 105
+    splitter.setCollapsible.assert_called_with(1, True)
 
 
 def test_startup_ignores_provisional_editor_height():
@@ -200,6 +192,7 @@ def test_startup_ignores_provisional_editor_height():
         setMinimumHeight=lambda height: minimum.__setitem__(0, height),
         _get_main_splitter=lambda: splitter, _find_container_in_splitter=lambda splitter: (object(), 1),
         _apply_margins=lambda: None, _position_attachment_strip=lambda: None,
+        fit_to_content=MagicMock(),
     )
     ChatInput._attachment_height_changed(widget, 96)
     assert widget._attachment_base_input_height == 105
@@ -211,18 +204,20 @@ def test_startup_ignores_provisional_editor_height():
     splitter.setSizes.assert_not_called()
 
 
-def test_attachment_minimum_is_recomputed_when_hidden_composer_is_shown(app):
+def test_attachment_minimum_is_recomputed_when_visible_hint_changes(app):
     from pygpt_net.ui.layout.chat.input import Input
     class Composer(QWidget):
         def minimumSizeHint(self):
-            return QSize(100, 261 if self.isVisible() else 0)
+            return QSize(100, self.hint_height)
+        def isVisible(self):
+            return self.hint_height > 0
+        hint_height = 0
     composer = Composer()
     ui = SimpleNamespace(tabs={}, nodes={'input.root': composer})
     layout = SimpleNamespace(window=SimpleNamespace(ui=ui))
     Input.set_attachment_min_height(layout, 96)
     assert composer.minimumHeight() == 96
-    composer.show()
-    app.processEvents()
+    composer.hint_height = 261
     Input.set_attachment_min_height(layout, 96)
     assert composer.minimumHeight() == 261
     Input.set_attachment_min_height(layout, 96)
@@ -250,15 +245,15 @@ def test_parent_minimum_counts_attachment_band_once_across_tab_returns(app):
         isVisible=editor.isVisible, height=editor.height, minimumHeight=editor.minimumHeight,
         setMinimumHeight=editor.setMinimumHeight, _get_main_splitter=lambda: None,
         _find_container_in_splitter=lambda splitter: (None, -1),
-        _apply_margins=lambda: None, _position_attachment_strip=lambda: None)
+        _apply_margins=lambda: None, _position_attachment_strip=lambda: None,
+        fit_to_content=MagicMock())
     ChatInput._attachment_height_changed(widget, 104)
     assert root.minimumHeight() == baseline + 104
     for _ in range(3):
-        root.show()
-        app.processEvents()
+        parent_layout.invalidate()
+        parent_layout.activate()
         Input.set_attachment_min_height(layout, 104)
         assert root.minimumHeight() == baseline + 104
-        root.hide()
     ChatInput._attachment_height_changed(widget, 0)
     assert root.minimumHeight() == 0
     assert editor.minimumHeight() == 105

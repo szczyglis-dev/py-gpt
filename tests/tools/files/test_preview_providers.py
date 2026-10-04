@@ -58,7 +58,6 @@ def test_live_registry_and_cleanup(qapp, tmp_path, monkeypatch):
     panel.open_file(str(path))
     assert panel.viewer.findChildren(QLabel)[-1].text().endswith('broken add-on')
     panel.deleteLater()
-    qapp.processEvents()
 
 
 def test_builtin_markdown_renders_and_resolves_local_links(qapp, tmp_path, monkeypatch):
@@ -74,7 +73,6 @@ def test_builtin_markdown_renders_and_resolves_local_links(qapp, tmp_path, monke
     assert panel.viewer.document().baseUrl().toLocalFile() == str(tmp_path) + '/'
     assert panel.viewer.isReadOnly()
     panel.deleteLater()
-    qapp.processEvents()
 
 
 def test_panel_deletion_releases_external_widget(qapp, tmp_path, monkeypatch):
@@ -127,7 +125,6 @@ def test_markdown_source_round_trip_and_cancel(qapp, tmp_path, monkeypatch):
     question.assert_called_once()
     assert panel.viewer.toPlainText() == 'Updated'
     panel.deleteLater()
-    qapp.processEvents()
 
 
 def test_markdown_link_colors_and_ctrl_wheel(qapp, tmp_path, monkeypatch):
@@ -151,7 +148,6 @@ def test_markdown_link_colors_and_ctrl_wheel(qapp, tmp_path, monkeypatch):
             assert viewer.document().defaultFont().pointSizeF() == expected
         viewer.deleteLater()
     panel.deleteLater()
-    qapp.processEvents()
 
 
 def test_markdown_zoom_restores_from_config_and_preview_has_no_frame(qapp, tmp_path, monkeypatch):
@@ -181,10 +177,9 @@ def test_markdown_zoom_restores_from_config_and_preview_has_no_frame(qapp, tmp_p
     panel.add_file_actions(menu)
     assert not menu.actions()[0].icon().isNull()
     panel.deleteLater()
-    qapp.processEvents()
 
 
-def test_visible_back_to_preview_preserves_zoom_after_qt_show(qapp, tmp_path, monkeypatch):
+def test_back_to_preview_preserves_zoom(qapp, tmp_path, monkeypatch):
     from PySide6.QtCore import Qt, QPoint, QPointF
     from PySide6.QtGui import QWheelEvent
     monkeypatch.setattr('pygpt_net.tools.files.ui.preview.trans', lambda key: key)
@@ -195,24 +190,19 @@ def test_visible_back_to_preview_preserves_zoom_after_qt_show(qapp, tmp_path, mo
     window.core.config.set.side_effect = values.__setitem__
     panel = PreviewPanel(window, str(tmp_path))
     panel.resize(600, 400)
-    panel.show()
     path = tmp_path / 'zoom.md'
     path.write_text('# Title\n\nBody')
     panel.open_file(str(path))
-    qapp.processEvents()
     event = QWheelEvent(QPointF(), QPointF(), QPoint(), QPoint(0, 120),
                         Qt.NoButton, Qt.ControlModifier, Qt.NoScrollPhase, False)
     panel.viewer.wheelEvent(event)
     assert values['filesystem.preview.markdown.font_size'] == 23
     panel.edit_markdown_source()
-    qapp.processEvents()
     panel.back_to_markdown_preview()
-    qapp.processEvents()
-    assert panel.viewer.isVisible()
+    assert not panel.viewer.isHidden()
     assert panel.viewer.font().pointSizeF() == 23
     assert panel.viewer.document().defaultFont().pointSizeF() == 23
     panel.deleteLater()
-    qapp.processEvents()
 
 
 def test_markdown_menu_select_all_and_copy_rendered_text(qapp, tmp_path, monkeypatch):
@@ -235,4 +225,3 @@ def test_markdown_menu_select_all_and_copy_rendered_text(qapp, tmp_path, monkeyp
     assert QApplication.clipboard().text() == panel.viewer.toPlainText()
     assert '**' not in QApplication.clipboard().text()
     panel.deleteLater()
-    qapp.processEvents()

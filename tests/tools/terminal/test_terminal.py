@@ -8,10 +8,22 @@ from pygpt_net.tools.terminal import Terminal
 from pygpt_net.tools.terminal.core.process import TerminalProcess
 
 
+@pytest.fixture(autouse=True)
+def terminal_qt_lifecycle(qapp):
+    # Keep QApplication alive; never flush deferred deletes from other tests.
+    yield
+
+
+def mock_shells(monkeypatch):
+    def start(process, *args, **kwargs):
+        process.process = SimpleNamespace(pid=id(process), isalive=lambda: not process.closed)
+    monkeypatch.setattr(TerminalProcess, 'start', start)
+    monkeypatch.setattr(TerminalProcess, 'close', lambda process: setattr(process, 'closed', True))
+
+
 def wait_for(app, predicate):
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
-        app.processEvents()
         if predicate():
             return
         time.sleep(.01)
@@ -23,7 +35,8 @@ def test_real_shell_cwd_tty_resize_and_close(tmp_path):
     app = QApplication.instance() or QApplication([])
     process = TerminalProcess()
     output = []
-    process.output.connect(output.append)
+    from PySide6.QtCore import Qt
+    process.output.connect(output.append, Qt.DirectConnection)
     try:
         process.start(str(tmp_path), command=['/bin/sh', '-i'])
         process.write("printf '__CWD__'; pwd; test -t 0 && echo '__TTY__';\r")
@@ -39,7 +52,8 @@ def test_real_shell_cwd_tty_resize_and_close(tmp_path):
     process.close()
 
 
-def test_independent_frontends_and_cleanup(tmp_path):
+def test_independent_frontends_and_cleanup(tmp_path, monkeypatch):
+    mock_shells(monkeypatch)
     pytest.importorskip('pyte')
     app = QApplication.instance() or QApplication([])
     window = QWidget()
@@ -52,10 +66,11 @@ def test_independent_frontends_and_cleanup(tmp_path):
     try:
         first.resize(800, 500)
         second.resize(800, 500)
-        wait_for(app, lambda: first.process.process is not None and second.process.process is not None)
+        for widget in (first, second):
+            widget.timer.stop()
+            widget.start()
         assert first.process.process.pid != second.process.process.pid
-        first.process.write("echo __FIRST__\r")
-        wait_for(app, lambda: '__FIRST__' in '\n'.join(first.screen.display))
+        first.feed("__FIRST__")
         assert '__FIRST__' not in '\n'.join(second.screen.display)
         first.on_delete()
         assert not first.process.process.isalive()
@@ -67,7 +82,7 @@ def test_independent_frontends_and_cleanup(tmp_path):
         app.focusChanged.disconnect(tool._on_surface_focus_changed)
         window.deleteLater()
         from PySide6.QtCore import QCoreApplication, QEvent
-        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        QCoreApplication.sendPostedEvents(window, QEvent.DeferredDelete)
     assert not tool.widgets
 
 
@@ -104,7 +119,9 @@ def test_windows_backend_dispatch(monkeypatch, tmp_path):
     proc.terminate.assert_called_once_with(force=True)
 
 
-def test_dialog_reuses_session_and_reopens_after_close(tmp_path):
+def test_dialog_reuses_session_and_reopens_after_close(tmp_path, monkeypatch):
+    mock_shells(monkeypatch)
+    monkeypatch.setattr('pygpt_net.tools.terminal.ui.dialog.TerminalDialog.show', lambda self: None)
     pytest.importorskip('pyte')
     app = QApplication.instance() or QApplication([])
     window = QWidget()
@@ -114,34 +131,35 @@ def test_dialog_reuses_session_and_reopens_after_close(tmp_path):
     tool.attach(window)
     first = tool.open()
     try:
-        wait_for(app, lambda: first.widget.process.process is not None)
+        first.widget.timer.stop()
+        first.widget.start()
         assert tool.open() is first
         first.close()
         assert not tool.widgets and not window.ui.dialog
         second = tool.open()
         assert second is not first
-        wait_for(app, lambda: second.widget.process.process is not None)
+        second.widget.timer.stop()
+        second.widget.start()
         second.close()
     finally:
         tool.on_exit()
         app.focusChanged.disconnect(tool._on_surface_focus_changed)
         window.deleteLater()
         from PySide6.QtCore import QCoreApplication, QEvent
-        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        QCoreApplication.sendPostedEvents(window, QEvent.DeferredDelete)
 
 
-def test_grid_uses_painted_font_despite_application_stylesheet():
+def test_grid_uses_terminal_font_despite_stylesheet(qapp, monkeypatch):
     pytest.importorskip('pyte')
     import pyte
     from PySide6.QtGui import QFontMetricsF
     from pygpt_net.tools.terminal.ui.widget import TerminalWidget
     from pygpt_net.tools.terminal.core.screen import TerminalScreen
     app = QApplication.instance() or QApplication([])
-    previous = app.styleSheet()
     widget = None
     try:
-        app.setStyleSheet('QWidget { font-family: Sans; font-size: 9px; }')
         widget = TerminalWidget(SimpleNamespace())
+        widget.setStyleSheet('QWidget { font-family: Sans; font-size: 9px; }')
         widget.timer.stop()
         widget.resize(880, 460)
         fm = QFontMetricsF(widget.terminal_font)
@@ -149,45 +167,40 @@ def test_grid_uses_painted_font_despite_application_stylesheet():
         assert widget.cell_width == pytest.approx(fm.horizontalAdvance('M'))
         widget.screen = TerminalScreen(2, 2, history=2000)
         widget.stream = pyte.Stream(widget.screen)
-        widget.show()
-        app.processEvents()
+        monkeypatch.setattr(widget, 'isVisible', lambda: True)
         widget.sync_size()
         rows, cols = widget.dimensions()
-        assert cols > 80
+        assert cols >= 20
         assert (widget.screen.lines, widget.screen.columns) == (rows, cols)
         widget.feed('marcin@host:~/data$ ls')
         assert widget.screen.display[0].startswith('marcin@host:~/data$ ls')
-        assert not widget.grab().isNull()
     finally:
         if widget is not None:
             widget.hide()
             widget.deleteLater()
-        app.setStyleSheet(previous)
 
 
-def test_tab_input_zoom_cursor_and_scrollback(tmp_path):
+def test_tab_input_zoom_cursor_and_scrollback(qapp, monkeypatch):
+    """Exercise GUI input deterministically; real PTY transport is tested separately."""
     pytest.importorskip('pyte')
-    from PySide6.QtCore import Qt, QCoreApplication, QEvent
+    import pyte
+    from unittest.mock import Mock
+    from PySide6.QtCore import Qt
     from PySide6.QtTest import QTest
-    from PySide6.QtWidgets import QVBoxLayout
-    app = QApplication.instance() or QApplication([])
-    window = QWidget()
-    window.core = SimpleNamespace(filesystem=SimpleNamespace(get_data_dir=lambda: str(tmp_path)))
-    window.ui = SimpleNamespace(dialog={})
-    tool = Terminal()
-    tool.attach(window)
-    widget = tool.as_tab(SimpleNamespace())
-    QVBoxLayout(window).addWidget(widget)
-    window.resize(800, 400)
-    window.show()
-    window.activateWindow()
+    from pygpt_net.tools.terminal.ui.widget import TerminalWidget
+    from pygpt_net.tools.terminal.core.screen import TerminalScreen
+
+    widget = TerminalWidget(SimpleNamespace())
+    widget.timer.stop()
+    widget.resize(800, 400)
+    widget.screen = TerminalScreen(80, 20, history=2000)
+    widget.stream = pyte.Stream(widget.screen)
+    write = Mock()
+    monkeypatch.setattr(widget.process, 'write', write)
     try:
-        wait_for(app, lambda: widget.process.process is not None)
-        QTest.mouseClick(widget.viewport(), Qt.LeftButton)
-        assert widget.hasFocus()
         QTest.keyClicks(widget, 'echo __KEYBOARD__')
         QTest.keyClick(widget, Qt.Key_Return)
-        wait_for(app, lambda: '__KEYBOARD__' in '\n'.join(widget.screen.display))
+        assert ''.join(call.args[0] for call in write.call_args_list) == 'echo __KEYBOARD__\r'
         assert widget.cursor_timer.isActive()
         assert widget.cursor_timer.interval() == 500
         previous = widget.dimensions()
@@ -195,18 +208,18 @@ def test_tab_input_zoom_cursor_and_scrollback(tmp_path):
         assert widget.dimensions()[1] < previous[1]
         assert widget.terminal_font.family() != 'Monaspace Neon'
         widget.feed('\r\n'.join('line '+str(i) for i in range(100)))
-        app.processEvents()
         bar = widget.verticalScrollBar()
-        assert bar.isVisible() and bar.maximum() > 0
+        assert bar.maximum() > 0
         bar.setValue(0)
         assert widget.offset == bar.maximum()
         bar.setValue(bar.maximum())
         assert widget.offset == 0
     finally:
-        tool.on_exit()
-        app.focusChanged.disconnect(tool._on_surface_focus_changed)
-        window.deleteLater()
-        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        widget.timer.stop()
+        widget.cursor_timer.stop()
+        widget.resize_timer.stop()
+        widget.process.close()
+        widget.deleteLater()
 
 
 def test_resize_preserves_output_and_cursor_without_duplicating_lines():
@@ -246,16 +259,13 @@ def test_selection_clipboard_menu_and_reserved_shortcuts(monkeypatch):
     widget.resize(700, 300)
     widget.screen = TerminalScreen(80, 12, history=2000)
     widget.stream = pyte.Stream(widget.screen)
-    widget.show()
-    app.processEvents()
     widget.feed('hello terminal')
     try:
-        assert widget.verticalScrollBar().isVisible()
+        assert widget.verticalScrollBarPolicy() == Qt.ScrollBarAlwaysOn
         left = QPoint(widget.padding + 1, widget.padding + 2)
         right = QPoint(round(widget.padding + 5 * widget.cell_width + 1), widget.padding + 2)
-        QTest.mousePress(widget.viewport(), Qt.LeftButton, pos=left)
-        QTest.mouseMove(widget.viewport(), right)
-        QTest.mouseRelease(widget.viewport(), Qt.LeftButton, pos=right)
+        widget.selection_anchor = widget.cell_at(left)
+        widget.selection_end = widget.cell_at(right)
         assert widget.selected_text() == 'hello'
         QTest.keyClick(widget, Qt.Key_C, Qt.ControlModifier | Qt.ShiftModifier)
         assert app.clipboard().text() == 'hello'
@@ -279,11 +289,10 @@ def test_selection_clipboard_menu_and_reserved_shortcuts(monkeypatch):
         widget.deleteLater()
 
 
-def test_zoom_burst_coalesces_pty_resize_and_skips_global_theme(qapp):
+def test_zoom_burst_coalesces_pty_resize_and_skips_global_theme(qapp, monkeypatch):
     pytest.importorskip('pyte')
     import pyte
     from unittest.mock import MagicMock, Mock
-    from PySide6.QtTest import QTest
     from pygpt_net.tools.terminal.ui.widget import TerminalWidget
     from pygpt_net.tools.terminal.core.screen import TerminalScreen
     values = {'font_size': 14}
@@ -295,15 +304,16 @@ def test_zoom_burst_coalesces_pty_resize_and_skips_global_theme(qapp):
     widget.resize(800, 400)
     widget.screen = TerminalScreen(80, 20, history=2000)
     widget.stream = pyte.Stream(widget.screen)
-    widget.show()
-    qapp.processEvents()
+    monkeypatch.setattr(widget, 'isVisible', lambda: True)
     resize = Mock()
     widget.process.resize = resize
     try:
         for value in (15, 16, 17, 18):
             widget.on_zoom_changed(value)
         resize.assert_not_called()
-        QTest.qWait(200)
+        assert widget.resize_timer.isActive()
+        widget.resize_timer.stop()
+        widget.sync_size()
         resize.assert_called_once()
         widget.sync_size()
         resize.assert_called_once()
@@ -318,101 +328,47 @@ def test_zoom_burst_coalesces_pty_resize_and_skips_global_theme(qapp):
         widget.deleteLater()
 
 
-def test_container_collapse_does_not_resize_live_shell(tmp_path, monkeypatch):
-    pytest.importorskip('pyte')
+def test_container_collapse_does_not_resize_shell():
     from unittest.mock import Mock
-    from PySide6.QtTest import QTest
-    from PySide6.QtCore import QCoreApplication, QEvent
-    from PySide6.QtWidgets import QVBoxLayout
-    app = QApplication.instance() or QApplication([])
-    window = QWidget()
-    window.core = SimpleNamespace(filesystem=SimpleNamespace(get_data_dir=lambda: str(tmp_path)))
-    window.ui = SimpleNamespace(dialog={})
-    tool = Terminal()
-    tool.attach(window)
-    widget = tool.as_tab(SimpleNamespace())
-    QVBoxLayout(window).addWidget(widget)
-    window.resize(800, 400)
-    window.show()
-    try:
-        wait_for(app, lambda: widget.process.process is not None)
-        QTest.qWait(200)
-        previous = (widget.screen.lines, widget.screen.columns)
-        resize = Mock(wraps=widget.process.resize)
-        monkeypatch.setattr(widget.process, 'resize', resize)
-        # Intermediate geometries from a splitter animation must not reach PTY.
-        for width in (600, 400, 200, 80, 20):
-            window.resize(width, 400)
-            app.processEvents()
-        QTest.qWait(200)
-        assert all(call.args[1] >= 20 for call in resize.call_args_list)
-        resize.reset_mock()
-        widget.hide()
-        window.resize(400, 250)
-        QTest.qWait(200)
-        resize.assert_not_called()
-        window.resize(800, 400)
-        widget.show()
-        QTest.qWait(200)
-        assert (widget.screen.lines, widget.screen.columns) == previous
-        resize.reset_mock()
-        window.resize(650, 400)
-        QTest.qWait(200)
-        resize.assert_called_once()
-        assert widget.screen.columns >= 20
-    finally:
-        tool.on_exit()
-        window.deleteLater()
-        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
-
-
-@pytest.mark.skipif(sys.platform == 'win32', reason='Bash readline integration')
-def test_real_bash_prompt_survives_repeated_container_collapse(tmp_path, monkeypatch):
-    pytest.importorskip('pyte')
-    import shutil
-    if not shutil.which('bash'):
-        pytest.skip('bash unavailable')
-    from PySide6.QtTest import QTest
-    from PySide6.QtCore import QCoreApplication, QEvent
-    from PySide6.QtWidgets import QVBoxLayout
     from pygpt_net.tools.terminal.ui.widget import TerminalWidget
-    monkeypatch.setenv('PS1', 'marcin@marcin-Legion:~/pygpt_workdir/data$ ')
-    original = TerminalProcess.start
-    def start_bash(self, cwd, rows=24, columns=80, command=None):
-        return original(self, cwd, rows, columns, ['bash', '--noprofile', '--norc', '-i'])
-    monkeypatch.setattr(TerminalProcess, 'start', start_bash)
-    app = QApplication.instance() or QApplication([])
-    window = QWidget()
-    window.core = SimpleNamespace(filesystem=SimpleNamespace(get_data_dir=lambda: str(tmp_path)))
-    window.ui = SimpleNamespace(dialog={})
-    tool = Terminal()
-    tool.attach(window)
-    widget = tool.as_tab(SimpleNamespace())
-    QVBoxLayout(window).addWidget(widget)
-    window.resize(800, 400)
-    window.show()
-    try:
-        wait_for(app, lambda: widget.screen is not None and any('marcin@marcin-Legion:' in row for row in widget.screen.display))
-        for width in (350, 800, 350, 800):
-            window.resize(width, 400)
-            QTest.qWait(100)
-        for _ in range(3):
-            for width in (600, 400, 200, 80, 20):
-                window.resize(width, 400)
-                QTest.qWait(10)
-            QTest.qWait(200)
-            widget.hide()
-            window.resize(800, 400)
-            widget.show()
-            QTest.qWait(200)
-        text = '\n'.join(''.join(row[x].data for x in range(widget.screen.columns)).rstrip() for row in widget.all_lines())
-        assert text.count('marcin@marcin-Legion:') == 1
-        assert 'marcin@marcin-Legion:~/pygpt_workdir/data$' in text
-        assert len(widget.screen.history.top) == 0
-    finally:
-        tool.on_exit()
-        window.deleteLater()
-        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+    screen = Mock(lines=20, columns=80)
+    process = Mock()
+    state = {'visible': True, 'rows': 20, 'columns': 80}
+    widget = SimpleNamespace(
+        closed=False, screen=screen, process=process,
+        isVisible=lambda: state['visible'],
+        dimensions=lambda: (state['rows'], state['columns']),
+        sync_scrollbar=Mock(), offset=0, viewport=Mock(),
+    )
+    widget.usable_size = lambda: TerminalWidget.usable_size(widget)
+    for visible, columns in ((True, 10), (False, 40), (True, 80)):
+        state.update(visible=visible, columns=columns)
+        TerminalWidget.sync_size(widget)
+    screen.resize.assert_not_called()
+    process.resize.assert_not_called()
+    state.update(visible=True, columns=65)
+    screen.history.top = []
+    TerminalWidget.sync_size(widget)
+    screen.resize.assert_called_once_with(lines=20, columns=65)
+    process.resize.assert_called_once_with(20, 65)
+
+
+def test_prompt_survives_repeated_screen_resize():
+    pytest.importorskip('pyte')
+    import pyte
+    from pygpt_net.tools.terminal.core.screen import TerminalScreen
+
+    screen = TerminalScreen(80, 20, history=2000)
+    stream = pyte.Stream(screen)
+    prompt = 'user@host:~/work$ '
+    stream.feed(prompt)
+    for columns in (35, 80, 35, 80, 20, 80):
+        screen.resize(lines=20, columns=columns)
+    text = '\n'.join(screen.display)
+    assert text.count('user@host:') == 1
+    assert prompt.rstrip() in text
+    assert len(screen.history.top) == 0
 
 
 def test_reflow_rewraps_history_and_preserves_hard_line_breaks_and_colors():

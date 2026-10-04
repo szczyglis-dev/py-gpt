@@ -48,3 +48,65 @@ def reload_attachment_module():
     import pygpt_net.item.attachment as mod
     importlib.reload(mod)
     yield
+
+
+@pytest.fixture(scope="session", autouse=True)
+def qt_application():
+    """Keep one QApplication alive across all test directories.
+
+    Dropping the last Python reference between widget tests can destroy Qt's
+    application while wrappers or deferred callbacks from previous tests remain.
+    No event loop is run here.
+    """
+    from PySide6.QtWidgets import QApplication
+    app = QApplication.instance() or QApplication([])
+    yield app
+
+
+@pytest.fixture(autouse=True)
+def isolate_native_memory_cleanup(monkeypatch):
+    """Controller unit tests must not drain Qt events from other test cases.
+
+    The cleanup utility has its own tests. Exercise tab/debug/controller logic
+    without invoking process-wide deferred deletion or native memory trimming.
+    """
+    for name in ('pygpt_net.core.tabs.tabs', 'pygpt_net.core.debug.console.console',
+                 'pygpt_net.controller'):
+        module = sys.modules.get(name)
+        if module is not None and hasattr(module, 'mem_clean'):
+            monkeypatch.setattr(module, 'mem_clean', lambda *args, **kwargs: True)
+
+
+@pytest.fixture(autouse=True)
+def isolate_qt_callbacks(monkeypatch, qt_application):
+    """Do not execute one test's delayed UI callbacks during the next test."""
+    from PySide6.QtCore import QTimer
+    single_shot = QTimer.singleShot
+    start = QTimer.start
+    timers = []
+    active = [True]
+
+    def schedule(delay, callback, *args):
+        if args or not callable(callback):
+            return single_shot(delay, callback, *args)
+
+        def invoke():
+            if active[0]:
+                callback()
+
+        return single_shot(delay, invoke)
+
+    monkeypatch.setattr(QTimer, 'singleShot', schedule)
+
+    def start_timer(timer, *args):
+        timers.append(timer)
+        return start(timer, *args)
+
+    monkeypatch.setattr(QTimer, 'start', start_timer)
+    yield
+    active[0] = False
+    # Repeating widget timers must not wake up while another test pumps Qt.
+    from shiboken6 import isValid
+    for timer in timers:
+        if isValid(timer):
+            timer.stop()

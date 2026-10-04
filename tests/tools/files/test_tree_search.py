@@ -1,19 +1,10 @@
 """Regression coverage for browsing directory matches during recursive search."""
 import threading
-import time
+from collections import deque
+from types import SimpleNamespace
+from unittest.mock import MagicMock
 
-from PySide6.QtCore import QThreadPool
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QFileSystemModel, QLabel, QLineEdit, QTreeView, QWidget
-
-from pygpt_net.tools.files.ui.search import TreeSearch, find_paths
-
-
-def _wait_until(predicate, timeout=5000):
-    deadline = time.monotonic() + timeout / 1000
-    while not predicate():
-        assert time.monotonic() < deadline, "Timed out waiting for the filesystem model"
-        QTest.qWait(10)
+from pygpt_net.tools.files.ui.search import TreeSearch, find_paths, _path_key
 
 
 def _files(root):
@@ -55,57 +46,18 @@ def test_cancelled_search_does_not_publish_partial_results(tmp_path):
     assert find_paths(str(tmp_path), "project", cancelled) is None
 
 
-def test_manual_expansion_survives_lazy_loading_and_search_refresh(qapp, tmp_path):
-    nested = _files(tmp_path)
-    explorer = QWidget()
-    explorer.directory = str(tmp_path)
-    explorer.search = QLineEdit(explorer)
-    explorer.search_status = QLabel(explorer)
-    explorer.searching_text = "Searching"
-    explorer.model = QFileSystemModel(explorer)
-    explorer.treeView = QTreeView(explorer)
-    explorer.treeView.setModel(explorer.model)
-    explorer.treeView.setRootIndex(explorer.model.setRootPath(str(tmp_path)))
-    search = TreeSearch(explorer)
-    explorer.show()
-    try:
-        explorer.search.setText("project")
-        _wait_until(lambda: not search.pending and search.accepted is not None)
-        model, tree = explorer.model, explorer.treeView
-        generation = search.generation
-        for path in [nested.parent, nested]:
-            index = model.index(str(path))
-            assert index.isValid()
-            assert not tree.isExpanded(index), "Descendants should open only on request"
-            tree.expand(index)
-            _wait_until(lambda: model.rowCount(index) > 0 and not search.pending)
-            search.apply()
-            assert tree.isExpanded(index)
-            assert search.generation == generation, "Lazy model loading must not restart the disk scan"
-            child = model.index(0, 0, index)
-            assert not tree.isRowHidden(child.row(), index)
-
-        # A new entry triggers another background scan of an already opened tree.
-        added = nested / "new.txt"
-        added.write_text("new")
-        _wait_until(lambda: str(added) in search.accepted and not search.pending)
-        assert tree.isExpanded(model.index(str(nested)))
-        added_index = model.index(str(added))
-        assert not tree.isRowHidden(added_index.row(), added_index.parent())
-
-        unrelated = model.index(str(tmp_path / "unrelated"))
-        assert tree.isRowHidden(unrelated.row(), unrelated.parent())
-        explorer.search.clear()
-        assert not tree.isRowHidden(unrelated.row(), unrelated.parent())
-    finally:
-        search.cancelled.set()
-        search.timer.stop()
-        search.apply_timer.stop()
-        search.batch_timer.stop()
-        QThreadPool.globalInstance().waitForDone(5000)
-        explorer.close()
-        explorer.deleteLater()
-        qapp.processEvents()
+def test_lazy_directory_notifications_do_not_restart_search():
+    search = SimpleNamespace(
+        loaded_directories=set(), apply_timer=MagicMock(), files_changed=MagicMock(),
+        explorer=SimpleNamespace(model=SimpleNamespace(filePath=lambda index: index)),
+    )
+    TreeSearch.rows_inserted(search, '/project/assets')
+    search.apply_timer.start.assert_called_once_with(0)
+    search.files_changed.assert_not_called()
+    TreeSearch.directory_loaded(search, '/project/assets')
+    assert _path_key('/project/assets') in search.loaded_directories
+    TreeSearch.rows_inserted(search, '/project/assets')
+    search.files_changed.assert_called_once_with()
 
 
 def test_scan_counts_matches_in_worker_and_keeps_relative_unicode_patterns(tmp_path):
@@ -136,46 +88,51 @@ def test_scan_can_cancel_inside_large_directory(monkeypatch, tmp_path):
     assert cancelled.checks == 11
 
 
-def test_large_result_application_yields_to_ui_and_new_query_cancels_old_batches(qapp, tmp_path):
-    from PySide6.QtCore import QTimer
+def test_large_result_application_batches_and_cancels_without_event_loop(qapp, tmp_path):
+    from PySide6.QtGui import QStandardItem, QStandardItemModel
+
+    model = QStandardItemModel()
+    root_item = QStandardItem(str(tmp_path))
+    model.appendRow(root_item)
     for number in range(600):
-        (tmp_path / f'{number}.txt').touch()
-    explorer = QWidget()
-    explorer.directory = str(tmp_path)
-    explorer.search = QLineEdit(explorer)
-    explorer.search_status = QLabel(explorer)
-    explorer.searching_text = 'Searching'
-    explorer.model = QFileSystemModel(explorer)
-    explorer.treeView = QTreeView(explorer)
-    explorer.treeView.setModel(explorer.model)
-    root = explorer.model.setRootPath(str(tmp_path))
-    explorer.treeView.setRootIndex(root)
-    search = TreeSearch(explorer)
-    try:
-        _wait_until(lambda: explorer.model.rowCount(root) == 600)
-        _wait_until(lambda: not search._applying and not search.apply_timer.isActive())
-        search.accepted = {str(tmp_path)}
-        heartbeat = []
-        QTimer.singleShot(0, lambda: heartbeat.append(search._applying))
-        search.apply()
-        assert search._applying
-        _wait_until(lambda: not search._applying)
-        assert heartbeat == [True], 'The UI event loop must run before all rows are filtered'
-        assert all(explorer.treeView.isRowHidden(row, root) for row in range(600))
-        search.accepted = None
-        search.apply()
-        assert search._applying
-        explorer.search.setText('new query')
-        assert search.pending and not search._applying
-        assert not search.batch_timer.isActive()
-        explorer.search.clear()
-        _wait_until(lambda: not search._applying)
-        assert not any(explorer.treeView.isRowHidden(row, root) for row in range(600))
-    finally:
-        search.cancelled.set()
-        search.timer.stop()
-        search.apply_timer.stop()
-        search.batch_timer.stop()
-        QThreadPool.globalInstance().waitForDone(5000)
-        explorer.deleteLater()
-        qapp.processEvents()
+        root_item.appendRow(QStandardItem(str(tmp_path / f'{number}.txt')))
+    root = model.index(0, 0)
+    filesystem = SimpleNamespace(
+        index=lambda *args: root if isinstance(args[0], str) else model.index(*args),
+        rowCount=model.rowCount, filePath=lambda index: index.data(), isDir=lambda index: False,
+    )
+    hidden = {}
+    tree = MagicMock()
+    tree.updatesEnabled.return_value = True
+    tree.isRowHidden.side_effect = lambda row, parent: hidden.get(row, False)
+    tree.setRowHidden.side_effect = lambda row, parent, value: hidden.__setitem__(row, value)
+    search = SimpleNamespace(
+        explorer=SimpleNamespace(model=filesystem, treeView=tree, directory=str(tmp_path)),
+        pending=False, collapse_on_apply=False, _applying=False, _reapply=False,
+        _apply_queue=deque(), accepted={str(tmp_path)}, directories=set(),
+        _accepted_keys_token=None, _directory_keys_token=None,
+        batch_timer=MagicMock(), apply_timer=MagicMock(),
+        _restore_normal_view=MagicMock(),
+    )
+    search._refresh_path_keys = lambda: TreeSearch._refresh_path_keys(search)
+    search.apply_batch = lambda: TreeSearch.apply_batch(search)
+    search.stop_applying = lambda: TreeSearch.stop_applying(search)
+    TreeSearch.apply(search)
+    assert search._applying
+    search.batch_timer.start.assert_called_with(1)
+    while search._applying:
+        search.apply_batch()
+    assert len(hidden) == 600 and all(hidden.values())
+    search.accepted = None
+    TreeSearch.apply(search)
+    assert search._applying
+    search.pending = True
+    search.apply_batch()
+    assert not search._applying
+    assert not search._apply_queue
+    search.batch_timer.stop.assert_called_once_with()
+    search.pending = False
+    TreeSearch.apply(search)
+    while search._applying:
+        search.apply_batch()
+    assert not any(hidden.values())

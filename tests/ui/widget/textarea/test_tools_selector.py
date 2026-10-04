@@ -6,6 +6,7 @@ from pygpt_net.ui.widget.textarea.input import ChatInput
 
 
 def test_tools_menu_has_independent_radio_groups_and_uses_existing_toggles(qapp, monkeypatch):
+    monkeypatch.setattr('PySide6.QtWidgets.QMenu.popup', lambda *args: None)
     monkeypatch.setattr('pygpt_net.ui.widget.textarea.input.trans', lambda key: key)
     widget = QWidget()
     widget._tools_menu = None
@@ -26,7 +27,6 @@ def test_tools_menu_has_independent_radio_groups_and_uses_existing_toggles(qapp,
         core=SimpleNamespace(config=config),
         controller=SimpleNamespace(chat=SimpleNamespace(remote_tools=remote)),
     )
-    widget.show()
     ChatInput.action_tools_menu(widget)
     menu = widget._tools_menu
     actions = [action for action in menu.actions() if action.isCheckable()]

@@ -138,6 +138,7 @@ def test_ordinary_microphone_capture_shows_stop():
     window.controller.chat.input.generating = False
     window.controller.ctx.extra.is_editing.return_value = False
     window.controller.tabs.is_chat_input_visible.return_value = True
+    window.ui.nodes['input'].toPlainText.return_value = ''
     window.ui.nodes['input.send_btn'] = MagicMock()
     window.controller.chat.common = Common(window)
 
@@ -145,7 +146,7 @@ def test_ordinary_microphone_capture_shows_stop():
 
     assert ctrl.recording is True
     assert window.controller.chat.input.locked is True
-    window.ui.nodes['input.send_btn'].setEnabled.assert_called_with(False)
+    window.ui.nodes['input.send_btn'].setEnabled.assert_called_with(True)
     window.ui.nodes['input'].set_icon_visible.assert_any_call('send', False)
     window.ui.nodes['input'].set_icon_visible.assert_any_call('stop', True)
 

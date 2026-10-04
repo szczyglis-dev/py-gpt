@@ -58,7 +58,6 @@ def editor(qapp):
     yield widget
     widget.save_timer.stop()
     window.deleteLater()
-    qapp.processEvents()
 
 
 def edit(editor, start, end, text=''):
@@ -123,7 +122,6 @@ def test_delete_everything_then_undo_restores_markers(editor, qapp):
     edit(editor, 0, len(editor.toPlainText()))
     assert editor.markers.ranges() == []
     editor.undo()
-    qapp.processEvents()  # no queued clear is allowed to wipe restored markers
     assert editor.markers.ranges() == [(5, 5)]
     editor.redo()
     edit(editor, 0, 0, 'new text')

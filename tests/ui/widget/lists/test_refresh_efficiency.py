@@ -2,7 +2,6 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from PySide6.QtGui import QStandardItemModel
-from PySide6.QtTest import QTest
 
 from pygpt_net.controller.ui.ui import UI
 from pygpt_net.ui.layout.toolbox.presets import Presets
@@ -52,14 +51,21 @@ def test_preset_refresh_preserves_rows_but_updates_tooltip_and_selection_overrid
     assert view._selection_override_ids is None
 
 
-def test_repeated_token_requests_compute_once(qapp, monkeypatch):
-    compute = MagicMock()
-    monkeypatch.setattr(UI, 'update_tokens', compute)
-    controller = UI()
+def test_repeated_token_requests_compute_once():
+    """Test scheduling logic without constructing Qt objects or running events."""
+    controller = UI.__new__(UI)
+    timer = MagicMock()
+    timer.isActive.return_value = False
+    timer.start.side_effect = lambda: setattr(timer.isActive, 'return_value', True)
+    controller._tokens_update_timer = timer
+    controller.update_tokens = MagicMock()
+
     for _ in range(10):
         controller.request_tokens_update()
-    assert compute.call_count == 0
-    QTest.qWait(70)
-    assert compute.call_count == 1
-    controller._tokens_update_timer.stop()
-    controller._tokens_update_timer.deleteLater()
+    timer.start.assert_called_once_with()
+    controller.update_tokens.assert_not_called()
+
+    # Once the previous batch finishes, a new request can schedule another one.
+    timer.isActive.return_value = False
+    controller.request_tokens_update()
+    assert timer.start.call_count == 2

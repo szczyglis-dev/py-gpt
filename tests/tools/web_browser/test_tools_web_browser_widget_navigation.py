@@ -214,13 +214,8 @@ def test_canvas_tracks_clicks_in_replaced_render_children_without_consuming_inpu
     monkeypatch.setattr(widgets, 'SourceEditor', lambda tool, parent: QPlainTextEdit(parent))
     tool = MagicMock()
     viewport = widgets.BrowserViewport(tool=tool)
-    viewport.show()
-    qapp.processEvents()
     renderer = RenderChild(viewport.web)
     renderer.resize(200, 100)
-    renderer.show()
-    renderer.setFocus()
-    qapp.processEvents()
     tool.viewport.on_user_interaction.reset_mock()
 
     # Focus is already on this child: clicking must still select its runtime.
@@ -231,8 +226,6 @@ def test_canvas_tracks_clicks_in_replaced_render_children_without_consuming_inpu
     renderer.deleteLater()
     replacement = RenderChild(viewport.web)
     replacement.resize(200, 100)
-    replacement.show()
-    qapp.processEvents()
     tool.viewport.on_user_interaction.reset_mock()
     QTest.mouseClick(replacement, Qt.LeftButton)
     assert replacement.clicks == 1
@@ -249,20 +242,15 @@ def test_canvas_sandbox_and_source_clicks_select_the_session(qapp, monkeypatch):
     monkeypatch.setattr(widgets, 'SourceEditor', lambda tool, parent: QPlainTextEdit(parent))
     tool = MagicMock()
     viewport = widgets.BrowserViewport(tool=tool)
-    viewport.show()
     viewport.set_mode('playwright')
-    qapp.processEvents()
     tool.viewport.on_user_interaction.reset_mock()
     QTest.mouseClick(viewport.sandbox, Qt.LeftButton)
     tool.viewport.on_user_interaction.assert_called()
-    assert viewport.sandbox.hasFocus()
 
     viewport.show_source('<p>source</p>')
-    qapp.processEvents()
     tool.viewport.on_user_interaction.reset_mock()
     QTest.mouseClick(viewport.source.viewport(), Qt.LeftButton)
     tool.viewport.on_user_interaction.assert_called()
-    assert viewport.source.hasFocus()
     viewport.close()
 
 

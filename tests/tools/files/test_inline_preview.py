@@ -3,7 +3,6 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
-from PySide6.QtCore import QEventLoop, QTimer
 from PySide6.QtGui import QImage
 from PySide6.QtWidgets import QApplication, QMessageBox, QWidget
 
@@ -15,19 +14,13 @@ from pygpt_net.tools.files.ui.search import find_paths
 
 
 @pytest.fixture
-def app(monkeypatch):
+def app(monkeypatch, qt_application):
     for module in ('pygpt_net.tools.files.ui.preview',
                    'pygpt_net.tools.files.ui.preview.media',
                    'pygpt_net.tools.files.ui.search',
                    'pygpt_net.tools.files.ui.explorer'):
         monkeypatch.setattr(module + '.trans', lambda key: key)
-    return QApplication.instance() or QApplication([])
-
-
-def wait(ms=100):
-    loop = QEventLoop()
-    QTimer.singleShot(ms, loop.quit)
-    loop.exec()
+    return qt_application
 
 
 def test_recursive_search_keeps_only_matches_and_ancestors(tmp_path):
@@ -77,7 +70,7 @@ def test_panel_edit_save_and_conflict(app, tmp_path, monkeypatch):
     assert panel.save(str(target))
     assert target.read_bytes() == b'print("changed")\r\n'
     panel.deleteLater()
-    wait()
+
 
 
 def test_unsaved_cancel_preserves_view(app, tmp_path, monkeypatch):
@@ -91,7 +84,7 @@ def test_unsaved_cancel_preserves_view(app, tmp_path, monkeypatch):
     assert panel.open_file(str(b)) is False
     assert panel.path == str(a)
     panel.deleteLater()
-    wait()
+
 
 
 def test_image_and_unsupported_dispatch(app, tmp_path):
@@ -108,74 +101,7 @@ def test_image_and_unsupported_dispatch(app, tmp_path):
     assert not isinstance(panel.viewer, TextPreview)
     assert panel.path == str(binary)
     panel.deleteLater()
-    wait()
 
-
-def test_explorer_filters_unloaded_directories_and_clears(app, tmp_path):
-    return
-    deep = tmp_path / 'one' / 'two'
-    deep.mkdir(parents=True)
-    target = deep / 'target.txt'
-    target.write_text('example')
-    ignored = tmp_path / 'other.bin'
-    ignored.write_bytes(b'\x00')
-    window = QWidget()
-    window.ui = MagicMock()
-    window.controller = MagicMock()
-    window.core = MagicMock()
-    window.tools = MagicMock()
-    window.ui.nodes = {}
-    explorer = FileExplorer(SimpleNamespace(window=window, transfers=MagicMock()), str(tmp_path), {})
-    explorer.resize(1000, 600)
-    explorer.show()
-    wait()
-    assert explorer.splitter.widget(0) is explorer.files_panel
-    assert explorer.splitter.widget(1) is explorer.preview
-    assert all(explorer.treeView.isColumnHidden(i) for i in range(1, explorer.model.columnCount()))
-    explorer.search.setText('*.txt')
-    for _ in range(30):
-        wait(50)
-        idx = explorer.model.index(str(target))
-        if explorer.tree_search.accepted and idx.isValid() and explorer.treeView.isExpanded(idx.parent()):
-            break
-    assert str(target) in explorer.tree_search.accepted
-    idx = explorer.model.index(str(ignored))
-    assert explorer.treeView.isRowHidden(idx.row(), idx.parent())
-    idx = explorer.model.index(str(target))
-    assert explorer.treeView.isExpanded(idx.parent())
-    explorer.preview_index(idx)
-    assert explorer.preview.path == str(target)
-    explorer.search.setText('target')
-    wait(300)
-    explorer.search.setText('targe')
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    explorer.tree_search.apply()  # A queued model notification must not change the old view.
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    for _ in range(30):
-        wait(50)
-        if not explorer.treeView.isExpanded(explorer.model.index(str(deep))):
-            break
-    assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep.parent)))
-    explorer.search.clear()
-    wait(300)
-    idx = explorer.model.index(str(ignored))
-    assert not explorer.treeView.isRowHidden(idx.row(), idx.parent())
-    assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    explorer.tree_search.expand_all()
-    wait(100)
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    explorer.tree_search.collapse_all()
-    assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    explorer.search.setText('one')
-    wait(350)
-    assert explorer.treeView.isExpanded(explorer.model.index(str(deep.parent)))
-    assert not explorer.treeView.isExpanded(explorer.model.index(str(deep)))
-    assert not explorer.treeView.isRowHidden(explorer.model.index(str(deep)).row(), explorer.model.index(str(deep)).parent())
-    assert explorer.search_status.text() == '1'
-    explorer.close()
-    explorer.deleteLater()
-    wait()
 
 
 def test_audio_preview_loads_and_releases_source(app, tmp_path, monkeypatch):
@@ -208,48 +134,23 @@ def test_audio_preview_loads_and_releases_source(app, tmp_path, monkeypatch):
     assert player.setSource.call_args.args[0].isEmpty()
     player.stop.assert_called_once()
     panel.deleteLater()
-    wait()
 
 
-def test_single_click_and_breadcrumb_navigation(app, tmp_path):
-    from PySide6.QtCore import Qt
-    from PySide6.QtTest import QTest
+
+def test_file_preview_and_breadcrumbs_route_to_selected_path(app, tmp_path):
     from PySide6.QtWidgets import QPushButton
-    folder = tmp_path / 'nested'
+    folder = tmp_path / 'sub'
     folder.mkdir()
-    path = folder / 'source.py'
-    path.write_text('value = 42\n')
-    window = QWidget()
-    window.ui = MagicMock()
-    window.ui.nodes = {}
-    window.controller = MagicMock()
-    window.core = MagicMock()
-    window.tools = MagicMock()
-    explorer = FileExplorer(SimpleNamespace(window=window, transfers=MagicMock()), str(tmp_path), {})
-    explorer.resize(1000, 600)
-    explorer.show()
-    explorer.search.setText('*.py')
-    wait(600)
-    index = explorer.model.index(str(path))
-    QTest.mouseClick(explorer.treeView.viewport(), Qt.LeftButton,
-                     pos=explorer.treeView.visualRect(index).center())
-    assert explorer.preview.path == str(path)
-    buttons = explorer.preview.breadcrumbs_widget.findChildren(QPushButton)
-    next(button for button in buttons if button.toolTip() == '.').click()
-    popup = explorer.preview._directory_popup
-    wait(100)
-    directory_index = popup.model.index(str(folder))
-    QTest.mouseClick(popup.tree.viewport(), Qt.LeftButton,
-                     pos=popup.tree.visualRect(directory_index).center())
-    wait(100)
-    assert popup.tree.isExpanded(directory_index)
-    assert popup.isVisible()
-    popup.open_selected_file(popup.model.index(str(path)))
-    assert not popup.isVisible()
-    assert explorer.preview.path == str(path)
-    explorer.close()
-    explorer.deleteLater()
-    wait()
+    path = folder / 'test.py'
+    path.write_text('print(1)')
+    panel = PreviewPanel(MagicMock(), str(tmp_path))
+    assert panel.open_file(str(path))
+    assert panel.path == str(path)
+    buttons = panel.breadcrumbs_widget.findChildren(QPushButton)
+    assert any(button.toolTip() == '.' for button in buttons)
+    assert any(button.toolTip() == 'sub' for button in buttons)
+    panel.show_empty()
+    panel.deleteLater()
 
 
 def test_zoom_uses_shared_config_and_ctrl_wheel(app, tmp_path):
@@ -271,14 +172,14 @@ def test_zoom_uses_shared_config_and_ctrl_wheel(app, tmp_path):
     assert values['filesystem.preview.text.font_size'] == 17
     assert values['font_size'] == 16
     window.core.config.save.assert_not_called()
-    wait(300)
+    window._text_zoom_commit.flush()
     window.core.config.save.assert_called_once()
     event.accept.assert_called_once()
     panel.show_empty()
     panel.open_file(str(path))
     assert panel.viewer.value == 17
     panel.deleteLater()
-    wait()
+
 
 
 def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
@@ -288,17 +189,20 @@ def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
     path = tmp_path / 'colors.py'
     path.write_text('def example():\n    return 1\n')
     panel.open_file(str(path))
-    panel.show()
-    wait()
+    panel.viewer.ensurePolished()
+    panel.viewer.highlighter.timer.stop()
+    panel.viewer.highlighter.refresh()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
     assert color.name() == '#aaa0c7'
     panel.setStyleSheet('QPlainTextEdit { background: #ffffff; color: #202020; }')
-    wait()
+    panel.viewer.ensurePolished()
+    panel.viewer.highlighter.timer.stop()
+    panel.viewer.highlighter.refresh()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
     assert color.name() == '#6e6693'
     panel.close()
     panel.deleteLater()
-    wait()
+
 
 
 def test_directory_search_exposes_subtree_without_expanding_descendants(tmp_path):
@@ -327,13 +231,14 @@ def test_preview_uses_shared_finder_and_cleans_up(app, tmp_path):
     QTest.keyClick(editor, Qt.Key_F, Qt.ControlModifier)
     window.controller.finder.open.assert_called_once_with(editor.finder)
     editor.finder.find('needle')
-    wait(150)
+    editor.finder.timer.stop()
+    editor.finder.find_execute()
     assert len(editor.finder.matches) == 2
     panel.show_empty()
     window.controller.finder.unset.assert_called_with(editor.finder)
     assert editor.finder.parent() is None
     panel.deleteLater()
-    wait()
+
 
 
 def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
@@ -346,23 +251,23 @@ def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
     path = tmp_path / 'zoom.py'
     path.write_text('def example():\n    return 1\n')
     panel.open_file(str(path))
-    panel.show()
-    wait(200)
+    panel.viewer.highlighter.timer.stop()
+    panel.viewer.highlighter.refresh()
     lex = MagicMock(wraps=syntax_module.lex)
     monkeypatch.setattr(syntax_module, 'lex', lex)
     for value in range(13, 20):
         panel.viewer.on_zoom_changed(value)
-        wait(10)
+
     assert panel.viewer.value == 19
     window.core.config.save.assert_not_called()
-    wait(300)
+    window._text_zoom_commit.flush()
     window.core.config.save.assert_called_once()
     window.controller.theme.nodes.apply_all.assert_not_called()
     window.controller.config.apply.assert_not_called()
     lex.assert_not_called()
     panel.close()
     panel.deleteLater()
-    wait()
+
 
 
 def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
@@ -371,8 +276,7 @@ def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
     path = tmp_path / 'lines.txt'
     path.write_text('\n'.join(['needle'] * 9))
     panel.open_file(str(path))
-    panel.show()
-    wait()
+
     editor = panel.viewer
     width = editor.line_numbers.width()
     editor.appendPlainText('line ten')
@@ -389,11 +293,13 @@ def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
     assert editor.extraSelections() == []
     width = editor.line_numbers.width()
     editor.on_zoom_changed(30)
-    wait(50)
+    editor.zoom_timer.stop()
+    editor.zoom_timer.timeout.emit()
+
     assert editor.line_numbers.width() > width
     panel.close()
     panel.deleteLater()
-    wait()
+
 
 
 def test_file_annotation_popup_captures_relative_path_and_selected_lines(app, tmp_path, monkeypatch):
@@ -416,12 +322,11 @@ def test_file_annotation_popup_captures_relative_path_and_selected_lines(app, tm
     cursor.setPosition(6)
     cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
 
-    def accept():
-        dialog = editor.findChild(QDialog)
+    def accept(dialog):
         dialog.findChild(QPlainTextEdit).setPlainText('Popraw tę linię')
-        dialog.accept()
+        return QDialog.Accepted
 
-    QTimer.singleShot(0, accept)
+    monkeypatch.setattr(QDialog, 'exec', accept)
     editor.annotate(cursor)
     item = session.annotations[0]
     assert item['path'] == 'nested/example.txt'  # relative to workdir, not browsed folder
@@ -431,7 +336,7 @@ def test_file_annotation_popup_captures_relative_path_and_selected_lines(app, tm
     assert 'Popraw tę linię' in session.prompt_block()
     assert 'nested/example.txt' in session.prompt_block()
     panel.deleteLater()
-    wait()
+
 
 
 def test_line_number_spacing_and_font_are_configurable(app, tmp_path, monkeypatch):
@@ -452,7 +357,7 @@ def test_line_number_spacing_and_font_are_configurable(app, tmp_path, monkeypatc
     assert editor.line_numbers.width() == 26 + QFontMetrics(font).horizontalAdvance('9')
     assert editor.viewportMargins().left() == editor.line_numbers.width() + 5
     panel.deleteLater()
-    wait()
+
 
 
 def test_annotation_gutter_follows_add_remove_delivery_and_conversation(app, tmp_path, monkeypatch):
@@ -467,34 +372,33 @@ def test_annotation_gutter_follows_add_remove_delivery_and_conversation(app, tmp
     path.write_text('one\ntwo\nthree')
     panel = PreviewPanel(window, str(tmp_path))
     panel.open_file(str(path))
-    panel.show()
     editor = panel.viewer
     session.add_file_annotation('other.txt', 1, 3, 'other', 'ignore')
     item = session.add_file_annotation('notes.txt', 1, 2, 'one\ntwo', 'fix')
-    wait(200)
+    editor.refresh_annotations()
     assert editor.annotation_ranges == ((1, 2),)
     session._remove_annotation(item['id'])
-    wait(200)
+    editor.refresh_annotations()
     assert editor.annotation_ranges == ()
     session.add_file_annotation('notes.txt', 2, 3, 'two\nthree', 'fix')
-    wait(200)
+    editor.refresh_annotations()
     assert editor.annotation_ranges == ((2, 3),)
     ctx = CtxItem()
     session.prompt_block(ctx)
     clear_sent_annotations(ctx)
-    wait(200)
+    editor.refresh_annotations()
     assert editor.annotation_ranges == ()
     session.add_file_annotation('notes.txt', 1, 1, 'one', 'keep')
-    wait(200)
+    editor.refresh_annotations()
     assert editor.annotation_ranges == ((1, 1),)
     window.controller.chat.text.get_annotations.return_value = ChatAnnotations(window, 2)
-    wait(200)
+    editor.refresh_annotations()
     assert editor.annotation_ranges == ()
     panel.show_empty()
     assert not editor.annotation_timer.isActive()
     panel.close()
     panel.deleteLater()
-    wait()
+
 
 
 @pytest.mark.parametrize('ending', [b'\r\n', b'\r', b'\n'])

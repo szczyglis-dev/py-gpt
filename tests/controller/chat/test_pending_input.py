@@ -2,7 +2,6 @@ from threading import Event
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-from PySide6.QtWidgets import QApplication
 
 from pygpt_net.controller.chat.input import Input
 from pygpt_net.ui.layout.chat.input import PendingInputBar
@@ -71,8 +70,7 @@ def test_send_pending_waits_for_bridge_and_stream_before_resuming():
     assert controller.pending is None
 
 
-def test_pending_bar_elides_and_can_cancel():
-    app = QApplication.instance() or QApplication([])
+def test_pending_bar_elides_and_can_cancel(qt_application):
     controller, window = make_input()
     window.controller.chat.input = controller
     bar = PendingInputBar(window)
@@ -80,7 +78,8 @@ def test_pending_bar_elides_and_can_cancel():
     bar.resize(340, 40)
     controller.pending = {'display': '<long message> ' * 40}
     controller._show_pending()
-    app.processEvents()
+    bar.layout().activate()
+    bar._elide()
     assert bar.isVisible()
     assert len(bar.preview.text()) < len(controller.pending['display'])
     assert bar.preview.toolTip() == controller.pending['display']
@@ -116,59 +115,36 @@ def test_pending_submit_keeps_new_draft_and_uses_original_chat_and_durable_text(
     window.ui.nodes['input'].clear.assert_not_called()
 
 
-def test_pending_overlay_preserves_real_composer_geometry_and_splitter_sizes():
+def test_pending_overlay_positions_above_composer_without_resizing_splitter(qt_application, monkeypatch):
     from PySide6.QtCore import Qt, QPoint
-    from PySide6.QtWidgets import QSplitter, QWidget, QVBoxLayout, QTextEdit
-    from pygpt_net.ui.layout.chat.input import ChatInputContainer, ChatInputRootContainer
-    from pygpt_net.ui.widget.tabs.Input import ChatComposer
+    from PySide6.QtWidgets import QSplitter, QWidget
+    from pygpt_net.ui.layout.chat.input import ChatInputContainer
 
-    app = QApplication.instance() or QApplication([])
     controller, window = make_input()
     host = QWidget()
-    host_layout = QVBoxLayout(host)
-    splitter = QSplitter(Qt.Vertical)
-    host_layout.addWidget(splitter)
+    splitter = QSplitter(Qt.Vertical, host)
     splitter.addWidget(QWidget())
-    content = QWidget()
-    layout = QVBoxLayout(content)
-    layout.setContentsMargins(0, 0, 0, 0)
-    editor = QTextEdit()
-    editor.setMinimumHeight(100)
-    page = QWidget()
-    QVBoxLayout(page).addWidget(editor)
-    layout.addWidget(ChatComposer(None, page, QWidget()))
-    composer = ChatInputContainer(window, content)
-    composer._ensure_columns_splitter_hook = lambda: None
-    composer._active_chat_column_idx = lambda: 0
-    composer._column_area = lambda col, width: (0, width)
-    composer._is_wide_style = lambda: True
-    root = ChatInputRootContainer(composer)
-    root.setMaximumHeight(220)
-    input_host = QWidget()
-    input_layout = QVBoxLayout(input_host)
-    input_layout.setContentsMargins(0, 0, 0, 0)
-    input_layout.addWidget(root)
-    splitter.addWidget(input_host)
-    window.ui.splitters = {'main.output': splitter}
-    window.ui.nodes.update({'input': editor, 'input.root': root, 'input.container': composer})
+    root = QWidget()
+    splitter.addWidget(root)
+    # Real hidden widgets provide parent relationships; visibility and content
+    # coordinates are controlled without showing windows or processing events.
+    monkeypatch.setattr(root, 'isVisible', lambda: True)
+    content = SimpleNamespace(mapTo=lambda parent, point: QPoint(40, 300), width=lambda: 500)
+    composer = ChatInputContainer(window, QWidget())
+    composer.content_widget = content
+    window.ui.nodes.update({'input.root': root, 'input.container': composer})
     bar = PendingInputBar(window)
-    window.ui.nodes['input.pending'] = bar
-    host.resize(700, 600)
-    splitter.setSizes([380, 220])
-    host.show()
-    app.processEvents()
-    original_y = editor.mapToGlobal(QPoint()).y()
-    original_height = editor.height()
+    bar.active = True
     original_sizes = splitter.sizes()
-    for payload in ({'display': 'queued message'}, {'display': 'updated'}, None):
-        bar.set_pending(payload)
-        app.processEvents()
-        app.processEvents()
-        assert editor.mapToGlobal(QPoint()).y() == original_y
-        assert editor.height() == original_height
-        assert splitter.sizes() == original_sizes
-        assert splitter.count() == 2
-        if payload:
-            assert bar.parentWidget() is host
-            assert bar.mapToGlobal(QPoint(0, bar.height())).y() <= editor.mapToGlobal(QPoint()).y()
+    original_root_geometry = root.geometry()
+    bar.sync_position()
+    assert bar.parentWidget() is host
+    assert bar.x() == 40
+    assert bar.y() + bar.height() == 300
+    assert bar.width() == 500
+    assert splitter.sizes() == original_sizes
+    assert splitter.count() == 2
+    assert root.geometry() == original_root_geometry
+    bar.close()
+    composer.close()
     host.close()

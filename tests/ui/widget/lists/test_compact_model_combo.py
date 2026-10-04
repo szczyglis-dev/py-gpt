@@ -7,7 +7,8 @@ from pygpt_net.ui.widget.lists.model_combo import CompactModelCombo
 
 
 @pytest.mark.parametrize('grouped', [True, False])
-def test_provider_menu_keeps_selection_and_omits_empty_providers(qapp, grouped):
+def test_provider_menu_keeps_selection_and_omits_empty_providers(qapp, monkeypatch, grouped):
+    monkeypatch.setattr('PySide6.QtWidgets.QMenu.popup', lambda *args: None)
     config = {'model': 'b', 'model.group_providers': grouped}
     window = SimpleNamespace(
         core=SimpleNamespace(config=SimpleNamespace(get=config.get)),
@@ -34,4 +35,3 @@ def test_provider_menu_keeps_selection_and_omits_empty_providers(qapp, grouped):
     window.controller.model.select.assert_called_once_with('a')
     menu.close()
     widget.deleteLater()
-    qapp.processEvents()

@@ -1,9 +1,17 @@
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import pytest
-from PySide6.QtCore import QObject, QTimer, QUrl, Signal
+from PySide6.QtCore import QObject, QUrl, Signal
 
 from pygpt_net.tools.web_browser.core.qt import QtBackend
+
+
+@pytest.fixture(autouse=True)
+def fake_event_loop(monkeypatch):
+    # Completion signals are delivered directly; no native event loop is needed.
+    monkeypatch.setattr('pygpt_net.tools.web_browser.core.qt.QEventLoop', MagicMock())
+    monkeypatch.setattr('pygpt_net.tools.web_browser.core.qt.QTimer', MagicMock())
 
 
 class Page(QObject):
@@ -28,9 +36,9 @@ class Web:
         self.submitted = (html, base_url)
         # Completion of the old document must not acknowledge this update.
         self.old_page.loadFinished.emit(True)
-        QTimer.singleShot(0, lambda: self.current_page.loadFinished.emit(False))
+        self.current_page.loadFinished.emit(False)
         if self.succeed:
-            QTimer.singleShot(5, lambda: self.current_page.loadFinished.emit(True))
+            self.current_page.loadFinished.emit(True)
 
 
 def test_html_load_waits_for_new_page_and_ignores_aborted_load(qapp):

@@ -84,7 +84,7 @@ def test_toolbar_uses_registration_order_tool_handlers_and_live_translations(qap
     assert toolbar.layout().itemAt(4).widget() is window.ui.nodes['toolbar.custom']
     assert toolbar.layout().itemAt(5).widget() is window.ui.nodes['toolbar.custom.extra']
     window.deleteLater()
-    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    QCoreApplication.sendPostedEvents(window, QEvent.DeferredDelete)
 
 
 def test_base_tool_does_not_add_toolbar_buttons(qapp):

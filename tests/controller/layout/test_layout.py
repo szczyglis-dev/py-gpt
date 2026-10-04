@@ -65,9 +65,10 @@ def test_save(mock_window):
 
 
 def test_main_splitter_restore_migrates_order_and_keeps_toolbox_closed(mock_window):
+    from pygpt_net.ui.layout.sidebar import pane_sizes
     for order, saved, expected in (
-        (None, [220, 700, 280], [220, 0, 980]),
-        ('toolbox-first', [280, 220, 700], [220, 0, 980]),
+        (None, [220, 700, 280], pane_sizes(0, 220, 980)),
+        ('toolbox-first', [280, 220, 700], pane_sizes(0, 220, 980)),
     ):
         splitter = MagicMock()
         splitter.sizes.return_value = [0, 200, 1000]

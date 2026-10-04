@@ -138,7 +138,8 @@ def test_clear_by_idx(mock_window):
     idx.clear.assert_called_once_with("base")
 
 
-def test_clear(mock_window):
+def test_clear(mock_window, monkeypatch):
+    monkeypatch.setattr('pygpt_net.controller.idx.indexer.QApplication.processEvents', lambda: None)
     """Clear resolves an index and removes both storage and local tracking."""
     mock_window.update_status = MagicMock()
     mock_window.core.idx.resolve_idx = MagicMock(return_value="base")

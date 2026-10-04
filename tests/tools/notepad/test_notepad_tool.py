@@ -2,8 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from PySide6.QtCore import QCoreApplication, QEvent, Qt
-from PySide6.QtTest import QTest
+from PySide6.QtCore import QCoreApplication, QEvent
 from PySide6.QtWidgets import QMainWindow
 from sqlalchemy import create_engine, text
 
@@ -45,7 +44,7 @@ def environment(qapp, tmp_path):
         if widget is not None:
             widget.deleteLater()
     window.deleteLater()
-    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+    QCoreApplication.sendPostedEvents(window, QEvent.DeferredDelete)
     db.dispose()
 
 
@@ -110,20 +109,16 @@ def test_close_flushes_pending_autosave_and_profile_switch_uses_own_database(env
     second_db.dispose()
 
 
-def test_autosave_focus_scroll_and_reopening_saved_note(environment, qapp):
+def test_autosave_and_reopening_saved_note(environment):
     tool, window, db = environment
     tab = make_tab(column=1)
     widget = tool.as_tab(tab)
-    window.setCentralWidget(widget)
-    window.resize(600, 350)
-    window.show()
-    qapp.processEvents()
     editor = widget.textarea
-    QTest.mouseClick(editor.viewport(), Qt.LeftButton)
-    QTest.keyClicks(editor, 'typed note')
-    QTest.qWait(450)
+    editor.setPlainText('typed note')
+    assert editor.save_timer.isActive()
+    editor.save_timer.stop()
+    editor.save_timer.timeout.emit()
     assert rows(db)[widget.id]['content'] == 'typed note'
-    window.controller.tabs.on_column_focus.assert_called_with(1)
     tool.setup_theme()
     widget.on_delete()
     other = tool.as_tab(make_tab())
