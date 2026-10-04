@@ -521,14 +521,14 @@ class OutputTabs(QTabWidget):
         self.corner_layout.setContentsMargins(0, 0, 12, 0)
         self.corner_layout.setSpacing(2)
         self.split_button = LabelButton(parent=self.corner_controls)
-        self.split_button.setIcon(icon(':/icons/split_screen.svg'))
+        state = self.window.core.config.get('layout.split', False)
+        self.split_button.setIcon(icon(':/icons/right_double.svg' if state else ':/icons/split_screen.svg'))
         self.split_button.setFixedSize(36, 36)
         self.split_button.setIconSize(QSize(20, 20))
         self.split_button.setToolTip(trans('layout.split.tooltip'))
         self.split_button.clicked.connect(self.window.controller.tabs.toggle_split_screen_animated)
         column_idx = self.column.get_idx() if self.column is not None else 0
         self.window.ui.nodes[f'layout.split.button.{column_idx}'] = self.split_button
-        state = self.window.core.config.get('layout.split', False)
         self.split_button.setVisible(column_idx == (1 if state else 0))
         self.corner_layout.addWidget(add_button)
         self.corner_layout.addWidget(self.split_button)

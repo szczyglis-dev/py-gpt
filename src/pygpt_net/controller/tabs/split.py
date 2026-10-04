@@ -11,6 +11,7 @@
 
 from PySide6.QtCore import QTimer, QVariantAnimation, QAbstractAnimation, QObject, QSignalBlocker
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QSplitter
 
 from pygpt_net.core.tabs.tab import Tab
@@ -204,6 +205,7 @@ class TabSplit:
         for idx in (0, 1):
             button = self.window.ui.nodes.get(f'layout.split.button.{idx}')
             if button is not None:
+                button.setIcon(QIcon(":/icons/right_double.svg" if state else ":/icons/split_screen.svg"))
                 button.setVisible(idx == column)
                 controls = button.parentWidget()
                 controls.setVisible(idx == column or any(
