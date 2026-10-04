@@ -17,7 +17,6 @@ from PySide6.QtWidgets import QTreeView, QWidget, QVBoxLayout, QLabel, QHBoxLayo
 
 
 from pygpt_net.core.tabs.tab import Tab
-from pygpt_net.ui.widget.element.button import ButtonPopupMenu
 from pygpt_net.utils import trans
 
 
@@ -67,15 +66,25 @@ class FileExplorer(QWidget):
         except Exception:
             pass
 
-        self.btn_options = ButtonPopupMenu(
-            self,
-            menu_builder=self.menus.options,
-            object_name='filesOptionsButton',
-            menu_object_name='filesOptionsMenu',
-        )
-        self.btn_options.setFixedSize(32, 32)
-        self.btn_options.setStyleSheet("QPushButton#filesOptionsButton { padding: 4px; }")
-        self.btn_options.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.header_buttons = []
+        for name, icon, tooltip, callback in (
+            ('filesOpenButton', 'folder_open', 'action.open',
+             lambda checked=False: self.tool.paths.open(self.directory)),
+            ('filesUploadButton', 'upload', 'files.local.upload.tooltip',
+             lambda checked=False: self.tool.transfers.upload()),
+            ('filesSwapColumnsButton', 'sync', 'files.columns.swap',
+             lambda checked=False: self.toggle_columns()),
+        ):
+            button = QPushButton(QIcon(f':/icons/{icon}.svg'), '', self)
+            button.setObjectName(name)
+            button.setFixedSize(32, 32)
+            button.setStyleSheet(f'QPushButton#{name} {{ padding: 4px; }}')
+            button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+            button.setCursor(Qt.PointingHandCursor)
+            button.setFocusPolicy(Qt.NoFocus)
+            button.setToolTip(trans(tooltip))
+            button.clicked.connect(callback)
+            self.header_buttons.append((button, tooltip))
 
         self.layout = QVBoxLayout()
 
@@ -126,7 +135,8 @@ class FileExplorer(QWidget):
         self.header_layout.setSpacing(self.splitter.handleWidth())
         self.header_layout.addWidget(self.preview.breadcrumbs_widget, 1)
         self.header_layout.addWidget(self.search_status)
-        self.header_layout.addWidget(self.btn_options, 0, Qt.AlignRight)
+        for button, _ in self.header_buttons:
+            self.header_layout.addWidget(button, 0, Qt.AlignRight)
         self.layout.addLayout(self.header_layout)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -301,7 +311,8 @@ class FileExplorer(QWidget):
 
     def retranslate(self):
         """Refresh Files labels/tooltips after a runtime language change."""
-        self.btn_options.retranslate()
+        for button, tooltip in self.header_buttons:
+            button.setToolTip(trans(tooltip))
         self.search.setPlaceholderText(trans('files.search.placeholder'))
         self.searching_text = trans('files.search.searching')
         self.empty_files.retranslate()
