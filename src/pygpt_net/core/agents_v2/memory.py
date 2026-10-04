@@ -190,7 +190,8 @@ class OrchestratorMemoryStore:
         Normal modes replay their ordinary final input/output. Completed Agents
         v2 turns keep ordered model-only segments so worker results can later be
         replayed as separate runtime inputs instead of being flattened into
-        assistant-authored prose. An interrupted Agents v2 turn is USER-only.
+        assistant-authored prose. Ordinary interrupted turns are USER-only;
+        user-steered turns retain the completed workflow segments.
         """
         if item is None or getattr(item, "hidden", False) or getattr(item, "internal", False):
             return None
@@ -204,8 +205,8 @@ class OrchestratorMemoryStore:
             except Exception:
                 durable_final = ""
             completed = extra.get("response_final") is True or bool(durable_final)
-            if completed:
-                if self.restore_full_history_enabled():
+            if completed or extra.get("user_steered") is True:
+                if self.restore_full_history_enabled() or extra.get("user_steered") is True:
                     history_segments = self._compose_source_history_segments(item)
                     output = "\n\n".join(
                         str(segment.get("content") or "").strip()

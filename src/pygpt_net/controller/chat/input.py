@@ -11,7 +11,7 @@
 
 from typing import Optional, Any, Dict
 
-from PySide6.QtCore import QObject, Slot
+from PySide6.QtCore import QObject, Slot, QTimer
 
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.bridge.context import MultimodalContext
@@ -60,6 +60,8 @@ class Input:
         self.locked = False
         self.stop = False
         self.generating = False
+        self.pending = None
+        self._pending_sending = False
         self._preprocess_seq = 0
         self._preprocess_id = None
         self._preprocess_worker = None
@@ -232,7 +234,56 @@ class Input:
         }))
         self._finish_request(request_meta)
 
-    def send_input(self, force: bool = False):
+    def _show_pending(self):
+        bar = self.window.ui.nodes.get("input.pending")
+        if bar is not None:
+            bar.set_pending(self.pending, self._pending_sending)
+
+    def cancel_pending(self):
+        if self._pending_sending:
+            return
+        self.pending = None
+        self._show_pending()
+
+    def send_pending(self):
+        """Close the active turn before submitting the staged user message."""
+        if self.pending is None or self._pending_sending:
+            return
+        self._pending_sending = True
+        self._show_pending()
+        workers = [self.window.core.bridge.worker]
+        workers.extend(data.get("worker") for data in
+                       list(self.window.controller.chat.stream.pids.values()))
+        if self.generating or self.locked or self.window.core.ctx.output.has_request():
+            ctx = self.window.core.ctx.get_last_item()
+            if ctx is not None and ctx.mode == MODE_AGENT_V2:
+                # Replay workflow segments even when this turn has no final
+                # answer. This marker distinguishes steering from ordinary STOP.
+                if not isinstance(ctx.extra, dict):
+                    ctx.extra = {}
+                ctx.extra["user_steered"] = True
+                self.window.core.ctx.update_item(ctx)
+            self.window.controller.kernel.stop()
+        self._wait_pending_worker(workers)
+
+    def _wait_pending_worker(self, workers):
+        # Keep the kernel halted until the old provider/runtime has exited.
+        # Queued finalization must reach SQLite before the new history loads.
+        if any(worker is not None and getattr(worker, "execution_done", None) is not None
+               and not worker.execution_done.is_set() for worker in workers):
+            QTimer.singleShot(40, lambda: self._wait_pending_worker(workers))
+            return
+        QTimer.singleShot(0, self._submit_pending)
+
+    def _submit_pending(self):
+        payload = self.pending
+        self.pending = None
+        self._pending_sending = False
+        self._show_pending()
+        if payload is not None:
+            self.send_input(_submission=payload)
+
+    def send_input(self, force: bool = False, _submission=None):
         """
         Send text from user input (called from UI)
 
@@ -240,16 +291,39 @@ class Input:
         """
         # Send during ordinary microphone capture submits the recording first.
         # Do this before INPUT_BEGIN can change the focused tab or claim a request.
-        if not force and not self.window.controller.realtime.is_enabled():
+        if not force and _submission is None and not self.window.controller.realtime.is_enabled():
             handler = self.window.core.plugins.get("audio_input").handler_simple
             if handler.is_recording:
                 handler.stop_recording()
                 return
 
+        input_node = self.window.ui.nodes['input']
+        if not force and _submission is None and not self.window.controller.realtime.is_enabled():
+            if self._pending_sending:
+                return
+            if self.generating or self.locked or self.window.core.ctx.output.has_request():
+                display = input_node.toPlainText().strip()
+                if display.lower() in self.stop_commands:
+                    self.window.controller.kernel.stop()
+                    self.window.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
+                    return
+                if display:
+                    # One pending slot: don't silently replace an unsent message.
+                    if self.pending is None:
+                        self.pending = {
+                            "display": display,
+                            "text": input_node.serialize_mentions().strip()
+                            if hasattr(input_node, "serialize_mentions") else display,
+                            "pid": self.window.controller.tabs.get_effective_current_pid(),
+                        }
+                        input_node.clear()
+                        self._show_pending()
+                return
+
         # Ignore an empty user send before input events can claim a request or
         # show the busy status. Attachments and microphone capture are valid input.
         mode = self.window.core.config.get('mode')
-        if (not force
+        if (not force and _submission is None
                 and not self.window.ui.nodes['input'].toPlainText().strip()
                 and not self.window.core.attachments.has(mode)
                 and not self.window.controller.audio.is_recording()):
@@ -259,7 +333,8 @@ class Input:
         # Snapshot the invoker before any input/plugin event can move focus.
         # get_effective_current_pid() also sees the latest deferred column-focus
         # request, so a click+immediate Send is routed to the clicked chat.
-        source_pid = self.window.controller.tabs.get_effective_current_pid()
+        source_pid = (_submission["pid"] if _submission is not None
+                      else self.window.controller.tabs.get_effective_current_pid())
         mode = self.window.core.config.get('mode')
         event = Event(Event.INPUT_BEGIN, {
             'mode': mode,
@@ -278,6 +353,9 @@ class Input:
             text = input_node.serialize_mentions().strip()
         else:
             text = display_text
+        if _submission is not None:
+            display_text = _submission["display"]
+            text = _submission["text"]
         history_text = text
 
         if not force:
@@ -329,7 +407,7 @@ class Input:
         dispatch(KernelEvent(KernelEvent.SEND_INIT, {
             "id": "chat",
             "meta": request_meta,
-            "clear": bool(self.window.core.config.get('send_clear')) and not force,
+            "clear": bool(self.window.core.config.get('send_clear')) and not force and _submission is None,
         }))
 
         # SEND_INIT pumps the Qt event loop so the spinner/button change is

@@ -9,6 +9,8 @@
 # Updated Date: 2026.09.22 11:20:00                  #
 # ================================================== #
 
+from threading import Event as ThreadEvent
+
 from PySide6.QtCore import QObject, Signal, QRunnable, Slot
 
 from pygpt_net.core.types import (
@@ -35,11 +37,12 @@ class BridgeSignals(QObject):
 
 
 class BridgeWorker(QRunnable):
-    __slots__ = ('signals', 'rt_signals', 'args', 'kwargs', 'window', 'context', 'extra', 'mode')
+    __slots__ = ('signals', 'rt_signals', 'args', 'kwargs', 'window', 'context', 'extra', 'mode', 'execution_done')
 
     """Bridge worker"""
     def __init__(self, *args, **kwargs):
         super().__init__()
+        self.execution_done = ThreadEvent()
         self.signals = BridgeSignals()
         self.rt_signals = None
         self.args = args
@@ -205,6 +208,9 @@ class BridgeWorker(QRunnable):
 
     def cleanup(self):
         """Cleanup resources after worker execution."""
+        done = getattr(self, "execution_done", None)
+        if done is not None:
+            done.set()
         sig = self.signals
         self.signals = None
         if sig is not None:

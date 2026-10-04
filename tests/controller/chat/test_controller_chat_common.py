@@ -90,7 +90,7 @@ def test_chat_common_focus_lock_and_unlock_update_input_state():
     common.focus_input()
     common.lock_input()
     assert common.window.controller.chat.input.locked is True
-    common.window.ui.nodes["input.send_btn"].setEnabled.assert_called_with(False)
+    common.window.ui.nodes["input.send_btn"].setEnabled.assert_called_with(True)
     common.window.ui.nodes["input"].set_icon_visible.assert_called_with("stop", True)
 
     common.unlock_input()

@@ -380,3 +380,16 @@ def test_history_compatibility_helpers_use_authoritative_final_output():
     assert store.compose_turn_output(item) == 'final'
     item.get_agents_v2_final_output.side_effect = RuntimeError('invalid')
     assert store.compose_turn_output(item) == ''
+
+
+def test_user_steered_turn_replays_partial_work_even_with_compact_history():
+    root = source_item('initial task', mode=MODE_AGENT_V2,
+                       extra={'user_steered': True, 'response_interrupted': True},
+                       parts=[agent_part('work before steering')])
+    window = make_window([root])
+    store = OrchestratorMemoryStore(window)
+    store.restore_full_history_enabled = lambda: False
+    projected = store._project_source_item(root)
+    assert projected.output == 'work before steering'
+    assert root.parts[0].output == 'work before steering'
+    assert root.extra.get('response_final') is None

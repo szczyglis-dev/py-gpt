@@ -2727,6 +2727,9 @@ class ChatInput(QTextEdit):
         non_viewport_h = max(non_viewport_h, margins.top() + margins.bottom() + 2 * self.frameWidth())
         needed_input_h = int(math.ceil(doc_h + non_viewport_h))
         min_input_h = self._min_input_widget_height(non_viewport_h)
+        pending_bar = self.window.ui.nodes.get("input.pending")
+        if pending_bar is not None and pending_bar.active:
+            min_input_h = max(min_input_h, pending_bar.editor_height)
 
         # Container overhead above the inner QTextEdit
         container_overhead = max(0, container.height() - self.height())

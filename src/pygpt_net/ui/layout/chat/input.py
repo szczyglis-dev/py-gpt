@@ -9,10 +9,10 @@
 # Updated Date: 2026.09.18 16:40:00
 # ================================================== #
 
-from PySide6.QtCore import Qt, QSize, QTimer, QPoint
+from PySide6.QtCore import Qt, QSize, QTimer, QPoint, QEvent
 from PySide6.QtGui import QIcon, QAction, QActionGroup
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QMenu, \
-    QGridLayout, QSizePolicy, QLabel
+    QGridLayout, QSizePolicy, QLabel, QPushButton, QToolButton, QSplitter
 
 from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.layout.chat.attachments import Attachments
@@ -30,6 +30,100 @@ from pygpt_net.ui.widget.tabs.Input import ChatComposer
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.input_extra import ExtraInput
 from pygpt_net.utils import trans
+
+
+class PendingInputBar(QWidget):
+    """Compact, elided preview of the manually staged next user turn."""
+
+    def __init__(self, window):
+        super().__init__()
+        self._text = ""
+        self.window = window
+        self.editor_height = 0
+        self.active = False
+        self._watched = []
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 3, 6, 3)
+        layout.addWidget(QLabel(trans("input.pending")))
+        self.preview = QLabel()
+        self.preview.setTextFormat(Qt.PlainText)
+        self.preview.setMinimumWidth(0)
+        self.preview.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        layout.addWidget(self.preview, 1)
+        self.send = QPushButton(trans("input.btn.send"))
+        self.send.clicked.connect(window.controller.chat.input.send_pending)
+        layout.addWidget(self.send)
+        self.cancel = QToolButton()
+        self.cancel.setIcon(QIcon(":/icons/delete.svg"))
+        self.cancel.setToolTip(trans("input.btn.cancel"))
+        self.cancel.setAutoRaise(True)
+        self.cancel.clicked.connect(window.controller.chat.input.cancel_pending)
+        layout.addWidget(self.cancel)
+        self.hide()
+
+    def set_pending(self, payload, sending=False):
+        self._text = " ".join(payload["display"].split()) if payload else ""
+        self.preview.setToolTip(payload["display"] if payload else "")
+        self.send.setEnabled(not sending)
+        self.cancel.setEnabled(not sending)
+        visible = payload is not None
+        editor = self.window.ui.nodes.get("input")
+        if visible and not self.active:
+            self.editor_height = editor.height() if isinstance(editor, QWidget) else 0
+        elif not visible:
+            self.editor_height = 0
+        self.active = visible
+        self.sync_position()
+        root = self.window.ui.nodes.get("input.root")
+        self.setVisible(visible and (not isinstance(root, QWidget) or root.isVisible()))
+        self._elide()
+
+    def sync_position(self):
+        """Float above the composer without participating in its layout."""
+        if not self.active:
+            return
+        composer = self.window.ui.nodes.get("input.container")
+        root = self.window.ui.nodes.get("input.root")
+        if not isinstance(composer, ChatInputContainer) or not isinstance(root, QWidget):
+            return
+        if not root.isVisible():
+            self.hide()
+            return
+        # input.root is mounted inside a column's input_host, which itself
+        # belongs to QSplitter. Parenting an overlay to that splitter inserts
+        # it as another pane; walk past both layers to the column widget.
+        splitter = root.parentWidget()
+        while splitter is not None and not isinstance(splitter, QSplitter):
+            splitter = splitter.parentWidget()
+        host = splitter.parentWidget() if splitter is not None else None
+        if host is None:
+            return
+        if self.parentWidget() is not host:
+            self.setParent(host)
+            self.setAutoFillBackground(True)
+        for widget in (composer, root, splitter, host):
+            if widget not in self._watched:
+                widget.installEventFilter(self)
+                self._watched.append(widget)
+        content = composer.content_widget
+        point = content.mapTo(host, QPoint(0, 0))
+        height = self.sizeHint().height()
+        self.setGeometry(point.x(), max(0, point.y() - height), content.width(), height)
+        self.show()
+        self.raise_()
+
+    def eventFilter(self, watched, event):
+        if event.type() in (QEvent.Resize, QEvent.Move, QEvent.Show, QEvent.Hide, QEvent.ParentChange):
+            QTimer.singleShot(0, self.sync_position)
+        return super().eventFilter(watched, event)
+
+    def _elide(self):
+        self.preview.setText(self.preview.fontMetrics().elidedText(
+            self._text, Qt.ElideRight, max(0, self.preview.width())))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._elide()
 
 
 class ChatInputContainer(QWidget):
@@ -187,6 +281,9 @@ class ChatInputContainer(QWidget):
 
         self._content_geometry = geometry
         self.content_widget.setGeometry(*geometry)
+        pending = self.window.ui.nodes.get("input.pending")
+        if pending is not None:
+            pending.sync_position()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -278,6 +375,7 @@ class Input:
         content = QWidget()
         content_layout = QVBoxLayout(content)
         content_layout.addLayout(self.setup_header())
+        self.window.ui.nodes["input.pending"] = PendingInputBar(self.window)
         content_layout.addWidget(tabs)
         # Chat metadata (plugins / context counter) and edit controls
         # belong to the responsive composer and therefore stay aligned with
@@ -699,6 +797,7 @@ class Input:
             lambda checked: self._on_send_mode_selected(2, checked)
         )
 
+        nodes['input'].textChanged.connect(controller.chat.common.sync_send_stop_buttons)
         nodes['input.send_btn'].setContextMenuPolicy(Qt.CustomContextMenu)
         nodes['input.send_btn'].customContextMenuRequested.connect(self._show_send_mode_menu)
 

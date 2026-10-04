@@ -11,6 +11,7 @@
 
 import io
 import json
+from threading import Event as ThreadEvent
 from dataclasses import dataclass, field
 from typing import Optional, Any
 
@@ -110,10 +111,11 @@ class WorkerState:
 
 
 class StreamWorker(QRunnable):
-    __slots__ = ("signals", "ctx", "window", "stream")
+    __slots__ = ("signals", "ctx", "window", "stream", "execution_done")
 
     def __init__(self, ctx: CtxItem, window, parent=None):
         super().__init__()
+        self.execution_done = ThreadEvent()
         self.signals = WorkerSignals()
         self.ctx = ctx
         self.window = window
@@ -665,6 +667,9 @@ class StreamWorker(QRunnable):
 
     def cleanup(self):
         """Cleanup resources after worker execution."""
+        done = getattr(self, "execution_done", None)
+        if done is not None:
+            done.set()
         sig = self.signals
         self.signals = None
         if sig is not None:

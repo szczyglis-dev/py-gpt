@@ -167,7 +167,7 @@ class Common:
         self.window.ui.nodes['input'].setFocus()
 
     def sync_send_stop_buttons(self):
-        """Show exactly one of Send/Stop according to the current request state."""
+        """Keep Stop available and allow text to be staged while a turn is busy."""
         nodes = self.window.ui.nodes
         input_node = nodes.get('input')
         send_btn = nodes.get('input.send_btn')
@@ -192,8 +192,9 @@ class Common:
         # the other split column may own global focus while the only visible
         # Chat still owns that composer, so button visibility must follow the
         # composer host rather than get_current_type().
-        send_btn.setEnabled(not busy)
-        input_node.set_icon_visible('send', chat_input_visible and not editing and not stop_active)
+        has_text = bool(input_node.toPlainText().strip())
+        send_btn.setEnabled(getattr(chat_input, "_pending_sending", False) is not True)
+        input_node.set_icon_visible('send', chat_input_visible and not editing and (not stop_active or has_text))
         input_node.set_icon_visible('stop', chat_input_visible and not editing and stop_active)
 
     def lock_input(self):
