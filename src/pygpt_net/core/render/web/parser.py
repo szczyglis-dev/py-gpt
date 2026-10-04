@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from bs4 import BeautifulSoup
 
 from pygpt_net.utils import trans
+from .syntax_highlight import SyntaxHighlight
 
 
 class Parser:
@@ -270,7 +271,7 @@ class Parser:
         t_preview = trans('ctx.extra.preview')
         t_run = trans('ctx.extra.run')
 
-        style = self.window.core.config.get("render.code_syntax") or "default"
+        style = SyntaxHighlight(self.window).get_style()
 
         for el in soup.find_all('pre'):
             content = el.get_text()

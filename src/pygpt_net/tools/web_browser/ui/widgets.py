@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QMenu, QFrame, QStackedLayout, QLabel, QCompleter,
 )
 from PySide6.QtWebEngineCore import QWebEnginePage
+from shiboken6 import isValid
 
 from pygpt_net.core.text.editor import TextEditor
 from pygpt_net.ui.widget.textarea.html import HtmlOutput
@@ -106,8 +107,11 @@ class ToolWidget:
         self.tool.viewport.detach_surface(self)
 
     def on_delete(self):
+        if self._disposed:
+            return
         self._disconnect_viewport_hooks()
-        self.tool.viewport.detach_surface(self)
+        # Destruction is not hiding a reusable session. Do not move a live
+        # Chromium view into hidden_host immediately before deleting it.
         if getattr(self.tool, "runtime_root", None) is not None:
             self.tool.runtime_root.release_runtime(self.tool)
 
@@ -247,9 +251,19 @@ class ToolWidget:
         self._connect_viewport_hooks()
         if self.surface_kind == "tab":
             self.tool.viewport.attach_surface(self)
+            # Tab insertion/activation happens after setup returns. Focus only
+            # once it has entered the layout, without stealing focus on reloads.
+            QTimer.singleShot(0, self.focus_address)
         QTimer.singleShot(0, lambda: self.request_viewport_sync(immediate=True))
         QTimer.singleShot(80, lambda: self.request_viewport_sync(immediate=True))
         return layout
+
+    def focus_address(self):
+        if (self._disposed or self.address_bar is None
+                or not isValid(self.address_bar) or not self.address_bar.isVisible()):
+            return
+        self.address_bar.setFocus(Qt.OtherFocusReason)
+        self.address_bar.selectAll()
 
     @Slot(str)
     def open_url(self, url: str):
@@ -584,10 +598,37 @@ class BrowserOutput(HtmlOutput):
         """Replace the WebEngine page so native history/DOM state cannot cross profiles."""
         self._detach_gl_event_filter()
         old_page = self.page()
+        if old_page is not None:
+            old_page.tool = None
+            old_page.triggerAction(QWebEnginePage.Stop)
         new_page = BrowserPage(tool=self.tool, parent=self)
         self.setPage(new_page)
-        if old_page is not None and old_page is not new_page:
+        if old_page is not None and old_page is not new_page and isValid(old_page):
             old_page.deleteLater()
+
+    def on_delete(self):
+        """Stop this view without re-entering Qt while its runtime is torn down."""
+        if self._destroyed:
+            return
+        self._destroyed = True
+        self.tool = None
+        self.hide()
+        self._detach_gl_event_filter()
+        if self.finder is not None:
+            self.finder.timer.stop()
+            if self.window is not None:
+                self.window.controller.finder.unset(self.finder)
+            self.finder.disconnect()
+            self.finder = None
+        self.loadFinished.disconnect(self.on_page_loaded)
+        self.customContextMenuRequested.disconnect(self.on_context_menu)
+        page = self.page()
+        page.tool = None
+        page.triggerAction(QWebEnginePage.Stop)
+        self.tab = None
+        # Parent ownership removes the page with the viewport. Do not flush
+        # DeferredDelete/processEvents here: callbacks could enter a half-closed
+        # runtime, or delete the viewport while shutdown() is still on its stack.
 
     def _detach_gl_event_filter(self):
         """Detach WebEngine's transient GL child without logging stale Qt wrappers.
@@ -617,7 +658,7 @@ class BrowserOutput(HtmlOutput):
         self._glwidget_filter_installed = False
 
     def on_page_loaded(self, success):
-        if self.tool is not None:
+        if not self._destroyed and self.tool is not None:
             self.tool.qt.on_load_finished(bool(success))
 
     def eventFilter(self, source, event):
@@ -872,6 +913,8 @@ class BrowserViewport(QWidget):
             child.installEventFilter(self)
 
     def eventFilter(self, source, event):
+        if self.tool is None or getattr(self.tool, "_closing", False):
+            return super().eventFilter(source, event)
         if event.type() == QEvent.ChildAdded and event.child().isWidgetType():
             event.child().installEventFilter(self)
         elif event.type() in (QEvent.MouseButtonPress, QEvent.FocusIn):
@@ -956,12 +999,11 @@ class BrowserViewport(QWidget):
         return self.sandbox if self._mode == "playwright" else self.web
 
     def shutdown(self):
+        # Stop Chromium while its view still has its original parent/layout.
+        self.tool = None
+        self.web.on_delete()
         try:
             self.source.on_destroy()
-        except Exception:
-            pass
-        try:
-            self.web.on_delete()
         except Exception:
             pass
 

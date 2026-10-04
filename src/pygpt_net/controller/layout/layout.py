@@ -153,6 +153,9 @@ class Layout:
             splitter_widget = ui_splitters.get(splitter)
             if splitter_widget is None:
                 continue
+            if splitter == 'toolbox' and hasattr(splitter_widget, 'restore_proportions'):
+                splitter_widget.restore_proportions()
+                continue
             try:
                 if splitter == "main.output":
                     tabs = getattr(self.window.controller.ui, 'tabs', None)
@@ -196,10 +199,6 @@ class Layout:
                     else:
                         contexts, toolbox, chat = sizes
                     sizes = pane_sizes(0, contexts, chat + toolbox)
-                if splitter == "toolbox" and len(sizes) == 2:
-                    total = sum(sizes)
-                    if total > 0 and sizes[1] < total * 0.3:
-                        sizes = [int(total * 0.67), total - int(total * 0.67)]
                 current = splitter_widget.sizes()
                 if current != sizes:
                     splitter_widget.setSizes(sizes)

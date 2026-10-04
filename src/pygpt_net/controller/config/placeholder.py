@@ -456,7 +456,7 @@ class Placeholder:
         """
         styles = self.window.controller.chat.render.web_renderer.body.highlight.get_styles()
         styles.sort()
-        return [{sid: sid} for sid in styles]
+        return [{sid: trans('menu.theme.syntax.system_default') if sid == '-' else sid} for sid in styles]
 
     def get_styles(self) -> List[Dict[str, str]]:
         """

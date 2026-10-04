@@ -1,8 +1,8 @@
 {
   "__meta__": {
-    "app.version": "2.8.38",
-    "version": "2.8.38",
-    "updated_at": "2026-10-03T19:58:00"
+    "app.version": "2.9.0",
+    "version": "2.9.0",
+    "updated_at": "2026-10-04T19:58:00"
   },
   "access.audio.event.speech": false,
   "access.audio.event.speech.disabled": [],
@@ -213,7 +213,7 @@
   "filesystem.preview.text.font_size": 0,
   "filesystem.text_editor.tabs.indent_spaces": true,
   "filesystem.text_editor.tabs.width": 4,
-  "filesystem.text_editor.word_wrap": false,
+  "filesystem.text_editor.word_wrap": true,
   "font_size": 16,
   "font_size.ctx": 12,
   "font_size.input": 16,
@@ -423,7 +423,7 @@
   "remote_store.provider": "openai",
   "remote_tools.global.web_search": true,
   "render.blocks": true,
-  "render.code_syntax": "darcula",
+  "render.code_syntax": "-",
   "render.code_syntax.disabled": false,
   "render.code_syntax.final_max_chars": 350000,
   "render.code_syntax.final_max_lines": 3000,
@@ -486,18 +486,18 @@
       "tool_id": "painter",
       "type": 100,
       "uuid": "31aa5dfc-d6ce-4bd5-b28d-a5bcabffa506"
-    },
+    },    
     "3": {
       "column_idx": 0,
       "custom_name": false,
       "data_id": null,
       "idx": 3,
       "pid": 3,
-      "title": "Files",
+      "title": "Calendar",
       "title_source": "default",
-      "tool_id": "files",
+      "tool_id": "calendar",
       "type": 100,
-      "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e"
+      "uuid": "61e1b447-aed7-4678-890c-b44402a019eb"
     },
     "4": {
       "column_idx": 0,
@@ -505,17 +505,17 @@
       "data_id": null,
       "idx": 4,
       "pid": 4,
-      "title": "Calendar",
+      "title": "Files",
       "title_source": "default",
-      "tool_id": "calendar",
+      "tool_id": "files",
       "type": 100,
-      "uuid": "61e1b447-aed7-4678-890c-b44402a019eb"
+      "uuid": "2aa07f79-ec0d-4935-b4e0-e0ccb404c96e"
     },
     "5": {
       "column_idx": 1,
       "custom_name": false,
       "data_id": null,
-      "idx": 0,
+      "idx": 1,
       "pid": 5,
       "title": "Web/Canvas",
       "title_source": "default",
@@ -528,7 +528,7 @@
       "column_idx": 1,
       "custom_name": false,
       "data_id": null,
-      "idx": 1,
+      "idx": 2,
       "pid": 6,
       "title": "Python/OS",
       "title_source": "default",
@@ -541,7 +541,7 @@
       "column_idx": 1,
       "custom_name": false,
       "data_id": null,
-      "idx": 2,
+      "idx": 3,
       "pid": 7,
       "title": "Terminal",
       "title_source": "default",
@@ -554,7 +554,7 @@
       "column_idx": 1,
       "custom_name": false,
       "data_id": null,
-      "idx": 3,
+      "idx": 4,
       "pid": 8,
       "title": "Agent Workflow",
       "title_source": "default",

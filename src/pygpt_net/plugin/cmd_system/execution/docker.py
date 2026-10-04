@@ -11,13 +11,11 @@
 
 import os
 
-from pygpt_net.core.docker.docker import migrate_default_dockerfile
 from pygpt_net.utils import trans
 
 from pygpt_net.plugin.base.execution import execution_response
 
 from .base import ExecutionBackend
-from ..dockerfile import SYSTEM_DOCKERFILE, SYSTEM_DOCKERFILE_39
 from ..sandbox import SandboxMode
 
 
@@ -29,23 +27,6 @@ class DockerBackend(ExecutionBackend):
     log_prefix = "[DOCKER]"
     runtime_name = "Docker"
     sandbox_workdir = "/mnt/data"
-
-    def migrate_defaults(self) -> bool:
-        """Upgrade unchanged stock Dockerfiles without overwriting custom values."""
-        migrated = migrate_default_dockerfile(
-            self.plugin,
-            "dockerfile",
-            SYSTEM_DOCKERFILE.replace("/mnt/data", "/data"),
-            SYSTEM_DOCKERFILE,
-        )
-        if not migrated:
-            migrated = migrate_default_dockerfile(
-                self.plugin,
-                "dockerfile",
-                SYSTEM_DOCKERFILE_39,
-                SYSTEM_DOCKERFILE,
-            )
-        return migrated
 
     def prepare(self, commands: list[dict]) -> bool:
         """Ensure Docker and the configured System sandbox image are ready."""

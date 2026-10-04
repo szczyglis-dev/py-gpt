@@ -34,6 +34,26 @@ class SoftLightStyle(Style):
     }
 
 
+class PreviewLightStyle(Style):
+    """Bright, lightweight syntax colors for the Files light preview."""
+    styles = {
+        Token: '#000000', Comment: '#606060',
+        Keyword: '#ff0000', Keyword.Constant: '#005cc5',
+        Keyword.Type: '#8000ff',
+        Name: '#000000', Name.Builtin: '#0080ff',
+        Name.Builtin.Pseudo: '#ff8000',
+        Name.Function: '#8000ff', Name.Class: '#8000ff',
+        Name.Namespace: '#000000', Name.Decorator: '#8000ff',
+        Name.Attribute: '#000000', Name.Variable: '#8000ff',
+        Name.Tag: '#008000',
+        String: '#008000', Number: '#0000ff',
+        Operator: '#000000', Operator.Word: '#ff0000',
+        Punctuation: '#000000',
+        Generic.Heading: '#0000ff', Generic.Inserted: '#008000',
+        Generic.Deleted: '#b31d28', Error: '#b31d28',
+    }
+
+
 class SoftDarkStyle(Style):
     """Matching restrained palette for dark surfaces."""
     styles = {
@@ -92,7 +112,7 @@ class SyntaxHighlighter(QSyntaxHighlighter):
             return
         self._signature = signature
         self.formats = {}
-        style = SoftDarkStyle if dark else SoftLightStyle
+        style = SoftDarkStyle if dark else getattr(self.editor, 'syntax_light_style', SoftLightStyle)
         self.spans = {}
         line, column = 0, 0
         for token, value in lex(self.document().toPlainText(), self.lexer):

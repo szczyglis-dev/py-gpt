@@ -170,11 +170,6 @@ class Plugin(BasePlugin):
             return False
         return self.get_execution_backend().supports_command(cmd)
 
-    def migrate_docker_defaults(self) -> bool:
-        """Compatibility wrapper for Docker backend default migration."""
-        backend = self.execution.get_backend(SandboxMode.DOCKER)
-        return backend.migrate_defaults()
-
     def make_temp_file_path(self, extension: str = "png"):
         """
         Make temporary file path for code execution
@@ -448,7 +443,6 @@ class Plugin(BasePlugin):
                 if runtime is None or runtime.is_ready():
                     backend.restart_ipython()
                     time.sleep(1)
-        self.window.tools.get("interpreter").clear_output()
         commands = [
             {
                 "cmd": cmd,

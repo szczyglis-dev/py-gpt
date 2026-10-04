@@ -12,17 +12,7 @@
 import os
 
 from pygpt_net.utils import trans
-from pygpt_net.core.docker.docker import migrate_default_dockerfile
 
-from ..dockerfile import (
-    IPYTHON_DOCKERFILE,
-    IPYTHON_DOCKERFILE_LEGACY,
-    IPYTHON_DOCKERFILE_PRE_BUNDLED,
-    IPYTHON_DOCKERFILE_PRE_NODEJS,
-    PYTHON_LEGACY_DOCKERFILE,
-    PYTHON_LEGACY_DOCKERFILE_39,
-    PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
-)
 
 from pygpt_net.plugin.base.execution import execution_response
 
@@ -49,59 +39,6 @@ class DockerBackend(ExecutionBackend):
         "ipython_sys_exec",
         "ipython_kernel_restart",
     }
-
-    def migrate_defaults(self) -> bool:
-        """Upgrade unchanged stock Dockerfiles without overwriting custom values."""
-        migrated_ipython = migrate_default_dockerfile(
-            self.plugin,
-            "ipython_dockerfile",
-            IPYTHON_DOCKERFILE.replace("/mnt/data", "/data"),
-            IPYTHON_DOCKERFILE,
-        )
-        if not migrated_ipython:
-            migrated_ipython = migrate_default_dockerfile(
-                self.plugin,
-                "ipython_dockerfile",
-                IPYTHON_DOCKERFILE_LEGACY,
-                IPYTHON_DOCKERFILE,
-            )
-        if not migrated_ipython:
-            migrated_ipython = migrate_default_dockerfile(
-                self.plugin,
-                "ipython_dockerfile",
-                IPYTHON_DOCKERFILE_PRE_BUNDLED,
-                IPYTHON_DOCKERFILE,
-            )
-        if not migrated_ipython:
-            migrated_ipython = migrate_default_dockerfile(
-                self.plugin,
-                "ipython_dockerfile",
-                IPYTHON_DOCKERFILE_PRE_NODEJS,
-                IPYTHON_DOCKERFILE,
-            )
-
-        migrated_python = migrate_default_dockerfile(
-            self.plugin,
-            "dockerfile",
-            PYTHON_LEGACY_DOCKERFILE.replace("/mnt/data", "/data"),
-            PYTHON_LEGACY_DOCKERFILE,
-        )
-        if not migrated_python:
-            migrated_python = migrate_default_dockerfile(
-                self.plugin,
-                "dockerfile",
-                PYTHON_LEGACY_DOCKERFILE_39,
-                PYTHON_LEGACY_DOCKERFILE,
-            )
-        if not migrated_python:
-            migrated_python = migrate_default_dockerfile(
-                self.plugin,
-                "dockerfile",
-                PYTHON_LEGACY_DOCKERFILE_PRE_BUNDLED,
-                PYTHON_LEGACY_DOCKERFILE,
-            )
-
-        return migrated_ipython or migrated_python
 
     def prepare(self, commands: list[dict]) -> bool:
         names = {item.get("cmd") for item in commands}

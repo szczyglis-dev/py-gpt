@@ -13,14 +13,26 @@ import os
 
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QIcon, QTextCursor
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QPlainTextEdit, QVBoxLayout, QFrame
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QPlainTextEdit, QPlainTextDocumentLayout, QVBoxLayout, QFrame
 
 from pygpt_net.core.text.editor import TextEditor
+from pygpt_net.core.text.editor.syntax import PreviewLightStyle
 from pygpt_net.utils import trans
+
+
+class PreviewDocumentLayout(QPlainTextDocumentLayout):
+    """A little extra breathing room between source lines."""
+
+    def blockBoundingRect(self, block):
+        rect = super().blockBoundingRect(block)
+        if block.isVisible():
+            rect.setHeight(rect.height() + 2)
+        return rect
 
 
 class TextPreview(TextEditor):
     zoom_key = "filesystem.preview.text.font_size"
+    syntax_light_style = PreviewLightStyle
     def __init__(self, panel, path, text):
         self.panel = panel
         self.annotation_ranges = ()
@@ -36,7 +48,9 @@ class TextPreview(TextEditor):
         self.setObjectName('filesPreviewText')
         self.line_numbers.setProperty('transparent_background', True)
         self.setFrameShape(QFrame.NoFrame)
-        self.setStyleSheet(self.styleSheet() + '\nQPlainTextEdit { border: none; }')
+        self.setStyleSheet(self.styleSheet() +
+                          '\nQPlainTextEdit { border: none; font-family: "Monaspace Neon"; font-weight: normal; letter-spacing: 0px; }')
+        self.document().setDocumentLayout(PreviewDocumentLayout(self.document()))
         self.annotation_timer = QTimer(self)
         self.annotation_timer.setInterval(150)
         self.annotation_timer.timeout.connect(self.refresh_annotations)

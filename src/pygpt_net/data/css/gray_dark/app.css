@@ -336,7 +336,7 @@ QWidget#ComboPopupWindow {{
 }}
 
 .interpreter-input {{
-  font-family: 'Monaspace Neon';
+  font-family: 'Lato';
 }}
 
 .label-chat-status,
@@ -774,13 +774,21 @@ QPushButton[class="LabelButton"]:hover {{
   background-color: rgba(128, 128, 128, 20);
 }}
 
+/* New chat keeps the label hover background visible at rest. */
+QPushButton#newChatButton {{
+  background-color: rgba(128, 128, 128, 20);
+}}
+QPushButton#newChatButton:hover {{
+  background-color: rgba(128, 128, 128, 40);
+}}
+
 /* Compact sidebar mode selector */
 QComboBox[class="LabelCombo"] {{
   color: {APP_TEXT_COLOR};
   background-color: transparent;
   border: none;
   font-weight: bold;
-  padding: 8px 24px 8px 5px;
+  padding: 8px 24px 8px 8px;
 }}
 QComboBox[class="LabelCombo"]:hover {{
   background-color: rgba(128, 128, 128, 20);

@@ -26,12 +26,10 @@ class Docker(BaseDocker):
 
     def build(self):
         """Run image build"""
-        self.plugin.migrate_docker_defaults()
         self.builder.build_image()
 
     def build_and_restart(self):
         """Run image build and restart container"""
-        self.plugin.migrate_docker_defaults()
         self.builder.build_image(restart=True)
         self.plugin.window.update_status("Please wait...")
 

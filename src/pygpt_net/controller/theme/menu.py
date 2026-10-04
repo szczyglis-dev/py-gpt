@@ -10,6 +10,7 @@
 # ================================================== #
 
 from PySide6.QtGui import QAction, QActionGroup
+from pygpt_net.utils import trans
 
 
 class Menu:
@@ -125,6 +126,10 @@ class Menu:
                 self._syntax_group.removeAction(act)
             act.deleteLater()
         menu_syntax_dict.clear()
+        for action in list(menu_syntax.actions()):
+            if action.isSeparator():
+                menu_syntax.removeAction(action)
+                action.deleteLater()
 
         if self._syntax_group is None:
             self._syntax_group = QActionGroup(w)
@@ -132,11 +137,14 @@ class Menu:
             self._syntax_group.triggered.connect(self._on_syntax_triggered)
 
         for style in styles:
-            act = QAction(style, w, checkable=True)
+            label = trans('menu.theme.syntax.system_default') if style == '-' else style
+            act = QAction(label, w, checkable=True)
             act.setData(style)
             menu_syntax_dict[style] = act
             self._syntax_group.addAction(act)
             menu_syntax.addAction(act)
+            if style == '-':
+                menu_syntax.addSeparator()
 
         self.syntax_loaded = True
 

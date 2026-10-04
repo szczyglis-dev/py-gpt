@@ -978,8 +978,8 @@ class Skills:
         # Agent Skills commonly use {baseDir} in commands/resources. A single
         # host path is wrong when the selected execution tool runs in Docker,
         # while /mnt/data is wrong for host-side tools. Resolve it to the currently
-        # preferred shell runtime and also return both path variants below so an
-        # agent can switch tools without guessing.
+        # preferred shell runtime. Docker path variants are exposed only when
+        # the preferred execution tool actually uses Docker.
         body = body.replace("{baseDir}", execution["preferred_working_directory"])
         return json.dumps({
             "name": skill["name"],
@@ -1097,7 +1097,7 @@ class Skills:
             if self._plugin_enabled("cmd_system"):
                 plugin = self.window.core.plugins.get("cmd_system")
                 if plugin is not None and self._has_tool(plugin, "sys_exec"):
-                    mode = "sandbox" if plugin.is_sandbox_enabled() else "host"
+                    mode = "sandbox" if plugin.is_docker_sandbox() else "host"
                     return "sys_exec", mode
         except Exception as exc:
             self._log(exc)
@@ -1107,10 +1107,10 @@ class Skills:
                 plugin = self.window.core.plugins.get("cmd_code_interpreter")
                 if plugin is not None and plugin.is_ipython_enabled():
                     if self._has_tool(plugin, "ipython_sys_exec"):
-                        mode = "sandbox" if plugin.is_sandbox_enabled() else "host"
+                        mode = "sandbox" if plugin.is_docker_sandbox() else "host"
                         return "ipython_sys_exec", mode
                 elif plugin is not None and self._has_tool(plugin, "python_sys_exec"):
-                    mode = "sandbox" if plugin.is_sandbox_enabled() else "host"
+                    mode = "sandbox" if plugin.is_docker_sandbox() else "host"
                     return "python_sys_exec", mode
         except Exception as exc:
             self._log(exc)
@@ -1129,7 +1129,7 @@ class Skills:
         host_path = os.path.realpath(materialized)
         relative_path = self._display_workdir_path(materialized, ctx=ctx)
         tool, mode = self._preferred_shell_runtime()
-        sandbox_path = self._sandbox_workdir_path(materialized, ctx=ctx)
+        sandbox_path = host_path
         if mode == "sandbox":
             try:
                 plugin = None
@@ -1159,7 +1159,7 @@ class Skills:
         sandbox_cd = f"cd {shlex.quote(sandbox_path)} && "
         sandbox_pythonpath = sandbox_path + ":${PYTHONPATH:-}"
 
-        return {
+        result = {
             "rule": (
                 "Run bundled skill scripts/modules with the skill root as the working directory. "
                 "This is required for relative resources and commands such as `python -m scripts.run_loop`. "
@@ -1186,6 +1186,11 @@ class Skills:
                 "<path-to-skill>; otherwise use the matching host/sandbox working-directory path above."
             ),
         }
+        if mode != "sandbox":
+            result.pop("sandbox_working_directory")
+            result.pop("sandbox_shell_prefix")
+            result["pythonpath_fallback"].pop("sandbox")
+        return result
 
     # ARCHIVE / NETWORK ----------------------------------------------------
 

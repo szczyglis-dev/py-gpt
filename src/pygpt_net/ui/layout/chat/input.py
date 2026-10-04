@@ -129,8 +129,9 @@ class PendingInputBar(QWidget):
 class ChatInputContainer(QWidget):
     """Responsive wrapper that keeps the whole composer aligned with chat content."""
 
-    CHAT_CONTENT_WIDTH = 760  # mirrors constrained Standard WebView content width
-    CHAT_CONTENT_LEFT_EXTEND = 10  # align composer's left edge with rendered bot content
+    CHAT_CONTENT_WIDTH = 780  # Standard WebView body max-width
+    CHAT_CONTENT_LEFT_INSET = 15  # .msg-box padding + .msg padding
+    CHAT_SCROLLBAR_WIDTH = 12  # WebView stylesheet scrollbar width
     def __init__(self, window, content_widget):
         super().__init__()
         self.window = window
@@ -267,14 +268,13 @@ class ChatInputContainer(QWidget):
             # Standard follows the same constrained content width as the WebView.
             # Geometry is applied only to the child, so it never contributes a
             # larger minimum width to the main application window.
-            reference_width = min(area_width, self._target_content_width())
-            x = area_x + max(0, (area_width - reference_width) // 2)
-
-            # Match the rendered assistant content's small visual left inset.
-            left_extend = max(0, int(round(self.CHAT_CONTENT_LEFT_EXTEND * self._zoom_factor())))
-            left_extend = min(left_extend, max(0, x - area_x))
-            x -= left_extend
-            width = max(1, min(area_x + area_width - x, reference_width + left_extend))
+            zoom = self._zoom_factor()
+            scrollbar = int(round(self.CHAT_SCROLLBAR_WIDTH * zoom))
+            viewport_width = max(1, area_width - scrollbar)
+            reference_width = min(viewport_width, self._target_content_width())
+            inset = min(int(round(self.CHAT_CONTENT_LEFT_INSET * zoom)), reference_width - 1)
+            x = area_x + max(0, (viewport_width - reference_width) // 2) + inset
+            width = max(1, reference_width - inset)
         geometry = (x, 0, width, height)
         if geometry == self._content_geometry:
             return

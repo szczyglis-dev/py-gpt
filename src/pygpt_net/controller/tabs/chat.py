@@ -62,11 +62,17 @@ class ChatTabs:
         """Bind one chat tab to a context ID without consulting current focus."""
         if tab is None or tab.type != Tab.TAB_CHAT:
             return None
+        changed_context = tab.data_id != meta_id
+        if changed_context:
+            tab.custom_name = False
+            tab.title_source = "context" if meta_id is not None else "default"
         tab.data_id = meta_id
         self.window.core.tabs.refresh_chat_icons()
         tab.loaded = False
         if meta_id is None:
             self.window.core.ctx.output.remove_pid(tab.pid)
+            if changed_context:
+                self._reset_unbound_chat_title(tab, force=True)
             return tab
 
         meta = self.window.core.ctx.get_meta_by_id(meta_id)

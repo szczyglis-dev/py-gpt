@@ -215,7 +215,7 @@ class NodeToolsTemplate {
 		const esc = text => this.templates.escapeHtml(String(text));
 		const placeholder = (md, label, toggle = false) =>
 			`<div class='tool-output-markdown' md-block-markdown='1' data-tool-code='1' data-tool-toggle='${toggle ? '1' : '0'}' data-code-header='${esc(label)}'>${esc(md)}</div>`;
-		if (!Array.isArray(friendly) || !friendly.length) return placeholder(rawMd, headerLabel, showToggle);
+		if (!Array.isArray(friendly) || !friendly.length) return placeholder(rawMd, headerLabel);
 		const readable = friendly.map((part, index) => {
 			const text = String(part.text == null ? '' : part.text);
 			const runs = text.match(/`+/g) || [];

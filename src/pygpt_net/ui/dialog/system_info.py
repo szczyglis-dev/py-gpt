@@ -38,10 +38,11 @@ class WorkdirSizeSignals(QObject):
 
 
 class WorkdirSizeWorker(QRunnable):
-    def __init__(self, path: str, sandbox_path: str):
+    def __init__(self, path: str, sandbox_path: str, packages_path: str):
         super().__init__()
         self.path = path
         self.sandbox_path = sandbox_path
+        self.packages_path = packages_path
         self.signals = WorkdirSizeSignals()
 
     @staticmethod
@@ -68,24 +69,17 @@ class WorkdirSizeWorker(QRunnable):
 
     @Slot()
     def run(self):
-        profile_total = 0
-        full_total = 0
-        try:
-            # sandbox, extra_packages and addons are application-wide resources
-            # in the base workdir, never profile data. Prune stale legacy copies
-            # from the active workdir too. The second value adds the current
-            # global built-in sandbox explicitly; extra_packages/addons remain
-            # intentionally excluded from the workdir-size figure.
-            profile_total = self._tree_size(
-                self.path,
-                prune_top_level=("sandbox", "extra_packages", "addons"),
-            )
-            sandbox_total = self._tree_size(self.sandbox_path)
-            full_total = profile_total + sandbox_total
-        except OSError:
-            profile_total = None
-            full_total = None
-        safe_emit(self.signals, "result", self.path, (profile_total, full_total))
+        sizes = []
+        for path, excluded in (
+            (self.path, ("sandbox", "extra_packages", "addons")),
+            (self.sandbox_path, ()),
+            (self.packages_path, ()),
+        ):
+            try:
+                sizes.append(self._tree_size(path, prune_top_level=excluded))
+            except OSError:
+                sizes.append(None)
+        safe_emit(self.signals, "result", self.path, tuple(sizes))
 
 
 class SystemInfo(QObject):
@@ -100,6 +94,8 @@ class SystemInfo(QObject):
         ("qt", "dialog.system_info.qt"),
         ("ram", "dialog.system_info.ram"),
         ("workdir_size", "dialog.system_info.workdir_size"),
+        ("sandbox_size", "dialog.system_info.sandbox_size"),
+        ("extra_packages_size", "dialog.system_info.extra_packages_size"),
         ("db_size", "dialog.system_info.db_size"),
         ("disk_free", "dialog.system_info.disk_free"),
         ("workdir", "dialog.system_info.workdir"),
@@ -187,6 +183,8 @@ class SystemInfo(QObject):
             "qt": f"PySide {pyside_version} / Qt {QtCore.qVersion()}",
             "ram": self._get_ram_string(fs),
             "workdir_size": trans("dialog.system_info.calculating"),
+            "sandbox_size": trans("dialog.system_info.calculating"),
+            "extra_packages_size": trans("dialog.system_info.calculating"),
             "db_size": fs.sizeof_fmt(self._get_db_size(workdir)),
             "disk_free": self._get_disk_free(workdir, fs),
             "workdir": workdir or "-",
@@ -210,7 +208,8 @@ class SystemInfo(QObject):
 
     def _start_workdir_size(self, workdir: str):
         if not workdir or not os.path.isdir(workdir):
-            self.values["workdir_size"] = "-"
+            for field in ("workdir_size", "sandbox_size", "extra_packages_size"):
+                self.values[field] = "-"
             self._render()
             return
 
@@ -221,7 +220,8 @@ class SystemInfo(QObject):
             self.window.core.config.get_base_workdir(),
             "sandbox",
         )
-        worker = WorkdirSizeWorker(workdir, sandbox_path)
+        packages_path = os.path.join(self.window.core.config.get_base_workdir(), "extra_packages")
+        worker = WorkdirSizeWorker(workdir, sandbox_path, packages_path)
         self._workers[workdir] = worker
         worker.signals.result.connect(self._on_workdir_size)
         QThreadPool.globalInstance().start(worker)
@@ -234,16 +234,11 @@ class SystemInfo(QObject):
         if path != self.window.core.config.get_path():
             return
 
-        if not isinstance(size, (tuple, list)) or len(size) != 2:
-            value = "-"
-        else:
-            profile_size, full_size = size
-            if profile_size is None or full_size is None:
-                value = "-"
-            else:
-                fs = self.window.core.filesystem
-                value = f"{fs.sizeof_fmt(profile_size)} / {fs.sizeof_fmt(full_size)} {trans('dialog.system_info.with_sandbox')}"
-        self.values["workdir_size"] = value
+        if not isinstance(size, (tuple, list)) or len(size) != 3:
+            size = (None, None, None)
+        fs = self.window.core.filesystem
+        for field, total in zip(("workdir_size", "sandbox_size", "extra_packages_size"), size):
+            self.values[field] = fs.sizeof_fmt(total) if total is not None else "-"
         self._render()
 
     @staticmethod

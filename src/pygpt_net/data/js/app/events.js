@@ -154,7 +154,7 @@ class EventManager {
             }, DUR);
         }
 
-        const span = btn.querySelector('span');
+        const span = btn.querySelector('span:not(.cmd)');
         // Icon-only fallback (no label)
         if (!span) {
             btn.classList.add('copied');
@@ -284,6 +284,10 @@ class EventManager {
 		};
 
 		this.handlers.mouseover = (event) => {
+			const control = event.target.closest && event.target.closest('a, button, summary');
+			if (control && !control.contains(event.relatedTarget)) {
+				control.classList.add('chat-hover');
+			}
 			const region = event.target.closest && event.target.closest('.msg-user-region');
 			if (region && !region.contains(event.relatedTarget)) {
 				region.classList.add('user-actions-visible');
@@ -294,6 +298,10 @@ class EventManager {
 			}
 		};
 		this.handlers.mouseout = (event) => {
+			const control = event.target.closest && event.target.closest('a, button, summary');
+			if (control && !control.contains(event.relatedTarget)) {
+				control.classList.remove('chat-hover');
+			}
 			const region = event.target.closest && event.target.closest('.msg-user-region');
 			if (region && !region.contains(event.relatedTarget)) {
 				region.classList.remove('user-actions-visible');
@@ -310,6 +318,13 @@ class EventManager {
 		}
 
 		this.handlers.click = async (ev) => {
+			// Footer copying is handled by the native extra-copy link handler.
+			// Show the same icon feedback without intercepting that navigation.
+			const aOutputCopy = ev.target && ev.target.closest && ev.target.closest('a[href^="extra-copy:"]');
+			if (aOutputCopy) {
+				this._flashCopied(aOutputCopy, null);
+				return;
+			}
 			// Code block header actions
 			const aCode = ev.target && (ev.target.closest ? ev.target.closest('a.code-header-action') : null) || null;
 			// User message copy action

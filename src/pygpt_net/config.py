@@ -227,8 +227,11 @@ class Config:
         :return: workdir path
         """
         workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
-        if self.window.core.plugins.get_option("cmd_code_interpreter", "sandbox") == "docker":
-            workdir = "/mnt/data"
+        plugin_id = "cmd_code_interpreter"
+        if self.window.controller.plugins.is_enabled(plugin_id):
+            plugin = self.window.core.plugins.get(plugin_id)
+            if plugin is not None:
+                workdir = plugin.get_runtime_workdir(ctx=ctx)
         return workdir
 
     def remove_plugin_config(self, plugin: str, key: str = None) -> bool:

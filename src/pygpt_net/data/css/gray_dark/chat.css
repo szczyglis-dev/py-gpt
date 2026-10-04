@@ -20,6 +20,11 @@ a:hover {{
   color: #f1f3f4 !important;
   text-decoration: none;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+a.chat-hover {{
+  color: #f1f3f4 !important;
+  text-decoration: none;
+}}
 
 /* Conversation links */
 
@@ -28,6 +33,10 @@ a:hover {{
 }}
 
 .msg-box .msg a:not(.msg-copy-btn):hover {{
+  color: #bdc1c6 !important;
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.msg-box .msg a:not(.msg-copy-btn).chat-hover {{
   color: #bdc1c6 !important;
 }}
 
@@ -50,6 +59,10 @@ a:hover {{
 }}
 
 ::-webkit-scrollbar-thumb:hover {{
+  background: #f1f3f4;
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+::-webkit-scrollbar-thumb.chat-hover {{
   background: #f1f3f4;
 }}
 
@@ -121,8 +134,16 @@ code {{
 .code-header-action:hover {{
   color: #f1f3f4;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-header-action.chat-hover {{
+  color: #f1f3f4;
+}}
 
 .code-header-action:hover img {{
+  filter: brightness(130%);
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-header-action.chat-hover img {{
   filter: brightness(130%);
 }}
 
@@ -136,10 +157,21 @@ code {{
   background: var(--copy-btn-bg-hover, rgb(0 0 0 / 76%));
   border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-wrapper .code-header-action.code-header-copy.chat-hover,
+.code-wrapper .code-header-action.code-header-collapse.chat-hover {{
+  transform: scale(1.06);
+  background: var(--copy-btn-bg-hover, rgb(0 0 0 / 76%));
+  border-color: var(--copy-btn-border, rgba(0, 0, 0, .08));
+}}
 
 /* Message actions */
 
 .action-icons a:hover {{
+  filter: brightness(130%);
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.action-icons a.chat-hover {{
   filter: brightness(130%);
 }}
 
@@ -152,9 +184,18 @@ code {{
 .tool-output .tool-output-toggle:hover {{
   background: none;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.tool-output .tool-output-toggle.chat-hover {{
+  background: none;
+}}
 
 .tool-output .tool-output-toggle:hover .tool-output-label,
 .tool-output .tool-output-toggle:hover .tool-output-name {{
+  color: #fff;
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.tool-output .tool-output-toggle.chat-hover .tool-output-label,
+.tool-output .tool-output-toggle.chat-hover .tool-output-name {{
   color: #fff;
 }}
 
@@ -185,6 +226,13 @@ code {{
 /* Match Tool/Processed hover for expandable agent status headers. */
 .workflow-status-progress .progress-details > summary:hover > .agents-v2-status__text,
 .workflow-status-progress .progress-worker > summary:hover > span {{
+  color: #fff;
+  background: none;
+  animation: none;
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.workflow-status-progress .progress-details > summary.chat-hover > .agents-v2-status__text,
+.workflow-status-progress .progress-worker > summary.chat-hover > span {{
   color: #fff;
   background: none;
   animation: none;

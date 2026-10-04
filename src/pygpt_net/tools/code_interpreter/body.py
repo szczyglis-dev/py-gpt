@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import re
 
 from pygpt_net.core.render.web.syntax_highlight import SyntaxHighlight
 
@@ -32,6 +33,7 @@ class Body:
         :return: CSS styles
         """
         syntax_dark = [
+            "default-dark", "material-darker",
             "dracula",
             "fruity",
             "github-dark",
@@ -50,9 +52,7 @@ class Body:
             "vim",
             "zenburn",
         ]
-        syntax_style = self.window.core.config.get("render.code_syntax")
-        if syntax_style is None or syntax_style == "":
-            syntax_style = "default"
+        syntax_style = self.highlight.get_style()
         fonts_path = os.path.join(self.window.core.config.get_app_path(), "data", "fonts").replace("\\", "/")
         # loader
         stylesheet = """
@@ -108,11 +108,56 @@ class Body:
 
         stylesheet += """
           body { max-width: 100%; font-size: 0.7rem; }
-          pre { margin-top: 0; margin-bottom: 0.25rem; } 
+          pre { margin-top: 0; margin-bottom: 0.25rem; font-size: 0.7rem;} 
+          #_append_output_ pre > code { font-size: 0.7rem; }
           a:hover { cursor: pointer; }
           .output-image { max-width: 100%; height: auto; }
+          html, body { background: transparent !important; }
+          /* Keep code and its ancestors in one paint layer, as in chat. */
+          #container, #_append_output_ {
+            contain: none;
+            transform: none;
+            will-change: auto;
+            backface-visibility: visible;
+          }
+          #_append_output_ pre, #_append_output_ pre > code {
+            overflow: visible;
+            contain: none;
+            transform: none;
+            will-change: auto;
+            filter: none !important;
+            box-shadow: none !important;
+          }
         """
-        return stylesheet + " " + self.highlight.get_style_defs()
+        if self.window.controller.theme.is_dark_theme():
+            stylesheet += """
+              #_append_output_ > pre {
+                margin-top: 0;
+                margin-bottom: 0;
+              }
+              #_append_output_ > pre ~ pre {
+                border-top: 1px solid #333333;
+              }
+            """
+        else:
+            stylesheet += """
+              #_append_output_ > pre ~ pre {
+                border-top: 1px solid var(--tool-output-separator-color, #ededed);
+              }
+            """
+        syntax_css = self.highlight.get_style_defs()
+        # Paint one shared background. Per-block scroll surfaces can leave a
+        # differently shaded raster tile in Qt WebEngine on Windows.
+        backgrounds = []
+        for rule in re.finditer(r"(?<![\w-])\.hljs\s*\{([^}]+)\}", syntax_css):
+            backgrounds.extend(
+                declaration.strip() for declaration in rule.group(1).split(";")
+                if declaration.strip().split(":", 1)[0].strip().startswith("background")
+            )
+        if backgrounds:
+            syntax_css += "\n#container {" + ";".join(backgrounds) + ";}"
+            syntax_css += "\n#_append_output_ pre > code {background: transparent !important;}"
+        return stylesheet + " " + syntax_css
 
     def get_html(self, pid: int) -> str:
         """

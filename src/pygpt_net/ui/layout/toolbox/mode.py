@@ -70,5 +70,5 @@ class Mode:
 
         layout = QVBoxLayout()
         layout.addWidget(combo)
-        layout.setContentsMargins(5, 0, 5, 0)
+        layout.setContentsMargins(0, 0, 5, 0)
         return layout

@@ -36,6 +36,9 @@ class Nodes:
 
         if type == 'font.toolbox':
             nodes[key].setStyleSheet(theme.style('font.toolbox'))
+            if key == 'prompt.mode':
+                size = self.window.core.config.get('font_size.toolbox') + 1
+                nodes[key].combo.setStyleSheet(f'font-size: {size}px;')
         elif type == 'font.chat.output':
             style_output = theme.style('font.chat.output')
             for pid in nodes[key]:

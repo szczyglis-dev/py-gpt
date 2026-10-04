@@ -14,6 +14,7 @@ PyGPT features several useful tools, including:
 * OpenAI Vector Stores
 * Google Vector Stores
 * Python/OS
+* Terminal
 * HTML/JS Canvas (built-in HTML renderer)
 * Translator
 * Canvas
@@ -112,6 +113,34 @@ The built-in environments normally rebuild automatically after their package lis
 
 See the ``Python interpreter`` and ``System (OS)`` sections in :doc:`plugins` for package configuration and sandbox behavior.
 
+Terminal
+--------
+
+**Tools -> Terminal** opens a terminal dialog. **Add tab [+] -> Add a new terminal**
+creates another independent terminal tab. The left toolbar activates a terminal
+tab, and the default layout includes one at the end of the second column.
+
+Each terminal tab and the dialog have an independent session, starting in the active Files working directory.
+Linux and macOS use the user's shell; Windows uses PowerShell 7 when available,
+otherwise Command Prompt. Closing a frontend terminates its shell. Restoring a
+layout starts new sessions rather than resuming previous processes.
+
+ANSI colors, fullscreen text applications, keyboard input, terminal resizing and
+2000 lines of scrollback are supported. Scroll with the mouse wheel. Use
+**Ctrl+Shift+C** to copy selected text and **Ctrl+Shift+V** to paste;
+**Ctrl+C** interrupts the foreground command. Use **Ctrl+mouse wheel** or the
+context-menu Zoom submenu to change the terminal font size. The menu matches
+the text editors, while the terminal saves its size independently. The terminal
+uses a system monospace font. Drag to select text or use **Select all** from the
+context menu (**Ctrl+Shift+A**). **Ctrl+C** and **Ctrl+V** remain shell controls.
+Commands run locally with the permissions of the
+user running PyGPT. The vertical scrollbar is always visible.
+
+Terminal dependencies are included in the standard installation. For a manual
+environment, install ``pyte>=0.8.2,<0.9`` on all systems, ``ptyprocess>=0.7,<0.8`` on Linux/macOS,
+and ``pywinpty>=3,<4`` on Windows. Graphics protocols and terminal mouse reporting
+are not supported.
+
 HTML/JS Canvas
 ---------------
 
@@ -174,30 +203,3 @@ Node editor navigation:
 * **Right-click or Delete** on a node/connection - remove it.
 
 Enable agent debugging in ``Settings -> Debug -> Log Agents usage to console`` to inspect the workflow in the console.
-
-Terminal
---------
-
-**Tools -> Terminal** opens a terminal dialog. **Add tab [+] -> Add a new terminal**
-creates another independent terminal tab. The left toolbar activates a terminal
-tab, and the default layout includes one at the end of the second column.
-
-Each frontend runs a real system shell in the current Files working directory.
-Linux and macOS use the user's shell; Windows uses PowerShell 7 when available,
-otherwise Command Prompt. Closing a frontend terminates its shell. Restoring a
-layout starts new sessions rather than resuming previous processes.
-
-ANSI colors, fullscreen text applications, keyboard input, terminal resizing and
-2000 lines of scrollback are supported. Scroll with the mouse wheel. Use
-**Ctrl+Shift+C** to copy selected text and **Ctrl+Shift+V** to paste;
-**Ctrl+C** interrupts the foreground command. Use **Ctrl+mouse wheel** or the
-context-menu Zoom submenu to change the terminal font size. The menu matches
-the text editors, while the terminal saves its size independently. The terminal
-uses a system monospace font. Drag to select text or use **Select all** from the
-context menu (**Ctrl+Shift+A**). **Ctrl+C** and **Ctrl+V** remain shell controls.
-The vertical scrollbar is always visible. Shrinking the terminal retains output
-for scrolling and subsequent expansion.
-
-Install ``pyte>=0.8.2,<0.9`` on all systems, ``ptyprocess>=0.7,<0.8`` on Linux/macOS,
-and ``pywinpty>=3,<4`` on Windows. Graphics protocols and terminal mouse reporting
-are not supported.

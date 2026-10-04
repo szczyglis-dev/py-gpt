@@ -49,6 +49,9 @@ video {{
 #container {{
   will-change: transform, opacity;
 }}
+#container.chat-container {{
+  padding-bottom: 20px;
+}}
 #__nodes__ {{
   margin-top: 2rem;
 }}
@@ -61,6 +64,11 @@ a:hover {{
   cursor: pointer !important;
   text-decoration: none;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+a.chat-hover {{
+  cursor: pointer !important;
+  text-decoration: none;
+}}
 
 /* Conversation-text links: colors are provided by each theme. */
 .msg-box .msg a:not(.msg-copy-btn) {{
@@ -68,6 +76,11 @@ a:hover {{
   border-bottom: 1px dotted currentColor;
 }}
 .msg-box .msg a:not(.msg-copy-btn):hover {{
+  text-decoration: none !important;
+  border-bottom-color: currentColor;
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.msg-box .msg a:not(.msg-copy-btn).chat-hover {{
   text-decoration: none !important;
   border-bottom-color: currentColor;
 }}
@@ -82,6 +95,12 @@ a:hover {{
   text-decoration: none !important;
   border-bottom: none !important;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.action-icons a.chat-hover,
+.msg-copy-btn.chat-hover {{
+  text-decoration: none !important;
+  border-bottom: none !important;
+}}
 
 /* Code-header hrefs are controls, not conversation links. */
 .code-header-wrapper a,
@@ -89,10 +108,21 @@ a:hover {{
   text-decoration: none !important;
   border-bottom: none !important;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-header-wrapper a.chat-hover {{
+  text-decoration: none !important;
+  border-bottom: none !important;
+}}
 
 /* Extra/footer text links get a subtle dotted underline only on hover. */
 .msg-extra a:hover,
 .msg-tool-extra a:hover {{
+  text-decoration: none !important;
+  border-bottom: 1px dotted currentColor !important;
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.msg-extra a.chat-hover,
+.msg-tool-extra a.chat-hover {{
   text-decoration: none !important;
   border-bottom: 1px dotted currentColor !important;
 }}
@@ -248,6 +278,7 @@ think {{
 
 /* code wrapper */
 .code-header-wrapper {{
+  position: relative;
   text-align: right;
   width: auto;
   height: 20px;
@@ -263,6 +294,9 @@ think {{
 }}
 .code-wrapper .code-header-wrapper {{
   margin: 0;
+  /* The outer block owns the rounded corners, including while this header
+     sticks above scrolling content. */
+  border-radius: 0;
 }}
 .code-header {{
   text-align: right;
@@ -271,8 +305,10 @@ think {{
   font-size: 0.75rem;
 }}
 .code-header-lang {{
-  float: left;
-  padding-top: 4px;
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
   padding-left: .25rem;
 }}
 .code-header-action {{
@@ -296,22 +332,42 @@ think {{
   text-decoration: none;
   cursor: pointer;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-header-action.chat-hover {{
+  text-decoration: none;
+  cursor: pointer;
+}}
 .code-header-action:hover img {{
   filter: brightness(130%);
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-header-action.chat-hover img {{
+  filter: brightness(130%);
+}}
+.code-header-preview,
+.code-header-preview span {{
+  font-weight: normal;
 }}
 .code-header-preview span {{
   padding-left: 6px;
   padding-right: 2px;
 }}
+.code-header-run {{
+  font-weight: normal;
+}}
 .code-header-run span {{
   padding-left: 2px;
   padding-right: 2px;
+  font-weight: normal;
 }}
 .code-wrapper {{
   padding: 0px;
   margin: 0px;
   border: none;
   border-radius: 10px;
+  /* Clip to the outer radius without creating a scroll container, so the
+     sticky header continues to follow the page viewport. */
+  overflow: clip;
   margin-bottom: 1rem;
 }}
 .code-wrapper pre {{
@@ -385,6 +441,10 @@ think {{
   transition: filter 0.3s ease;
 }}
 .action-icons a:hover {{
+  filter: brightness(120%);
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.action-icons a.chat-hover {{
   filter: brightness(120%);
 }}
 .action-img {{
@@ -618,6 +678,10 @@ html.tool-viewport-anchor-lock {{
 .tool-output .tool-output-toggle:hover {{
   background: none;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.tool-output .tool-output-toggle.chat-hover {{
+  background: none;
+}}
 .tool-output .tool-output-toggle * {{
   cursor: pointer !important;
 }}
@@ -755,6 +819,10 @@ html.tool-viewport-anchor-lock {{
 .extra-items-toggle:hover {{
   background-color: rgba(127, 127, 127, 0.18) !important;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.extra-items-toggle.chat-hover {{
+  background-color: rgba(127, 127, 127, 0.18) !important;
+}}
 .extra-items-toggle:focus {{
   outline: none;
 }}
@@ -780,6 +848,10 @@ html.tool-viewport-anchor-lock {{
 .extra-src-img-box:hover {{
   cursor: pointer;
 }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.extra-src-img-box.chat-hover {{
+  cursor: pointer;
+}}
 .extra-src-img-box .title {{
   max-width: 150px;
   overflow: hidden;
@@ -803,15 +875,21 @@ html.tool-viewport-anchor-lock {{
   overflow: hidden;
   border: none;
   background: transparent;
-  max-width: 250px;
-  height: 150px;
+  max-width: 104px;
+  height: 104px;
   margin: 0;
   margin-bottom: 0px !important;
   border-radius: 10px;
-  width: auto;
+  width: 104px;
   transition: filter 0.22s ease;
 }}
 .extra-src-img-box .img-wrapper:hover {{
+  cursor: pointer;
+  border: none;
+  filter: brightness(105%);
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.extra-src-img-box .img-wrapper.chat-hover {{
   cursor: pointer;
   border: none;
   filter: brightness(105%);
@@ -822,12 +900,16 @@ html.tool-viewport-anchor-lock {{
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   transform: scale(1);
   transform-origin: center center;
   transition: transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
 }}
 .extra-src-img-box .img-wrapper:hover img {{
+  transform: scale(1.035);
+}}
+/* Event-driven hover fallback for Qt WebEngine. */
+.extra-src-img-box .img-wrapper.chat-hover img {{
   transform: scale(1.035);
 }}
 .extra-src-video-box {{
@@ -1025,6 +1107,8 @@ html.tool-viewport-anchor-lock {{
 .tool-output-live > .tool-output-toggle .tool-output-arrow {{ visibility: hidden; }}
 .tool-output-live > .tool-output-toggle:hover .tool-output-arrow,
 .tool-output-live > .tool-output-toggle:focus-visible .tool-output-arrow {{ visibility: visible; }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.tool-output-live > .tool-output-toggle.chat-hover .tool-output-arrow {{ visibility: visible; }}
 .tool-output-live > .tool-output-toggle .tool-output-label,
 .tool-output-live > .tool-output-toggle .tool-output-name {{
   background-image: linear-gradient(90deg, #7f7f7f 0%, #c5c5c5 48%, #7f7f7f 100%);
@@ -1032,6 +1116,8 @@ html.tool-viewport-anchor-lock {{
   color: transparent; animation: agents-v2-status-shimmer 1.8s linear infinite;
 }}
 .tool-output-live > .tool-output-toggle:hover span {{ background: none; animation: none; }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.tool-output-live > .tool-output-toggle.chat-hover span {{ background: none; animation: none; }}
 
 .tool-output-live > .tool-output-toggle .tool-output-name::after {{ content: "..."; }}
 
@@ -1042,6 +1128,8 @@ html.tool-viewport-anchor-lock {{
 /* Joined tool input/output blocks; independent from assistant code styling. */
 .tool-output-pair .tool-output-section + .tool-output-section {{ margin-top: 0; }}
 .tool-output-pair .code-wrapper {{ margin: 0; border-radius: 0; }}
+.tool-output-pair .tool-output-request-data .code-wrapper {{ border-bottom: 0; }}
+.tool-output-pair .tool-output-result-data .code-wrapper {{ border-top: 0; }}
 .tool-output-pair .code-header-wrapper {{ border-radius: 0; }}
 .tool-output-pair .tool-output-result-data .code-header-wrapper {{
   border-top: 1px solid var(--tool-output-separator-color, #9c9c9c);
@@ -1061,6 +1149,8 @@ html[data-tool-view="raw"] .tool-view-raw {{ display: block; }}
 html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .code-header-tool-view {{ display: inline-block; vertical-align: middle; background: transparent; color: #9c9c9c; border: 0; cursor: pointer; padding: 2px 6px; font: bold 16px monospace; border-radius: 6px; }}
 .code-header-tool-view:hover {{ background: rgba(150,150,150,.15); }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.code-header-tool-view.chat-hover {{ background: rgba(150,150,150,.15); }}
 
 /* Durable Agents v2 progress accordions. */
 .progress-details > summary, .progress-worker > summary {{ list-style: none; cursor: pointer; }}
@@ -1069,6 +1159,9 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .progress-details > summary .tool-output-arrow, .progress-worker > summary .tool-output-arrow {{ visibility: hidden; }}
 .progress-details > summary:hover .tool-output-arrow, .progress-worker > summary:hover .tool-output-arrow,
 .progress-details > summary:focus-visible .tool-output-arrow, .progress-worker > summary:focus-visible .tool-output-arrow {{ visibility: visible; }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.progress-details > summary.chat-hover .tool-output-arrow,
+.progress-worker > summary.chat-hover .tool-output-arrow {{ visibility: visible; }}
 .progress-details[open] > summary .tool-output-arrow, .progress-worker[open] > summary .tool-output-arrow {{ transform: rotate(180deg); }}
 
 /* Expandable progress must receive real mouse events; passive status rows do not. */
@@ -1089,8 +1182,12 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .msg-user-region {{ width: 100%; }}
 .user-message-actions {{ display: flex; justify-content: flex-end; align-items: center; gap: 12px; min-height: 26px; padding: 0 10px; box-sizing: border-box; font-size: 0.7rem; color: var(--user-actions-color, #999); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .16s ease, visibility .16s ease; }}
 .msg-user-region:hover .user-message-actions, .msg-user-region:focus-within .user-message-actions {{ opacity: 1; visibility: visible; pointer-events: auto; }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.msg-user-region.chat-hover .user-message-actions {{ opacity: 1; visibility: visible; pointer-events: auto; }}
 .user-message-actions a {{ display: inline-flex; align-items: center; color: inherit; padding: 3px; line-height: 0; opacity: .7; }}
 .user-message-actions a:hover {{ opacity: 1; }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.user-message-actions a.chat-hover {{ opacity: 1; }}
 .user-message-actions img {{ width: 14px; height: 14px; }}
 .user-message-actions .copied {{ opacity: 1; }}
 
@@ -1105,6 +1202,8 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .user-attachments:has(.user-attachment-images:empty):has(.user-attachment-files:empty) {{ display: none; }}
 .user-file {{ display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 230px; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--user-file-border); border-radius: 9px; background: var(--user-file-bg); color: inherit; text-decoration: none; }}
 .user-file:hover {{ background: var(--user-file-hover); }}
+/* Event-driven hover fallback for Qt WebEngine. */
+.user-file.chat-hover {{ background: var(--user-file-hover); }}
 .user-file img {{ width: 20px; height: 20px; flex-shrink: 0; }}
 .user-file span {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }}
 

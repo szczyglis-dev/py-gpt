@@ -17,7 +17,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QLayout
 
 from pygpt_net.ui.widget.tabs.body import TabBody
-from pygpt_net.utils import trans, mem_clean
+from pygpt_net.utils import trans
 
 from .tab import Tab
 
@@ -368,6 +368,13 @@ class Tabs:
         tab = self.get_tab_by_pid(pid)
         if tab is None:
             return
+        # Remove the page from Qt and the registry before scheduling deletion.
+        # Flushing DeferredDelete while it is still in QTabWidget can destroy
+        # Chromium's active page in the middle of tabCloseRequested handling.
+        column_idx = tab.column_idx
+        self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
+        del self.pids[pid]
+        self.update()
         try:
             if tab.type == Tab.TAB_CHAT:
                 # Detach registry entries first.  This prevents nested Qt events
@@ -389,11 +396,8 @@ class Tabs:
             print(f"Error unloading tab {pid}: {e}")
             self.window.core.debug.log(e)
 
-        mem_clean(force=True)
-        column_idx = tab.column_idx
-        self.window.ui.layout.get_tabs_by_idx(column_idx).removeTab(tab.idx)
-        del self.pids[pid]
-        self.update()
+        # Let Qt handle deleteLater after the close signal has returned. Never
+        # run processEvents/sendPostedEvents from this destruction path.
 
     def remove_all(self):
         """Remove all tabs"""

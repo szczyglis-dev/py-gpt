@@ -40,7 +40,7 @@ class AgentWorkflow(BaseTool):
         self.on_menu_click = ToolMenuAction.ALWAYS_DIALOG
         self.dialog_id = 'agent_workflow'
         self.tab_title = "menu.tools.agent_workflow"
-        self.tab_icon = ":/icons/router.svg"
+        self.tab_icon = ":/icons/stacks.svg"
         self.opened = False
         self.dialog = None
 

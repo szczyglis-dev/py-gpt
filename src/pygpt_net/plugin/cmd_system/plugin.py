@@ -146,11 +146,6 @@ class Plugin(BasePlugin):
         """Return model-facing filesystem guidance for the active backend."""
         return self.get_execution_backend().get_filesystem_context(host_data_dir)
 
-    def migrate_docker_defaults(self) -> bool:
-        """Compatibility wrapper for Docker backend default migration."""
-        backend = self.execution.get_backend(SandboxMode.DOCKER)
-        return backend.migrate_defaults()
-
     def handle(self, event: Event, *args, **kwargs):
         """
         Handle dispatched event

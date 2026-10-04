@@ -19,17 +19,19 @@ class QtBackend:
     def __init__(self, runtime):
         self.runtime = runtime
 
-    def load_html(self, html, base_url, timeout_ms=15000):
+    def load_html(self, html, base_url, timeout_ms=15000, *, wait=True):
         """Wait for the new document before acknowledging a Canvas update.
 
-        Replacing a document can emit loadFinished(False) for the interrupted
+        A document update can emit loadFinished(False) for the interrupted
         previous load. Only a successful completion makes the new page ready.
         """
         web = self.runtime.surface.web
-        # A new page gives each submitted document its own JS context and
-        # annotation observers. Signals from the discarded page cannot satisfy
-        # this load or serialize its old DOM into the source editor.
-        web.reset_runtime_page()
+        # Keep the page for ordinary document updates. Replacing it while a
+        # navigation is finishing can destroy Chromium's active render widget.
+        # Profile/session changes explicitly reset the page in reset_session().
+        if not wait:
+            web.setHtml(html, base_url)
+            return
         page = web.page()
         loop = QEventLoop()
         timer = QTimer()
@@ -44,6 +46,7 @@ class QtBackend:
                 loop.quit()
 
         page.loadFinished.connect(finished)
+        page.destroyed.connect(loop.quit)
         try:
             timer.start(timeout_ms)
             web.setHtml(html, base_url)
@@ -53,7 +56,12 @@ class QtBackend:
                 raise TimeoutError("Canvas HTML document did not finish loading")
         finally:
             timer.stop()
-            page.loadFinished.disconnect(finished)
+            try:
+                page.loadFinished.disconnect(finished)
+                page.destroyed.disconnect(loop.quit)
+            except RuntimeError:
+                # Closing a tab while waiting may already have deleted its page.
+                pass
 
     def js(self, script: str, timeout_ms: int = 10000):
         runtime = self.runtime
@@ -66,9 +74,16 @@ class QtBackend:
             if loop.isRunning():
                 loop.quit()
 
-        runtime.surface.web.page().runJavaScript(script, 0, callback)
-        QTimer.singleShot(timeout_ms, loop.quit)
-        loop.exec()
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
+        try:
+            timer.start(timeout_ms)
+            runtime.surface.web.page().runJavaScript(script, 0, callback)
+            if not box["done"]:
+                loop.exec()
+        finally:
+            timer.stop()
         if not box["done"]:
             raise TimeoutError("WebEngine JavaScript operation timed out")
         return box["value"]
@@ -84,9 +99,16 @@ class QtBackend:
             if loop.isRunning():
                 loop.quit()
 
-        runtime.surface.web.page().toHtml(callback)
-        QTimer.singleShot(10000, loop.quit)
-        loop.exec()
+        timer = QTimer()
+        timer.setSingleShot(True)
+        timer.timeout.connect(loop.quit)
+        try:
+            timer.start(10000)
+            runtime.surface.web.page().toHtml(callback)
+            if not box["done"]:
+                loop.exec()
+        finally:
+            timer.stop()
         if not box["done"]:
             raise TimeoutError("WebEngine HTML serialization timed out")
         return box["value"]
@@ -101,7 +123,8 @@ class QtBackend:
         runtime = self.runtime
         # An aborted old navigation, or a hidden Qt page while Playwright is
         # active, must not rewrite history or attach overlays to the new page.
-        if not success or runtime.backend != "qt":
+        if (getattr(runtime, "_closing", False) or runtime.surface is None
+                or not success or runtime.backend != "qt"):
             return
         runtime.virtual_url = runtime.surface.web.url().toString() or runtime.virtual_url
         if runtime._history_loading:

@@ -25,6 +25,8 @@ from .packages import (
     BUILTIN_BASE_PACKAGES,
     get_builtin_packages,
 )
+from .native_tools import NativeTools
+from . import cache_policy
 
 
 class BuiltinSandboxError(RuntimeError):
@@ -188,7 +190,7 @@ class BuiltinSandboxRuntime:
         # executable in the child PATH: in source/pip installs that directory is
         # usually the application's venv and may also contain its `pip`, Python,
         # and unrelated console scripts.
-        path_parts = [self.bin_dir]
+        path_parts = [self.bin_dir, *NativeTools(self.sandbox_root).bin_dirs()]
         seen = {os.path.normcase(os.path.realpath(p)) for p in path_parts if p}
         for item in parent_path.split(os.pathsep):
             item = item.strip()
@@ -270,7 +272,7 @@ class BuiltinSandboxRuntime:
 
     def _marker_data(self) -> dict:
         return {
-            "version": 7,
+            "version": 8,
             "python": self.PYTHON_VERSION,
             "base_python": self._base_python() or "managed",
             "name": self.name,
@@ -342,6 +344,9 @@ class BuiltinSandboxRuntime:
             env["UV_PYTHON_INSTALL_REGISTRY"] = "0"
             env["UV_PYTHON_NO_REGISTRY"] = "1"
             env["UV_NO_CONFIG"] = "1"
+            # Installed packages must survive removal of uv's download cache,
+            # even if the parent process requested uv's symlink link mode.
+            env["UV_LINK_MODE"] = "copy"
 
             base_python = self._base_python()
             if base_python:
@@ -562,7 +567,31 @@ class BuiltinSandboxRuntime:
             self._ensure_private_dirs()
             with open(self.marker_path, "w", encoding="utf-8") as handle:
                 json.dump(self._marker_data(), handle, indent=2, sort_keys=True)
+            self._clean_python_cache(uv_bin, env)
+            NativeTools(self.sandbox_root).ensure_optional(force=force)
             return self.python_bin
+
+    def _clean_python_cache(self, uv_bin, env):
+        """Use uv's cache API after successful provisioning, never remove Python."""
+        if not cache_policy.CLEAN_UV_CACHE_AFTER_INSTALL:
+            return
+        try:
+            cache = os.path.abspath(self.cache_root)
+            if os.path.normcase(os.path.realpath(cache)) != os.path.normcase(cache):
+                raise BuiltinSandboxError(f"Refusing to clean redirected uv cache: {cache}")
+            result = subprocess.run(
+                [uv_bin, "cache", "clean", "--cache-dir", cache, "--no-config"],
+                cwd=self.sandbox_root, env=env, stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120,
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                check=False,
+            )
+            if result.returncode:
+                details = (result.stderr or result.stdout or b"").decode("utf-8", errors="replace")
+                raise BuiltinSandboxError(details[-2000:].strip())
+            NativeTools.log("[BUILT-IN SANDBOX] uv download cache cleaned.")
+        except Exception as exc:
+            NativeTools.log(f"[BUILT-IN SANDBOX] WARN: Unable to clean uv download cache: {exc}")
 
     # ------------------------------------------------------------------
     # Files / process execution

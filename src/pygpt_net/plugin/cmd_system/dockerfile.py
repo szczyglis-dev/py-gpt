@@ -9,15 +9,6 @@
 # Updated Date: 2026.09.20 09:00:00                  #
 # ================================================== #
 
-SYSTEM_DOCKERFILE_39 = """
-FROM python:3.9-alpine
-
-RUN mkdir /data
-
-# Data directory, bound as a volume to the local 'data/' directory
-WORKDIR /data
-""".strip()
-
 SYSTEM_DOCKERFILE = r"""
 FROM python:3.12-alpine
 
@@ -27,7 +18,7 @@ ARG PYGPT_UID=1000
 ARG PYGPT_GID=1000
 
 # Small set of commonly useful command-line tools plus passwordless sudo.
-RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file tree coreutils findutils
+RUN apk add --no-cache git curl wget ca-certificates sudo bash zip unzip tar gzip bzip2 xz jq file tree coreutils findutils ripgrep
 
 RUN set -eux; \
     group_name="$(awk -F: -v gid="$PYGPT_GID" '$3 == gid {print $1; exit}' /etc/group)"; \

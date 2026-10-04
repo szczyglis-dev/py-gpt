@@ -52,7 +52,6 @@ class Builder(QObject):
         :param restart: Restart container
         """
         try:
-            self.plugin.migrate_docker_defaults()
             self.plugin.window.update_status(trans('ipython.docker.build.start'))
             self._start_loader()
             self.worker = Worker()

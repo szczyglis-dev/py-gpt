@@ -638,10 +638,10 @@ def run(**kwargs):
         launcher.run()
 
     except Exception as e:
-        #import traceback
+        # import traceback
         print("Fatal error during application startup:")
         print(e)
-        #traceback.print_exc()
+        # traceback.print_exc()
 
     finally:
         # Ensure splash is closed on normal exit or any startup failure

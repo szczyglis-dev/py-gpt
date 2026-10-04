@@ -845,6 +845,7 @@ class CustomWebEnginePage(QWebEnginePage):
 
         self.window = window
         self.parent = view
+        self.setBackgroundColor(Qt.transparent)
         self.signals = WebEnginePageSignals()
         self.findTextFinished.connect(self.on_find_finished)
         self.zoomFactorChanged.connect(self.on_view_changed)

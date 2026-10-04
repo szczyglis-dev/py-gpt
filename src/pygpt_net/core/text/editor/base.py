@@ -277,7 +277,7 @@ class TextEditor(QPlainTextEdit):
         """Return whether long lines should wrap in editor-based text views."""
         if self.window is None:
             return False
-        return bool(self.window.core.config.get(CONFIG_WORD_WRAP, False))
+        return bool(self.window.core.config.get(CONFIG_WORD_WRAP, True))
 
     def set_word_wrap(self, enabled):
         """Enable/disable wrapping and persist the global editor preference."""

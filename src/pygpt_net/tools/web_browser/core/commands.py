@@ -201,7 +201,11 @@ class CanvasCommands:
         else:
             runtime.blank_canvas_active = False
             runtime.runtime_html = html
-            runtime.qt.load_html(html, QUrl(runtime_base) if runtime_base else QUrl.fromLocalFile(str(Path(workdir).resolve()) + os.sep))
+            runtime.qt.load_html(
+                html,
+                QUrl(runtime_base) if runtime_base else QUrl.fromLocalFile(str(Path(workdir).resolve()) + os.sep),
+                wait=not p.get("__ui", False),
+            )
             runtime.virtual_url = runtime_base or "about:blank"
         if runtime.backend == "playwright":
             runtime._history_loading = False

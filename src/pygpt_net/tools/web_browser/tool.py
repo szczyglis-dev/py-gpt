@@ -9,6 +9,7 @@
 # Updated Date: 2026.10.04 00:00:00                  #
 # ================================================== #
 
+
 import threading
 import time
 import uuid
@@ -172,6 +173,10 @@ class WebBrowser(AnnotationMixin, BaseTool):
             self.setup_theme()
 
     def on_exit(self):
+        if getattr(self, "_closing", False):
+            return
+        self._closing = True
+        self.document.revision += 1
         for entry in list(self._surfaces):
             self.release_runtime(entry['instance'])
         self.viewport_policy_timer.stop()
@@ -183,6 +188,7 @@ class WebBrowser(AnnotationMixin, BaseTool):
             self.surface.shutdown()
             self.surface.deleteLater()
             self.surface = None
+        self.surface_owner = None
         if self.hidden_host is not None:
             self.hidden_host.deleteLater()
             self.hidden_host = None
@@ -632,6 +638,15 @@ class WebBrowser(AnnotationMixin, BaseTool):
             self.release_runtime(runtime)
             raise
         return widget
+
+    def on_selected(self, tab):
+        """Focus the selected tab's address after Qt finishes switching views."""
+        root = self.runtime_root or self
+        for entry in root._surfaces:
+            if entry['tab'] is tab:
+                owner = entry['widget'].tool
+                QTimer.singleShot(0, owner.focus_address)
+                break
 
     def release_runtime(self, runtime):
         self.unregister_surface(runtime)

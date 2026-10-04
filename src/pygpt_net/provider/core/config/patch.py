@@ -137,6 +137,21 @@ class Patch:
                         data[key] = 0  # Use the default font until the first zoom gesture.
                         updated = True
 
+            # Replace all Dockerfile settings on upgrade to 2.9.0, including
+            # customized values. Subsequent starts keep the saved settings.
+            if old < parse_version("2.9.0") <= version:
+                from pygpt_net.plugin.cmd_system.dockerfile import SYSTEM_DOCKERFILE
+                from pygpt_net.plugin.cmd_code_interpreter.dockerfile import (
+                    IPYTHON_DOCKERFILE,
+                    PYTHON_LEGACY_DOCKERFILE,
+                )
+                plugins = data.setdefault("plugins", {})
+                plugins.setdefault("cmd_system", {})["dockerfile"] = SYSTEM_DOCKERFILE
+                interpreter = plugins.setdefault("cmd_code_interpreter", {})
+                interpreter["dockerfile"] = PYTHON_LEGACY_DOCKERFILE
+                interpreter["ipython_dockerfile"] = IPYTHON_DOCKERFILE
+                updated = True
+
         # update file
         migrated = False
         if updated:

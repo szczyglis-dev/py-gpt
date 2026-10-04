@@ -1229,7 +1229,7 @@ class Worker(BaseWorker):
                 "message": (
                     "Runtime copies are ready. For Python/IPython prefer artifact.runtime_paths.code_interpreter; "
                     "for System/OS prefer artifact.runtime_paths.system. artifact.path is the preferred default, "
-                    "artifact.sandbox_path is Docker-visible, and artifact.host_path is for Built-in/host execution."
+                    "artifact.host_path is for Built-in/host execution. Docker paths are returned only for active Docker tools."
                 ),
             }
             self.msg = "Prepared {} runtime artifact(s)".format(len(artifacts))
@@ -1376,6 +1376,13 @@ class Worker(BaseWorker):
 
         value = str(path)
         normalized = value.replace("\\", "/")
+        # Files I/O always executes on the host, including paths supplied by
+        # Docker tools or retained in conversation history.
+        if (normalized == "/mnt/data" or normalized.startswith("/mnt/data/")
+                or normalized == "/data" or normalized.startswith("/data/")):
+            return self.plugin.window.core.filesystem.from_sandbox_data_path(
+                normalized, ctx=self.ctx,
+            )
         if (normalized.startswith("%workdir%")
                 or normalized.lower().startswith("sandbox:")
                 or normalized == "/mnt/tmp"

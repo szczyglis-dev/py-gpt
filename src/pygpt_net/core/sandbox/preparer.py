@@ -97,7 +97,8 @@ class BuiltinSandboxPreparer(QObject):
         if manual:
             message = trans("sandbox.builtin.rebuild.start")
         else:
-            message = f"Preparing Built-in sandbox environment: {self.label}..."
+            message = trans("sandbox.builtin.prepare.start").format(label=self.label)
+        message += "\n" + trans("sandbox.builtin.prepare.wait")
         print(f"[BUILT-IN SANDBOX] {message}")
         try:
             dialog = self.plugin.window.ui.dialogs.show_loader(

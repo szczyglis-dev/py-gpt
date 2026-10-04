@@ -167,7 +167,7 @@ class Filesystem:
 
         Copies are grouped in ``YYYY-MM-DD`` directories. Existing filenames
         receive a random five-character MD5 prefix. The returned record contains
-        both the native host path and the Docker-visible ``/mnt/tmp``
+        the native host path and, when Docker is active, its ``/mnt/tmp``
         path, plus backend-specific paths for the tools that are currently
         enabled. ``path`` is the preferred path for the active execution surface.
         """
@@ -245,9 +245,10 @@ class Filesystem:
             "name": os.path.basename(target),
             "path": preferred,
             "host_path": target,
-            "sandbox_path": sandbox_path,
             "runtime_paths": active_paths,
         }
+        if sandbox_path in active_paths.values():
+            artifact["sandbox_path"] = sandbox_path
 
         # Keep only a process-local registry on the active CtxItem. It lets the
         # runtime_artifacts tool resolve the newly produced outputs without

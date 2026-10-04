@@ -131,6 +131,10 @@ class OutputTabBar(QTabBar):
         else:
             self._external_drag_pid = None
             self._external_drag_start_pos = None
+        if event.button() == Qt.RightButton:
+            # Let OutputTabs open the menu without Qt emitting tabBarClicked.
+            event.ignore()
+            return
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
@@ -471,7 +475,8 @@ class AddButton(QPushButton):
         :return: menu
         """
         menu = QMenu(self)
-        menu.setAttribute(Qt.WA_DeleteOnClose, True)
+        # exec() owns a nested native menu loop. Keep the menu alive until it
+        # returns; WA_DeleteOnClose can delete it while that loop is unwinding.
 
         add_chat = QAction(icon(ICON_PATH_ADD), trans('action.tab.add.chat'), menu)
         add_chat.triggered.connect(
@@ -656,8 +661,6 @@ class OutputTabs(QTabWidget):
         if event.button() == Qt.RightButton:
             idx = self.tabBar().tabAt(event.pos())
             column_idx = self.column.get_idx()
-            if idx >= 0:
-                self.window.controller.tabs.on_tab_clicked(idx, column_idx)
             tab = self.window.core.tabs.get_tab_by_index(idx, column_idx)
             if tab is not None:
                 if tab.type == Tab.TAB_CHAT:
@@ -666,6 +669,8 @@ class OutputTabs(QTabWidget):
                     self.show_tool_menu(idx, column_idx, event.globalPos())  # tool
                 else:
                     self.show_default_menu(idx, column_idx, event.globalPos())  # default
+            event.accept()
+            return
 
         # close on middle click
         elif event.button() == Qt.MiddleButton:
@@ -720,20 +725,20 @@ class OutputTabs(QTabWidget):
         """
         context_menu = self.prepare_menu(index, column_idx)
         close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
-        close_act.triggered.connect(
-            lambda: self.close_tab(index, column_idx)
-        )
         close_all_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close_all.chat'), context_menu)
-        close_all_act.triggered.connect(
-            lambda: self.close_all(Tab.TAB_CHAT, column_idx)
-        )
 
         # at least one chat tab must be open
         if self.window.core.tabs.count_by_type(Tab.TAB_CHAT) > 1:
             context_menu.addAction(close_act)
             context_menu.addAction(close_all_act)
 
-        context_menu.exec(global_pos)
+        selected = context_menu.exec(global_pos)
+        context_menu.deleteLater()
+        # Destroy tabs only after the native context-menu loop has returned.
+        if selected is close_act:
+            self.close_tab(index, column_idx)
+        elif selected is close_all_act:
+            self.close_all(Tab.TAB_CHAT, column_idx)
 
     def show_tool_menu(self, index: int, column_idx: int, global_pos):
         """
@@ -750,11 +755,11 @@ class OutputTabs(QTabWidget):
             if tool is not None:
                 tool.populate_tab_menu(context_menu, tab)
         close_act = QAction(icon(ICON_PATH_CLOSE), trans('action.tab.close'), context_menu)
-        close_act.triggered.connect(
-            lambda: self.close_tab(index, column_idx)
-        )
         context_menu.addAction(close_act)
-        context_menu.exec(global_pos)
+        selected = context_menu.exec(global_pos)
+        context_menu.deleteLater()
+        if selected is close_act:
+            self.close_tab(index, column_idx)
 
     def show_default_menu(self, index: int, column_idx: int, global_pos):
         """
@@ -766,6 +771,7 @@ class OutputTabs(QTabWidget):
         """
         context_menu = self.prepare_menu(index, column_idx)
         context_menu.exec(global_pos)
+        context_menu.deleteLater()
 
     @Slot(int)
     def _on_current_changed(self, _idx: int):

@@ -81,7 +81,7 @@ class UI:
         self.parts['toolbox'] = self.toolbox.setup()
 
         # set width
-        self.parts['ctx'].setMinimumWidth(200)
+        self.parts['ctx'].setMinimumWidth(240)
 
         # horizontal splitter
         self.splitters['main'] = QSplitter(Qt.Horizontal)

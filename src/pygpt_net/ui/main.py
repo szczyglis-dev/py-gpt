@@ -30,9 +30,9 @@ from pygpt_net.utils import get_app_meta, freeze_updates, set_env, has_env, get_
 # Set to False to use the native system window frame/title bar.
 WINDOW_FRAMELESS = True
 
-# Maximum fraction of the current screen work area used when restoring
+# Fraction of the current screen work area used when restoring
 # a maximized window to its normal state.
-RESTORE_MAX_SCREEN_RATIO = 0.85
+RESTORE_MAX_SCREEN_RATIO = 0.80
 
 
 class MainWindow(QMainWindow, QtStyleTools):
@@ -447,7 +447,7 @@ class MainWindow(QMainWindow, QtStyleTools):
         print("")
 
     def _limit_restored_window_size(self):
-        """Limit a restored window to 85% of the current screen work area."""
+        """Restore to 80% of the current screen work area, centered on screen."""
         if self.isMaximized() or self.isMinimized() or self.isFullScreen():
             return
 
@@ -473,21 +473,11 @@ class MainWindow(QMainWindow, QtStyleTools):
         ):
             return
 
-        max_width = max(1, int(available.width() * RESTORE_MAX_SCREEN_RATIO))
-        max_height = max(1, int(available.height() * RESTORE_MAX_SCREEN_RATIO))
-        if current.width() <= max_width and current.height() <= max_height:
-            return
-
-        scale = min(
-            1.0,
-            max_width / float(current.width()),
-            max_height / float(current.height()),
-        )
-        width = max(self.minimumWidth(), int(round(current.width() * scale)))
-        height = max(self.minimumHeight(), int(round(current.height() * scale)))
+        width = max(self.minimumWidth(), int(available.width() * RESTORE_MAX_SCREEN_RATIO))
+        height = max(self.minimumHeight(), int(available.height() * RESTORE_MAX_SCREEN_RATIO))
 
         target = QRect(0, 0, width, height)
-        target.moveCenter(current.center())
+        target.moveCenter(available.center())
 
         if target.left() < available.left():
             target.moveLeft(available.left())

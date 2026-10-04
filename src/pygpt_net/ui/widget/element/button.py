@@ -97,6 +97,13 @@ class LabelButton(QPushButton):
         self.setProperty('class', 'LabelButton')
         self.setCursor(Qt.PointingHandCursor)
 
+    def initStyleOption(self, option):
+        super().initStyleOption(option)
+        if option.text and not option.icon.isNull():
+            # Add breathing room to icon labels without changing their text
+            # (translations, accessible names and callers keep the original).
+            option.text = '\u2002' + option.text
+
 
 class NewCtxButton(LabelButton):
     _icon_add = None
@@ -105,6 +112,7 @@ class NewCtxButton(LabelButton):
     def __init__(self, title: str = None, window=None):
         super().__init__(title)
         self.window = window
+        self.setObjectName('newChatButton')
         self.setIcon(QIcon(":/icons/new_chat.svg"))
         self.setToolTip(trans('ctx.new.tooltip'))
         self.clicked.connect(lambda: self.window.controller.ctx.new(force=False))

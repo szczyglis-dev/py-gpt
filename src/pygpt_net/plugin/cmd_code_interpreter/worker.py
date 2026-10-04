@@ -115,7 +115,21 @@ class Worker(BaseWorker):
                     )
 
             if len(responses) > 0:
-                self.reply_more(responses)  # send response
+                extra = self.ctx.extra if self.ctx is not None else None
+                if isinstance(extra, dict) and extra.get("interpreter_tool"):
+                    # Manual tool execution has no chat turn to resume. In
+                    # particular, preparation replies must stay in the tool;
+                    # REPLY_ADD would start a model request and its spinner.
+                    from pygpt_net.plugin.base.execution import output_text
+                    for response in responses:
+                        result = response.get("result")
+                        message = output_text(result) if isinstance(result, dict) else str(result or "")
+                        if message:
+                            self._emit("output_begin", "stdout")
+                            self._emit("output", message, "stdout")
+                            self._emit("output_end", "stdout")
+                else:
+                    self.reply_more(responses)  # send chat/agent response
 
         except Exception as e:
             self.error(e)
@@ -270,5 +284,4 @@ class Worker(BaseWorker):
         if isinstance(result, dict) and "context" in result:
             extra["context"] = str(result["context"])
         return extra
-
 

@@ -9,7 +9,7 @@
 # Updated Date: 2026.09.21 15:45:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QEvent, QObject
+from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtGui import Qt, QCursor
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -30,6 +30,37 @@ from PySide6.QtWidgets import (
 )
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
+
+
+class ToolboxSplitter(QSplitter):
+    """Restore the preset/prompt ratio after the toolbox becomes visible."""
+
+    RATIO_KEY = 'layout.toolbox.prompt_ratio'
+
+    def __init__(self, window):
+        super().__init__(Qt.Vertical, window)
+        self.window = window
+        self.splitterMoved.connect(self._remember_proportions)
+
+    def _remember_proportions(self, *_):
+        sizes = self.sizes()
+        if len(sizes) == 2 and all(size > 0 for size in sizes):
+            self.window.core.config.set(self.RATIO_KEY, sizes[1] / sum(sizes))
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QTimer.singleShot(0, self.restore_proportions)
+
+    def restore_proportions(self):
+        config = self.window.core.config
+        ratio = config.get(self.RATIO_KEY)
+        if ratio is None:
+            saved = (config.get('layout.splitters') or {}).get('toolbox', [])
+            ratio = saved[1] / sum(saved) if len(saved) == 2 and all(size > 0 for size in saved) else 0.25
+            config.set(self.RATIO_KEY, ratio)
+        total = max(1, self.height() - self.handleWidth())
+        lower = round(total * float(ratio))
+        self.setSizes([total - lower, lower])
 from pygpt_net.utils import trans
 
 from .assistants import Assistants
@@ -209,17 +240,17 @@ class ToolboxMain:
         # footer is deliberately not a splitter child: it always stays at its
         # natural height at the bottom and therefore cannot be hidden by moving
         # the vertical splitter handle.
-        splitter = QSplitter(Qt.Vertical, self.window)
+        splitter = ToolboxSplitter(self.window)
         splitter.setProperty('class', 'toolbox')
         splitter.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         splitter.setMinimumWidth(0)
         splitter.addWidget(toolbox_mode)
         splitter.addWidget(bottom_widget)
 
-        # Give the System prompt about one third of the resizable area.
-        splitter.setStretchFactor(0, 2)
+        # Give the System prompt about one quarter of the resizable area.
+        splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 1)
-        splitter.setSizes([600, 300])
+        splitter.setSizes([675, 225])
         bottom_widget.setMinimumHeight(180)
         splitter.setCollapsible(1, False)
 

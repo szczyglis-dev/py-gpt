@@ -577,6 +577,10 @@ class CodeInterpreter(BaseTool):
         every plugin and the shared reply stack, which can leak unrelated plugin
         activity into the chat UI.
         """
+        if event.ctx is not None:
+            if not isinstance(event.ctx.extra, dict):
+                event.ctx.extra = {}
+            event.ctx.extra["interpreter_tool"] = True
         self.window.core.dispatcher.apply("cmd_code_interpreter", event)
 
     def update_input(self):

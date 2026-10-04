@@ -101,7 +101,7 @@ class Body:
                 <body """
 
     _HTML_P7 = """>
-            <div id="container">
+            <div id="container" class="chat-container">
                 <div id="_nodes_" class="nodes empty_list"></div>
                 <div id="_append_input_" class="append_input"></div>
                 <div id="_append_output_before_" class="append_output"></div>
@@ -113,6 +113,7 @@ class Body:
                 </div>
                 <div id="tips" class="tips"></div>
             </div>
+            <div class="chat-bottom-fade" aria-hidden="true"></div>
             <button id="scrollFab" class="scroll-fab" type="button" title="Go to top" aria-label="Go to top">
                 <img id="scrollFabIcon" src="" alt="Scroll">
             </button>
@@ -228,13 +229,16 @@ class Body:
 
     _PERFORMANCE_CSS = """
         #container, #_nodes_, #_append_output_, #_append_output_before_ {
-            contain: layout paint;
+            /* Qt WebEngine can rasterize nested contained/GPU layers with
+               different background shades. Keep chat in the normal layer. */
+            contain: none;
             overscroll-behavior: contain;
-            backface-visibility: hidden;
-            transform: translateZ(0);
+            backface-visibility: visible;
+            transform: none;
+            will-change: auto;
         }
         .msg-bot {
-            contain: layout paint style;
+            contain: none;
             box-shadow: none !important;
             filter: none !important;
         }
@@ -264,9 +268,10 @@ class Body:
         pre > code,
         .hl-tail,
         .hl-frozen {
-            contain: layout paint;
-            backface-visibility: hidden;
-            transform: translateZ(0);
+            /* Keep highlighted code in the normal paint layer. Forcing a GPU
+               layer inside a clipped, scrolling grid can leave rectangular
+               background tiles in Qt WebEngine on Windows. */
+            contain: none;
             filter: none !important;
         }
         """
@@ -281,7 +286,7 @@ class Body:
         self.highlight = SyntaxHighlight(window)
         self._tip_keys = tuple(f"output.tips.{i}" for i in range(1, self.NUM_TIPS + 1))
         self._syntax_dark = (
-            "dracula", "fruity", "github-dark", "gruvbox-dark", "inkpot", "material",
+            "default-dark", "material-darker", "dracula", "fruity", "github-dark", "gruvbox-dark", "inkpot", "material",
             "monokai", "native", "nord", "nord-darker", "one-dark", "paraiso-dark",
             "rrt", "solarized-dark", "stata-dark", "vim", "zenburn",
         )
@@ -303,7 +308,7 @@ class Body:
         """
         cfg = self.window.core.config
         fonts_path = os.path.join(cfg.get_app_path(), "data", "fonts").replace("\\", "/")
-        syntax_style = self.window.core.config.get("render.code_syntax") or "default"
+        syntax_style = self.highlight.get_style()
         theme_css = self.window.controller.theme.markdown.get_web_css().replace('%fonts%', fonts_path)
         parts = [
             self._SPINNER,
@@ -311,9 +316,25 @@ class Body:
             theme_css,
             "pre { color: #fff; }" if syntax_style in self._syntax_dark else "pre { color: #000; }",
             self.highlight.get_style_defs(),
-            self._PERFORMANCE_CSS
+            self._PERFORMANCE_CSS,
+            "html, body { background: transparent !important; }",
+            self._bottom_fade_styles(),
         ]
         return "\n".join(parts)
+
+    def _bottom_fade_styles(self) -> str:
+        """Overlay the viewport edge without changing scroll height or hit testing."""
+        return ""
+        rgb = "0, 0, 0"
+        return (
+            ".chat-bottom-fade {position: fixed; left: 50%; bottom: 0;"
+            "width: min(765px, calc(100% - 15px)); margin-left: 7.5px;"
+            "transform: translateX(-50%);"
+            "height: 16px; z-index: 3; pointer-events: none; user-select: none;"
+            f"background: linear-gradient(to top, rgba({rgb}, .18) 0%,"
+            f"rgba({rgb}, .06) 35%, rgba({rgb}, 0) 100%);}}"
+            "body.theme-wide .chat-bottom-fade {width: 100%; margin-left: 0;}"
+        )
 
     def prepare_action_icons(self, ctx: CtxItem) -> str:
         """
@@ -912,7 +933,7 @@ class Body:
             f'window.LOCALE_TOOL_VIEW_RAW={_json_dumps(trans("ctx.tool.view.raw"))};'
         )
 
-        syntax_style = cfg_get("render.code_syntax") or "default"
+        syntax_style = self.highlight.get_style()
         try:
             user_msg_collapse_height = max(0, int(cfg_get(
                 "render.msg.user.collapse.px",

@@ -91,7 +91,7 @@ class Extra:
         workdir = self.window.core.filesystem.get_data_dir()
         browser.runtime_call(
             "canvas_set_html",
-            {"html": value, "__workdir": workdir},
+            {"html": value, "__workdir": workdir, "__ui": True},
         )
 
     def run_code_text(self, value: str):

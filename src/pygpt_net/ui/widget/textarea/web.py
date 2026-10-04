@@ -862,6 +862,7 @@ class CustomWebEnginePage(QWebEnginePage):
         self.window = window
         self.view = view
         self.loaded = False
+        self.setBackgroundColor(Qt.transparent)
 
         # signals have parent=page (automatic cleanup)
         self.signals = WebEnginePageSignals(self)

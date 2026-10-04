@@ -16,35 +16,6 @@ import os
 import platform
 import io
 import tarfile
-import textwrap
-
-
-def _normalize_dockerfile(value: str) -> str:
-    """Return a stable representation used to compare editable Dockerfiles."""
-    if not isinstance(value, str):
-        return ""
-    value = textwrap.dedent(value).strip()
-    return "\n".join(line.rstrip() for line in value.splitlines())
-
-
-def migrate_default_dockerfile(plugin, option_name: str, legacy_default: str, new_default: str) -> bool:
-    """
-    Upgrade an unchanged stock Dockerfile without overwriting user customizations.
-
-    :return: True when the option was migrated.
-    """
-    current = plugin.get_option_value(option_name)
-    if _normalize_dockerfile(current) != _normalize_dockerfile(legacy_default):
-        return False
-
-    plugin.options[option_name]["value"] = new_default
-
-    window = getattr(plugin, "window", None)
-    if window is not None:
-        cfg = window.core.config
-        cfg.update_plugin_config(plugin.id, option_name, new_default)
-        cfg.save()
-    return True
 
 
 def get_sandbox_user_ids() -> Tuple[int, int]:
