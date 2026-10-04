@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.04 00:00:00                  #
+# ================================================== #
 """Immediate local zoom with one shared settings commit after a wheel gesture."""
 import re
 from PySide6.QtCore import QObject, QTimer
@@ -32,7 +42,7 @@ class ZoomCommit(QObject):
             if option is not None:
                 option['value'] = window.core.config.get(key)
         # Font changes must not emit ON_THEME_CHANGE and reload the web renderer.
-        if keys - {'zoom'}:
+        if keys - {'zoom', 'terminal.font_size'}:
             window.controller.theme.nodes.apply_all(dispatch_theme=False)
         if 'zoom' in keys:
             container = window.ui.nodes.get('input.container')

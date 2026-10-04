@@ -549,8 +549,22 @@
       "tooltip": "Agent Workflow",
       "type": 100,
       "uuid": "7688f9fb-ef77-4cc3-b23f-60e3cb59c722"
-    }    
+    },
+    "8": {
+      "column_idx": 1,
+      "custom_name": false,
+      "data_id": null,
+      "idx": 5,
+      "pid": 8,
+      "title": "Terminal",
+      "title_source": "default",
+      "tool_id": "terminal",
+      "tooltip": "",
+      "type": 100,
+      "uuid": "a744bb65-8895-4929-9480-2daf2f8b17ee"
+    }
   },
+  "terminal.font_size": 14,
   "theme": "dark",
   "theme.style": "standard",
   "updater.check.bg": true,

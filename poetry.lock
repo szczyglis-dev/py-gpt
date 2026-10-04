@@ -6434,7 +6434,7 @@ description = "Run a subprocess in a pseudo terminal"
 optional = false
 python-versions = "*"
 groups = ["main"]
-markers = "sys_platform != \"win32\" and sys_platform != \"emscripten\""
+markers = "sys_platform != \"win32\""
 files = [
     {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
@@ -7674,6 +7674,21 @@ files = [
 ]
 
 [[package]]
+name = "pyte"
+version = "0.8.2"
+description = "Simple VTXXX-compatible terminal emulator."
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "pyte-0.8.2-py3-none-any.whl", hash = "sha256:85db42a35798a5aafa96ac4d8da78b090b2c933248819157fc0e6f78876a0135"},
+    {file = "pyte-0.8.2.tar.gz", hash = "sha256:5af970e843fa96a97149d64e170c984721f20e52227a2f57f0a54207f08f083f"},
+]
+
+[package.dependencies]
+wcwidth = "*"
+
+[[package]]
 name = "pytest"
 version = "7.4.4"
 description = "pytest: simple powerful testing with Python"
@@ -7901,6 +7916,32 @@ markers = "sys_platform == \"win32\""
 files = [
     {file = "pywin32-ctypes-0.2.3.tar.gz", hash = "sha256:d162dc04946d704503b2edc4d55f3dba5c1d539ead017afa00142c38b9885755"},
     {file = "pywin32_ctypes-0.2.3-py3-none-any.whl", hash = "sha256:8a1513379d709975552d202d942d9837758905c8d01eb82b8bcc30918929e7b8"},
+]
+
+[[package]]
+name = "pywinpty"
+version = "3.0.5"
+description = "Pseudo terminal support for Windows from Python."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+markers = "sys_platform == \"win32\""
+files = [
+    {file = "pywinpty-3.0.5-cp310-cp310-win_amd64.whl", hash = "sha256:b467dcad72365bc2205ed8b6e694e817d71de269d46e56cfe267dfa9d3d30e1b"},
+    {file = "pywinpty-3.0.5-cp310-cp310-win_arm64.whl", hash = "sha256:7dc4046ea8e4d7f0a16dae8dfcaeeda6df7ca3a9330444d2ba5bb96138fe0a91"},
+    {file = "pywinpty-3.0.5-cp311-cp311-win_amd64.whl", hash = "sha256:af7a8720c78776ddd6259b71dd567944f766a6cd67f8d2887fbc4973967bacda"},
+    {file = "pywinpty-3.0.5-cp311-cp311-win_arm64.whl", hash = "sha256:c2406f54f699eab75953fb75ce805f2ae55a33a957cd070890abd454fb4b7680"},
+    {file = "pywinpty-3.0.5-cp312-cp312-win_amd64.whl", hash = "sha256:d62946adf14b15b54c0b8d785f93fe18b04da23f4ad59e2e8c4612646e9abd23"},
+    {file = "pywinpty-3.0.5-cp312-cp312-win_arm64.whl", hash = "sha256:e9391c05fbfa7a992a97e831fc6849887b4014a614192e3d984a7ca59592b376"},
+    {file = "pywinpty-3.0.5-cp313-cp313-win_amd64.whl", hash = "sha256:48db1b0ad9d0a1b81dcaaa7163a99a7808deaceb0c1b2344716dc1fc090c3c4c"},
+    {file = "pywinpty-3.0.5-cp313-cp313-win_arm64.whl", hash = "sha256:2c6008fb2d3774b48693b2fcb7f2cc317ade9dc581289a964ffeeaf81307c9b5"},
+    {file = "pywinpty-3.0.5-cp313-cp313t-win_amd64.whl", hash = "sha256:22ce1b780d89821cc52daf6eac0708af22d93d000ce9c7c07e37489db8594598"},
+    {file = "pywinpty-3.0.5-cp313-cp313t-win_arm64.whl", hash = "sha256:9c2919a81bc5cfb09b86fc5a002112b2de95ca4304a07413cbeeb746a1307a5c"},
+    {file = "pywinpty-3.0.5-cp314-cp314-win_amd64.whl", hash = "sha256:03bb3c16d691d9242267201830bcd0e64a9b663170e9042bc84b210da9de15ac"},
+    {file = "pywinpty-3.0.5-cp314-cp314-win_arm64.whl", hash = "sha256:89c5c6ef08997a3b4b277b214a35fe15cab4dd6d119f0140aa71df5b1168fdbc"},
+    {file = "pywinpty-3.0.5-cp314-cp314t-win_amd64.whl", hash = "sha256:7b566165e0c5fdd6abe167a5ac8b954be6a843eb55a85946576d6bc1dea03d6d"},
+    {file = "pywinpty-3.0.5-cp314-cp314t-win_arm64.whl", hash = "sha256:24366280a8aa677323da87bec729cb3ea3b35367386cece0978bdc6e4695c690"},
+    {file = "pywinpty-3.0.5.tar.gz", hash = "sha256:61db0db063de9865adbea66db294628f8577f608d9764a4c7d3384eeacc4e81b"},
 ]
 
 [[package]]
@@ -11061,4 +11102,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.14"
-content-hash = "0f9d44786ad5ae8c3171d2ca2ec1146638b52396c881fee4e7d6f29f75243d8e"
+content-hash = "aa5348933c5effab175acee6863cf72ef7f5a96556cf6689bae6837cebb4343c"

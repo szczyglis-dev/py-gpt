@@ -54,9 +54,9 @@ class Tools:
         ui_menu['menu.tools'] = window.menuBar().addMenu(trans("menu.tools"))
         menu_tools = ui_menu['menu.tools']
 
-        # Keep document/visual tools together; Calendar follows Web/Canvas.
+        # Keep document/visual tools together; Terminal follows Web/Canvas.
         actions = window.tools.setup_menu_actions()
-        visual_actions = [(key, actions.pop(key)) for key in ("tools.notepad", "tools.files", "tools.painter", "tools.web_browser", "tools.calendar") if key in actions]
+        visual_actions = [(key, actions.pop(key)) for key in ("tools.notepad", "tools.files", "tools.painter", "tools.web_browser", "tools.terminal", "tools.calendar") if key in actions]
 
         for key, val in tab_tools.items():
             label_key, icon_name, type_ = val[0], val[1], val[2]

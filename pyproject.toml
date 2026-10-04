@@ -113,6 +113,9 @@ pypdf = "6.15.0"
 pynput = "1.8.2"
 pyserial = "3.5"
 PySide6 = "6.9.1"
+pyte = "^0.8.2"
+ptyprocess = {version = "^0.7.0", markers = "sys_platform != 'win32'"}
+pywinpty = {version = "^3.0", markers = "sys_platform == 'win32'"}
 python-markdown-math = "0.8"
 qasync = "0.27.1"
 redis = "5.3.1"
