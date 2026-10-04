@@ -278,15 +278,19 @@ class RuntimeContext:
                 return "Completion accepted. Now return the final result, evidence and any limitations as normal text."
             tools.append(FunctionTool.from_defaults(async_fn=task_complete, name="task_complete"))
         system_prompt += (
-            "\n\nRuntime completion contract: if this run can be answered directly without any tool, delegation, "
-            "or workflow activity, return that answer once as the final response; do not create an artificial checkpoint "
-            f"and do not call {completion_tool} merely to end ordinary conversation or another self-contained answer. "
-            "If the assignment requires tools or continued execution, do not end the first model pass with a prose-only plan: "
-            "start the required tool/delegation/workflow activity in that same pass. A standalone tool-free response is treated as final. "
-            "Once any tool/delegation/workflow activity has started in this run, ordinary prose is an intermediate checkpoint: "
-            f"continue until the assignment is resolved, then call {completion_tool} before the final response. "
-            "For task_complete supply outcome (completed, blocked, needs_input) and evidence (actual verification or blocker). "
-            "A genuine blocker or necessary question may end the assignment with an honest explanation; never claim unperformed work."
+            f"\n\nRuntime completion contract: the active gate is {completion_tool}. "
+            "Answer a self-contained tool-free request directly, without a checkpoint or gate call. "
+            "For an execution task, start the required tool activity in the first pass; a prose-only first response "
+            "is treated as final. The main agent should introduce its stages alongside the first action and send normal "
+            "assistant progress/refinement messages between meaningful stages. When status tools are available, also "
+            "set workflow_status (main) or report_status (worker) before each meaningful activity and update it "
+            "when the activity changes; neither channel replaces the other. "
+            "After tool activity, prose is a checkpoint: continue acting, verifying and correcting "
+            "until the assigned outcome is resolved. Then call the active gate with outcome completed, blocked, "
+            "or needs_input and evidence describing actual verification or the precise blocker. "
+            "If rejected, resolve the reported issue and retry. After acceptance, return the final work product "
+            "as normal text without further tools. Never claim unperformed work or declare a blocker without "
+            "checking available alternatives."
         )
         kwargs = {
             "name": name,

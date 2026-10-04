@@ -75,11 +75,11 @@ class RuntimeToolset:
             async_fn=self.runtime.status.update,
             name="workflow_status",
             description=(
-                "Set/replace the single transient user-visible workflow status line. Describe the current user-level "
+                "Set/replace the single transient user-visible workflow status line before each meaningful activity and whenever the activity changes. Describe the current user-level "
                 "activity or completion state, never raw tool/function names, arguments, or one status per tool call. "
                 "One status may cover many internal operations. Update it only when the activity materially changes; "
                 "after completing/reviewing a work unit, set one concise completion status before the next normal "
-                "assistant checkpoint. Do not use it as the final answer."
+                "assistant checkpoint. This status supplements, never replaces, normal introduction/progress/refinement messages. Do not use it as the final answer."
             ),
         ))
         return self._with_context_tools(tools)
@@ -138,10 +138,10 @@ class RuntimeToolset:
                 async_fn=self.runtime.status.update,
                 name="workflow_status",
                 description=(
-                    "Set/replace the single transient user-visible workflow status line. Describe user-level activity "
+                    "Set/replace the single transient user-visible workflow status line before each meaningful activity and whenever the activity changes. Describe user-level activity "
                     "or a completed work unit; never expose raw tool/function names or emit one status per tool call. "
                     "Update only on meaningful activity changes and close a completed unit with one concise completion "
-                    "status before the next normal assistant checkpoint."
+                    "status before the next normal assistant checkpoint. Status supplements, never replaces, normal introduction/progress/refinement messages."
                 ),
             ),
             FunctionTool.from_defaults(

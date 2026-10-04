@@ -93,3 +93,53 @@ def test_builtin_prompt_slots_honor_overrides_without_injecting_policy():
         prompt = method()
         assert prompt.startswith('custom role')
         assert '<workflow_progress_policy>' not in prompt
+
+
+def test_all_stock_domain_presets_compose_once_in_each_builtin_mode():
+    import json
+    from pathlib import Path
+    from pygpt_net.core.agents_v2.prompts import AGENT_RUNTIME_POLICY, STEP_BY_STEP_RULES
+
+    root = Path(__file__).resolve().parents[3] / 'src/pygpt_net/data/config/presets'
+    runtime = make_runtime()
+    runtime.window.core.config.get.side_effect = lambda key, default=None: default
+    builder = RuntimePromptBuilder(runtime)
+    for file in root.glob('*agent_v2*.json'):
+        domain = json.loads(file.read_text())['prompt']
+        runtime.bridge_system_prompt = domain
+        for method in (builder.primary, builder.orchestrator, builder.swarm):
+            prompt = method()
+            assert prompt.count(domain) == 1, (file.name, method.__name__)
+            assert prompt.count(AGENT_RUNTIME_POLICY) == 1
+            assert prompt.count(STEP_BY_STEP_RULES) == 1
+            assert prompt.count('# Autonomous completion contract') == 1
+            assert prompt.count('# User-visible workflow progress') == 1
+            assert 'After each meaningful stage' in prompt
+            assert 'Report refinements explicitly' in prompt
+            assert 'are required before starting each meaningful activity' in prompt
+            assert 'Normal progress messages never replace these activity statuses' in prompt
+            assert 'never replace the introduction' in prompt
+            assert 'first required tool/delegation action in the same model pass' in prompt
+            assert '<step_by_step_rules>' not in prompt
+            assert '<step_by_step_brief>' not in prompt
+            assert '<additional_system_prompt>' in prompt
+
+
+def test_builtin_workflow_is_independent_of_preset_and_domain_prompts_do_not_own_it():
+    import json
+    from pathlib import Path
+    from pygpt_net.core.agents_v2.prompts import WORKFLOW_PROGRESS_POLICY
+
+    runtime = make_runtime()
+    runtime.bridge_system_prompt = ''
+    runtime.preset.prompt = ''
+    runtime.window.core.config.get.side_effect = lambda key, default=None: default
+    builder = RuntimePromptBuilder(runtime)
+    for method in (builder.primary, builder.orchestrator, builder.swarm):
+        assert WORKFLOW_PROGRESS_POLICY in method()
+    root = Path(__file__).resolve().parents[3] / 'src/pygpt_net/data/config/presets'
+    for file in root.glob('*agent_v2*.json'):
+        domain = json.loads(file.read_text())['prompt']
+        for runtime_instruction in ('workflow_status', 'report_status', 'workflow_finish',
+                                    'task_complete', '## Progress communication'):
+            assert runtime_instruction not in domain, file.name

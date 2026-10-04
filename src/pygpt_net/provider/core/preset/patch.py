@@ -16,6 +16,7 @@ from packaging.version import parse as parse_version, Version
 # old patches moved here
 from .patches.patch_before_2_6_42 import Patch as PatchBefore2_6_42
 from .patches.patch_before_2_8_33 import Patch as PatchBefore2_8_33
+from .patches.patch_agents_v2_prompts import Patch as PatchAgentsV2Prompts
 from .utils import safe_copy_preset
 
 
@@ -194,5 +195,9 @@ class Patch:
                 self.window.core.presets.save(k)  # re-save presets
                 migrated = True
                 print("Preset {} patched to version {}.".format(k, version))
+
+        if PatchAgentsV2Prompts(self.window).execute():
+            self.window.core.presets.load()
+            migrated = True
 
         return migrated
