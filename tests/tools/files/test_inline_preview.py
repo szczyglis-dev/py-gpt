@@ -357,7 +357,7 @@ def test_zoom_burst_saves_once_without_relexing(app, tmp_path, monkeypatch):
     window.core.config.save.assert_not_called()
     wait(300)
     window.core.config.save.assert_called_once()
-    window.controller.theme.nodes.apply_all.assert_called_once_with(dispatch_theme=False)
+    window.controller.theme.nodes.apply_all.assert_not_called()
     window.controller.config.apply.assert_not_called()
     lex.assert_not_called()
     panel.close()
@@ -389,6 +389,7 @@ def test_gutter_tracks_lines_zoom_and_keeps_finder_highlights(app, tmp_path):
     assert editor.extraSelections() == []
     width = editor.line_numbers.width()
     editor.on_zoom_changed(30)
+    wait(50)
     assert editor.line_numbers.width() > width
     panel.close()
     panel.deleteLater()

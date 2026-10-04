@@ -9,12 +9,12 @@
 # Updated Date: 2026.09.29 10:00:00                  #
 # ================================================== #
 
-from PySide6.QtCore import QEvent, QRect, Qt
+from PySide6.QtCore import QEvent, QRect, Qt, QTimer
 from PySide6.QtGui import QActionGroup, QFont, QFontMetrics, QTextCursor
 from PySide6.QtWidgets import QPlainTextEdit
 
 from pygpt_net.core.text.finder import Finder
-from pygpt_net.ui.widget.textarea.zoom import local_font, zoom_text
+from pygpt_net.ui.widget.textarea.zoom import local_font, queue_editor_zoom, register_editor_zoom
 from pygpt_net.utils import trans
 
 from .gutter import LINE_NUMBER_PADDING, LINE_NUMBER_TEXT_GAP, LineNumbers
@@ -29,6 +29,8 @@ CONFIG_WORD_WRAP = "filesystem.text_editor.word_wrap"
 
 class TextEditor(QPlainTextEdit):
     """Shared editor behavior without feature-specific context-menu actions."""
+
+    zoom_key = "font_size"
 
     def __init__(
             self,
@@ -65,6 +67,11 @@ class TextEditor(QPlainTextEdit):
             self.selectionChanged.connect(self.highlight_line)
 
         self.highlighter = SyntaxHighlighter(self.document(), path, self) if self._syntax_highlighting_enabled else None
+        self.zoom_timer = QTimer(self)
+        self.zoom_timer.setSingleShot(True)
+        self.zoom_timer.setInterval(30)
+        self.zoom_timer.timeout.connect(lambda: self.apply_zoom(self.value))
+        self._applied_zoom = None
         self.restore_zoom()
         self.restore_word_wrap()
         self._update_tab_stop()
@@ -88,9 +95,13 @@ class TextEditor(QPlainTextEdit):
             return
         digits = len(str(max(1, self.blockCount())))
         width = 2 * LINE_NUMBER_PADDING + QFontMetrics(line_numbers.number_font()).horizontalAdvance('9') * digits
-        self.setViewportMargins(width + LINE_NUMBER_TEXT_GAP, 0, 0, 0)
+        margin = width + LINE_NUMBER_TEXT_GAP
+        if self.viewportMargins().left() != margin:
+            self.setViewportMargins(margin, 0, 0, 0)
         rect = self.contentsRect()
-        line_numbers.setGeometry(QRect(rect.left(), rect.top(), width, rect.height()))
+        geometry = QRect(rect.left(), rect.top(), width, rect.height())
+        if line_numbers.geometry() != geometry:
+            line_numbers.setGeometry(geometry)
         line_numbers.update()
 
     def resizeEvent(self, event):
@@ -305,17 +316,32 @@ class TextEditor(QPlainTextEdit):
         if self.window is None:
             self._update_tab_stop()
             return
-        value = self.window.core.config.get('font_size')
+        effective_key = self.zoom_key
+        value = self.window.core.config.get(self.zoom_key)
+        if not isinstance(value, (int, float)) or value <= 0:
+            effective_key = 'font_size'
+            value = self.window.core.config.get('font_size')
         self.value = max(self.min_font_size, min(self.max_font_size, value if isinstance(value, (int, float)) else 12))
+        register_editor_zoom(self, self.window, effective_key)
         local_font(self, self.value)
+        self._applied_zoom = self.value
         self._update_tab_stop()
+
+    def apply_zoom(self, value):
+        value = max(self.min_font_size, min(self.max_font_size, int(value)))
+        self.value = value
+        self.zoom_timer.stop()
+        if self._applied_zoom == value:
+            return
+        local_font(self, value)
+        self._applied_zoom = value
+        self._update_tab_stop()
+        self.update_gutter()
 
     def on_zoom_changed(self, value):
         if self.window is None:
             return
-        zoom_text(self, self.window, value)
-        self._update_tab_stop()
-        self.update_gutter()
+        queue_editor_zoom(self, self.window, value, self.zoom_key)
 
     def find_open(self):
         if self.window is not None and self.finder is not None:
@@ -350,6 +376,7 @@ class TextEditor(QPlainTextEdit):
             self.highlighter.timer.start(0)
 
     def on_destroy(self):
+        self.zoom_timer.stop()
         if self.finder is not None:
             self.finder.timer.stop()
             try:

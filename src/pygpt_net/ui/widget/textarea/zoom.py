@@ -10,6 +10,7 @@
 # ================================================== #
 """Immediate local zoom with one shared settings commit after a wheel gesture."""
 import re
+import weakref
 from PySide6.QtCore import QObject, QTimer
 from PySide6.QtWidgets import QApplication
 
@@ -19,6 +20,8 @@ class ZoomCommit(QObject):
         super().__init__(window if isinstance(window, QObject) else QApplication.instance())
         self.window = window
         self.pending = set()
+        self.values = {}
+        self.editors = weakref.WeakKeyDictionary()
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(250)
@@ -35,14 +38,25 @@ class ZoomCommit(QObject):
         if not self.pending:
             return
         keys, self.pending = self.pending, set()
+        values, self.values = self.values, {}
         window = self.window
         window.core.config.save()
         for key in keys:
             option = window.controller.settings.editor.get_option(key)
             if option is not None:
-                option['value'] = window.core.config.get(key)
+                option['value'] = values.get(key, window.core.config.get(key))
         # Font changes must not emit ON_THEME_CHANGE and reload the web renderer.
-        if keys - {'zoom', 'terminal.font_size'}:
+        for editor, key in list(self.editors.items()):
+            if key in keys:
+                try:
+                    value = values.get(key, window.core.config.get(key))
+                    if editor.isVisible():
+                        editor.apply_zoom(value)
+                    else:
+                        editor.value = value  # Restore layout lazily in showEvent.
+                except RuntimeError:
+                    pass  # Qt may already have deleted a closed frontend.
+        if keys - {'zoom', 'terminal.font_size', 'font_size', 'filesystem.preview.text.font_size'}:
             window.controller.theme.nodes.apply_all(dispatch_theme=False)
         if 'zoom' in keys:
             container = window.ui.nodes.get('input.container')
@@ -52,11 +66,29 @@ class ZoomCommit(QObject):
 
 def schedule_zoom(window, key, value):
     window.core.config.set(key, value)
+    commit = zoom_commit(window)
+    commit.values[key] = value
+    commit.schedule(key)
+
+
+def zoom_commit(window):
     commit = vars(window).get('_text_zoom_commit')
     if commit is None:
         commit = ZoomCommit(window)
         window._text_zoom_commit = commit
-    commit.schedule(key)
+    return commit
+
+
+def register_editor_zoom(widget, window, key):
+    zoom_commit(window).editors[widget] = key
+
+
+def queue_editor_zoom(widget, window, value, key):
+    register_editor_zoom(widget, window, key)
+    widget.value = max(8, min(42, int(value)))
+    if not widget.zoom_timer.isActive():
+        widget.zoom_timer.start()
+    schedule_zoom(window, key, widget.value)
 
 
 def local_font(widget, value):
