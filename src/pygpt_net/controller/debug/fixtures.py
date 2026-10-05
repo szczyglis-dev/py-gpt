@@ -84,7 +84,8 @@ class Fixtures:
         :param ctx: context item
         :return: stream generator
         """
-        ctx.chunk_type = ChunkType.API_CHAT
+        # The fixture yields plain text, not SDK ChatCompletionChunk objects.
+        ctx.chunk_type = ChunkType.RAW
         path = os.path.join(self.window.core.config.get_app_path(), "data", "fixtures", "fake_stream.txt")
         return FakeOpenAIStream(code_path=path).stream(
             api="raw",

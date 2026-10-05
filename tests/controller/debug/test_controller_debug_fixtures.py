@@ -62,8 +62,36 @@ def test_debug_fixtures_get_stream_generator_mocks_external_stream_reader():
             patch("pygpt_net.controller.debug.fixtures.FakeOpenAIStream", return_value=fake) as stream_cls:
         result = fixtures.get_stream_generator(ctx)
 
-    assert ctx.chunk_type == ChunkType.API_CHAT
+    assert ctx.chunk_type == ChunkType.RAW
     join.assert_called_once_with("/app", "data", "fixtures", "fake_stream.txt")
     stream_cls.assert_called_once_with(code_path="/fixture/fake_stream.txt")
     fake.stream.assert_called_once_with(api="raw", chunk="code")
     assert result is stream
+
+
+def test_debug_fixture_text_reaches_stream_parser(monkeypatch):
+    from pathlib import Path
+    from types import SimpleNamespace
+    from itertools import islice
+    from pygpt_net.controller.chat.stream_worker import StreamWorker, WorkerState
+    from pygpt_net.item.ctx import CtxItem
+
+    monkeypatch.setattr('pygpt_net.core.fixtures.stream.generator.time.sleep', lambda _: None)
+    window = MagicMock()
+    window.core.config.get_app_path.return_value = str(
+        Path(__file__).resolve().parents[3] / 'src' / 'pygpt_net')
+    ctx = CtxItem()
+    generator = Fixtures(window).get_stream_generator(ctx)
+    state = WorkerState(chunk_type=ctx.chunk_type)
+    worker = SimpleNamespace()
+    # Bind the parser as the worker does; this must produce visible deltas.
+    worker._process_raw = lambda chunk: StreamWorker._process_raw(worker, chunk)
+    try:
+        chunks = list(islice(generator, 5))
+        parsed = [StreamWorker._process_chunk(worker, ctx, window.core, state, chunk, None)
+                  for chunk in chunks]
+        assert parsed == chunks
+        assert all(isinstance(delta, str) for delta in parsed)
+        assert any(delta for delta in parsed)
+    finally:
+        generator.close()
