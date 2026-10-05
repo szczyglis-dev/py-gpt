@@ -152,9 +152,10 @@ class MentionPopup(QFrame):
             if not self._query or self._query in haystack:
                 matches.append(entry)
 
+        library_entries = [entry for entry in self._entries if entry.kind == KIND_ATTACHMENT]
         self.list.clear()
         self._add_header(trans('input.mentions.add_new'))
-        if self._project_available:
+        if self._project_available and library_entries:
             self.list.item(0).setData(self.ROLE_SHARING_LABEL, True)
         self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
         self._add_entry(MentionEntry('sketch', trans('input.mentions.sketch'), ''))
@@ -181,8 +182,8 @@ class MentionPopup(QFrame):
             self._add_header(trans("input.mentions.chat_history"))
             for entry in conversations:
                 self._add_entry(entry)
-        if attachments or self._project_available:
-            self._add_library_header([e for e in self._entries if e.kind == KIND_ATTACHMENT])
+        if attachments or (self._project_available and library_entries):
+            self._add_library_header(library_entries)
             for entry in attachments:
                 self._add_entry(entry)
             if self._from_attachment_button and attachments and more_library:

@@ -13,6 +13,7 @@ from pygpt_net.ui.layout.ctx.ctx_list import CtxList
 @pytest.fixture(autouse=True)
 def translations(monkeypatch):
     monkeypatch.setattr('pygpt_net.ui.layout.ctx.ctx_list.trans', lambda key: key)
+    monkeypatch.setattr('pygpt_net.ui.layout.ctx.ctx_list.SHOW_ATTACHMENT_ICONS', True)
 
 
 def test_sharing_header_keeps_conversations_visible_with_attachment_icons():
@@ -76,3 +77,14 @@ def test_meta_attachment_icon_tracks_own_files_with_project_sharing():
             assert 'other.txt' not in item.toolTip()
         group.additional_ctx = [{'name': 'other.txt', 'owner_meta_id': 99}]
         assert CtxList.build_item(widget, meta.id, meta).data(Qt.UserRole)['is_attachment'] is shared
+
+
+def test_disabled_attachment_icons_skip_project_lookup(monkeypatch):
+    monkeypatch.setattr('pygpt_net.ui.layout.ctx.ctx_list.SHOW_ATTACHMENT_ICONS', False)
+    meta = CtxMeta()
+    meta.id, meta.name, meta.updated, meta.group = 12, 'Conversation', 1, CtxGroup()
+    meta.additional_ctx = [{'name': 'file.txt'}]
+    widget = SimpleNamespace(convert_date=lambda value: 'Today')
+    item = CtxList.build_item(widget, meta.id, meta)
+    assert item.data(Qt.UserRole)['is_attachment'] is False
+    assert 'file.txt' not in item.toolTip()

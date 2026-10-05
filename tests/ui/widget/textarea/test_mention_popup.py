@@ -200,14 +200,22 @@ def click_toggle(popup, row):
     QTest.mouseClick(popup.list.viewport(), Qt.LeftButton, pos=point)
 
 
-def test_add_header_has_sharing_label_without_a_toggle(monkeypatch):
+def test_empty_library_hides_header_and_sharing_label(monkeypatch):
     monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
     popup = MentionPopup()
     try:
         popup.set_project_state(True, False)
         popup.set_entries([], from_attachment_button=True)
         assert popup.list.item(0).text() == "input.mentions.add_new"
+        assert not popup.list.item(0).data(popup.ROLE_SHARING_LABEL)
+        assert not any(popup.list.item(i).text() == "input.mentions.library"
+                       for i in range(popup.list.count()))
+        from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+        popup.set_entries([MentionEntry(KIND_ATTACHMENT, "file.txt", "file.txt")],
+                          from_attachment_button=True)
         assert popup.list.item(0).data(popup.ROLE_SHARING_LABEL)
+        assert any(popup.list.item(i).text() == "input.mentions.library"
+                   for i in range(popup.list.count()))
         assert not popup.list.item(0).data(popup.ROLE_TOGGLE)
         assert all(not popup.list.itemWidget(popup.list.item(i)) for i in range(popup.list.count()))
         popup.set_project_state(False, False)

@@ -26,6 +26,9 @@ from pygpt_net.utils import trans
 # Context-list presentation limits. Pinned/project contexts are still loaded
 # from the provider in full; these constants only cap how many rows are rendered
 # until the user explicitly expands the corresponding list.
+# Attachment indicators also control sidebar refreshes after attachment changes.
+SHOW_ATTACHMENT_ICONS = False
+
 MAX_PINNED_DISPLAY = 6
 MAX_PROJECTS_DISPLAY = 10
 MAX_PROJECT_CONTEXTS_DISPLAY = 10
@@ -655,10 +658,11 @@ class CtxList:
         label = data.label
         is_important = data.important
         in_group = bool(data.group)
-        project_share = self.window.core.attachments.context.is_project_share_enabled(data)
+        project_share = (SHOW_ATTACHMENT_ICONS
+                         and self.window.core.attachments.context.is_project_share_enabled(data))
         own_shared = [file for file in data.group.additional_ctx or []
-                      if file.get("owner_meta_id") == data.id] if data.group else []
-        is_attachment = project_share or bool(data.additional_ctx or own_shared)
+                      if file.get("owner_meta_id") == data.id] if SHOW_ATTACHMENT_ICONS and data.group else []
+        is_attachment = SHOW_ATTACHMENT_ICONS and (project_share or bool(data.additional_ctx or own_shared))
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name

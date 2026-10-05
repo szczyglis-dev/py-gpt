@@ -730,7 +730,9 @@ class Attachment(QObject):
                 updated = True
         if updated:
             self.update_list(meta)
-            self.window.controller.ctx.update()
+            from pygpt_net.ui.layout.ctx.ctx_list import SHOW_ATTACHMENT_ICONS
+            if SHOW_ATTACHMENT_ICONS:
+                self.window.controller.ctx.update()
 
     def clear(
             self,
@@ -758,7 +760,9 @@ class Attachment(QObject):
             return
         self.window.core.attachments.context.clear(meta, delete_files=remove_local)
         self.update_list(meta)
-        self.window.controller.ctx.update()
+        from pygpt_net.ui.layout.ctx.ctx_list import SHOW_ATTACHMENT_ICONS
+        if SHOW_ATTACHMENT_ICONS:
+            self.window.controller.ctx.update()
 
     def set_active_by_idx(self, idx: int, active: bool):
         """Set active state for an uploaded context attachment."""
@@ -770,7 +774,9 @@ class Attachment(QObject):
             return
         if self.window.core.attachments.context.set_display_item_active(meta, items[idx], active):
             self.update_list(meta)
-            self.window.controller.ctx.update()
+            from pygpt_net.ui.layout.ctx.ctx_list import SHOW_ATTACHMENT_ICONS
+            if SHOW_ATTACHMENT_ICONS:
+                self.window.controller.ctx.update()
             self.window.controller.ui.update_tokens()
 
     def select(self, idx: int):

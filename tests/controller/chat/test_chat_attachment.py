@@ -440,7 +440,9 @@ class TestAttachment:
         # dummy_window.core.attachments.context.delete.assert_called()
         # dummy_window.controller.ctx.update.assert_called()
 
-    def test_clear(self, dummy_window, dummy_meta):
+    @pytest.mark.parametrize("show_icons", [False, True])
+    def test_clear(self, dummy_window, dummy_meta, monkeypatch, show_icons):
+        monkeypatch.setattr("pygpt_net.ui.layout.ctx.ctx_list.SHOW_ATTACHMENT_ICONS", show_icons)
         att = Attachment(dummy_window)
         att.clear(force=False)
         dummy_window.ui.dialogs.confirm.assert_called()
@@ -448,7 +450,7 @@ class TestAttachment:
         dummy_window.core.ctx.get_current_meta.return_value = dummy_meta
         att.clear(force=True, remove_local=True)
         dummy_window.core.attachments.context.clear.assert_called_with(dummy_meta, delete_files=True)
-        dummy_window.controller.ctx.update.assert_called()
+        assert dummy_window.controller.ctx.update.called is show_icons
 
     def test_select(self, dummy_window):
         att = Attachment(dummy_window)

@@ -476,7 +476,9 @@ def test_legacy_project_sharing_initializes_group_flag_once(tmp_path):
     assert attachment.is_project_share_enabled(bridge.ctx.meta)
 
 
-def test_library_actions_persist_group_flags_and_sync_bulk_state(tmp_path):
+@pytest.mark.parametrize("show_icons", [False, True])
+def test_library_actions_persist_group_flags_and_sync_bulk_state(tmp_path, monkeypatch, show_icons):
+    monkeypatch.setattr("pygpt_net.ui.layout.ctx.ctx_list.SHOW_ATTACHMENT_ICONS", show_icons)
     from pygpt_net.ui.widget.textarea.input import ChatInput
     attachment, bridge, owner, foreign, group, values = project_fixture(tmp_path)
     group.additional_ctx = [put_text(tmp_path, group.uuid, "plans", "Plan")]
@@ -490,6 +492,7 @@ def test_library_actions_persist_group_flags_and_sync_bulk_state(tmp_path):
     widget = SimpleNamespace(window=attachment.window, _mention_popup=popup,
                              _build_mention_entries=lambda **kwargs: [])
     ChatInput._set_library_shared(widget, False, "plans")
+    assert attachment.window.controller.ctx.update_list.called is show_icons
     assert group.extra["attachment_share"] is False
     assert group.extra["attachment_share_all"] is False
     assert "attachment_share" not in (bridge.ctx.meta.extra or {})

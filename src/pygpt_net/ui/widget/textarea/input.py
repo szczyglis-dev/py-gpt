@@ -590,7 +590,9 @@ class ChatInput(QTextEdit):
             changed = context.set_project_items_active(meta, enabled, attachment_id)
         if not changed:
             context.refresh_share_flags(meta)
-        self.window.controller.ctx.update_list(reload=False, restore_scroll=True)
+        from pygpt_net.ui.layout.ctx.ctx_list import SHOW_ATTACHMENT_ICONS
+        if SHOW_ATTACHMENT_ICONS:
+            self.window.controller.ctx.update_list(reload=False, restore_scroll=True)
         self.window.controller.chat.attachment.update()
         self._mention_source_key = None
         entries = self._build_mention_entries(include_workdir=not self._mention_popup._from_attachment_button)
