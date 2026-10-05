@@ -107,6 +107,7 @@ class MentionPopup(QFrame):
         self.list.clear()
         self._add_header(trans('input.mentions.add_new'))
         self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
+        self._add_entry(MentionEntry('sketch', trans('input.mentions.sketch'), ''))
         conversations = [e for e in matches if e.kind == KIND_CONVERSATION]
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
         files = [e for e in matches if e.kind == KIND_FILE_CONTEXT]
@@ -167,6 +168,7 @@ class MentionPopup(QFrame):
         item = QListWidgetItem(label)
         icon_name = {
             'upload': 'attachment',
+            'sketch': 'brush',
             KIND_CONVERSATION: 'chat1',
             KIND_ATTACHMENT: 'upload',
         }.get(entry.kind)

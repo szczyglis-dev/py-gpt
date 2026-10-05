@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from pygpt_net.core.events import Event
+from pygpt_net.core.tabs.tab import Tab
 from pygpt_net.ui.widget.textarea.zoom import zoom_text
 from pygpt_net.utils import trans
 from pygpt_net.core.attachments.clipboard import AttachmentDropHandler, DirectoryPasteHandler
@@ -767,6 +768,14 @@ class ChatInput(QTextEdit):
         self.setFocus()
 
     def _accept_mention_entry(self, entry: MentionEntry):
+        if entry.kind == 'sketch':
+            self._mention_popup.hide()
+            self._mention_button_cursor = None
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+            self._mention_dismissed = True
+            self.window.controller.tabs.open_or_activate(Tab.TAB_TOOL, 'painter')
+            return
         button_cursor = getattr(self, '_mention_button_cursor', None)
         trigger = ((button_cursor.selectionStart(), button_cursor.selectionEnd(), '')
                    if button_cursor is not None else self._find_mention_trigger())
@@ -776,8 +785,12 @@ class ChatInput(QTextEdit):
         at_pos, end_pos, _query = trigger
         if entry.kind == 'upload':
             self._mention_popup.hide()
+            if button_cursor is not None:
+                self._mention_trigger_pos = None
+                self._mention_source_key = None
+                self._mention_dismissed = True
             added = self.window.controller.attachment.open_add()
-            if not added:
+            if button_cursor is not None or not added:
                 self.setFocus()
                 return
             self._mention_loading = True

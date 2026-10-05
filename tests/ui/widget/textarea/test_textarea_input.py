@@ -424,7 +424,9 @@ def test_attachment_button_popup_defaults_to_upload_without_changing_input(monke
 
     editor = Editor()
     editor.window = MagicMock()
-    editor.window.controller.attachment.open_add.return_value = []
+    editor.window.controller.attachment.open_add.return_value = [
+        SimpleNamespace(name='uploaded.txt', path='/tmp/uploaded.txt'),
+    ]
     editor._mention_loading = False
     editor._mention_button_cursor = None
     editor._get_mention_source_key = lambda: 'source'
@@ -495,3 +497,33 @@ def test_button_library_uses_upload_order_not_filename_or_modification_time():
     assert [entry.label for entry in entries] == [
         'z-current-new.txt', 'a-current-old.txt', 'z-history-new.txt', 'a-history-old.txt',
     ]
+
+
+def test_sketch_action_opens_painter_via_shared_tab_method():
+    from pygpt_net.core.tabs.tab import Tab
+    from pygpt_net.ui.widget.textarea.mention import MentionEntry
+    widget = SimpleNamespace(window=MagicMock(), _mention_popup=MagicMock())
+    ChatInput._accept_mention_entry(widget, MentionEntry('sketch', 'Sketch', ''))
+    widget.window.controller.tabs.open_or_activate.assert_called_once_with(Tab.TAB_TOOL, 'painter')
+    widget._mention_popup.hide.assert_called_once()
+    assert widget._mention_button_cursor is None
+    assert widget._mention_dismissed
+
+
+
+def test_upload_from_typed_at_still_inserts_mention(monkeypatch):
+    from pygpt_net.ui.widget.textarea.mention import MentionEntry
+    from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+    cursor = MagicMock()
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.input.QTextCursor', MagicMock(return_value=cursor))
+    widget = SimpleNamespace(
+        _mention_button_cursor=None, _mention_popup=MagicMock(),
+        _find_mention_trigger=lambda: (0, 1, ''), window=MagicMock(),
+        document=MagicMock(), setTextCursor=MagicMock(), setFocus=MagicMock(),
+        _insert_mention_cursor=MagicMock(), _insert_plain_cursor=MagicMock(),
+        _refresh_mention_formats=MagicMock(), _schedule_auto_resize=MagicMock(),
+    )
+    widget.window.controller.attachment.open_add.return_value = [SimpleNamespace(name='uploaded.txt', path='/tmp/uploaded.txt')]
+    ChatInput._accept_mention_entry(widget, MentionEntry('upload', 'Files and folders', ''))
+    widget._insert_mention_cursor.assert_called_once_with(cursor, MentionEntry(KIND_ATTACHMENT, 'uploaded.txt', 'uploaded.txt'))
+    cursor.removeSelectedText.assert_called_once()

@@ -53,7 +53,7 @@ def test_icons_belong_to_entries_and_filetypes_have_fallback(monkeypatch, show_f
                 continue
             entry = item.data(popup.ROLE_ENTRY)
             icons[entry.label if entry.kind == KIND_FILE_CONTEXT else entry.kind] = item.icon()
-        expected = {'upload': ':/icons/attachment.svg', KIND_CONVERSATION: ':/icons/chat1.svg', KIND_ATTACHMENT: ':/icons/upload.svg'}
+        expected = {'sketch': ':/icons/brush.svg', 'upload': ':/icons/attachment.svg', KIND_CONVERSATION: ':/icons/chat1.svg', KIND_ATTACHMENT: ':/icons/upload.svg'}
         if show_filetypes:
             expected.update({'known.TXT': ':/filetypes/txt.svg', 'unknown.unrecognized': ':/filetypes/default.svg'})
         else:
@@ -81,5 +81,17 @@ def test_button_library_limit_preserves_newest_order_only_for_button(monkeypatch
         assert labels() == ['z-new.txt', 'b-middle.txt']
         popup.set_entries(entries)
         assert labels() == ['a-old.txt', 'b-middle.txt', 'z-new.txt']
+    finally:
+        popup.close()
+
+
+def test_sketch_action_follows_upload_and_keeps_upload_selected(monkeypatch):
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    try:
+        popup.set_entries([], from_attachment_button=True)
+        assert popup.list.item(1).data(popup.ROLE_ENTRY).kind == 'upload'
+        assert popup.list.item(2).data(popup.ROLE_ENTRY).kind == 'sketch'
+        assert popup.current_entry().kind == 'upload'
     finally:
         popup.close()
