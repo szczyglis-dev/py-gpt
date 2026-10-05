@@ -137,6 +137,31 @@ class BaseLoader(LocaleDomain):
             return args.get("url")
         return ""
 
+    def get_display_name(self, args: dict = None) -> str:
+        """Return a compact human-readable label for a saved web source."""
+        args = args or {}
+        if self.id in ('webpage', 'youtube', 'rss', 'sitemap'):
+            return str(args.get('url') or args.get('urls') or args.get('sitemap_url') or self.name)
+        if self.id == 'bitbucket_repo':
+            return str(args.get('repository') or self.name)
+        if self.id in ('db', 'database'):
+            table = args.get('table') or args.get('table_name') or args.get('dbname')
+            if not table and args.get('query'):
+                import re
+                match = re.search(r'\b(?:from|join)\s+([\w.\"`]+)', str(args['query']), re.I)
+                table = match.group(1).strip('"`') if match else None
+            return f"SQL: {table}" if table else self.name
+        if self.id in ('github_repo', 'github_issues'):
+            owner, repo = args.get('owner'), args.get('repository')
+            return '/'.join(str(value) for value in (owner, repo) if value) or self.name
+        for key in ('name', 'title', 'repository', 'folder_id', 'document_ids', 'spreadsheet_ids', 'query', 'users'):
+            value = args.get(key)
+            if value:
+                if isinstance(value, (list, tuple)):
+                    value = ', '.join(map(str, value))
+                return str(value)
+        return self.name
+
     def is_supported_attachment(self, source: str) -> bool:
         """
         Check if attachment is supported by loader

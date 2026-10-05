@@ -35,7 +35,7 @@ class AttachmentTile(QWidget):
         self.name = (extra.get('loader_name') or extra.get('loader') or item.name) if self.is_connection else (item.name or os.path.basename(item.path or ''))
         self.is_image_file = not self.is_connection and is_image(item.path or self.name)
         self.setFixedSize(self.SIDE, self.SIDE)
-        self.setToolTip(item.path or self.name)
+        self.setToolTip((extra.get('display_name') or item.name or '') if self.is_connection else (item.path or self.name))
         reader = QImageReader(item.path or '')
         self.image = QPixmap()
         if not self.is_connection and reader.canRead():

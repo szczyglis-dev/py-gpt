@@ -132,45 +132,30 @@ class Indexing:
             return self.data_providers[loader]
         return None
 
-    def update_loader_args(
-            self,
-            loader: str,
-            args: Dict[str, Any]
-    ):
-        """
-        Update loader arguments
-
-        :param loader: loader id
-        :param args: keyword arguments
-        """
-        if loader in self.data_providers:
-            self.data_providers[loader].set_args(args)
-            reader = self.data_providers[loader]  # get data reader instance
-            self.loaders["web"][loader] = reader  # update reader instance
-
-            # update in config
-            config = self.window.core.config.get("llama.hub.loaders.args")
-            if config is None:
-                config = []
-            loader_key = "web_" + loader
-            for arg in args:
-                found = False
-                for item in config:
-                    if item["loader"] == loader_key and item["name"] == arg:
-                        item["value"] = args[arg]
-                        found = True
-                if not found:
-                    type = "str"
-                    if arg in self.data_providers[loader].init_args_types:
-                        type = normalize_field(self.data_providers[loader].init_args_types[arg])['type']
-                    # pack value
-                    value = pack_arg(args[arg], type)
-                    config.append({
-                        "loader": loader_key,
-                        "name": arg,
-                        "value": value,
-                        "type": type
-                    })
+    def update_loader_args(self, loader: str, args: Dict[str, Any], remove=()):
+        """Update runtime and saved reader arguments, preserving other loaders."""
+        provider = self.data_providers.get(loader)
+        if provider is None:
+            return
+        stored = self.window.core.config.get("llama.hub.loaders.args")
+        stored = copy.deepcopy(stored) if isinstance(stored, list) else []
+        loader_key = "web_" + loader
+        changed = set(args) | set(remove)
+        stored = [item for item in stored
+                  if item.get('loader') != loader_key or item.get('name') not in changed]
+        for key, value in args.items():
+            kind = normalize_field(provider.init_args_types.get(key, 'str'))['type']
+            stored.append({'loader': loader_key, 'name': key,
+                           'value': pack_arg(value, kind), 'type': kind})
+        if hasattr(self.window.core.config, 'set'):
+            self.window.core.config.set("llama.hub.loaders.args", stored)
+        elif hasattr(self.window.core.config, 's'):
+            self.window.core.config.s["llama.hub.loaders.args"] = stored
+        values = self.get_loader_arguments(loader, 'web')
+        provider.set_args(values)
+        self.loaders['web'][loader] = provider
+        for key, field in self.external_config.get(loader, {}).items():
+            field['value'] = values.get(key, provider.init_args.get(key))
 
     def reload_loaders(self):
         """Reload loaders (update arguments)"""

@@ -216,6 +216,7 @@ class Input:
         request_meta = core.ctx.output.get_request_meta()
         self.generating = False
         self.window.controller.chat.common.sync_send_stop_buttons()
+        self.window.ui.dialogs.alert(str(error))
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",
             "msg": f"{trans('status.error')} {error}",

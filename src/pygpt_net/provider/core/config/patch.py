@@ -164,6 +164,13 @@ class Patch:
                 updated = True
 
             if old < parse_version("2.9.1"):
+                if "llama.hub.loaders.options" not in data:
+                    data["llama.hub.loaders.options"] = {}
+                    updated = True
+                for key in ("llama.hub.loaders.selected.attachment", "llama.hub.loaders.selected.indexer"):
+                    if key not in data:
+                        data[key] = "webpage"
+                        updated = True
                 if "layout.toolbox.expanded" not in data:
                     data["layout.toolbox.expanded"] = False
                     updated = True

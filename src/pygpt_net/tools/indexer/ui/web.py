@@ -154,7 +154,9 @@ class WebTab:
         layout.addWidget(self.params_scroll)
 
         # defaults
-        self.window.ui.nodes["tool.indexer.web.loader"].set_value("webpage")
+        selected = self.window.core.config.get('llama.hub.loaders.selected.indexer', 'webpage')
+        self.window.ui.nodes["tool.indexer.web.loader"].set_value(selected)
+        self.window.core.config.set('llama.hub.loaders.selected.indexer', selected)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -171,6 +173,8 @@ class WebTab:
         :param args: Args
         :param kwargs: Kwargs
         """
+        if value:
+            self.window.core.config.set('llama.hub.loaders.selected.indexer', value)
         # hide/show options
         for loader in self.window.ui.nodes["tool.indexer.web.loader.option_group"]:
             self.window.ui.nodes["tool.indexer.web.loader.option_group"][loader].hide()

@@ -9,7 +9,10 @@
 # Updated Date: 2024.12.16 01:00:00                  #
 # ================================================== #
 
+import copy
 import json
+
+from PySide6.QtCore import QTimer
 from typing import Dict, Tuple, Any, Optional
 
 from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget, QMessageBox
@@ -28,6 +31,11 @@ class Loaders:
         :param window: Window instance
         """
         self.window = window
+        self._dirty = False
+        self._save_timer = QTimer(window if isinstance(window, QWidget) else None)
+        self._save_timer.setSingleShot(True)
+        self._save_timer.setInterval(400)
+        self._save_timer.timeout.connect(self.flush)
 
     def handle_options(
             self,
@@ -65,21 +73,7 @@ class Loaders:
                         return False, loader, {}, {}
                     continue
                 try:
-                    kind = meta['type']
-                    if kind == 'int':
-                        value = int(value)
-                    elif kind == 'float':
-                        value = float(value)
-                    elif kind == 'bool':
-                        if value.strip().lower() not in ('true', 'false', '1', '0'):
-                            raise ValueError(trans('web.loader.invalid.bool'))
-                        value = value.strip().lower() in ('true', '1')
-                    elif kind == 'list':
-                        value = [item.strip() for item in value.split(',') if item.strip()]
-                    elif kind == 'dict':
-                        value = json.loads(value)
-                        if not isinstance(value, dict):
-                            raise ValueError(trans('web.loader.invalid.dict'))
+                    value = self._parse_value(value, meta)
                     result[key] = value
                 except (ValueError, TypeError) as error:
                     self.window.core.debug.log(error)
@@ -87,7 +81,94 @@ class Loaders:
                         field=label, type=meta['type']))
                     return False, loader, {}, {}
             results.append(result)
+        for prefix, fields in schemas:
+            for key, meta in fields.items():
+                node = self.window.ui.nodes.get(f'{prefix}.{loader}.{key}')
+                if node is not None:
+                    section = 'option' if prefix == prefix_options else 'config'
+                    self._remember_field(loader, section, key, normalize_field(meta), node.text())
+        self.flush()
         return True, loader, results[0], results[1]
+
+    @staticmethod
+    def _parse_value(value, meta):
+        kind = meta['type']
+        if kind == 'int':
+            return int(value)
+        if kind == 'float':
+            return float(value)
+        if kind == 'bool':
+            if value.strip().lower() not in ('true', 'false', '1', '0'):
+                raise ValueError(trans('web.loader.invalid.bool'))
+            return value.strip().lower() in ('true', '1')
+        if kind == 'list':
+            return [item.strip() for item in value.split(',') if item.strip()]
+        if kind == 'dict':
+            parsed = json.loads(value)
+            if not isinstance(parsed, dict):
+                raise ValueError(trans('web.loader.invalid.dict'))
+            return parsed
+        return value
+
+    def _remember_field(self, loader, section, key, meta, text):
+        if not hasattr(self.window.core, 'config'):
+            return
+        config = self.window.core.config
+        if section == 'option':
+            saved = config.get('llama.hub.loaders.options', {})
+            saved = copy.deepcopy(saved) if isinstance(saved, dict) else {}
+            saved.setdefault(loader, {})[key] = text
+            config.set('llama.hub.loaders.options', saved)
+        else:
+            try:
+                value = self._parse_value(text, meta) if text.strip() else None
+            except (ValueError, TypeError):
+                return  # Keep the last valid global setting while editing a number/JSON.
+            self.window.core.idx.indexing.update_loader_args(
+                loader, {key: value} if value is not None else {},
+                remove=() if value is not None else (key,),
+            )
+        # Keep both already-created forms in sync without emitting edit signals.
+        for prefix in ('dialog.url.loader', 'tool.indexer.web.loader'):
+            node = self.window.ui.nodes.get(f'{prefix}.{section}.{loader}.{key}')
+            if isinstance(node, LoaderField) and node.text() != text:
+                node.setText(text)
+        self._dirty = True
+        self._save_timer.start()
+
+    def flush(self):
+        """Persist edits, including when the attachment dialog is dismissed."""
+        self._save_timer.stop()
+        if self._dirty:
+            self.window.core.config.save()
+            self._dirty = False
+
+    def restore_fields(self, prefix_options, prefix_config):
+        for section, prefix in (('option', prefix_options), ('config', prefix_config)):
+            for name, node in self.window.ui.nodes.items():
+                if name.startswith(prefix + '.') and isinstance(node, LoaderField):
+                    loader, key = name[len(prefix) + 1:].split('.', 1)
+                    value, found = self._saved_value(loader, section, key)
+                    if found:
+                        node.setText(self._field_text(value))
+
+    def _saved_value(self, loader, section, key):
+        if section == 'option':
+            saved = self.window.core.config.get('llama.hub.loaders.options', {})
+            values = saved.get(loader, {}) if isinstance(saved, dict) else {}
+        else:
+            values = self.window.core.idx.indexing.get_loader_arguments(loader, 'web')
+        return (values.get(key), key in values) if isinstance(values, dict) else (None, False)
+
+    @staticmethod
+    def _field_text(value):
+        if value is None:
+            return ''
+        if isinstance(value, dict):
+            return json.dumps(value)
+        if isinstance(value, list):
+            return ', '.join(map(str, value))
+        return str(value)
 
     def _validation_alert(self, node, message):
         parent = node.window() if isinstance(node, QWidget) else self.window
@@ -120,11 +201,14 @@ class Loaders:
             for key, meta in fields.items():
                 meta = normalize_field(meta)
                 option = LoaderField(self.window, f'web.loader.{loader}.{section}.{key}', meta)
-                value = meta.get('value', meta.get('default', ''))
-                if value is not None:
-                    if isinstance(value, (dict, list)):
-                        value = json.dumps(value) if isinstance(value, dict) else ', '.join(map(str, value))
-                    option.setText(str(value))
+                value, found = self._saved_value(loader, section, key)
+                if not found:
+                    value = meta.get('value', meta.get('default', ''))
+                option.setText(self._field_text(value))
+                option.changed.connect(
+                    lambda text, loader=loader, section=section, key=key, meta=meta:
+                    self._remember_field(loader, section, key, meta, text)
+                )
                 label = QLabel()
                 label.setWordWrap(True)
                 label.setBuddy(option.input)

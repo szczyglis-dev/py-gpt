@@ -930,6 +930,7 @@ class Attachment(QObject):
 
         :param error: Exception
         """
+        self.window.ui.dialogs.alert(str(error))
         request_meta = self.window.core.ctx.output.get_request_meta()
         self.window.dispatch(KernelEvent(KernelEvent.STATE_ERROR, {
             "id": "chat",

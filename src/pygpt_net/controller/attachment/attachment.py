@@ -313,6 +313,9 @@ class Attachment:
         self.window.ui.dialog['url'].id = "attachment"
         self.window.ui.dialog['url'].current = attachment_id or ""
         self.window.ui.dialog['url'].init()
+        self.window.core.idx.ui.loaders.restore_fields(
+            'dialog.url.loader.option', 'dialog.url.loader.config',
+        )
         if loader_id is not None:
             self.window.ui.nodes['dialog.url.loader'].set_value(loader_id)
             self.window.ui.dialog['url'].hook_loader_change(None, loader_id, None)
@@ -349,7 +352,11 @@ class Attachment:
             extra["loader_name"] = provider.name
             extra["loader_icon"] = getattr(provider, "icon", "") or ":/icons/language.svg"
             mode = self.window.core.config.get('mode')
-            name = provider.get_external_id(input_params)
+            if hasattr(provider, 'get_display_name'):
+                name = provider.get_display_name(input_params)
+                extra["display_name"] = name
+            else:
+                name = provider.get_external_id(input_params)
             current_id = self.window.ui.dialog['url'].current
             attachment = self.window.core.attachments.get_all(mode).get(current_id) if current_id else None
             if attachment is not None:

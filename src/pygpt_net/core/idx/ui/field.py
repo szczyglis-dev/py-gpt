@@ -1,5 +1,6 @@
 """Schema-driven loader fields shared by attachments, RAG and add-ons."""
 
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QFileDialog
 
 from pygpt_net.ui.widget.anims.toggles import AnimToggle
@@ -9,6 +10,8 @@ from pygpt_net.utils import trans
 
 class LoaderField(QWidget):
     """Expose one text/value interface for inputs, secrets and boolean toggles."""
+
+    changed = Signal(str)
 
     def __init__(self, window, field_id, meta):
         super().__init__(window)
@@ -31,6 +34,10 @@ class LoaderField(QWidget):
                 self.path_button = QPushButton()
                 self.path_button.clicked.connect(self.choose_path)
                 layout.addWidget(self.path_button)
+        if meta['type'] == 'bool':
+            self.input.clicked.connect(lambda _checked: self.changed.emit(self.text()))
+        else:
+            self.input.textEdited.connect(self.changed.emit)
         self.setFocusProxy(self.input)
         self.setProperty('required', bool(meta.get('required')))
 
@@ -54,6 +61,7 @@ class LoaderField(QWidget):
             path, _ = QFileDialog.getOpenFileName(self, title, self.text(), extra.get('filter', ''))
         if path:
             self.setText(path)
+            self.changed.emit(self.text())
 
     def update_locale(self, label, description):
         self.setAccessibleName(label)
