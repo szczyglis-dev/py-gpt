@@ -502,8 +502,12 @@ class Tools:
             ctx,  # current ctx
             [cmd],  # commands
         )
+        # TMP: Summarize large plugin responses for the local tool history.
+        """
         from pygpt_net.core.summarizer import model_payload
         return model_payload(response)
+        """
+        return response
 
     def export_sources(
             self,

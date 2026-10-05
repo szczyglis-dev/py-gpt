@@ -334,7 +334,7 @@ class TestAttachment:
         assert dummy_meta.additional_ctx_current[-1] == item
 
     @pytest.mark.parametrize("bulk, explicit, expected", [
-        (False, None, False), (True, None, True),
+        (False, None, False), (True, None, False),
         (True, False, False), (False, True, True),
     ])
     def test_new_project_attachment_sharing(self, dummy_window, dummy_meta, bulk, explicit, expected):

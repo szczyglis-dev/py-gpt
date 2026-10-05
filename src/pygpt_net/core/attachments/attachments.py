@@ -186,6 +186,7 @@ class Attachments:
                 item.path = attachment['path']
             else:
                 item.path = '-'
+            item.type = AttachmentItem.TYPE_URL if attachment.get("type") == "url" else AttachmentItem.TYPE_FILE
             item.ctx = True
             item.extra["project_shared"] = attachment.get("uuid") in shared_ids
             item.meta_id = meta.id
@@ -227,10 +228,9 @@ class Attachments:
         if extra is not None:
             attachment.extra = extra
 
-        meta = self.window.core.ctx.get_current_meta()
-        if meta is not None and meta.group is not None:
-            attachment.extra.setdefault("project_active",
-                                        (meta.group.extra or {}).get("attachment_share_all", False) is True)
+        # New uploads are private by default, regardless of the Library toggle.
+        # An explicit sharing choice can still be supplied or changed afterward.
+        attachment.extra.setdefault("project_active", False)
 
         if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
             self.register_ctx_excluded_path(attachment.path)

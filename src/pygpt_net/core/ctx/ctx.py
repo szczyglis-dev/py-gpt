@@ -496,6 +496,10 @@ class Ctx:
         meta = self.build()
         if group_id is not None:
             meta.group_id = group_id
+            # A new conversation needs its live project reference immediately,
+            # before the first message or a database reload. Attachment sharing
+            # controls resolve project availability through meta.group.
+            meta.group = self.get_group_by_id(group_id)
         id = self.provider.create(meta)
         meta.id = id
         return meta

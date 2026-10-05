@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Iterable, Optional
 
 from PySide6.QtCore import Qt, Signal, QPoint, QSize, QFile, QRect, QEvent
-from PySide6.QtGui import QFont, QIcon, QPalette
+from PySide6.QtGui import QFont, QIcon, QColor
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -34,6 +34,8 @@ WORKDIR_MENTIONS_SHOW_FILETYPE_ICONS = True
 
 # Maximum Library rows in the [+] picker (newest uploads first).
 ATTACHMENT_BUTTON_LIBRARY_LIMIT = 5
+
+MENTION_HEADER_COLOR = QColor("#808080")
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,7 +68,7 @@ class SharingDelegate(QStyledItemDelegate):
         rect = self.toggle_rect(option.rect)
         if label_only:
             painter.save()
-            painter.setPen(option.palette.color(QPalette.Text))
+            painter.setPen(MENTION_HEADER_COLOR)
             painter.drawText(QRect(option.rect.right() - 8 - label_width, option.rect.top(), label_width, option.rect.height()),
                              Qt.AlignRight | Qt.AlignVCenter, trans("input.mentions.sharing"))
             painter.restore()
@@ -133,6 +135,8 @@ class MentionPopup(QFrame):
         self._from_attachment_button = from_attachment_button
         self._library_limit = ATTACHMENT_BUTTON_LIBRARY_LIMIT
         self._entries = list(entries or [])
+        if not any(entry.kind == KIND_ATTACHMENT for entry in self._entries):
+            self._library_shared = False
         self._query = ""
         self.apply_filter("")
 
@@ -155,7 +159,7 @@ class MentionPopup(QFrame):
         library_entries = [entry for entry in self._entries if entry.kind == KIND_ATTACHMENT]
         self.list.clear()
         self._add_header(trans('input.mentions.add_new'))
-        if self._project_available and library_entries:
+        if self._project_available:
             self.list.item(0).setData(self.ROLE_SHARING_LABEL, True)
         self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
         self._add_entry(MentionEntry('sketch', trans('input.mentions.sketch'), ''))
@@ -201,7 +205,11 @@ class MentionPopup(QFrame):
             for entry in sorted(readers, key=lambda entry: entry.label.casefold()):
                 self._add_entry(entry)
 
-        self._select_first()
+        if self._from_attachment_button:
+            self.list.setCurrentRow(-1)
+            self.list.clearSelection()
+        else:
+            self._select_first()
         self._resize_for_items()
         if self.list.count() == 0:
             self.hide()
@@ -220,7 +228,11 @@ class MentionPopup(QFrame):
                               else "input.mentions.sharing.tooltip"))
 
     def _add_library_header(self, entries):
-        self._add_header(trans("input.mentions.library"))
+        label = trans("input.mentions.library")
+        shared_count = sum(bool(entry.attachment_id) and entry.active for entry in entries) if self._project_available else 0
+        if shared_count:
+            label += " (" + trans("input.mentions.shared_count").format(count=shared_count) + ")"
+        self._add_header(label)
         if self._project_available and entries:
             # Include filtered rows and rows beyond the visible limit.
             if all(entry.active for entry in entries):
@@ -264,6 +276,7 @@ class MentionPopup(QFrame):
 
     def _add_header(self, text: str):
         item = QListWidgetItem(text)
+        item.setForeground(MENTION_HEADER_COLOR)
         item.setData(self.ROLE_HEADER, True)
         item.setFlags(Qt.NoItemFlags)
         font = QFont(item.font())
@@ -282,14 +295,16 @@ class MentionPopup(QFrame):
             'upload': 'attachment',
             'sketch': 'brush',
             KIND_CONVERSATION: 'chat1',
-            KIND_ATTACHMENT: 'upload',
         }.get(entry.kind)
         if entry.kind == 'web_loader':
             item.setIcon(QIcon(entry.icon or ':/icons/language.svg'))
+        elif entry.kind == KIND_ATTACHMENT and entry.icon:
+            item.setIcon(QIcon(entry.icon))
         elif icon_name:
             item.setIcon(QIcon(f':/icons/{icon_name}.svg'))
-        elif entry.kind == KIND_FILE_CONTEXT and WORKDIR_MENTIONS_SHOW_FILETYPE_ICONS:
-            extension = os.path.splitext(entry.value or entry.label)[1].lower().lstrip('.')
+        elif entry.kind == KIND_ATTACHMENT or (entry.kind == KIND_FILE_CONTEXT and WORKDIR_MENTIONS_SHOW_FILETYPE_ICONS):
+            filename = entry.label if entry.kind == KIND_ATTACHMENT else (entry.value or entry.label)
+            extension = os.path.splitext(filename)[1].lower().lstrip('.')
             icon = extension if extension and QFile.exists(f':/filetypes/{extension}.svg') else 'default'
             item.setIcon(QIcon(f':/filetypes/{icon}.svg'))
         item.setData(self.ROLE_ENTRY, entry)

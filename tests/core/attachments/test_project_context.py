@@ -530,3 +530,60 @@ def test_move_ungrouped_conversation_refreshes_cached_project_sharing(tmp_path, 
     assert (moved.additional_ctx[0] in attachment.get_all(owner)) is shared
     ctx_core.provider.update_meta_group_id.assert_called_once_with(moved.id, group.id)
     ctx_core.update_group.assert_called_with(group)
+
+
+def test_new_empty_project_conversation_exposes_library_sharing_controls(tmp_path):
+    from pygpt_net.core.ctx import Ctx
+    from pygpt_net.core.attachments.attachments import Attachments
+    from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+    from pygpt_net.ui.widget.textarea.input import ChatInput
+    attachment, bridge, owner, foreign, group, values = project_fixture(tmp_path)
+    group.additional_ctx = [put_text(tmp_path, group.uuid, 'shared-file', 'Project source')]
+    core = attachment.window.core
+    new_meta = CtxMeta()
+    core.ctx.build = lambda: new_meta
+    core.ctx.provider.create = Mock(return_value=42)
+    created = Ctx.create(core.ctx, group.id)
+    assert created.group is group and created.group_id == group.id
+    assert created.id == 42
+    core.ctx.get_current_meta = lambda: created
+    core.ctx.get_meta = lambda: {created.id: created}
+    core.attachments = Attachments(attachment.window)
+    core.attachments.context = attachment
+    values['mode'] = 'chat'
+    attachment.window.controller = Mock()
+    attachment.window.controller.config.placeholder.apply_by_id.return_value = []
+    widget = SimpleNamespace(window=attachment.window)
+    entries = ChatInput._build_mention_entries(widget, include_workdir=False)
+    files = [entry for entry in entries if entry.kind == KIND_ATTACHMENT]
+    assert len(files) == 1
+    assert files[0].attachment_id == 'shared-file'
+    assert files[0].active
+
+
+def test_mention_includes_private_peer_source_only_for_current_project_turn(tmp_path):
+    from pygpt_net.controller.chat.attachment import Attachment
+    from pygpt_net.core.bridge.worker import BridgeWorker
+    attachment, bridge, owner, foreign, group, values = project_fixture(tmp_path)
+    source = put_text(tmp_path, owner.uuid, 'private-peer', 'Private invoice total: 987 PLN')
+    source['project_active'] = False
+    owner.additional_ctx = [source]
+    group.extra['attachment_share'] = False
+    foreign.additional_ctx = [put_text(tmp_path, foreign.uuid, 'foreign-file', 'Other project secret')]
+    bridge.ctx.input = '<attachment>project-attachment:private-peer:invoice.txt</attachment> What is the total?'
+    bridge.prompt = bridge.ctx.input
+    controller = Attachment(attachment.window)
+    controller.is_verbose = Mock(return_value=False)
+    attachment.window.controller = SimpleNamespace(chat=SimpleNamespace(attachment=controller))
+    worker = BridgeWorker()
+    worker.window, worker.context = attachment.window, bridge
+    worker.handle_additional_context()
+    assert '987 PLN' in bridge.prompt
+    assert bridge.ctx.additional_ctx == [source]
+    assert source['project_active'] is False
+    assert not group.extra['attachment_share']
+    bridge.ctx.input = '<attachment>project-attachment:foreign-file:secret.txt</attachment>'
+    assert attachment.current_ids(bridge.ctx) == set()
+    assert 'Other project secret' not in attachment.get_context_text(bridge.ctx, only_current=True)
+    bridge.ctx.input = 'Next message without a mention'
+    assert source not in attachment.get_turn_items(bridge.ctx)

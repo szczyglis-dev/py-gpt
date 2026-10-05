@@ -85815,7 +85815,7 @@ l', this.handler\
 s.pointerup);\x0a\x09\x09\
 }\x0a\x09\x09this.handler\
 s = {};\x0a\x09}\x0a}\x0a\
-\x00\x00\x0f\xfc\
+\x00\x00\x11f\
 /\
 / ==============\
 ================\
@@ -85923,156 +85923,179 @@ onValue(match[2]\
  || '');\x0a\x09\x09\x09\x09let\
  label = value;\x0a\
 \x09\x09\x09\x09if (kind ===\
- 'file_context')\
- {\x0a\x09\x09\x09\x09\x09let norm\
-alized = value.r\
-eplace(/\x5c\x5c/g, '/\
-');\x0a\x09\x09\x09\x09\x09const l\
-ower = normalize\
-d.toLowerCase();\
-\x0a\x09\x09\x09\x09\x09const pref\
-ix = '%workdir%/\
-data/';\x0a\x09\x09\x09\x09\x09if \
-(lower.startsWit\
-h(prefix)) norma\
+ 'attachment') {\
+\x0a\x09\x09\x09\x09\x09// Keep th\
+e durable projec\
+t/source referen\
+ce in the stored\
+ value,\x0a\x09\x09\x09\x09\x09// \
+but show only th\
+e filename in th\
+e user-message m\
+ention.\x0a\x09\x09\x09\x09\x09con\
+st reference = v\
+alue.match(/^pro\
+ject[-_]attachme\
+nt:([^:]+):([\x5cs\x5c\
+S]+)$/);\x0a\x09\x09\x09\x09\x09if\
+ (reference) lab\
+el = reference[2\
+];\x0a\x09\x09\x09\x09\x09else lab\
+el = value.repla\
+ce(/^project[-_]\
+attachment:/, ''\
+);\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09\x09if \
+(kind === 'file_\
+context') {\x0a\x09\x09\x09\x09\
+\x09let normalized \
+= value.replace(\
+/\x5c\x5c/g, '/');\x0a\x09\x09\x09\
+\x09\x09const lower = \
+normalized.toLow\
+erCase();\x0a\x09\x09\x09\x09\x09c\
+onst prefix = '%\
+workdir%/data/';\
+\x0a\x09\x09\x09\x09\x09if (lower.\
+startsWith(prefi\
+x)) normalized =\
+ normalized.slic\
+e(prefix.length)\
+;\x0a\x09\x09\x09\x09\x09else if (\
+lower === '%work\
+dir%/data') norm\
+alized = 'data/'\
+;\x0a\x09\x09\x09\x09\x09else if (\
+lower.startsWith\
+('data/')) norma\
 lized = normaliz\
-ed.slice(prefix.\
-length);\x0a\x09\x09\x09\x09\x09el\
-se if (lower ===\
- '%workdir%/data\
-') normalized = \
-'data/';\x0a\x09\x09\x09\x09\x09el\
-se if (lower.sta\
-rtsWith('data/')\
-) normalized = n\
-ormalized.slice(\
-5);\x0a\x09\x09\x09\x09\x09label =\
- normalized || v\
-alue;\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09\x09\
-const cls = (kin\
-d === 'attachmen\
-t') ? 'mention-a\
-ttachment' : 'me\
-ntion-file-conte\
-xt';\x0a\x09\x09\x09\x09out += \
-`<span class=\x22me\
-ntion-anchor ${c\
-ls}\x22 title=\x22${Ut\
-ils.escapeHtmlAt\
-tr(value)}\x22>@${U\
-tils.escapeHtml(\
-label)}</span>`;\
-\x0a\x09\x09\x09} else {\x0a\x09\x09\x09\
-\x09const attrs = S\
-tring(match[3] |\
-| '');\x0a\x09\x09\x09\x09const\
- idMatch = attrs\
-.match(/\x5cbid\x5cs*=\
-\x5cs*([\x22'])(.*?)\x5c1\
-/i);\x0a\x09\x09\x09\x09const t\
-itleMatch = attr\
-s.match(/\x5cbtitle\
-\x5cs*=\x5cs*([\x22'])(.*\
-?)\x5c1/i);\x0a\x09\x09\x09\x09con\
-st id = Utils.de\
+ed.slice(5);\x0a\x09\x09\x09\
+\x09\x09label = normal\
+ized || value;\x0a\x09\
+\x09\x09\x09}\x0a\x09\x09\x09\x09const c\
+ls = (kind === '\
+attachment') ? '\
+mention-attachme\
+nt' : 'mention-f\
+ile-context';\x0a\x09\x09\
+\x09\x09out += `<span \
+class=\x22mention-a\
+nchor ${cls}\x22 ti\
+tle=\x22${Utils.esc\
+apeHtmlAttr(valu\
+e)}\x22>@${Utils.es\
+capeHtml(label)}\
+</span>`;\x0a\x09\x09\x09} e\
+lse {\x0a\x09\x09\x09\x09const \
+attrs = String(m\
+atch[3] || '');\x0a\
+\x09\x09\x09\x09const idMatc\
+h = attrs.match(\
+/\x5cbid\x5cs*=\x5cs*([\x22'\
+])(.*?)\x5c1/i);\x0a\x09\x09\
+\x09\x09const titleMat\
+ch = attrs.match\
+(/\x5cbtitle\x5cs*=\x5cs*\
+([\x22'])(.*?)\x5c1/i)\
+;\x0a\x09\x09\x09\x09const id =\
+ Utils.decodeMen\
+tionValue(idMatc\
+h ? idMatch[2] :\
+ '');\x0a\x09\x09\x09\x09const \
+title = Utils.de\
 codeMentionValue\
-(idMatch ? idMat\
-ch[2] : '');\x0a\x09\x09\x09\
-\x09const title = U\
-tils.decodeMenti\
-onValue(titleMat\
-ch ? titleMatch[\
-2] : '');\x0a\x09\x09\x09\x09co\
-nst label = titl\
-e || id;\x0a\x09\x09\x09\x09if \
-(label) {\x0a\x09\x09\x09\x09\x09o\
-ut += `<span cla\
-ss=\x22mention-anch\
-or mention-conve\
-rsation\x22 title=\x22\
-#${Utils.escapeH\
-tmlAttr(id)}\x22>@$\
-{Utils.escapeHtm\
-l(label)}</span>\
-`;\x0a\x09\x09\x09\x09} else {\x0a\
-\x09\x09\x09\x09\x09out += Util\
-s.escapeHtml(mat\
-ch[0]);\x0a\x09\x09\x09\x09}\x0a\x09\x09\
-\x09}\x0a\x09\x09\x09last = re.\
-lastIndex;\x0a\x09\x09}\x0a\x0a\
-\x09\x09out += Utils.e\
-scapeHtml(raw.sl\
-ice(last));\x0a\x09\x09re\
-turn out.replace\
-(/\x5cr?\x5cn/g, '<br>\
-');\x0a\x09}\x0a\x0a\x09// Coun\
-ts the number of\
- newline charact\
-ers in a string.\
-\x0a\x09static countNe\
-wlines(s) {\x0a\x09\x09if\
- (!s) return 0;\x0a\
-\x09\x09let c = 0,\x0a\x09\x09\x09\
-i = -1;\x0a\x09\x09while \
-((i = s.indexOf(\
-'\x5cn', i + 1)) !=\
-= -1) c++;\x0a\x09\x09ret\
-urn c;\x0a\x09}\x0a\x0a\x09// R\
-e-escapes a stri\
-ng for safe HTML\
- rendering.\x0a\x09sta\
-tic reEscape(s) \
-{\x0a\x09\x09return Strin\
-g(s).replace(/[.\
-*+?^${}()|[\x5c]\x5c\x5c]\
-/g, '\x5c\x5c$&');\x0a\x09}\x0a\
-\x0a\x09// Schedule a \
-function in idle\
- time (falls bac\
-k to setTimeout)\
-.\x0a\x09static idle(f\
-n, timeout) {\x0a\x09\x09\
-if ('requestIdle\
-Callback' in win\
-dow) return requ\
-estIdleCallback(\
-fn, {\x0a\x09\x09\x09timeout\
-: timeout || 800\
-\x0a\x09\x09});\x0a\x09\x09return \
-setTimeout(fn, 5\
-0);\x0a\x09}\x0a\x0a\x09// Canc\
-el idle callback\
- if possible (sa\
-fe for fallback)\
-.\x0a\x09static cancel\
-Idle(id) {\x0a\x09\x09try\
- {\x0a\x09\x09\x09if ('cance\
-lIdleCallback' i\
-n window) cancel\
-IdleCallback(id)\
-;\x0a\x09\x09\x09else clearT\
-imeout(id);\x0a\x09\x09} \
-catch (_) {}\x0a\x09}\x0a\
-\x0a\x09// Gets the sc\
-rolling element \
-for the document\
-.\x0a\x09static get SE\
-() {\x0a\x09\x09return do\
-cument.scrolling\
-Element || docum\
-ent.documentElem\
-ent;\x0a\x09}\x0a\x0a\x09// sha\
-red UTF-8 decode\
-r to avoid per-c\
-all allocations.\
-\x0a\x09static utf8Dec\
-ode(bytes) {\x0a\x09\x09i\
-f (!Utils._td) U\
-tils._td = new T\
-extDecoder('utf-\
-8');\x0a\x09\x09return Ut\
-ils._td.decode(b\
-ytes);\x0a\x09}\x0a}\
+(titleMatch ? ti\
+tleMatch[2] : ''\
+);\x0a\x09\x09\x09\x09const lab\
+el = title || id\
+;\x0a\x09\x09\x09\x09if (label)\
+ {\x0a\x09\x09\x09\x09\x09out += `\
+<span class=\x22men\
+tion-anchor ment\
+ion-conversation\
+\x22 title=\x22#${Util\
+s.escapeHtmlAttr\
+(id)}\x22>@${Utils.\
+escapeHtml(label\
+)}</span>`;\x0a\x09\x09\x09\x09\
+} else {\x0a\x09\x09\x09\x09\x09ou\
+t += Utils.escap\
+eHtml(match[0]);\
+\x0a\x09\x09\x09\x09}\x0a\x09\x09\x09}\x0a\x09\x09\x09l\
+ast = re.lastInd\
+ex;\x0a\x09\x09}\x0a\x0a\x09\x09out +\
+= Utils.escapeHt\
+ml(raw.slice(las\
+t));\x0a\x09\x09return ou\
+t.replace(/\x5cr?\x5cn\
+/g, '<br>');\x0a\x09}\x0a\
+\x0a\x09// Counts the \
+number of newlin\
+e characters in \
+a string.\x0a\x09stati\
+c countNewlines(\
+s) {\x0a\x09\x09if (!s) r\
+eturn 0;\x0a\x09\x09let c\
+ = 0,\x0a\x09\x09\x09i = -1;\
+\x0a\x09\x09while ((i = s\
+.indexOf('\x5cn', i\
+ + 1)) !== -1) c\
+++;\x0a\x09\x09return c;\x0a\
+\x09}\x0a\x0a\x09// Re-escap\
+es a string for \
+safe HTML render\
+ing.\x0a\x09static reE\
+scape(s) {\x0a\x09\x09ret\
+urn String(s).re\
+place(/[.*+?^${}\
+()|[\x5c]\x5c\x5c]/g, '\x5c\x5c\
+$&');\x0a\x09}\x0a\x0a\x09// Sc\
+hedule a functio\
+n in idle time (\
+falls back to se\
+tTimeout).\x0a\x09stat\
+ic idle(fn, time\
+out) {\x0a\x09\x09if ('re\
+questIdleCallbac\
+k' in window) re\
+turn requestIdle\
+Callback(fn, {\x0a\x09\
+\x09\x09timeout: timeo\
+ut || 800\x0a\x09\x09});\x0a\
+\x09\x09return setTime\
+out(fn, 50);\x0a\x09}\x0a\
+\x0a\x09// Cancel idle\
+ callback if pos\
+sible (safe for \
+fallback).\x0a\x09stat\
+ic cancelIdle(id\
+) {\x0a\x09\x09try {\x0a\x09\x09\x09i\
+f ('cancelIdleCa\
+llback' in windo\
+w) cancelIdleCal\
+lback(id);\x0a\x09\x09\x09el\
+se clearTimeout(\
+id);\x0a\x09\x09} catch (\
+_) {}\x0a\x09}\x0a\x0a\x09// Ge\
+ts the scrolling\
+ element for the\
+ document.\x0a\x09stat\
+ic get SE() {\x0a\x09\x09\
+return document.\
+scrollingElement\
+ || document.doc\
+umentElement;\x0a\x09}\
+\x0a\x0a\x09// shared UTF\
+-8 decoder to av\
+oid per-call all\
+ocations.\x0a\x09stati\
+c utf8Decode(byt\
+es) {\x0a\x09\x09if (!Uti\
+ls._td) Utils._t\
+d = new TextDeco\
+der('utf-8');\x0a\x09\x09\
+return Utils._td\
+.decode(bytes);\x0a\
+\x09}\x0a}\x0a\
 \x00\x00%\x04\
 c\
 onst MARKDOWN_LA\
@@ -124858,12 +124881,12 @@ r,r.macros=r.mac\
 ros||{},d(e,r)}}\
 (),i=i.default}(\
 )}));\
-\x00\x05\x08_\
+\x00\x05\x09\x19\
 /\
 * app.min.js \xe2\x80\x94\
  generated on 20\
-26-10-05 12:15:3\
-7 by bin/minify.\
+26-10-05 17:36:0\
+9 by bin/minify.\
 py using rjsmin \
 */\x0a\x0a/* data/js/a\
 pp/parts/markdow\
@@ -144797,683 +144820,695 @@ nst value=Utils.\
 decodeMentionVal\
 ue(match[2]||'')\
 ;let label=value\
-;if(kind==='file\
-_context'){let n\
-ormalized=value.\
-replace(/\x5c\x5c/g,'/\
-');const lower=n\
-ormalized.toLowe\
-rCase();const pr\
-efix='%workdir%/\
-data/';if(lower.\
-startsWith(prefi\
-x))normalized=no\
-rmalized.slice(p\
-refix.length);el\
-se if(lower==='%\
-workdir%/data')n\
-ormalized='data/\
-';else if(lower.\
-startsWith('data\
-/'))normalized=n\
-ormalized.slice(\
-5);label=normali\
-zed||value;}\x0acon\
-st cls=(kind==='\
-attachment')?'me\
-ntion-attachment\
-':'mention-file-\
-context';out+=`<\
-span class=\x22ment\
-ion-anchor ${cls\
-}\x22 title=\x22${Util\
-s.escapeHtmlAttr\
-(value)}\x22>@${Uti\
-ls.escapeHtml(la\
-bel)}</span>`;}e\
-lse{const attrs=\
-String(match[3]|\
-|'');const idMat\
-ch=attrs.match(/\
-\x5cbid\x5cs*=\x5cs*([\x22']\
-)(.*?)\x5c1/i);cons\
-t titleMatch=att\
-rs.match(/\x5cbtitl\
-e\x5cs*=\x5cs*([\x22'])(.\
-*?)\x5c1/i);const i\
-d=Utils.decodeMe\
-ntionValue(idMat\
-ch?idMatch[2]:''\
-);const title=Ut\
-ils.decodeMentio\
-nValue(titleMatc\
-h?titleMatch[2]:\
-'');const label=\
-title||id;if(lab\
-el){out+=`<span \
-class=\x22mention-a\
-nchor mention-co\
-nversation\x22 titl\
-e=\x22#${Utils.esca\
-peHtmlAttr(id)}\x22\
->@${Utils.escape\
-Html(label)}</sp\
-an>`;}else{out+=\
+;if(kind==='atta\
+chment'){const r\
+eference=value.m\
+atch(/^project[-\
+_]attachment:([^\
+:]+):([\x5cs\x5cS]+)$/\
+);if(reference)l\
+abel=reference[2\
+];else label=val\
+ue.replace(/^pro\
+ject[-_]attachme\
+nt:/,'');}\x0aif(ki\
+nd==='file_conte\
+xt'){let normali\
+zed=value.replac\
+e(/\x5c\x5c/g,'/');con\
+st lower=normali\
+zed.toLowerCase(\
+);const prefix='\
+%workdir%/data/'\
+;if(lower.starts\
+With(prefix))nor\
+malized=normaliz\
+ed.slice(prefix.\
+length);else if(\
+lower==='%workdi\
+r%/data')normali\
+zed='data/';else\
+ if(lower.starts\
+With('data/'))no\
+rmalized=normali\
+zed.slice(5);lab\
+el=normalized||v\
+alue;}\x0aconst cls\
+=(kind==='attach\
+ment')?'mention-\
+attachment':'men\
+tion-file-contex\
+t';out+=`<span c\
+lass=\x22mention-an\
+chor ${cls}\x22 tit\
+le=\x22${Utils.esca\
+peHtmlAttr(value\
+)}\x22>@${Utils.esc\
+apeHtml(label)}<\
+/span>`;}else{co\
+nst attrs=String\
+(match[3]||'');c\
+onst idMatch=att\
+rs.match(/\x5cbid\x5cs\
+*=\x5cs*([\x22'])(.*?)\
+\x5c1/i);const titl\
+eMatch=attrs.mat\
+ch(/\x5cbtitle\x5cs*=\x5c\
+s*([\x22'])(.*?)\x5c1/\
+i);const id=Util\
+s.decodeMentionV\
+alue(idMatch?idM\
+atch[2]:'');cons\
+t title=Utils.de\
+codeMentionValue\
+(titleMatch?titl\
+eMatch[2]:'');co\
+nst label=title|\
+|id;if(label){ou\
+t+=`<span class=\
+\x22mention-anchor \
+mention-conversa\
+tion\x22 title=\x22#${\
 Utils.escapeHtml\
-(match[0]);}}\x0ala\
-st=re.lastIndex;\
-}\x0aout+=Utils.esc\
-apeHtml(raw.slic\
-e(last));return \
-out.replace(/\x5cr?\
-\x5cn/g,'<br>');}\x0as\
-tatic countNewli\
-nes(s){if(!s)ret\
-urn 0;let c=0,i=\
--1;while((i=s.in\
-dexOf('\x5cn',i+1))\
-!==-1)c++;return\
- c;}\x0astatic reEs\
-cape(s){return S\
-tring(s).replace\
-(/[.*+?^${}()|[\x5c\
-]\x5c\x5c]/g,'\x5c\x5c$&');}\
-\x0astatic idle(fn,\
-timeout){if('req\
-uestIdleCallback\
-'in window)retur\
-n requestIdleCal\
-lback(fn,{timeou\
-t:timeout||800})\
-;return setTimeo\
-ut(fn,50);}\x0astat\
-ic cancelIdle(id\
-){try{if('cancel\
-IdleCallback'in \
-window)cancelIdl\
-eCallback(id);el\
-se clearTimeout(\
-id);}catch(_){}}\
-\x0astatic get SE()\
-{return document\
-.scrollingElemen\
-t||document.docu\
-mentElement;}\x0ast\
-atic utf8Decode(\
-bytes){if(!Utils\
-._td)Utils._td=n\
-ew TextDecoder('\
-utf-8');return U\
-tils._td.decode(\
-bytes);}};\x0a\x0a/* d\
-ata/js/app/runti\
-me.js */\x0aclass R\
-untime{construct\
-or(){this.cfg=ne\
-w Config();this.\
-logger=new Logge\
-r(this.cfg);this\
-.dom=new DOMRefs\
-();this.customMa\
-rkup=new CustomM\
-arkup(this.cfg,t\
-his.logger);this\
-.raf=new RafMana\
-ger(this.cfg);tr\
-y{this.logger.bi\
-ndRaf(this.raf);\
-}catch(_){}\x0athis\
-.async=new Async\
-Runner(this.cfg,\
-this.raf);this.r\
-enderer=new Mark\
-downRenderer(thi\
-s.cfg,this.custo\
-mMarkup,this.log\
-ger,this.async,t\
-his.raf);this.ma\
-th=new MathRende\
-rer(this.cfg,thi\
-s.raf,this.async\
-);this.codeScrol\
-l=new CodeScroll\
-State(this.cfg,t\
-his.raf);this.hi\
-ghlighter=new Hi\
-ghlighter(this.c\
-fg,this.codeScro\
-ll,this.raf);thi\
-s.scrollMgr=new \
-ScrollManager(th\
-is.cfg,this.dom,\
-this.raf);this.t\
-emplates=new Nod\
-eTemplateEngine(\
+Attr(id)}\x22>@${Ut\
+ils.escapeHtml(l\
+abel)}</span>`;}\
+else{out+=Utils.\
+escapeHtml(match\
+[0]);}}\x0alast=re.\
+lastIndex;}\x0aout+\
+=Utils.escapeHtm\
+l(raw.slice(last\
+));return out.re\
+place(/\x5cr?\x5cn/g,'\
+<br>');}\x0astatic \
+countNewlines(s)\
+{if(!s)return 0;\
+let c=0,i=-1;whi\
+le((i=s.indexOf(\
+'\x5cn',i+1))!==-1)\
+c++;return c;}\x0as\
+tatic reEscape(s\
+){return String(\
+s).replace(/[.*+\
+?^${}()|[\x5c]\x5c\x5c]/g\
+,'\x5c\x5c$&');}\x0astati\
+c idle(fn,timeou\
+t){if('requestId\
+leCallback'in wi\
+ndow)return requ\
+estIdleCallback(\
+fn,{timeout:time\
+out||800});retur\
+n setTimeout(fn,\
+50);}\x0astatic can\
+celIdle(id){try{\
+if('cancelIdleCa\
+llback'in window\
+)cancelIdleCallb\
+ack(id);else cle\
+arTimeout(id);}c\
+atch(_){}}\x0astati\
+c get SE(){retur\
+n document.scrol\
+lingElement||doc\
+ument.documentEl\
+ement;}\x0astatic u\
+tf8Decode(bytes)\
+{if(!Utils._td)U\
+tils._td=new Tex\
+tDecoder('utf-8'\
+);return Utils._\
+td.decode(bytes)\
+;}};\x0a\x0a/* data/js\
+/app/runtime.js \
+*/\x0aclass Runtime\
+{constructor(){t\
+his.cfg=new Conf\
+ig();this.logger\
+=new Logger(this\
+.cfg);this.dom=n\
+ew DOMRefs();thi\
+s.customMarkup=n\
+ew CustomMarkup(\
 this.cfg,this.lo\
-gger);this.toolO\
-utput=new ToolOu\
-tput(this.scroll\
-Mgr,{templates:t\
-his.templates,re\
-nderer:this.rend\
-erer,findStatusH\
-ost:(parentId,cr\
-eate)=>this.work\
-flows.workflowMe\
-ssageHost(parent\
-Id,create)});thi\
-s.loading=new Lo\
-ading(this.dom);\
-this.nodes=new N\
-odesManager(this\
-.dom,this.render\
-er,this.highligh\
-ter,this.math,th\
-is.toolOutput,th\
-is.templates);th\
-is.bridge=new Br\
-idgeManager(this\
-.cfg,this.logger\
-);this.ui=new UI\
-Manager();this.s\
-tream=new Stream\
-Engine(this.cfg,\
-this.dom,this.re\
-nderer,this.math\
-,this.highlighte\
-r,this.codeScrol\
-l,this.scrollMgr\
-,this.raf,this.a\
-sync,this.logger\
-);this.streamQ=n\
-ew StreamQueue(t\
-his.cfg,this.str\
-eam,this.scrollM\
-gr,this.raf);thi\
-s.events=new Eve\
-ntManager(this.c\
-fg,this.dom,this\
-.scrollMgr,this.\
+gger);this.raf=n\
+ew RafManager(th\
+is.cfg);try{this\
+.logger.bindRaf(\
+this.raf);}catch\
+(_){}\x0athis.async\
+=new AsyncRunner\
+(this.cfg,this.r\
+af);this.rendere\
+r=new MarkdownRe\
+nderer(this.cfg,\
+this.customMarku\
+p,this.logger,th\
+is.async,this.ra\
+f);this.math=new\
+ MathRenderer(th\
+is.cfg,this.raf,\
+this.async);this\
+.codeScroll=new \
+CodeScrollState(\
+this.cfg,this.ra\
+f);this.highligh\
+ter=new Highligh\
+ter(this.cfg,thi\
+s.codeScroll,thi\
+s.raf);this.scro\
+llMgr=new Scroll\
+Manager(this.cfg\
+,this.dom,this.r\
+af);this.templat\
+es=new NodeTempl\
+ateEngine(this.c\
+fg,this.logger);\
+this.toolOutput=\
+new ToolOutput(t\
+his.scrollMgr,{t\
+emplates:this.te\
+mplates,renderer\
+:this.renderer,f\
+indStatusHost:(p\
+arentId,create)=\
+>this.workflows.\
+workflowMessageH\
+ost(parentId,cre\
+ate)});this.load\
+ing=new Loading(\
+this.dom);this.n\
+odes=new NodesMa\
+nager(this.dom,t\
+his.renderer,thi\
+s.highlighter,th\
+is.math,this.too\
+lOutput,this.tem\
+plates);this.bri\
+dge=new BridgeMa\
+nager(this.cfg,t\
+his.logger);this\
+.ui=new UIManage\
+r();this.stream=\
+new StreamEngine\
+(this.cfg,this.d\
+om,this.renderer\
+,this.math,this.\
 highlighter,this\
 .codeScroll,this\
-.toolOutput,this\
-.bridge,()=>this\
-.stream.code.act\
-iveCode);try{thi\
-s.stream.fences.\
-setCustomFenceSp\
-ecs(this.customM\
-arkup.getSourceF\
-enceSpecs());}ca\
-tch(_){}\x0athis.da\
-ta=new DataRecei\
-ver(this.cfg,thi\
-s.templates,this\
-.nodes,this.scro\
-llMgr);this.tips\
-=null;this.strea\
-ming=new Runtime\
-Streaming(this);\
-this.workflows=n\
-ew RuntimeWorkfl\
-ows(this);this.p\
-artials=new Runt\
-imePartials(this\
-);this.timeline=\
-new RuntimeTimel\
-ine(this);this.t\
-urns=new Runtime\
-Turns(this);this\
-.mutations=new R\
-untimeMutations(\
-this);this.messa\
-ges=new RuntimeM\
-essages(this);th\
-is.view=new Runt\
-imeView(this);th\
-is.renderer.hook\
-s.observeNewCode\
-=(root,opts)=>th\
-is.highlighter.o\
-bserveNewCode(ro\
-ot,opts,this.str\
-eam.code.activeC\
-ode);this.render\
-er.hooks.observe\
-MsgBoxes=(root)=\
->this.highlighte\
-r.observeMsgBoxe\
-s(root,(box)=>{t\
-his.highlighter.\
-observeNewCode(b\
-ox,{deferLastIfS\
-treaming:true,mi\
-nLinesForLast:th\
-is.cfg.PROFILE_C\
-ODE.minLinesForH\
-L,minCharsForLas\
-t:this.cfg.PROFI\
-LE_CODE.minChars\
-ForHL},this.stre\
-am.code.activeCo\
-de);this.codeScr\
-oll.initScrollab\
-leBlocks(box);})\
-;this.renderer.h\
-ooks.scheduleMat\
-hRender=(root)=>\
-{const mm=getMat\
-hMode();if(mm===\
-'idle')this.math\
-.schedule(root);\
-else if(mm==='al\
-ways')this.math.\
-schedule(root,0,\
-true);};this.ren\
-derer.hooks.scan\
-VisibleCodes=(ro\
-ot)=>this.highli\
-ghter.scanVisibl\
-eCodesInRoot(roo\
-t,this.stream.co\
-de.activeCode||n\
-ull);this.render\
-er.hooks.codeScr\
-ollInit=(root)=>\
-this.codeScroll.\
-initScrollableBl\
-ocks(root);}\x0aini\
-t(){this.highlig\
-hter.initHLJS();\
-this.dom.init();\
-this.ui.ensureSt\
-ickyHeaderStyle(\
-);this.tips=new \
-TipsManager(this\
-.dom);this.event\
-s.install();this\
-.bridge.initQWeb\
-Channel(this.cfg\
-.PID,(bridge)=>{\
-const onChunk=(n\
-ame,chunk,type)=\
->this.streaming.\
-onChunk(name,chu\
-nk,type);const o\
-nNode=(payload)=\
->this.messages.a\
-ppendNode(payloa\
-d);const onNodeR\
-eplace=(payload)\
-=>this.messages.\
-replaceNodes(pay\
-load);const onNo\
-deInput=(html)=>\
-this.messages.ap\
-pendToInput(html\
-);this.bridge.co\
-nnect(onChunk,on\
-Node,onNodeRepla\
-ce,onNodeInput);\
-try{this.logger.\
-bindBridge(this.\
-bridge.bridge||t\
-his.bridge);}cat\
-ch(_){}});this.r\
-enderer.init();t\
-ry{const pending\
-Markdown=this.re\
-nderer.renderPen\
-dingMarkdown(doc\
-ument);const vir\
-tualize=()=>{try\
-{this.scrollMgr.\
-virtualization.s\
-cheduleMessageVi\
-rtualizationRefr\
-esh();}catch(_){\
-}};if(pendingMar\
-kdown&&typeof pe\
-ndingMarkdown.th\
-en==='function')\
-pendingMarkdown.\
-then(virtualize)\
-;else virtualize\
-();}catch(_){try\
-{this.scrollMgr.\
-virtualization.s\
-cheduleMessageVi\
-rtualizationRefr\
-esh();}catch(__)\
-{}}\x0athis.highlig\
-hter.observeMsgB\
-oxes(document,(b\
-ox)=>{this.highl\
-ighter.observeNe\
-wCode(box,{defer\
-LastIfStreaming:\
-true,minLinesFor\
-Last:this.cfg.PR\
-OFILE_CODE.minLi\
-nesForHL,minChar\
-sForLast:this.cf\
-g.PROFILE_CODE.m\
-inCharsForHL},th\
-is.stream.code.a\
-ctiveCode);this.\
-codeScroll.initS\
-crollableBlocks(\
-box);});this.hig\
+.scrollMgr,this.\
+raf,this.async,t\
+his.logger);this\
+.streamQ=new Str\
+eamQueue(this.cf\
+g,this.stream,th\
+is.scrollMgr,thi\
+s.raf);this.even\
+ts=new EventMana\
+ger(this.cfg,thi\
+s.dom,this.scrol\
+lMgr,this.highli\
+ghter,this.codeS\
+croll,this.toolO\
+utput,this.bridg\
+e,()=>this.strea\
+m.code.activeCod\
+e);try{this.stre\
+am.fences.setCus\
+tomFenceSpecs(th\
+is.customMarkup.\
+getSourceFenceSp\
+ecs());}catch(_)\
+{}\x0athis.data=new\
+ DataReceiver(th\
+is.cfg,this.temp\
+lates,this.nodes\
+,this.scrollMgr)\
+;this.tips=null;\
+this.streaming=n\
+ew RuntimeStream\
+ing(this);this.w\
+orkflows=new Run\
+timeWorkflows(th\
+is);this.partial\
+s=new RuntimePar\
+tials(this);this\
+.timeline=new Ru\
+ntimeTimeline(th\
+is);this.turns=n\
+ew RuntimeTurns(\
+this);this.mutat\
+ions=new Runtime\
+Mutations(this);\
+this.messages=ne\
+w RuntimeMessage\
+s(this);this.vie\
+w=new RuntimeVie\
+w(this);this.ren\
+derer.hooks.obse\
+rveNewCode=(root\
+,opts)=>this.hig\
 hlighter.observe\
-NewCode(document\
-,{deferLastIfStr\
-eaming:true,minL\
-inesForLast:this\
+NewCode(root,opt\
+s,this.stream.co\
+de.activeCode);t\
+his.renderer.hoo\
+ks.observeMsgBox\
+es=(root)=>this.\
+highlighter.obse\
+rveMsgBoxes(root\
+,(box)=>{this.hi\
+ghlighter.observ\
+eNewCode(box,{de\
+ferLastIfStreami\
+ng:true,minLines\
+ForLast:this.cfg\
+.PROFILE_CODE.mi\
+nLinesForHL,minC\
+harsForLast:this\
 .cfg.PROFILE_COD\
-E.minLinesForHL,\
-minCharsForLast:\
-this.cfg.PROFILE\
-_CODE.minCharsFo\
-rHL},this.stream\
-.code.activeCode\
-);this.highlight\
-er.scheduleScanV\
-isibleCodes(this\
-.stream.code.act\
-iveCode);this.ti\
-ps.cycle();this.\
-scrollMgr.update\
-ScrollFab(true);\
-}\x0acleanup(){this\
-.tips.cleanup();\
-try{this.bridge.\
-disconnect();}ca\
-tch(_){}\x0athis.ev\
-ents.cleanup();t\
+E.minCharsForHL}\
+,this.stream.cod\
+e.activeCode);th\
+is.codeScroll.in\
+itScrollableBloc\
+ks(box);});this.\
+renderer.hooks.s\
+cheduleMathRende\
+r=(root)=>{const\
+ mm=getMathMode(\
+);if(mm==='idle'\
+)this.math.sched\
+ule(root);else i\
+f(mm==='always')\
+this.math.schedu\
+le(root,0,true);\
+};this.renderer.\
+hooks.scanVisibl\
+eCodes=(root)=>t\
 his.highlighter.\
-cleanup();this.m\
-ath.cleanup();th\
-is.streamQ.clear\
-();this.dom.clea\
-nup();}};\x0a\x0a/* da\
-ta/js/app/bootst\
-rap.js */\x0awindow\
-.__collapsed_idx\
-=window.__collap\
-sed_idx||[];cons\
-t runtime=new Ru\
-ntime();document\
-.addEventListene\
-r('DOMContentLoa\
-ded',()=>runtime\
-.init());Object.\
-defineProperty(w\
-indow,'SE',{get(\
-){return Utils.S\
-E;}});window.beg\
-inStream=(chunk,\
-preserveParentId\
-=null)=>runtime.\
-streaming.beginS\
-tream(chunk,pres\
-erveParentId);wi\
-ndow.bindStreamO\
-wner=(msgId)=>ru\
-ntime.streaming.\
-bindStreamOwner(\
-msgId);window.en\
-dStream=()=>runt\
-ime.streaming.en\
-dStream();window\
-.applyStream=(na\
-me,chunk)=>runti\
-me.streaming.app\
-lyStream(name,ch\
-unk);window.appe\
-ndStream=(name,c\
-hunk)=>runtime.s\
-treaming.appendS\
-tream(name,chunk\
-);window.appendS\
-treamTyped=(type\
-,name,chunk)=>ru\
-ntime.streaming.\
-onChunk(name,chu\
-nk,type);window.\
-nextStream=()=>r\
+scanVisibleCodes\
+InRoot(root,this\
+.stream.code.act\
+iveCode||null);t\
+his.renderer.hoo\
+ks.codeScrollIni\
+t=(root)=>this.c\
+odeScroll.initSc\
+rollableBlocks(r\
+oot);}\x0ainit(){th\
+is.highlighter.i\
+nitHLJS();this.d\
+om.init();this.u\
+i.ensureStickyHe\
+aderStyle();this\
+.tips=new TipsMa\
+nager(this.dom);\
+this.events.inst\
+all();this.bridg\
+e.initQWebChanne\
+l(this.cfg.PID,(\
+bridge)=>{const \
+onChunk=(name,ch\
+unk,type)=>this.\
+streaming.onChun\
+k(name,chunk,typ\
+e);const onNode=\
+(payload)=>this.\
+messages.appendN\
+ode(payload);con\
+st onNodeReplace\
+=(payload)=>this\
+.messages.replac\
+eNodes(payload);\
+const onNodeInpu\
+t=(html)=>this.m\
+essages.appendTo\
+Input(html);this\
+.bridge.connect(\
+onChunk,onNode,o\
+nNodeReplace,onN\
+odeInput);try{th\
+is.logger.bindBr\
+idge(this.bridge\
+.bridge||this.br\
+idge);}catch(_){\
+}});this.rendere\
+r.init();try{con\
+st pendingMarkdo\
+wn=this.renderer\
+.renderPendingMa\
+rkdown(document)\
+;const virtualiz\
+e=()=>{try{this.\
+scrollMgr.virtua\
+lization.schedul\
+eMessageVirtuali\
+zationRefresh();\
+}catch(_){}};if(\
+pendingMarkdown&\
+&typeof pendingM\
+arkdown.then==='\
+function')pendin\
+gMarkdown.then(v\
+irtualize);else \
+virtualize();}ca\
+tch(_){try{this.\
+scrollMgr.virtua\
+lization.schedul\
+eMessageVirtuali\
+zationRefresh();\
+}catch(__){}}\x0ath\
+is.highlighter.o\
+bserveMsgBoxes(d\
+ocument,(box)=>{\
+this.highlighter\
+.observeNewCode(\
+box,{deferLastIf\
+Streaming:true,m\
+inLinesForLast:t\
+his.cfg.PROFILE_\
+CODE.minLinesFor\
+HL,minCharsForLa\
+st:this.cfg.PROF\
+ILE_CODE.minChar\
+sForHL},this.str\
+eam.code.activeC\
+ode);this.codeSc\
+roll.initScrolla\
+bleBlocks(box);}\
+);this.highlight\
+er.observeNewCod\
+e(document,{defe\
+rLastIfStreaming\
+:true,minLinesFo\
+rLast:this.cfg.P\
+ROFILE_CODE.minL\
+inesForHL,minCha\
+rsForLast:this.c\
+fg.PROFILE_CODE.\
+minCharsForHL},t\
+his.stream.code.\
+activeCode);this\
+.highlighter.sch\
+eduleScanVisible\
+Codes(this.strea\
+m.code.activeCod\
+e);this.tips.cyc\
+le();this.scroll\
+Mgr.updateScroll\
+Fab(true);}\x0aclea\
+nup(){this.tips.\
+cleanup();try{th\
+is.bridge.discon\
+nect();}catch(_)\
+{}\x0athis.events.c\
+leanup();this.hi\
+ghlighter.cleanu\
+p();this.math.cl\
+eanup();this.str\
+eamQ.clear();thi\
+s.dom.cleanup();\
+}};\x0a\x0a/* data/js/\
+app/bootstrap.js\
+ */\x0awindow.__col\
+lapsed_idx=windo\
+w.__collapsed_id\
+x||[];const runt\
+ime=new Runtime(\
+);document.addEv\
+entListener('DOM\
+ContentLoaded',(\
+)=>runtime.init(\
+));Object.define\
+Property(window,\
+'SE',{get(){retu\
+rn Utils.SE;}});\
+window.beginStre\
+am=(chunk,preser\
+veParentId=null)\
+=>runtime.stream\
+ing.beginStream(\
+chunk,preservePa\
+rentId);window.b\
+indStreamOwner=(\
+msgId)=>runtime.\
+streaming.bindSt\
+reamOwner(msgId)\
+;window.endStrea\
+m=()=>runtime.st\
+reaming.endStrea\
+m();window.apply\
+Stream=(name,chu\
+nk)=>runtime.str\
+eaming.applyStre\
+am(name,chunk);w\
+indow.appendStre\
+am=(name,chunk)=\
+>runtime.streami\
+ng.appendStream(\
+name,chunk);wind\
+ow.appendStreamT\
+yped=(type,name,\
+chunk)=>runtime.\
+streaming.onChun\
+k(name,chunk,typ\
+e);window.nextSt\
+ream=()=>runtime\
+.streaming.nextS\
+tream();window.c\
+learStream=()=>r\
 untime.streaming\
-.nextStream();wi\
-ndow.clearStream\
-=()=>runtime.str\
-eaming.clearStre\
-am();window.appe\
-ndPartialStream=\
-(parentId,partId\
-,chunk,begin,age\
+.clearStream();w\
+indow.appendPart\
+ialStream=(paren\
+tId,partId,chunk\
+,begin,agentName\
+)=>runtime.parti\
+als.appendPartia\
+lStream(parentId\
+,partId,chunk,be\
+gin,agentName);w\
+indow.bindWorkfl\
+owStream=(parent\
+Id,nameHeader,re\
+cords,partId,age\
 ntName)=>runtime\
-.partials.append\
-PartialStream(pa\
-rentId,partId,ch\
-unk,begin,agentN\
-ame);window.bind\
-WorkflowStream=(\
-parentId,nameHea\
-der,records,part\
-Id,agentName)=>r\
-untime.workflows\
-.bindWorkflowStr\
-eam(parentId,nam\
-eHeader,records,\
-partId,agentName\
-);window.setAgen\
-tStatus=(text,pa\
-rentId,statusId,\
-owner)=>runtime.\
-workflows.setAge\
-ntStatus(text,pa\
-rentId,statusId,\
-owner);window.cl\
-earAgentStatus=(\
-parentId)=>runti\
-me.workflows.cle\
-arAgentStatus(pa\
-rentId);window.s\
-etToolStatus=(na\
-mes,parentId,sta\
-tusId)=>runtime.\
-workflows.setToo\
-lStatus(names,pa\
+.workflows.bindW\
+orkflowStream(pa\
+rentId,nameHeade\
+r,records,partId\
+,agentName);wind\
+ow.setAgentStatu\
+s=(text,parentId\
+,statusId,owner)\
+=>runtime.workfl\
+ows.setAgentStat\
+us(text,parentId\
+,statusId,owner)\
+;window.clearAge\
+ntStatus=(parent\
+Id)=>runtime.wor\
+kflows.clearAgen\
+tStatus(parentId\
+);window.setTool\
+Status=(names,pa\
 rentId,statusId)\
-;window.clearToo\
-lStatus=(parentI\
-d,immediate=true\
-)=>runtime.workf\
-lows.clearToolSt\
-atus(parentId,im\
-mediate);window.\
-freezeWorkflowSt\
-atus=(parentId,k\
-ind)=>runtime.wo\
-rkflows.freezeWo\
-rkflowStatus(par\
-entId,kind);wind\
-ow.begin=(msgId=\
-'')=>runtime.tur\
-ns.begin(msgId);\
-window.end=(msgI\
-d='')=>runtime.t\
-urns.end(msgId);\
-window.appendNod\
-e=(payload)=>run\
-time.messages.ap\
-pendNode(payload\
-);window.replace\
-Nodes=(payload)=\
->runtime.message\
-s.replaceNodes(p\
-ayload);window.a\
-ppendToInput=(ht\
-ml)=>runtime.mes\
-sages.appendToIn\
-put(html);window\
-.clearNodes=()=>\
-runtime.messages\
-.clearNodes();wi\
-ndow.clearInput=\
-()=>runtime.mess\
-ages.clearInput(\
-);window.clearOu\
-tput=()=>runtime\
-.messages.clearO\
-utput();window.c\
-learLive=()=>run\
-time.messages.cl\
-earLive();window\
-.appendToolOutpu\
-t=(c)=>runtime.t\
-oolOutput.append\
-(c);window.updat\
-eToolOutput=(c)=\
+=>runtime.workfl\
+ows.setToolStatu\
+s(names,parentId\
+,statusId);windo\
+w.clearToolStatu\
+s=(parentId,imme\
+diate=true)=>run\
+time.workflows.c\
+learToolStatus(p\
+arentId,immediat\
+e);window.freeze\
+WorkflowStatus=(\
+parentId,kind)=>\
+runtime.workflow\
+s.freezeWorkflow\
+Status(parentId,\
+kind);window.beg\
+in=(msgId='')=>r\
+untime.turns.beg\
+in(msgId);window\
+.end=(msgId='')=\
+>runtime.turns.e\
+nd(msgId);window\
+.appendNode=(pay\
+load)=>runtime.m\
+essages.appendNo\
+de(payload);wind\
+ow.replaceNodes=\
+(payload)=>runti\
+me.messages.repl\
+aceNodes(payload\
+);window.appendT\
+oInput=(html)=>r\
+untime.messages.\
+appendToInput(ht\
+ml);window.clear\
+Nodes=()=>runtim\
+e.messages.clear\
+Nodes();window.c\
+learInput=()=>ru\
+ntime.messages.c\
+learInput();wind\
+ow.clearOutput=(\
+)=>runtime.messa\
+ges.clearOutput(\
+);window.clearLi\
+ve=()=>runtime.m\
+essages.clearLiv\
+e();window.appen\
+dToolOutput=(c)=\
 >runtime.toolOut\
-put.update(c);wi\
-ndow.clearToolOu\
+put.append(c);wi\
+ndow.updateToolO\
+utput=(c)=>runti\
+me.toolOutput.up\
+date(c);window.c\
+learToolOutput=(\
+)=>runtime.toolO\
+utput.clear();wi\
+ndow.beginToolOu\
 tput=()=>runtime\
-.toolOutput.clea\
-r();window.begin\
+.view.beginToolO\
+utput();window.e\
+ndToolOutput=()=\
+>runtime.toolOut\
+put.end();window\
+.enableToolOutpu\
+t=()=>runtime.to\
+olOutput.enable(\
+);window.disable\
 ToolOutput=()=>r\
-untime.view.begi\
-nToolOutput();wi\
-ndow.endToolOutp\
-ut=()=>runtime.t\
-oolOutput.end();\
-window.enableToo\
-lOutput=()=>runt\
-ime.toolOutput.e\
-nable();window.d\
-isableToolOutput\
-=()=>runtime.too\
-lOutput.disable(\
-);window.toggleT\
-oolOutput=(id)=>\
-runtime.toolOutp\
-ut.toggle(id);wi\
-ndow.toggleToolG\
-roup=(id)=>runti\
-me.toolOutput.to\
-ggleGroup(id);wi\
-ndow.toggleExtra\
-Items=(button)=>\
-runtime.ui.toggl\
-eExtraItems(butt\
-on);window.appen\
-dExtra=(id,c)=>r\
-untime.nodes.app\
-endExtra(id,c,ru\
-ntime.scrollMgr)\
-;window.removeNo\
-de=(id)=>runtime\
-.nodes.removeNod\
-e(id,runtime.scr\
-ollMgr);window.r\
+untime.toolOutpu\
+t.disable();wind\
+ow.toggleToolOut\
+put=(id)=>runtim\
+e.toolOutput.tog\
+gle(id);window.t\
+oggleToolGroup=(\
+id)=>runtime.too\
+lOutput.toggleGr\
+oup(id);window.t\
+oggleExtraItems=\
+(button)=>runtim\
+e.ui.toggleExtra\
+Items(button);wi\
+ndow.appendExtra\
+=(id,c)=>runtime\
+.nodes.appendExt\
+ra(id,c,runtime.\
+scrollMgr);windo\
+w.removeNode=(id\
+)=>runtime.nodes\
+.removeNode(id,r\
+untime.scrollMgr\
+);window.removeN\
+odesFromId=(id)=\
+>runtime.nodes.r\
 emoveNodesFromId\
-=(id)=>runtime.n\
-odes.removeNodes\
-FromId(id,runtim\
-e.scrollMgr);win\
-dow.replaceLive=\
-(c)=>runtime.mes\
-sages.replaceLiv\
-e(c);window.upda\
-teFooter=(c)=>ru\
-ntime.view.updat\
-eFooter(c);windo\
-w.enableEditIcon\
-s=()=>runtime.ui\
-.enableEditIcons\
-();window.disabl\
-eEditIcons=()=>r\
-untime.ui.disabl\
+(id,runtime.scro\
+llMgr);window.re\
+placeLive=(c)=>r\
+untime.messages.\
+replaceLive(c);w\
+indow.updateFoot\
+er=(c)=>runtime.\
+view.updateFoote\
+r(c);window.enab\
+leEditIcons=()=>\
+runtime.ui.enabl\
 eEditIcons();win\
-dow.enableTimest\
-amp=()=>runtime.\
-ui.enableTimesta\
-mp();window.disa\
-bleTimestamp=()=\
->runtime.ui.disa\
+dow.disableEditI\
+cons=()=>runtime\
+.ui.disableEditI\
+cons();window.en\
+ableTimestamp=()\
+=>runtime.ui.ena\
 bleTimestamp();w\
-indow.enableBloc\
-ks=()=>runtime.u\
-i.enableBlocks()\
-;window.disableB\
-locks=()=>runtim\
-e.ui.disableBloc\
-ks();window.upda\
-teCSS=(s)=>runti\
-me.ui.updateCSS(\
-s);window.getScr\
-ollPosition=()=>\
-runtime.view.get\
-ScrollPosition()\
-;window.setScrol\
-lPosition=(pos)=\
->runtime.view.se\
-tScrollPosition(\
-pos);window.show\
-Loading=(delayMs\
-=0,waitForInput=\
-false)=>runtime.\
-loading.show(del\
-ayMs,waitForInpu\
-t);window.hideLo\
-ading=(reserveSp\
-ace=false)=>runt\
-ime.loading.hide\
-(reserveSpace);w\
-indow.restoreCol\
-lapsedCode=(root\
-)=>runtime.rende\
-rer.restoreColla\
-psedCode(root);w\
-indow.scrollToTo\
-pUser=()=>runtim\
-e.scrollMgr.scro\
-llToTopUser();wi\
-ndow.scrollToBot\
-tomUser=()=>runt\
-ime.scrollMgr.sc\
-rollToBottomUser\
-();window.showTi\
-ps=()=>runtime.t\
-ips.show();windo\
-w.hideTips=()=>r\
-untime.tips.hide\
-();window.getCus\
-tomMarkupRules=(\
-)=>runtime.custo\
-mMarkup.getRules\
-();window.setCus\
-tomMarkupRules=(\
-rules)=>runtime.\
-view.setCustomMa\
-rkupRules(rules)\
-;window.__pygpt_\
-cleanup=()=>runt\
-ime.cleanup();wi\
-ndow.setAgentWor\
-king=(parentId,d\
-ata)=>runtime.wo\
-rkflows.setAgent\
-Working(parentId\
-,data);window.cl\
-earAgentWorking=\
-()=>runtime.work\
-flows.clearAgent\
-Working();window\
-.syncLiveTools=(\
-parentId,calls)=\
->runtime.toolOut\
-put.syncLive(par\
-entId,calls);\x0a\
+indow.disableTim\
+estamp=()=>runti\
+me.ui.disableTim\
+estamp();window.\
+enableBlocks=()=\
+>runtime.ui.enab\
+leBlocks();windo\
+w.disableBlocks=\
+()=>runtime.ui.d\
+isableBlocks();w\
+indow.updateCSS=\
+(s)=>runtime.ui.\
+updateCSS(s);win\
+dow.getScrollPos\
+ition=()=>runtim\
+e.view.getScroll\
+Position();windo\
+w.setScrollPosit\
+ion=(pos)=>runti\
+me.view.setScrol\
+lPosition(pos);w\
+indow.showLoadin\
+g=(delayMs=0,wai\
+tForInput=false)\
+=>runtime.loadin\
+g.show(delayMs,w\
+aitForInput);win\
+dow.hideLoading=\
+(reserveSpace=fa\
+lse)=>runtime.lo\
+ading.hide(reser\
+veSpace);window.\
+restoreCollapsed\
+Code=(root)=>run\
+time.renderer.re\
+storeCollapsedCo\
+de(root);window.\
+scrollToTopUser=\
+()=>runtime.scro\
+llMgr.scrollToTo\
+pUser();window.s\
+crollToBottomUse\
+r=()=>runtime.sc\
+rollMgr.scrollTo\
+BottomUser();win\
+dow.showTips=()=\
+>runtime.tips.sh\
+ow();window.hide\
+Tips=()=>runtime\
+.tips.hide();win\
+dow.getCustomMar\
+kupRules=()=>run\
+time.customMarku\
+p.getRules();win\
+dow.setCustomMar\
+kupRules=(rules)\
+=>runtime.view.s\
+etCustomMarkupRu\
+les(rules);windo\
+w.__pygpt_cleanu\
+p=()=>runtime.cl\
+eanup();window.s\
+etAgentWorking=(\
+parentId,data)=>\
+runtime.workflow\
+s.setAgentWorkin\
+g(parentId,data)\
+;window.clearAge\
+ntWorking=()=>ru\
+ntime.workflows.\
+clearAgentWorkin\
+g();window.syncL\
+iveTools=(parent\
+Id,calls)=>runti\
+me.toolOutput.sy\
+ncLive(parentId,\
+calls);\x0a\
 "
 
 qt_resource_name = b"\
@@ -145755,62 +145790,62 @@ qt_resource_name = b"\
 qt_resource_struct = b"\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00\x01\x00\x00\x00\x01\
 \x00\x00\x00\x00\x00\x02\x00\x00\x00;\x00\x00\x00\x02\
-\x00\x00\x06\x84\x00\x00\x00\x00\x00\x01\x00\x14\xfe=\
-\x00\x00\x08\xd6\x00\x00\x00\x00\x00\x01\x00\x1c\xce0\
+\x00\x00\x06\x84\x00\x00\x00\x00\x00\x01\x00\x14\xff\xa7\
+\x00\x00\x08\xd6\x00\x00\x00\x00\x00\x01\x00\x1c\xcf\x9a\
 \x00\x00\x04\x92\x00\x00\x00\x00\x00\x01\x00\x13\x9a\x0e\
 \x00\x00\x01\xa4\x00\x00\x00\x00\x00\x01\x00\x11\xf1\xaf\
 \x00\x00\x03,\x00\x00\x00\x00\x00\x01\x00\x12\xed\xda\
-\x00\x00\x09\xf2\x00\x00\x00\x00\x00\x01\x00\x1d\xfc7\
+\x00\x00\x09\xf2\x00\x00\x00\x00\x00\x01\x00\x1d\xfd\xa1\
 \x00\x00\x05L\x00\x00\x00\x00\x00\x01\x00\x14!7\
 \x00\x00\x04\x08\x00\x00\x00\x00\x00\x01\x00\x13`\xf7\
 \x00\x00\x02\x14\x00\x00\x00\x00\x00\x01\x00\x12\x15\xd7\
 \x00\x00\x05\xe8\x00\x00\x00\x00\x00\x01\x00\x14]G\
-\x00\x00\x08\x8c\x00\x00\x00\x00\x00\x01\x00\x1a\xcd\x89\
-\x00\x00\x09\x5c\x00\x00\x00\x00\x00\x01\x00\x1d2\xde\
+\x00\x00\x08\x8c\x00\x00\x00\x00\x00\x01\x00\x1a\xce\xf3\
+\x00\x00\x09\x5c\x00\x00\x00\x00\x00\x01\x00\x1d4H\
 \x00\x00\x00\xf4\x00\x00\x00\x00\x00\x01\x00\x10\xfb\x1c\
-\x00\x00\x08\xac\x00\x00\x00\x00\x00\x01\x00\x1a\xebJ\
-\x00\x00\x0aR\x00\x00\x00\x00\x00\x01\x00\x1eN\xf3\
-\x00\x00\x07\xf0\x00\x00\x00\x00\x00\x01\x00\x16\x0eN\
-\x00\x00\x0a\x9e\x00\x00\x00\x00\x00\x01\x00\x1es\x12\
+\x00\x00\x08\xac\x00\x00\x00\x00\x00\x01\x00\x1a\xec\xb4\
+\x00\x00\x0aR\x00\x00\x00\x00\x00\x01\x00\x1eP]\
+\x00\x00\x07\xf0\x00\x00\x00\x00\x00\x01\x00\x16\x0f\xb8\
+\x00\x00\x0a\x9e\x00\x00\x00\x00\x00\x01\x00\x1et|\
 \x00\x00\x05\xa4\x00\x00\x00\x00\x00\x01\x00\x14B\x98\
-\x00\x00\x08J\x00\x00\x00\x00\x00\x01\x00\x1a\x8a\xad\
+\x00\x00\x08J\x00\x00\x00\x00\x00\x01\x00\x1a\x8c\x17\
 \x00\x00\x01\x0e\x00\x00\x00\x00\x00\x01\x00\x11\x187\
 \x00\x00\x02\x8a\x00\x00\x00\x00\x00\x01\x00\x12\x830\
-\x00\x00\x07\xb8\x00\x00\x00\x00\x00\x01\x00\x15\xd4\xdb\
+\x00\x00\x07\xb8\x00\x00\x00\x00\x00\x01\x00\x15\xd6E\
 \x00\x00\x00\x0a\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\
 \x00\x00\x00P\x00\x00\x00\x00\x00\x01\x00\x00\x1f\xc5\
 \x00\x00\x06(\x00\x00\x00\x00\x00\x01\x00\x14\x86U\
-\x00\x00\x06\xbe\x00\x00\x00\x00\x00\x01\x00\x15#E\
+\x00\x00\x06\xbe\x00\x00\x00\x00\x00\x01\x00\x15$\xaf\
 \x00\x00\x02\xea\x00\x00\x00\x00\x00\x01\x00\x12\xd3\xc7\
-\x00\x00\x07v\x00\x00\x00\x00\x00\x01\x00\x15\x88\x10\
+\x00\x00\x07v\x00\x00\x00\x00\x00\x01\x00\x15\x89z\
 \x00\x00\x01\xdc\x00\x00\x00\x00\x00\x01\x00\x11\xf7\xd8\
 \x00\x00\x03z\x00\x00\x00\x00\x00\x01\x00\x13\x0ej\
 \x00\x00\x06f\x00\x00\x00\x00\x00\x01\x00\x14\xee=\
 \x00\x00\x01~\x00\x00\x00\x00\x00\x01\x00\x11\x98\xc4\
 \x00\x00\x04\xf2\x00\x00\x00\x00\x00\x01\x00\x13\xcc\x96\
-\x00\x00\x09>\x00\x00\x00\x00\x00\x01\x00\x1c\xfb\xa0\
+\x00\x00\x09>\x00\x00\x00\x00\x00\x01\x00\x1c\xfd\x0a\
 \x00\x00\x03\x98\x00\x00\x00\x00\x00\x01\x00\x13&\x99\
-\x00\x00\x06\xf8\x00\x00\x00\x00\x00\x01\x00\x15=\xb9\
-\x00\x00\x0a2\x00\x00\x00\x00\x00\x01\x00\x1e\x18f\
-\x00\x00\x09\x92\x00\x00\x00\x00\x00\x01\x00\x1dO7\
+\x00\x00\x06\xf8\x00\x00\x00\x00\x00\x01\x00\x15?#\
+\x00\x00\x0a2\x00\x00\x00\x00\x00\x01\x00\x1e\x19\xd0\
+\x00\x00\x09\x92\x00\x00\x00\x00\x00\x01\x00\x1dP\xa1\
 \x00\x00\x06\x0c\x00\x00\x00\x00\x00\x01\x00\x14}\x07\
 \x00\x00\x04R\x00\x00\x00\x00\x00\x01\x00\x13\x81\xbd\
-\x00\x00\x08\x10\x00\x00\x00\x00\x00\x01\x00\x16%(\
+\x00\x00\x08\x10\x00\x00\x00\x00\x00\x01\x00\x16&\x92\
 \x00\x00\x01H\x00\x00\x00\x00\x00\x01\x00\x11,]\
 \x00\x00\x00\x8e\x00\x00\x00\x00\x00\x01\x00\x00T\x1c\
-\x00\x00\x09\xd6\x00\x00\x00\x00\x00\x01\x00\x1d\xae\xa3\
-\x00\x00\x09\x04\x00\x00\x00\x00\x00\x01\x00\x1c\xe2\xda\
-\x00\x00\x08.\x00\x00\x00\x00\x00\x01\x00\x1a^A\
+\x00\x00\x09\xd6\x00\x00\x00\x00\x00\x01\x00\x1d\xb0\x0d\
+\x00\x00\x09\x04\x00\x00\x00\x00\x00\x01\x00\x1c\xe4D\
+\x00\x00\x08.\x00\x00\x00\x00\x00\x01\x00\x1a_\xab\
 \x00\x00\x06F\x00\x00\x00\x00\x00\x01\x00\x14\xa3\xab\
 \x00\x00\x02d\x00\x00\x00\x00\x00\x01\x00\x12p\x0f\
 \x00\x00\x02\xca\x00\x00\x00\x00\x00\x01\x00\x12\xac\xfb\
 \x00\x00\x03\xce\x00\x00\x00\x00\x00\x01\x00\x13O\xdd\
 \x00\x00\x05h\x00\x00\x00\x00\x00\x01\x00\x14?\x90\
 \x00\x00\x02.\x00\x00\x00\x00\x00\x01\x00\x12U\xf2\
-\x00\x00\x09\xb2\x00\x00\x00\x00\x00\x01\x00\x1dp(\
-\x00\x00\x076\x00\x00\x00\x00\x00\x01\x00\x15P\xc4\
+\x00\x00\x09\xb2\x00\x00\x00\x00\x00\x01\x00\x1dq\x92\
+\x00\x00\x076\x00\x00\x00\x00\x00\x01\x00\x15R.\
 \x00\x00\x03D\x00\x00\x00\x00\x00\x01\x00\x13\x07\xe0\
-\x00\x00\x0at\x00\x00\x00\x00\x00\x01\x00\x1eex\
+\x00\x00\x0at\x00\x00\x00\x00\x00\x01\x00\x1ef\xe2\
 \x00\x00\x00\xb4\x00\x00\x00\x00\x00\x01\x00\x10\xc8\x06\
 \x00\x00\x05\x12\x00\x00\x00\x00\x00\x01\x00\x14\x11i\
 \x00\x00\x04\xd2\x00\x00\x00\x00\x00\x01\x00\x13\xc1\xcb\

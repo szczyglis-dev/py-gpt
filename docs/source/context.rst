@@ -68,6 +68,28 @@ root without changing the application's base workdir.
    active project data workdir.
 
 
+Project attachment Library
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Want to use a file uploaded in another chat in the same project? Click
+**[+] Add attachment** next to the message input, choose the file from **Library**,
+and add your question after the inserted ``@filename`` mention. Its content is
+included when you send the message, even if the attachment is not shared.
+
+To make a file available automatically in every chat in the project, turn on its
+toggle in the attachment popup. Turn it off again to stop automatic sharing.
+The file remains available in its original chat and can still be selected from
+Library. New attachments start with sharing off.
+
+The toggle beside **Library** changes sharing for all existing attachments,
+including hidden ones. The heading shows how many files are shared. Sharing is
+limited to the current project and is independent from project workdirs and
+long-term memory.
+
+See :doc:`attachments` for a walkthrough of adding files, using mentions, and
+sharing attachments.
+
+
 Clearing history
 -----------------
 

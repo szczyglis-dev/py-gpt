@@ -37,6 +37,7 @@ from pygpt_net.core.text.mentions import (
     label_for as mention_label_for,
     make_tag as make_mention_tag,
 )
+from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
 from pygpt_net.ui.widget.lists.model_combo import CompactModelCombo
 
@@ -651,8 +652,11 @@ class ChatInput(QTextEdit):
             if key in seen:
                 continue
             seen.add(key)
-            entries.append(MentionEntry(KIND_ATTACHMENT, name, value, False, shared=bool(shared or pending),
-                                        active=core.attachments.context.is_shared(source) if source else (extra or {}).get("project_active", (meta.group.extra or {}).get("attachment_share_all", False) if project_enabled else True),
+            web_source = ((source or {}).get("type") == "url"
+                          or getattr(item, "type", None) == AttachmentItem.TYPE_URL)
+            entries.append(MentionEntry(KIND_ATTACHMENT, name, value, False,
+                                        icon=':/icons/language.svg' if web_source else '', shared=bool(shared or pending),
+                                        active=core.attachments.context.is_shared(source) if source else (extra or {}).get("project_active", False) if project_enabled else True,
                                         attachment_id=str(source["uuid"]) if source else (f"pending:{pending_id}" if pending else "")))
 
         # Use the same registered reader choices as the existing URL dialog.

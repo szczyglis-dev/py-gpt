@@ -52,6 +52,13 @@ class Utils {
 				const kind = String(match[1] || '').toLowerCase();
 				const value = Utils.decodeMentionValue(match[2] || '');
 				let label = value;
+				if (kind === 'attachment') {
+					// Keep the durable project/source reference in the stored value,
+					// but show only the filename in the user-message mention.
+					const reference = value.match(/^project[-_]attachment:([^:]+):([\s\S]+)$/);
+					if (reference) label = reference[2];
+					else label = value.replace(/^project[-_]attachment:/, '');
+				}
 				if (kind === 'file_context') {
 					let normalized = value.replace(/\\/g, '/');
 					const lower = normalized.toLowerCase();

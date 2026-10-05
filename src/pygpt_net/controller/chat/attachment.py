@@ -169,7 +169,7 @@ class Attachment(QObject):
         context = self.window.core.attachments.context
         if any(tag.kind == KIND_ATTACHMENT for tag in iter_tags(ctx.input or "")):
             ids = context.current_ids(ctx)
-            items.extend(item for item in context.get_all(meta) if item.get("uuid") in ids)
+            items.extend(item for item in context.get_turn_items(ctx) if item.get("uuid") in ids)
         if include_project and context.is_project_share_enabled(meta) and meta.group is not None:
             items = [item for item in context.get_project_items(meta) if context.is_shared(item)] + items
         items = self._unique_active_items(items)
@@ -530,7 +530,7 @@ class Attachment(QObject):
             item["attachment_id"] = attachment.id
         if meta.group is not None:
             context.get_project_items(meta)
-            item["project_active"] = bool((meta.group.extra or {}).get("attachment_share_all", False))
+            item["project_active"] = False
             if attachment is not None and "project_active" in attachment.extra:
                 item["project_active"] = bool(attachment.extra["project_active"])
             if meta.group.additional_ctx is None:

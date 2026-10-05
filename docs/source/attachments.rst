@@ -6,13 +6,13 @@ Uploading attachments
 
 **Using Your Own Files as Additional Context in Conversations**
 
-You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database and selecting that index through the ``RAG`` selector in a supported conversation, or by adding a file attachment (the attachment file will only be available during the conversation in which it was uploaded).
+You can use your own files (for example, to analyze them) during any conversation. You can do this in two ways: by indexing (embedding) your files in a vector database and selecting that index through the ``RAG`` selector in a supported conversation, or by adding a file attachment (available in its originating conversation, with optional project sharing or explicit Library mentions).
 
 **Attachments**
 
 Attach files directly in the chat input. Attachments always use **Full context**: extracted content is sent as **ADDITIONAL CONTEXT** after the user's text and is saved with that message. When a provider rebuilds conversation history, the content is included with its original user message. Uploading attachments does not index them.
 
-Attachments belong only to the conversation in which they were uploaded. The input has no Attachments or Uploaded tabs.
+Attachments remain available in their originating conversation. Project sharing and explicit Library mentions can also provide their context to other conversations in the same project.
 
 .. image:: images/v2_file_input.png
    :width: 800
@@ -31,10 +31,6 @@ The resulting provider-facing input contains a structured block such as ``<conve
 Selected mentions are rendered with a distinct color in the input and in conversation history so they remain easy to identify. Directories are displayed with a trailing ``/``. Mention metadata is preserved when a stored message is reloaded or edited.
 
 For non-conversation mentions, the ``@`` syntax is also a user-interface reference rather than extra prompt syntax. Before the request is sent, PyGPT converts a normal attachment mention to its plain attachment name and a workdir file/directory mention to its portable path, for example ``%workdir%/data/docs/spec.md``. If the mentioned attachment is an image and the final request model actually accepts image input, the runtime provider prompt uses ``Attached Image #N`` instead of the filename, where ``N`` follows the image-attachment order used by the multimodal request. This substitution is runtime-only: the stored conversation and UI keep the original attachment name.
-
-.. important::
-
-   Mentioning a workdir file or directory does **not** automatically read its contents into the prompt. It identifies the exact path the user is referring to. The model still needs an available file/tool path (for example ``Files I/O``), RAG/index access, or another supported mechanism to inspect that file. Attachment mentions continue to use the normal attachment-processing rules described below. Conversation-ID mentions are different: PyGPT explicitly retrieves query-focused context from the referenced conversation database entry before the request is sent.
 
 You can use attachments to provide additional context to the conversation. By default, uploaded files are processed locally using loaders from LlamaIndex and are converted into text for use as additional context. You can upload any file format supported by the application through LlamaIndex. Supported formats include:
 
@@ -86,20 +82,24 @@ When extra-context summary or project sharing is enabled, supported text documen
 Attachment context
 ^^^^^^^^^^^^^^^^^^
 
-Local attachments are added to the uploading turn. Enable ``Settings -> Context -> Auto-strip -> Automatically summarize extra context`` to shorten oversized material before it reaches the model. The same gateway handles web readers, tool text and RAG evidence; source files are preserved.
+Local attachments are added to the uploading turn. Enable ``Settings -> Context -> Auto-strip -> Automatically summarize extra context`` to shorten oversized material before it reaches the model. The same gateway handles web readers and RAG evidence; source files are preserved.
 
-Project attachment sharing
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using Library and sharing attachments in a project
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In projects, the attachment picker shows a **Sharing** label beside **Add** and sharing toggles in **Library**. The toggle beside a file controls its availability across the project. The Library header toggle enables or disables every file together, and keeps its own saved state: individual file changes do not change that toggle.
+To add a file to your chat, click **[+] Add attachment** next to the message input and choose **Files and folders**. You can also choose **Sketch** to create a drawing, or select a source under **Connect to** to use a web reader. Write your question and send the message with the attachment.
 
-Library includes every project attachment, including inactive files, even when no files are currently shared. Project sharing becomes active whenever a conversation has at least one shared attachment. Each change saves the sharing boolean in ctx group.extra; normal requests read this project flag instead of rescanning attachments. There is no global sharing setting or separate Add-header toggle.
+If you are working in a project and want to ask about an attachment uploaded in another chat **in the same project**, open **[+] Add attachment**, find the file in **Library**, and click its name. This inserts an ``@filename`` mention into your message. Add your question, for example ``@invoice.pdf What is the total?``, and send it. PyGPT reads the referenced attachment for that request, even if it is not shared. You can also type ``@`` and search for an attachment by name.
 
-Project filenames have no suffix. Ordinary files retain the recent-file limit and **Load more** expands that list in place; the ``@`` picker has no Library limit. References store source IDs, keeping duplicate filenames unambiguous.
+If you want an attachment to be available automatically in **every chat in the project**, turn on the toggle next to it in Library. The attachment is now **shared**: you can ask about it in any chat in that project without adding a mention each time. To stop including it automatically, open the attachment popup and turn the same toggle off. The attachment remains available in the chat where you uploaded it, and you can still select it from Library when you need it.
 
-Active project text passes through the same extra-context summarizer as other attachments. Stateless chats receive it at each input without saving another copy on every turn. Responses API conversations and agents with conversation memory receive each source once, with its original turn preserved for history replay. New or changed files and re-enabled files can be delivered again. Agents without conversation memory receive runtime context at each input. Disabling a source removes its automatic source block from future local history replay and starts a fresh server chain when needed; previous assistant answers remain conversation history.
+New attachments are **not shared by default**. You choose which files should be shared after adding them. Sharing applies only to the current project; Library does not give access to attachments from other projects. To use a file in another project, add it there as an attachment too.
 
-A paperclip marks conversations containing local attachments and projects containing shared files. A conversation retains access to files it originally uploaded when all project files are inactive.
+The toggle beside the **Library** heading turns sharing on or off for **all attachments currently in Library**, including files you have not expanded yet. It does not automatically share files added later. When all files are shared, the collective toggle is on; when none are shared, it is off. If only some files are shared, it keeps its previous state. A count such as **Library (3 shared)** tells you how many attachments are shared and updates as you change the toggles.
+
+Library initially shows the **five newest attachments**. Click **Show more** to reveal another five. Once all are visible, **Show less** folds the list back to five. An empty Library is hidden. The grey **Project** label at the top tells you that you are working inside a project, including in a new chat before sending your first message.
+
+Sharing makes the attachment's context available to the model; it does not add another visible upload to every message. Turning sharing off does not erase earlier messages or answers. If an attachment is large, you can enable **Automatically summarize extra context** in **Settings -> Context -> Auto-strip** to reduce the text sent to the model. Project attachment sharing is independent from the project's **Use shared workdir** setting.
 
 **Images as Additional Context**
 

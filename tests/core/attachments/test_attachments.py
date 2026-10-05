@@ -379,7 +379,7 @@ def test_save(mock_window_conf):
     attachments.save()
     attachments.provider.save.assert_called_once()
 
-def test_new_attachment_defaults_to_library_bulk_state():
+def test_new_attachment_is_unshared_regardless_of_library_bulk_state():
     for enabled in (False, True):
         attachments = Attachments()
         attachments.window = MagicMock()
@@ -387,4 +387,4 @@ def test_new_attachment_defaults_to_library_bulk_state():
             group=SimpleNamespace(extra={"attachment_share_all": enabled}))
         attachments.window.core.config.get.return_value = False
         result = attachments.new('chat', 'new.txt', '/tmp/new.txt', auto_save=False)
-        assert result.extra['project_active'] is enabled
+        assert result.extra['project_active'] is False

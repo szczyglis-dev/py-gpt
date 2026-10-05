@@ -408,7 +408,7 @@ def test_attachment_button_direct_upload_flag(monkeypatch):
     widget.window.controller.attachment.open_add.assert_called_once_with()
 
 
-def test_attachment_button_popup_defaults_to_upload_without_changing_input(monkeypatch):
+def test_attachment_button_popup_starts_unselected_without_changing_input(monkeypatch):
     from PySide6.QtWidgets import QTextEdit
     from pygpt_net.ui.widget.textarea.mention import MentionPopup, MentionEntry
     monkeypatch.setattr('pygpt_net.ui.widget.textarea.input.ATTACHMENT_BUTTON_OPEN_MENTIONS', True)
@@ -448,12 +448,13 @@ def test_attachment_button_popup_defaults_to_upload_without_changing_input(monke
     try:
         editor.action_add_attachment()
         assert editor._mention_popup.isVisible()
-        assert editor._mention_popup.current_entry().kind == 'upload'
+        assert editor._mention_popup.current_entry() is None
         editor._build_mention_entries.assert_called_once_with(include_workdir=False)
         from PySide6.QtCore import QPoint
         assert editor._mention_popup.pos() + QPoint(0, editor._mention_popup.height()) == button.mapToGlobal(QPoint(0, 0))
         assert editor.toPlainText() == 'Existing prompt'
         editor.window.controller.attachment.open_add.assert_not_called()
+        editor._mention_popup.move_selection(1)
         editor._mention_popup.choose_current()
         editor.window.controller.attachment.open_add.assert_called_once_with()
         assert editor.toPlainText() == 'Existing prompt'
@@ -564,6 +565,6 @@ def test_project_library_keeps_inactive_and_pending_files_with_same_name_unambig
     entries = ChatInput._build_mention_entries(widget, include_workdir=False)
     assert len(entries) == 2
     assert all(entry.label == "plans.txt" and entry.shared for entry in entries)
-    assert entries[0].attachment_id == "pending:pending" and entries[0].active
+    assert entries[0].attachment_id == "pending:pending" and not entries[0].active
     assert entries[1].attachment_id == "saved" and not entries[1].active
     assert entries[0].value != entries[1].value

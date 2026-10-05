@@ -254,6 +254,7 @@ class BridgeWorker(QRunnable):
 
         attachment = self.window.controller.chat.attachment
         if (not attachment.has_context(ctx.meta)
+                and not self.window.core.attachments.context.current_ids(ctx)
                 and not self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
                 and not any(isinstance(getattr(row, "extra", None), dict) and row.extra.get("project_context")
                             for row in self.context.history)):

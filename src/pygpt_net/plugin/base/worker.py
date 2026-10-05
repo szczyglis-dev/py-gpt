@@ -228,6 +228,30 @@ class BaseWorker(QRunnable):
         :param extra: extra data
         :return: response item
         """
+        # TMP: Summarize large plugin responses for the local tool history.
+        """
+        window = self.plugin.window if self.plugin is not None else None
+        model_result = None
+        if (window is not None
+                and self.ctx is not None
+                and window.core.config.get("context.extra_summary.enabled", False)):
+            summarizer = window.core.summarizer
+            execution = isinstance(result, dict) and ("stdout" in result or "stderr" in result)
+            model_data = {key: value for key, value in result.items() if key != "context"} if execution else result
+            serialized = model_data if isinstance(model_data, str) else json.dumps(model_data, ensure_ascii=False,
+                                                                                   default=str)
+            reduced = summarizer.for_ctx(serialized, self.ctx, "tool result")
+            if reduced != serialized:
+                model_result = reduced
+            if not execution and extra and isinstance(extra.get("context"), str):
+                extra = dict(extra)
+                extra["context"] = summarizer.for_ctx(
+                    extra["context"],
+                    self.ctx,
+                    "web reader / retrieval",
+                    used_extra=reduced
+                )
+        """
         request = self.from_request(item)
         response = {
             "request": request,
@@ -235,6 +259,10 @@ class BaseWorker(QRunnable):
         }
         if extra:
             response.update(extra)
+        """
+        if model_result is not None:
+            response["model_result"] = model_result
+        """
         return response
 
     def security_read(self, path: str, sandbox: bool = False) -> str:

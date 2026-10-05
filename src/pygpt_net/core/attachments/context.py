@@ -364,13 +364,34 @@ class Context:
             content = self.summary_context(ctx, history)
         return content
 
+    def get_turn_items(self, ctx):
+        """Add explicitly mentioned project sources without enabling sharing.
+
+        The Library includes private sources owned by other conversations. A
+        mention grants access for this request only, within the current project.
+        """
+        items = list(self.get_meta_items(ctx.meta))
+        references = [attachment_reference(tag.value) for tag in iter_tags(ctx.input or "")
+                      if tag.kind == KIND_ATTACHMENT]
+        if references and ctx.meta.group is not None:
+            seen = {item.get("uuid") for item in items}
+            for item in self.get_project_items(ctx.meta):
+                if item.get("uuid") in seen:
+                    continue
+                if any((uid and uid in (item.get("uuid"), item.get("attachment_id"))) or
+                       (not uid and name in (item.get("name"), self.get_context_filename(item)))
+                       for uid, name in references):
+                    items.append(item)
+                    seen.add(item.get("uuid"))
+        return items
+
     def current_ids(self, ctx):
         """Current uploads and explicitly mentioned library sources, by durable ID."""
         ids = {item.get("uuid") for item in ctx.meta.additional_ctx_current or []}
-        references = [attachment_reference(tag.value) for tag in iter_tags(getattr(ctx, "input", "") or "")
+        references = [attachment_reference(tag.value) for tag in iter_tags(ctx.input or "")
                       if tag.kind == KIND_ATTACHMENT]
         if references:
-            for item in self.get_meta_items(ctx.meta):
+            for item in self.get_turn_items(ctx):
                 for uid, name in references:
                     if (uid and uid in (item.get("uuid"), item.get("attachment_id"))) or (not uid and name in
                             (item.get("name"), self.get_context_filename(item))):
@@ -396,8 +417,9 @@ class Context:
         context = ""
         uuid_current = self.current_ids(ctx)
 
-        if self.get_meta_items(meta):
-            for file in self.get_meta_items(meta):
+        turn_items = self.get_turn_items(ctx)
+        if turn_items:
+            for file in turn_items:
                 if not self.is_active(file):
                     continue
                 if ("type" not in file
@@ -464,7 +486,7 @@ class Context:
         metadata_changed = False
         has_local_context = False
         # index local files if not indexed by auto_index; native refs bypass local RAG entirely
-        for i, file in enumerate(self.get_meta_items(meta)):
+        for i, file in enumerate(self.get_turn_items(ctx)):
             if not self.is_active(file):
                 if self._remove_item_from_index(meta, file):
                     metadata_changed = True

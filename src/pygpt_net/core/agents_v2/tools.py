@@ -446,6 +446,11 @@ class WorkerToolFactory:
                                 self._strip_private_artifact_markers(response)
                                 if runtime_attachments or delivery_files else response
                             )
+                            # TMP: Summarize large plugin responses for the local tool history.
+                            """
+                            from pygpt_net.core.summarizer import model_payload
+                            display_response = model_payload(display_response)
+                            """
                             self.runtime.tool_history.record_local_result(
                                 display_call_id,
                                 tool_name,
