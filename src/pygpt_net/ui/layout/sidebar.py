@@ -1,7 +1,7 @@
 """Main sidebar order. Restart the application after changing this constant."""
 
 # False: conversations, toolbox, chat. True: toolbox, conversations, chat.
-TOOLBOX_FIRST = True
+TOOLBOX_FIRST = False
 
 
 def pane_sizes(toolbox, conversations, chat):

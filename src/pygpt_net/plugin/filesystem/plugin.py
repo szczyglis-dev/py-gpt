@@ -17,7 +17,8 @@ class Plugin(PythonRuntime):
         self.name = 'Filesystem, Python and OS'
         self.description = 'Host filesystem tools, Python execution and system commands with one shared runtime.'
         self.type = ['interpreter', 'os']
-        self.use_locale = False
+        self.use_locale = True
+        self.set_locale_domain('plugin.filesystem')
         self.system_runner = SystemRunner(self)
         self.render = Render(self)
         self.file_output = FilesOutput(self)

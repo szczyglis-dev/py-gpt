@@ -30,7 +30,7 @@ def test_option_cmd_description_uses_child_provider_locale():
         widget = SimpleNamespace(plugin=plugin, option=option, cmd_id=tool)
         with patch('pygpt_net.ui.widget.option.cmd.trans', return_value='Przetłumaczony opis') as translate:
             assert OptionCmd._description(widget) == 'Przetłumaczony opis'
-        translate.assert_called_once_with('cmd.' + tool + '.description', False, 'plugin.cmd_code_interpreter')
+        translate.assert_called_once_with('cmd.' + tool + '.description', False, 'plugin.filesystem')
 
 
 def test_tool_description_fits_wrapped_text_when_resized(qt_application):

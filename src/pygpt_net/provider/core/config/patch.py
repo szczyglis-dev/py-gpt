@@ -150,7 +150,7 @@ class Patch:
 
             # Replace all Dockerfile settings on upgrade to 2.9.0, including
             # customized values. Subsequent starts keep the saved settings.
-            if old < parse_version("2.9.0") <= version:
+            if old < parse_version("2.9.0"):
                 from pygpt_net.plugin.cmd_system.dockerfile import SYSTEM_DOCKERFILE
                 from pygpt_net.plugin.cmd_code_interpreter.dockerfile import (
                     IPYTHON_DOCKERFILE,
@@ -163,16 +163,15 @@ class Patch:
                 interpreter["ipython_dockerfile"] = IPYTHON_DOCKERFILE
                 updated = True
 
-        if version >= parse_version("2.9.1"):
-            from pygpt_net.plugin.filesystem.migration import migrate_tree, defaults
-            if migrate_tree(data, reset_runtime=old < parse_version("2.9.1")):
-                updated = True
-            # 2.9.1 deliberately replaces customized images and package settings.
             if old < parse_version("2.9.1"):
-                config = data.setdefault("plugins", {}).setdefault("filesystem", {})
-                for key, option in defaults().items():
-                    if option["tab"] == "runtime" and key != "sandbox":
-                        config[key] = option["value"]
+                plugins = data.setdefault("plugins", {})
+                enabled = data.setdefault("plugins_enabled", {})
+                for plugin_id in ("cmd_files", "cmd_code_interpreter", "cmd_system"):
+                    plugins.pop(plugin_id, None)
+                    if enabled.pop(plugin_id, False):
+                        enabled["filesystem"] = True
+                plugins.setdefault("filesystem", {})
+                enabled.setdefault("filesystem", False)
                 updated = True
 
         # update file

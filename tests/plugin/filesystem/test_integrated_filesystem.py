@@ -195,28 +195,27 @@ def test_mixed_subtab_options_share_general_page():
     assert dialog.extract_option_tabs(options) == ['example::general', 'example::details', 'other']
 
 
-def test_release_migration_replaces_custom_runtime_settings_once():
+@pytest.mark.parametrize('legacy_enabled', [False, True])
+def test_release_migration_replaces_legacy_plugins_once(legacy_enabled):
     from packaging.version import Version
     from pygpt_net.provider.core.config.patch import Patch
     window = MagicMock()
-    data = {'__meta__': {'version': '2.9.0'}, 'plugins_enabled': {'cmd_system': True},
-            'plugins': {'cmd_code_interpreter': {'sandbox': 'docker', 'ipython_dockerfile': 'CUSTOM',
-                                                'builtin_packages': 'OLD'},
-                        'cmd_system': {'dockerfile': 'OLD OS IMAGE'}}}
+    data = {'__meta__': {'version': '2.9.0'},
+            'plugins_enabled': {'cmd_system': legacy_enabled, 'cmd_files': False, 'other': True},
+            'plugins': {'cmd_code_interpreter': {'sandbox': 'docker', 'ipython_dockerfile': 'CUSTOM'},
+                        'cmd_system': {'dockerfile': 'OLD'}, 'cmd_files': {'use_loaders': False},
+                        'other': {'value': 1}}}
     window.core.config.all.return_value = data
     window.core.updater.post_check_config.return_value = False
     assert Patch(window).execute(Version('2.9.1'))
-    config = window.core.config.data['plugins']['filesystem']
-    assert config['sandbox'] == 'docker'
-    assert config['ipython_dockerfile'] != 'CUSTOM'
-    assert config['builtin_packages'] != 'OLD'
-    assert 'OLD OS IMAGE' not in str(config)
-    assert window.core.config.data['plugins_enabled'] == {'filesystem': True}
-    window.core.config.data['__meta__']['version'] = '2.9.1'
-    config['ipython_dockerfile'] = 'CUSTOM AFTER UPGRADE'
-    window.core.config.all.return_value = window.core.config.data
+    migrated = window.core.config.data
+    assert migrated['plugins'] == {'filesystem': {}, 'other': {'value': 1}}
+    assert migrated['plugins_enabled'] == {'filesystem': legacy_enabled, 'other': True}
+    migrated['__meta__']['version'] = '2.9.1'
+    migrated['plugins']['filesystem']['ipython_dockerfile'] = 'USER CUSTOM'
+    window.core.config.all.return_value = migrated
     Patch(window).execute(Version('2.9.1'))
-    assert config['ipython_dockerfile'] == 'CUSTOM AFTER UPGRADE'
+    assert migrated['plugins']['filesystem']['ipython_dockerfile'] == 'USER CUSTOM'
 
 
 def test_settings_without_tabs_keep_controls_visible(qt_application):

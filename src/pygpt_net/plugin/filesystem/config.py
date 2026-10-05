@@ -13,9 +13,9 @@ class Config(BaseConfig):
                        'python': 'Python', 'system': 'System (OS)'}
         plugin.subtabs = {'ipython': 'Docker (IPython)', 'sandbox': 'Docker (Python)'}
         for section, config, domain in (
-                ('filesystem', FilesConfig, 'plugin.cmd_files'),
-                ('python', PythonConfig, 'plugin.cmd_code_interpreter'),
-                ('system', SystemConfig, 'plugin.cmd_system')):
+                ('filesystem', FilesConfig, 'plugin.filesystem'),
+                ('python', PythonConfig, 'plugin.filesystem'),
+                ('system', SystemConfig, 'plugin.filesystem')):
             provider = BasePlugin()
             config(provider).from_defaults(provider)
             plugin.add_option('enable_' + section, type='bool', value=True,
@@ -51,12 +51,12 @@ class Config(BaseConfig):
                                 'description': 'Python code to execute'}],
                        tab='python', subtab='general',
                        description='Executes Python code using the selected interpreter and runtime.',
-                       _locale_domain='plugin.cmd_code_interpreter', _use_locale=True)
+                       _locale_domain='plugin.filesystem', _use_locale=True)
         plugin.add_cmd('python_kernel_restart', instruction='Restart the current IPython kernel and clear its state.',
                        params=[], tab='python', subtab='general',
                        description='Restarts the IPython kernel and clears its variables and execution state. '
                                    'Available only when IPython is enabled.',
-                       _locale_domain='plugin.cmd_code_interpreter', _use_locale=True)
+                       _locale_domain='plugin.filesystem', _use_locale=True)
         plugin.options['cmd.shell_exec']['value']['instruction'] = (
             'Execute a system command in the shared runtime. Execution is non-interactive; '
             'supply all options and answers in the command. The current working directory '
