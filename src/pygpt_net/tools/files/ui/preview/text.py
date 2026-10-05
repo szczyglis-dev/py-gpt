@@ -16,7 +16,6 @@ from PySide6.QtGui import QIcon, QTextCursor
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QPlainTextEdit, QPlainTextDocumentLayout, QVBoxLayout, QFrame
 
 from pygpt_net.core.text.editor import TextEditor
-from pygpt_net.core.text.editor.syntax import PreviewLightStyle
 from pygpt_net.utils import trans
 
 
@@ -32,7 +31,6 @@ class PreviewDocumentLayout(QPlainTextDocumentLayout):
 
 class TextPreview(TextEditor):
     zoom_key = "filesystem.preview.text.font_size"
-    syntax_light_style = PreviewLightStyle
     def __init__(self, panel, path, text):
         self.panel = panel
         self.annotation_ranges = ()

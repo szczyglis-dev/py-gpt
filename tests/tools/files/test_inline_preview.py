@@ -199,7 +199,8 @@ def test_dark_highlighting_is_correct_on_show_and_theme_change(app, tmp_path):
     panel.viewer.highlighter.timer.stop()
     panel.viewer.highlighter.refresh()
     color = panel.viewer.highlighter.formats[Name.Function].foreground().color()
-    assert color.name() == '#8000ff'
+    from pygpt_net.core.text.editor.syntax import SoftLightStyle
+    assert color.name() == '#' + SoftLightStyle.style_for_token(Name.Function)['color']
     panel.close()
     panel.deleteLater()
 
