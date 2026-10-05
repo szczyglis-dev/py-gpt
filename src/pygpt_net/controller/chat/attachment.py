@@ -257,7 +257,8 @@ class Attachment(QObject):
             self,
             meta: CtxMeta,
             mode: str,
-            prompt: str
+            prompt: str,
+            attachments: Optional[dict] = None,
     ) -> bool:
         """
         Upload attachments for meta
@@ -270,7 +271,8 @@ class Attachment(QObject):
         self.uploaded = False
         self.window.core.attachments.native.reset()
         auto_index = False
-        attachments = self.window.core.attachments.get_all(mode, only_files=True)
+        if attachments is None:
+            attachments = self.window.core.attachments.get_all(mode, only_files=True)
 
         if self.is_verbose() and len(attachments) > 0:
             print(f"\nUploading attachments...\nWork Mode: {mode}")

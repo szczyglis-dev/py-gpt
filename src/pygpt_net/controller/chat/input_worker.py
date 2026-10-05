@@ -32,6 +32,7 @@ class InputWorker(QRunnable):
         self.text = text
         self.meta = meta
         self.cancelled = False
+        self.attachments = None
 
     def cancel(self):
         """Prevent this worker from advancing the send pipeline."""
@@ -49,7 +50,9 @@ class InputWorker(QRunnable):
                 return
 
             attachment = self.window.controller.chat.attachment
-            if self.mode != MODE_ASSISTANT and attachment.has(self.mode):
+            if self.mode != MODE_ASSISTANT and self.attachments is not None:
+                attachment.upload(self.meta, self.mode, text, attachments=self.attachments)
+            elif self.mode != MODE_ASSISTANT and attachment.has(self.mode):
                 attachment.upload(self.meta, self.mode, text)
             if self.cancelled:
                 return

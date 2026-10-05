@@ -42,6 +42,100 @@ def test_second_send_does_not_overwrite_pending_or_clear_new_draft():
     assert controller.pending is None
 
 
+def test_busy_send_can_queue_only_attachment_and_cancel_restores_it():
+    from pygpt_net.item.attachment import AttachmentItem
+    controller, window = make_input()
+    item = AttachmentItem(id='photo', path='/tmp/photo.png', name='photo.png')
+    window.core.config.get.return_value = 'chat'
+    window.core.attachments.items = {'chat': {'photo': item}}
+    window.core.attachments.get_all.side_effect = lambda mode: window.core.attachments.items[mode]
+    window.ui.nodes['input'].attachment_strip.sent = set()
+    window.ui.nodes['input'].toPlainText.return_value = ''
+    window.ui.nodes['input'].serialize_mentions.return_value = ''
+    controller.send_input()
+    assert controller.pending['text'] == ''
+    assert controller.pending['attachments'] == {'photo': item}
+    assert window.core.attachments.items['chat'] == {}
+    # A subsequent draft is separate from the staged attachment.
+    draft = AttachmentItem(id='draft', name='later.txt')
+    window.core.attachments.items['chat']['draft'] = draft
+    assert 'draft' not in controller.pending['attachments']
+    controller.cancel_pending()
+    assert window.core.attachments.items['chat'] == {'photo': item, 'draft': draft}
+
+
+def test_pending_bar_shows_image_thumbnail_without_text(qt_application, tmp_path):
+    from PySide6.QtGui import QImage
+    from pygpt_net.item.attachment import AttachmentItem
+    controller, window = make_input()
+    window.controller.chat.input = controller
+    image = QImage(64, 64, QImage.Format_RGB32)
+    image.fill(0xff33aa55)
+    path = str(tmp_path / 'photo.png')
+    assert image.save(path)
+    bar = PendingInputBar(window)
+    try:
+        bar.set_pending({'display': '', 'attachments': {
+            'photo': AttachmentItem(id='photo', path=path, name='photo.png')}})
+        assert bar.thumbnail_layout.count() == 1
+        tile = bar.thumbnail_layout.itemAt(0).widget()
+        assert tile.width() == 32
+        assert not tile.pixmap().isNull()
+        assert bar.send.isEnabled()
+        bar.set_pending(None)
+        assert bar.thumbnail_layout.count() == 0
+    finally:
+        bar.close()
+
+
+def test_pending_preprocessing_uploads_only_staged_attachments():
+    from pygpt_net.controller.chat.input_worker import InputWorker
+    controller, window = make_input()
+    window.controller.chat.input._resolve_history_mentions.return_value = ''
+    meta = SimpleNamespace(id=1)
+    worker = InputWorker(window, 1, 'chat', '', meta)
+    worker.attachments = {'queued': object()}
+    worker.run()
+    window.controller.chat.attachment.upload.assert_called_once_with(
+        meta, 'chat', '', attachments=worker.attachments)
+    window.controller.chat.attachment.has.assert_not_called()
+
+
+def test_pending_image_only_passes_real_context_validation_and_sends():
+    from pygpt_net.controller.ctx.ctx import Ctx
+    from pygpt_net.core.events import Event
+    from pygpt_net.item.attachment import AttachmentItem
+
+    controller, window = make_input()
+    window.controller.attachment.has.return_value = False
+    window.controller.ui.vision.has_vision.return_value = False
+    controller.locked = False
+    window.core.config.get.side_effect = lambda key, default=None: 'chat' if key == 'mode' else default
+    ctx_controller = SimpleNamespace(window=window)
+
+    def dispatch(event):
+        if event.name == Event.INPUT_BEFORE:
+            Ctx.handle(ctx_controller, event)
+
+    window.dispatch.side_effect = dispatch
+    attachments = {'photo': AttachmentItem(id='photo', path='/tmp/photo.png')}
+    controller.execute('', runtime_attachments=attachments, send_initialized=True)
+    window.controller.chat.text.send.assert_called_once()
+    assert window.controller.chat.text.send.call_args.kwargs['runtime_attachments'] == attachments
+    assert window.controller.chat.text.send.call_args.kwargs['text'] == ''
+
+
+def test_truly_empty_send_is_still_rejected_by_context_validation():
+    from pygpt_net.controller.ctx.ctx import Ctx
+    from pygpt_net.core.events import Event
+    _, window = make_input()
+    window.controller.attachment.has.return_value = False
+    window.controller.ui.vision.has_vision.return_value = False
+    event = Event(Event.INPUT_BEFORE, {'mode': 'chat', 'value': '', 'attachments': {}})
+    Ctx.handle(SimpleNamespace(window=window), event)
+    assert event.data['stop']
+
+
 def test_send_pending_waits_for_bridge_and_stream_before_resuming():
     controller, window = make_input()
     controller.send_input()

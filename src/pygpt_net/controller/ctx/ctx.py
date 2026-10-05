@@ -78,9 +78,14 @@ class Ctx:
             camera_captured = (self.window.controller.ui.vision.has_vision()
                                and self.window.controller.attachment.has(mode))
 
-            # allow empty text input only if multimodal data, otherwise abort
+            # Pending attachments are scoped to the request and deliberately
+            # absent from the composer store. Validate that payload too.
+            attachments = event.data.get("attachments")
+            has_attachments = (bool(attachments) if attachments is not None
+                               else self.window.controller.attachment.has(mode))
+            # Allow attachment-only and multimodal messages.
             is_audio = multimodal_ctx is not None and multimodal_ctx.is_audio_input
-            if len(text.strip()) == 0 and (not camera_captured and not is_audio):
+            if len(text.strip()) == 0 and not (has_attachments or camera_captured or is_audio):
                 event.data["stop"] = True  # stop flow
                 event.data["silent"] = True  # silent stop (no errors)
                 return

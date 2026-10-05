@@ -153,6 +153,9 @@ class Input:
             text=text,
             meta=meta,
         )
+        worker.attachments = getattr(self, '_queued_attachments', None)
+        self._preprocess_attachments = worker.attachments
+        self._queued_attachments = None
         self._preprocess_id = request_id
         self._preprocess_worker = worker
         worker.signals.success.connect(self._preprocess_receiver.success)
@@ -193,15 +196,19 @@ class Input:
 
         context = BridgeContext()
         context.prompt = text
+        queued = getattr(self, '_preprocess_attachments', None)
+        if queued is not None:
+            context.attachments = queued
         input_node = self.window.ui.nodes.get("input")
         strip = getattr(input_node, "attachment_strip", None)
-        if strip is not None:
+        if strip is not None and queued is None:
             strip.mark_sent()
 
         self.window.dispatch(KernelEvent(KernelEvent.INPUT_USER, {
             'context': context,
             'extra': {
                 'send_initialized': True,
+                'queued_attachments': queued is not None,
             },
         }))
 
@@ -243,6 +250,10 @@ class Input:
     def cancel_pending(self):
         if self._pending_sending:
             return
+        if self.pending and self.pending.get('attachments'):
+            mode = self.pending['mode']
+            self.window.core.attachments.items.setdefault(mode, {}).update(self.pending['attachments'])
+            self.window.controller.attachment.update()
         self.pending = None
         self._show_pending()
 
@@ -304,11 +315,16 @@ class Input:
                 return
             if self.generating or self.locked or self.window.core.ctx.output.has_request():
                 display = input_node.toPlainText().strip()
+                mode = self.window.core.config.get('mode')
+                strip = getattr(input_node, 'attachment_strip', None)
+                sent = getattr(strip, 'sent', set())
+                attachments = {key: item for key, item in self.window.core.attachments.get_all(mode).items()
+                               if not item.ctx and not item.consumed and key not in sent}
                 if display.lower() in self.stop_commands:
                     self.window.controller.kernel.stop()
                     self.window.dispatch(RenderEvent(RenderEvent.CLEAR_INPUT))
                     return
-                if display:
+                if display or attachments:
                     # One pending slot: don't silently replace an unsent message.
                     if self.pending is None:
                         self.pending = {
@@ -317,6 +333,11 @@ class Input:
                             if hasattr(input_node, "serialize_mentions") else display,
                             "pid": self.window.controller.tabs.get_effective_current_pid(),
                         }
+                        if attachments:
+                            self.pending.update(attachments=attachments, mode=mode)
+                            for key in attachments:
+                                self.window.core.attachments.items[mode].pop(key, None)
+                            self.window.controller.attachment.update()
                         input_node.clear()
                         self._show_pending()
                 return
@@ -439,6 +460,7 @@ class Input:
         # Conversation-history resolution and attachment reading/indexing/upload
         # can involve database/model/file/network I/O. Keep all of it off the UI
         # thread, then re-enter the existing INPUT_USER flow from the worker signal.
+        self._queued_attachments = (_submission.get('attachments') if _submission is not None else None)
         self._start_preprocessing(mode, text, request_meta)
 
     def send(
@@ -500,7 +522,7 @@ class Input:
             model_override=origin_model if (is_internal_reply or is_agent_continue) else None,
             agent_continue=is_agent_continue,
             inline_message=inline_message,
-            runtime_attachments=context.attachments if is_internal_reply else None,
+            runtime_attachments=context.attachments if is_internal_reply or extra.get('queued_attachments') else None,
             send_initialized=bool(extra.get("send_initialized", False)),
         )
 
@@ -594,6 +616,7 @@ class Input:
             'mode': mode,
             'value': text,
             'multimodal_ctx': multimodal_ctx,
+            'attachments': runtime_attachments,
             'stop': False,
             'silent': False,  # silent mode (without error messages)
         })

@@ -314,6 +314,8 @@ class Text:
             # Work on a copy: runtime tool attachments must exist only for this
             # provider call and must never appear in the global attachment UI/state.
             files = dict(core.attachments.get_all(mode))
+            if runtime_attachments is not None and not internal:
+                files = dict(runtime_attachments)
             if runtime_attachments:
                 files.update(runtime_attachments)
             num_files = len(files)

@@ -10,7 +10,7 @@
 # ================================================== #
 
 from PySide6.QtCore import Qt, QSize, QTimer, QPoint, QEvent
-from PySide6.QtGui import QIcon, QAction, QActionGroup
+from PySide6.QtGui import QIcon, QAction, QActionGroup, QImageReader, QPixmap
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget, QMenu, \
     QGridLayout, QSizePolicy, QLabel, QPushButton, QToolButton, QSplitter
 
@@ -44,6 +44,11 @@ class PendingInputBar(QWidget):
         self._watched = []
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 3, 6, 3)
+        self.thumbnails = QWidget()
+        self.thumbnail_layout = QHBoxLayout(self.thumbnails)
+        self.thumbnail_layout.setContentsMargins(0, 0, 0, 0)
+        self.thumbnail_layout.setSpacing(4)
+        layout.addWidget(self.thumbnails)
         layout.addWidget(QLabel(trans("input.pending")))
         self.preview = QLabel()
         self.preview.setTextFormat(Qt.PlainText)
@@ -62,6 +67,29 @@ class PendingInputBar(QWidget):
         self.hide()
 
     def set_pending(self, payload, sending=False):
+        while self.thumbnail_layout.count():
+            widget = self.thumbnail_layout.takeAt(0).widget()
+            widget.hide()
+            widget.deleteLater()
+        attachments = (payload or {}).get('attachments', {})
+        for item in attachments.values():
+            tile = QLabel()
+            tile.setFixedSize(32, 32)
+            tile.setAlignment(Qt.AlignCenter)
+            tile.setToolTip(item.extra.get('display_name') or item.name or item.path or '')
+            reader = QImageReader(item.path or '')
+            reader.setAutoTransform(True)
+            size = reader.size()
+            if size.isValid():
+                reader.setScaledSize(size.scaled(QSize(32, 32), Qt.KeepAspectRatio))
+            image = reader.read() if item.type == 'file' else None
+            if image is not None and not image.isNull():
+                tile.setPixmap(QPixmap.fromImage(image))
+            else:
+                icon = item.extra.get('loader_icon') or (':/icons/language.svg' if item.type == 'url' else ':/filetypes/default.svg')
+                tile.setPixmap(QIcon(icon).pixmap(24, 24))
+            self.thumbnail_layout.addWidget(tile)
+        self.thumbnails.setVisible(bool(attachments))
         self._text = " ".join(payload["display"].split()) if payload else ""
         self.preview.setToolTip(payload["display"] if payload else "")
         self.send.setEnabled(not sending)
