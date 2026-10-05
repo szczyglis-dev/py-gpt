@@ -391,9 +391,21 @@ def test_workdir_mention_blacklist_visibility_flag(tmp_path, monkeypatch, hide_b
     core.attachments.get_all.return_value = {}
     core.attachments.get_from_meta_ctx.return_value = []
     core.filesystem.get_data_dir.return_value = str(tmp_path)
-    core.filesystem.make_local.side_effect = lambda path, ctx=None: path
-    core.idx.indexing.is_allowed.side_effect = lambda path: not path.endswith('private.txt')
+    from pygpt_net.core.filesystem.local_mapper import LocalPathMapper
+    from pygpt_net.ui.widget.textarea.mention_discovery import WorkdirScan
+    core.filesystem.local_path_mapper.return_value = LocalPathMapper(
+        str(tmp_path), str(tmp_path), str(tmp_path), (),
+    )
+    core.idx.indexing.excluded_paths.return_value = frozenset({str(tmp_path / 'nested/private.txt')})
     widget = SimpleNamespace(window=SimpleNamespace(core=core, controller=MagicMock()), MENTION_SCAN_LIMIT=5000)
+    def scan(spec):
+        worker = WorkdirScan(spec)
+        result = []
+        worker.signals.ready.connect(lambda _worker, batch, _done: result.__setitem__(slice(None), batch))
+        worker.run()
+        return result
+    widget._workdir_discovery = SimpleNamespace(entries=scan)
+    widget._get_workdir_mention_entries = lambda meta: ChatInput._get_workdir_mention_entries(widget, meta)
     entries = ChatInput._build_mention_entries(widget)
     expected = ['note.txt'] if hide_blacklisted else ['note.txt', 'nested/private.txt', 'nested/program.EXE']
     assert [entry.label for entry in entries] == expected

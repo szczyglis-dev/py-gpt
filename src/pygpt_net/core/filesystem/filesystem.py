@@ -583,45 +583,18 @@ class Filesystem:
         """
         if not path:
             return path
-        native = os.path.normpath(path)
-        base = self.window.core.config.get_user_path()
-        shared_data = self.get_shared_data_dir()
-        data_dir = self.get_data_dir(ctx=ctx, meta_id=meta_id, group_id=group_id)
+        return self.local_path_mapper(ctx=ctx, meta_id=meta_id, group_id=group_id, create=True)(path)
 
-        # If the custom project data root overlaps the global profile root,
-        # global application-owned directories must win. Otherwise e.g.
-        # <profile>/img/foo.png could be serialized as %workdir%/data/img/foo
-        # and later resolve inside the project. This is especially important
-        # when upload.data_dir is disabled.
-        if os.path.normcase(os.path.abspath(data_dir)) != os.path.normcase(os.path.abspath(shared_data)):
-            if self.is_global_profile_path(
-                    native, ctx=ctx, meta_id=meta_id, group_id=group_id,
-            ):
-                # Ordinary profile roots (tmp/img/capture/upload/etc.) keep
-                # using %workdir% relative to the base profile.  The shared
-                # data tree is the one exception: %workdir%/data intentionally
-                # means the active project, so an explicit path into shared
-                # data must remain absolute to preserve its original target.
-                if self._is_path_in(native, shared_data):
-                    return path
-                rel = os.path.relpath(native, base)
-                if rel == ".":
-                    return self.workdir_placeholder
-                return os.path.join(self.workdir_placeholder, rel)
-
-        if self._is_path_in(native, data_dir):
-            rel = os.path.relpath(native, data_dir)
-            prefix = self.workdir_placeholder + os.sep + "data"
-            if rel == ".":
-                return prefix
-            return os.path.join(prefix, rel)
-
-        if self._is_path_in(native, base):
-            rel = os.path.relpath(native, base)
-            if rel == ".":
-                return self.workdir_placeholder
-            return os.path.join(self.workdir_placeholder, rel)
-        return path
+    def local_path_mapper(self, ctx=None, meta_id=None, group_id=None, create=False):
+        """Resolve roots once; the returned mapper never reads runtime state."""
+        from .local_mapper import LocalPathMapper, normalized_root
+        base = normalized_root(self.window.core.config.get_user_path())
+        shared = normalized_root(self.get_shared_data_dir())
+        data = normalized_root(self.get_data_dir(
+            ctx=ctx, meta_id=meta_id, group_id=group_id, create=create,
+        ))
+        roots = tuple(normalized_root(root) for root in self._global_profile_roots()) if data != shared else ()
+        return LocalPathMapper(base, data, shared, roots, self.workdir_placeholder)
 
     def make_local_list(self, paths: list, ctx=None) -> list:
         """

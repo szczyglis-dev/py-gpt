@@ -39,6 +39,7 @@ from pygpt_net.core.text.mentions import (
 )
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
+from pygpt_net.ui.widget.textarea.mention_discovery import ScanSpec, WorkdirMentionDiscovery
 from pygpt_net.ui.widget.lists.model_combo import CompactModelCombo
 
 
@@ -91,6 +92,12 @@ class ChatInput(QTextEdit):
         self._mention_entries = []
         self._mention_source_key = None
         self._mention_seq = 0
+        self._workdir_discovery = WorkdirMentionDiscovery(self)
+        self._workdir_discovery.updated.connect(self._on_workdir_mentions_updated)
+        self._mention_refresh_timer = QTimer(self)
+        self._mention_refresh_timer.setSingleShot(True)
+        self._mention_refresh_timer.setInterval(0)
+        self._mention_refresh_timer.timeout.connect(self._refresh_mention_popup)
         self._mention_popup = MentionPopup(self)
         self._mention_popup.selected.connect(self._accept_mention_entry)
         self._mention_popup.attachment_share_changed.connect(self._set_attachment_shared)
@@ -488,13 +495,13 @@ class ChatInput(QTextEdit):
         self._mention_button_cursor = None
         self._mention_dismissed = False
         self._refresh_mention_formats()
-        QTimer.singleShot(0, self._refresh_mention_popup)
+        self._mention_refresh_timer.start()
 
     def _on_mention_cursor_changed(self):
         if self._mention_loading:
             return
         self._mention_button_cursor = None
-        QTimer.singleShot(0, self._refresh_mention_popup)
+        self._mention_refresh_timer.start()
 
     def _find_mention_trigger(self):
         """Return (at_pos, end_pos, query) for the nearest live @ trigger."""
@@ -560,8 +567,15 @@ class ChatInput(QTextEdit):
             meta = core.ctx.get_current_meta()
         except Exception:
             meta = None
+        try:
+            root = core.filesystem.get_data_dir(ctx=meta, create=False)
+        except Exception:
+            root = None
         return (
             mode,
+            root,
+            WORKDIR_MENTIONS_HIDE_BLACKLISTED,
+            core.config.get('llama.idx.excluded.ext', ''),
             getattr(meta, "id", None),
             getattr(meta, "group_id", None),
             core.attachments.context.is_project_share_enabled(meta),
@@ -670,54 +684,31 @@ class ChatInput(QTextEdit):
         if not include_workdir:
             return entries
 
-        try:
-            root = core.filesystem.get_data_dir(ctx=meta, create=False)
-        except Exception:
-            root = None
-
-        excluded_extensions = set()
-        if WORKDIR_MENTIONS_HIDE_BLACKLISTED:
-            excluded = core.config.get('llama.idx.excluded.ext', '') or ''
-            excluded_extensions = {
-                ext.strip().lower().lstrip('.') for ext in excluded.split(',') if ext.strip()
-            }
-
-        count = 0
-        if root and os.path.isdir(root):
-            root_abs = os.path.abspath(root)
-            try:
-                for current_root, dirs, files in os.walk(root_abs, followlinks=False):
-                    dirs[:] = sorted(
-                        [d for d in dirs if not os.path.islink(os.path.join(current_root, d))],
-                        key=str.casefold,
-                    )
-                    files = sorted(files, key=str.casefold)
-
-                    for name in files:
-                        full = os.path.join(current_root, name)
-                        if os.path.islink(full):
-                            continue
-                        if WORKDIR_MENTIONS_HIDE_BLACKLISTED:
-                            extension = os.path.splitext(name)[1].lower().lstrip('.')
-                            if extension in excluded_extensions or not core.idx.indexing.is_allowed(full):
-                                continue
-                        rel = os.path.relpath(full, root_abs).replace(os.sep, "/")
-                        if any(ch in rel for ch in "\r\n\t"):
-                            continue
-                        value = core.filesystem.make_local(full, ctx=meta).replace("\\", "/")
-                        key = (KIND_FILE_CONTEXT, value.casefold())
-                        if key not in seen:
-                            seen.add(key)
-                            entries.append(MentionEntry(KIND_FILE_CONTEXT, rel, value, False))
-                            count += 1
-                            if count >= self.MENTION_SCAN_LIMIT:
-                                return entries
-            except Exception as e:
-                try:
-                    core.debug.log(e)
-                except Exception:
-                    pass
+        entries.extend(self._get_workdir_mention_entries(meta))
         return entries
+
+    def _get_workdir_mention_entries(self, meta):
+        core = self.window.core
+        try:
+            mapper = core.filesystem.local_path_mapper(ctx=meta)
+            excluded_extensions = frozenset()
+            excluded_paths = frozenset()
+            if WORKDIR_MENTIONS_HIDE_BLACKLISTED:
+                excluded = core.config.get('llama.idx.excluded.ext', '') or ''
+                excluded_extensions = frozenset(
+                    ext.strip().lower().lstrip('.') for ext in excluded.split(',') if ext.strip()
+                )
+                excluded_paths = core.idx.indexing.excluded_paths(data_dir=mapper.data)
+            spec = ScanSpec(mapper.data, mapper, excluded_extensions, excluded_paths, self.MENTION_SCAN_LIMIT)
+            return self._workdir_discovery.entries(spec)
+        except Exception as e:
+            core.debug.log(e)
+            return []
+
+    def _on_workdir_mentions_updated(self):
+        # A queued background result must not reopen a dismissed picker.
+        self._mention_source_key = None
+        self._refresh_mention_popup()
 
     def _get_conversation_mention_entry(self, query: str):
         """Resolve an exact numeric @query to one chat-history entry."""
@@ -822,9 +813,8 @@ class ChatInput(QTextEdit):
         self._mention_popup.set_project_state(meta is not None and meta.group is not None,
                                              context.is_project_share_enabled(meta),
                                              (meta.group.extra or {}).get("attachment_share_all", False) if meta and meta.group else False)
-        self._mention_popup.set_entries(entries, from_attachment_button=button_cursor is not None)
-
-        if not self._mention_popup.apply_filter(query):
+        if not self._mention_popup.set_entries(
+                entries, from_attachment_button=button_cursor is not None, query=query):
             return
 
         anchor = QTextCursor(self.document())

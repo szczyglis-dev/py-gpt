@@ -271,7 +271,12 @@ class Indexing:
         :param path: file path
         :return: True if excluded
         """
-        data_dir = self.window.core.filesystem.get_data_dir()
+        return path in self.excluded_paths()
+
+    def excluded_paths(self, data_dir=None):
+        """Snapshot reserved runtime files once for background discovery."""
+        if data_dir is None:
+            data_dir = self.window.core.filesystem.get_data_dir()
         tmp_dir = self.window.core.config.get_user_dir("tmp")
         # interpreter/canvas temporary files; keep legacy data paths excluded too
         names = [
@@ -284,9 +289,7 @@ class Indexing:
         ]
         excluded = [os.path.join(tmp_dir, name) for name in names]
         excluded.extend(os.path.join(data_dir, name) for name in names)
-        if path in excluded:
-            return True
-        return False
+        return frozenset(excluded)
 
     def is_allowed(self, path: str) -> bool:
         """

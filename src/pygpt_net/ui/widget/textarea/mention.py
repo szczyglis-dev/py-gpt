@@ -127,36 +127,39 @@ class MentionPopup(QFrame):
         self._library_shared = False
         self._library_limit = ATTACHMENT_BUTTON_LIBRARY_LIMIT
         self._entries: list[MentionEntry] = []
+        self._search_entries = []
+        self._library_entries = []
         self._query = ""
         self._from_attachment_button = False
         self.hide()
 
-    def set_entries(self, entries: Iterable[MentionEntry], *, from_attachment_button: bool = False):
+    def set_entries(self, entries: Iterable[MentionEntry], *, from_attachment_button: bool = False, query: str = ''):
+        entries = list(entries or [])
+        if entries != self._entries or from_attachment_button != self._from_attachment_button:
+            self._entries = entries
+            ordered = entries if from_attachment_button else sorted(entries, key=lambda e: e.label.casefold())
+            self._search_entries = [
+                (entry, (str(entry.label or '') + '\n' + str(entry.value or '')).replace('\\', '/').casefold())
+                for entry in ordered if entry.kind != KIND_FILE_CONTEXT or not entry.is_dir
+            ]
+            self._library_entries = [entry for entry in entries if entry.kind == KIND_ATTACHMENT]
         self._from_attachment_button = from_attachment_button
         self._library_limit = ATTACHMENT_BUTTON_LIBRARY_LIMIT
-        self._entries = list(entries or [])
         if not any(entry.kind == KIND_ATTACHMENT for entry in self._entries):
             self._library_shared = False
-        self._query = ""
-        self.apply_filter("")
+        return self.apply_filter(query)
 
     def apply_filter(self, query: str) -> bool:
         raw_query = str(query or "").strip().replace("\\", "/")
         self._query = raw_query.casefold()
         matches = []
 
-        # Workdir rows are files only. Keep their relative directory paths
-        # visible and searchable, including descendants of a typed directory.
-        for entry in self._entries:
-            if entry.kind == KIND_FILE_CONTEXT and entry.is_dir:
-                continue
-            label = str(entry.label or "").replace("\\", "/")
-            value = str(entry.value or "").replace("\\", "/")
-            haystack = f"{label}\n{value}".casefold()
+        # Normalize and sort once per source snapshot, not for every keystroke.
+        for entry, haystack in self._search_entries:
             if not self._query or self._query in haystack:
                 matches.append(entry)
 
-        library_entries = [entry for entry in self._entries if entry.kind == KIND_ATTACHMENT]
+        library_entries = self._library_entries
         self.list.clear()
         self._add_header(trans('input.mentions.add_new'))
         if self._project_available:
@@ -167,14 +170,12 @@ class MentionPopup(QFrame):
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
         files = [e for e in matches if e.kind == KIND_FILE_CONTEXT]
 
-        conversations.sort(key=lambda e: e.label.casefold())
         if self._from_attachment_button:
+            conversations.sort(key=lambda e: e.label.casefold())
+            files.sort(key=lambda e: e.label.casefold())
             # The source supplies newest-first order for the button picker.
             more_library = len(attachments) > self._library_limit
             attachments = attachments[:self._library_limit]
-        else:
-            attachments.sort(key=lambda e: e.label.casefold())
-        files.sort(key=lambda e: e.label.casefold())
 
         # Filtering runs against complete source sets before applying display limits.
         visible = conversations[:self.MAX_RESULTS] + attachments + files[:self.MAX_RESULTS]
