@@ -10897,9 +10897,9 @@ propcache = ">=0.2.1"
 [[package]]
 name = "youtube-transcript-api"
 version = "1.2.4"
-description = "This is an python API which allows you to get the transcripts/subtitles for a given YouTube video. It also works for automatically generated subtitles, supports translating subtitles and it does not require a headless browser, like other selenium based solutions do!"
+description = "This is a python API which allows you to get the transcripts/subtitles for a given YouTube video. It also works for automatically generated subtitles, supports translating subtitles and it does not require a headless browser, like other selenium based solutions do!"
 optional = false
-python-versions = ">=3.8,<3.15"
+python-versions = "<3.15,>=3.8"
 groups = ["main"]
 files = [
     {file = "youtube_transcript_api-1.2.4-py3-none-any.whl", hash = "sha256:03878759356da5caf5edac77431780b91448fb3d8c21d4496015bdc8a7bc43ff"},
