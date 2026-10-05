@@ -1020,9 +1020,9 @@ html.tool-viewport-anchor-lock {{
   transition: opacity 1s ease-in-out;
   text-align: center;
   font-size: 0.8rem;
-  height: 100vh;
-  min-height: 100%;
-  bottom: 10px;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
 }}
 
 .tips p {{
