@@ -43,7 +43,7 @@ class TerminalWidget(QAbstractScrollArea):
         self.cursor_timer = QTimer(self)
         self.cursor_timer.setInterval(500)
         self.cursor_timer.timeout.connect(self.blink_cursor)
-        self.padding = 12
+        self.padding = 16
         available = set(QFontDatabase.families())
         family = next((name for name in ('DejaVu Sans Mono', 'Menlo', 'Consolas', 'Liberation Mono')
                        if name in available), QFontDatabase.systemFont(QFontDatabase.FixedFont).family())

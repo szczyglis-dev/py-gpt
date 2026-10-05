@@ -118,8 +118,15 @@ class FileExplorer(QWidget):
         self.files_panel.setMinimumWidth(220)
         files_layout = QVBoxLayout(self.files_panel)
         files_layout.setContentsMargins(0, 0, 10, 0)
+        files_layout.setSpacing(0)
         files_layout.addWidget(self.search_header)
         files_layout.addWidget(self.files_stack)
+        self.footer_layout = QHBoxLayout()
+        self.footer_layout.setContentsMargins(0, 4, 0, 12)
+        self.footer_layout.addStretch(1)
+        for button, _ in self.header_buttons:
+            self.footer_layout.addWidget(button)
+        files_layout.addLayout(self.footer_layout)
         self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.setChildrenCollapsible(False)
         self._columns_resize_timer = QTimer(self)
@@ -138,8 +145,6 @@ class FileExplorer(QWidget):
         self.header_layout.setSpacing(self.splitter.handleWidth())
         self.header_layout.addWidget(self.preview.breadcrumbs_widget, 1)
         self.header_layout.addWidget(self.search_status)
-        for button, _ in self.header_buttons:
-            self.header_layout.addWidget(button, 0, Qt.AlignRight)
         self.layout.addLayout(self.header_layout)
         self.layout.addWidget(self.splitter, 1)
         self.treeView.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -156,6 +161,7 @@ class FileExplorer(QWidget):
         self.refresh_empty_state()
 
         self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
         self.setLayout(self.layout)
 
         self.treeView.setContextMenuPolicy(Qt.CustomContextMenu)

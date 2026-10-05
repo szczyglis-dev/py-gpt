@@ -73,6 +73,8 @@ class Plugin(BasePlugin):
                 self.mode = data['mode']
 
         elif name == Event.POST_PROMPT_END:
+            if data.get('preview'):
+                return  # Token previews must not issue retrieval/model requests.
             if self.mode in self.ignored_modes:  # ignore
                 return
 
