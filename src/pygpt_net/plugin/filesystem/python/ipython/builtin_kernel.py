@@ -26,6 +26,8 @@ class BuiltinKernel(LocalKernel):
         self._ctx = None
         self._data_dir = None
         self._job = None
+        self._sandbox_root = None
+        self._active_connection_file = None
 
     def _connection_file(self) -> str:
         self.runtime._ensure_private_dirs()
@@ -53,14 +55,15 @@ class BuiltinKernel(LocalKernel):
         finally:
             self._close_job()
             try:
-                connection_file = self._connection_file()
-                if os.path.isfile(connection_file):
+                connection_file = self._active_connection_file
+                if connection_file and os.path.isfile(connection_file):
                     os.unlink(connection_file)
             except OSError:
                 pass
             self.client = None
             self.manager = None
             self.initialized = False
+            self._active_connection_file = None
 
     def init(self, force: bool = False):
         """Start ipykernel using the sandbox Python and OS isolation wrapper."""
@@ -69,7 +72,7 @@ class BuiltinKernel(LocalKernel):
         ctx = self._ctx
         data_dir = self.runtime.get_data_dir(ctx=ctx)
         if self.initialized and not force:
-            if self._data_dir == data_dir and self.check_ready():
+            if self._data_dir == data_dir and self._sandbox_root == self.runtime.sandbox_root and self.check_ready():
                 return
             self.log("Built-in IPython sandbox mapping changed or kernel died; reinitializing...")
             self._shutdown_current()
@@ -78,6 +81,8 @@ class BuiltinKernel(LocalKernel):
 
         self.runtime.ensure_ready(ctx=ctx)
         connection_file = self._connection_file()
+        self._active_connection_file = connection_file
+        self._sandbox_root = self.runtime.sandbox_root
         try:
             if os.path.isfile(connection_file):
                 os.unlink(connection_file)
@@ -130,7 +135,8 @@ class BuiltinKernel(LocalKernel):
         """Execute code while keeping the kernel bound to the active data dir."""
         self._ctx = ctx
         requested_data_dir = self.runtime.get_data_dir(ctx=ctx)
-        if self.initialized and self._data_dir != requested_data_dir:
+        if self.initialized and (self._data_dir != requested_data_dir or
+                                 self._sandbox_root != self.runtime.sandbox_root):
             self.log("Built-in IPython workdir changed; restarting kernel in the new data directory.")
             self._shutdown_current()
         return super().execute(code, current=current, auto_init=auto_init)
@@ -147,6 +153,7 @@ class BuiltinKernel(LocalKernel):
         try:
             if (
                 self.last_restart_at > 0
+                and self._sandbox_root == self.runtime.sandbox_root
                 and time.monotonic() - self.last_restart_at < self.RESTART_COOLDOWN
                 and self.check_ready()
             ):

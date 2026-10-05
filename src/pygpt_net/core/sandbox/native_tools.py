@@ -37,7 +37,8 @@ class NativeTools:
     _attempted: set[str] = set()
     _validated: dict[str, bool] = {}
 
-    def __init__(self, sandbox_root):
+    def __init__(self, sandbox_root, packages=None):
+        self.packages = None if packages is None else tuple(dict.fromkeys(packages))
         self.root = Path(sandbox_root).resolve() / "tools"
         self.pixi_bin = self.root / "pixi" / ("pixi.exe" if os.name == "nt" else "pixi")
         self.manifest = self.root / "pixi.toml"
@@ -65,11 +66,22 @@ class NativeTools:
         return {"version": 2, "pixi": self.PIXI_VERSION,
                 "platform": self.target()[1], "packages": list(self.get_packages())}
 
+    @classmethod
+    def default_packages(cls):
+        return cls.PACKAGES + (cls.UNIX_PACKAGES if os.name != "nt" else ())
+
     def get_packages(self):
-        return self.PACKAGES + (self.UNIX_PACKAGES if os.name != "nt" else ())
+        return self.default_packages() if self.packages is None else self.packages
 
     def get_commands(self):
-        return self.COMMANDS + (self.UNIX_COMMANDS if os.name != "nt" else ())
+        if self.packages is None:
+            return self.COMMANDS + (self.UNIX_COMMANDS if os.name != "nt" else ())
+        commands = dict(zip(self.PACKAGES + self.UNIX_PACKAGES,
+                            tuple(command for command in self.COMMANDS if command != 'pdfinfo') + self.UNIX_COMMANDS))
+        result = [commands[package] for package in self.packages if package in commands]
+        if 'poppler' in self.packages:
+            result.append('pdfinfo')
+        return tuple(result)
 
     @staticmethod
     def log(message):
@@ -108,6 +120,8 @@ class NativeTools:
 
     def bin_dirs(self):
         """Expose only a successfully installed tool environment, never Pixi."""
+        if not self.get_packages():
+            return []
         if not self.is_ready() or not self._can_execute():
             return []
         return [str(p) for p in self._bin_dirs() if p.is_dir()]
@@ -210,7 +224,7 @@ class NativeTools:
         manifest = ("[workspace]\nname = \"pygpt-native-tools\"\n"
                     "channels = [\"conda-forge\"]\n"
                     f"platforms = [{json.dumps(conda_platform)}]\n\n[dependencies]\n"
-                    + "".join(f'{package} = "*"\n' for package in self.get_packages()))
+                    + "".join(f'{json.dumps(package)} = "*"\n' for package in self.get_packages()))
         self.manifest.write_text(manifest, encoding="utf-8")
         env = dict(os.environ, PIXI_HOME=str(self.root / "home"),
                    PIXI_CACHE_DIR=str(self.root / "cache"), PIXI_NO_CONFIG="true")
@@ -251,12 +265,14 @@ class NativeTools:
     def ensure_optional(self, force=False):
         """Attempt once per session; all download/install errors are warnings."""
         with self._lock:
+            if not self.get_packages():
+                return False
             if self.is_ready() and not force:
                 usable = self._can_execute()
                 if usable:
                     self._clean_cache()
                 return usable
-            key = os.path.normcase(str(self.root))
+            key = self._validation_key()
             if key in self._attempted and not force:
                 return self.is_ready() and self._can_execute()
             self._attempted.add(key)

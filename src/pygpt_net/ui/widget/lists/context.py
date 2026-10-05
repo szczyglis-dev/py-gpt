@@ -2744,22 +2744,14 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
             except Exception:
                 pass
             title = item.title
-            opt.displayAlignment = QtCore.Qt.AlignCenter
+            opt.displayAlignment = item.textAlignment()
             style = opt.widget.style() if opt.widget is not None else QtWidgets.QApplication.style()
 
-            if not hovered:
-                opt.text = title
-                style.drawControl(
-                    QtWidgets.QStyle.CE_ItemViewItem,
-                    opt,
-                    painter,
-                    opt.widget,
-                )
-                return
-
-            # Keep the existing disabled/header surface but paint hover text
-            # explicitly from the theme QSS property. Disabled item QSS would
-            # otherwise force the muted section-header color.
+            # Use the same text geometry in both states so hover only changes color.
+            opt.text = title
+            text_rect = style.subElementRect(QtWidgets.QStyle.SE_ItemViewItemText, opt, opt.widget)
+            if item.scope == ShowMoreItem.NEW_PROJECT:
+                text_rect.adjust(4, 0, 0, 0)
             opt.text = ""
             style.drawControl(
                 QtWidgets.QStyle.CE_ItemViewItem,
@@ -2772,12 +2764,15 @@ class ImportantItemDelegate(QtWidgets.QStyledItemDelegate):
                 "showMoreHoverTextColor",
                 opt.palette,
                 QtGui.QPalette.Text,
-            )
+            ) if hovered else opt.palette.color(QtGui.QPalette.Disabled, QtGui.QPalette.Text)
             painter.save()
             try:
-                painter.setFont(opt.font)
+                font = QtGui.QFont(opt.font)
+                if item.scope == ShowMoreItem.NEW_PROJECT and hovered:
+                    font.setUnderline(True)
+                painter.setFont(font)
                 painter.setPen(color)
-                painter.drawText(opt.rect, int(QtCore.Qt.AlignCenter), title)
+                painter.drawText(text_rect, int(opt.displayAlignment), title)
             finally:
                 painter.restore()
             return
@@ -3249,4 +3244,6 @@ class ShowMoreItem(SectionItem):
         self.group_id = group_id
         self.remaining_count = int(remaining_count or 0)
         self.collapse = bool(collapse)
-        self.setTextAlignment(QtCore.Qt.AlignCenter)
+        self.setTextAlignment(
+            QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
+            if scope == self.NEW_PROJECT else QtCore.Qt.AlignCenter)

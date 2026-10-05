@@ -4,6 +4,7 @@ from pygpt_net.plugin.base.plugin import BasePlugin
 from .python.config import Config as PythonConfig
 from .filesystem.config import Config as FilesConfig
 from .os.config import Config as SystemConfig
+from pygpt_net.core.sandbox.native_tools import NativeTools
 
 
 class Config(BaseConfig):
@@ -39,7 +40,7 @@ class Config(BaseConfig):
                 if section == 'python' and (old_tab in ('ipython', 'sandbox', 'python_legacy', 'builtin_sandbox')
                                             or key == 'sandbox') and key != 'python_cmd_tpl':
                     option['tab'] = 'runtime'
-                    option['subtab'] = 'sandbox' if old_tab == 'python_legacy' else (old_tab if old_tab in ('ipython', 'sandbox') else 'general')
+                    option['subtab'] = 'sandbox' if old_tab == 'python_legacy' else (old_tab if old_tab in ('ipython', 'sandbox', 'builtin_sandbox') else 'general')
                 else:
                     option['tab'] = section
                     option['subtab'] = old_tab
@@ -61,8 +62,17 @@ class Config(BaseConfig):
             'Execute a system command in the shared runtime. Execution is non-interactive; '
             'supply all options and answers in the command. The current working directory '
             'is set automatically. Use this tool for shell commands and package installation.')
+        plugin.add_option('custom_sandbox_path', type='text', value='',
+                          label='Custom sandbox path',
+                          description='Custom directory used to build and load the Built-in sandbox. Leave empty to use the default directory.',
+                          tab='runtime', subtab='builtin_sandbox', _locale_domain='plugin.filesystem', _use_locale=True)
+        plugin.add_option('native_packages', type='textarea',
+                          value='\n'.join(NativeTools.default_packages()),
+                          label='System packages (Pixi)',
+                          description='System packages installed by Pixi in the Built-in sandbox, not on the host. Enter one conda-forge package name per line. Rebuild the sandbox to apply changes. Leave empty to install no system packages.',
+                          tab='runtime', subtab='builtin_sandbox', _locale_domain='plugin.filesystem', _use_locale=True)
         # Runtime is the first top-level tab; its General subtab comes first.
         plugin.options = dict(sorted(plugin.options.items(), key=lambda item: (
             list(plugin.tabs).index(item[1]['tab']),
             0 if item[1].get('subtab') in ('general', 'runtime') else
-            (1 if item[1].get('subtab') == 'delivery' else 2))))
+            (1 if item[1].get('subtab') in ('delivery', 'builtin_sandbox') else 2))))

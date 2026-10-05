@@ -35,7 +35,7 @@ def test_settings_hierarchy_and_runtime_owner():
     pages = Plugins().extract_option_tabs(plugin.options)
     assert pages[:1] == ['runtime::general']
     assert [page for page in pages if page.startswith('runtime::')] == [
-        'runtime::general', 'runtime::ipython', 'runtime::sandbox']
+        'runtime::general', 'runtime::builtin_sandbox', 'runtime::ipython', 'runtime::sandbox']
     for section in ('filesystem', 'python', 'system'):
         first = next(key for key, option in plugin.options.items() if option['tab'] == section)
         assert first == 'enable_' + section
@@ -126,7 +126,7 @@ def test_nested_settings_render_independent_child_tabs(qt_application):
         assert nested.tabText(0) == 'General'
     runtime = widget.widget(0)
     assert [runtime.tabText(i) for i in range(runtime.count())] == [
-        'General', 'Docker (IPython)', 'Docker (Python)']
+        'General', 'Built-in sandbox', 'Docker (IPython)', 'Docker (Python)']
     runtime.setCurrentIndex(2)
     widget.setCurrentIndex(1)
     assert widget.widget(1).currentIndex() == 0

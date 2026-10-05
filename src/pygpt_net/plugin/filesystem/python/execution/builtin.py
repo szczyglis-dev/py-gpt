@@ -12,7 +12,7 @@
 import os
 import threading
 
-from pygpt_net.core.sandbox import BuiltinSandboxRuntime
+from pygpt_net.core.sandbox import BuiltinSandboxRuntime, parse_builtin_packages
 from ..ipython import BuiltinKernel
 
 from pygpt_net.plugin.base.execution import execution_response
@@ -47,13 +47,20 @@ class BuiltinBackend(ExecutionBackend):
             plugin.window,
             "python",
             packages_provider=plugin.get_builtin_packages,
+            sandbox_path_provider=lambda: plugin.get_option_value('custom_sandbox_path'),
+            native_packages_provider=lambda: parse_builtin_packages(plugin.get_option_value('native_packages')),
         )
         self.ipython = BuiltinKernel(plugin, self.runtime)
+        self._sandbox_root = None
         self._defer_lock = threading.RLock()
         self._defer_count = 0
 
     def prepare(self, commands: list[dict]) -> bool:
         """Start first-use provisioning but let the worker return a tool response."""
+        sandbox_root = self.runtime.sandbox_root
+        if self._sandbox_root is not None and self._sandbox_root != sandbox_root and self.ipython.initialized:
+            self.ipython.shutdown_kernel()
+        self._sandbox_root = sandbox_root
         if self.runtime.is_ready():
             return True
         if self.ipython.initialized:

@@ -46,13 +46,18 @@ class WorkdirSizeWorker(QRunnable):
         self.signals = WorkdirSizeSignals()
 
     @staticmethod
-    def _tree_size(root: str, prune_top_level=()) -> int:
+    def _tree_size(root: str, prune_top_level=(), exclude_paths=()) -> int:
         total = 0
         root = os.path.abspath(root)
+        excluded = {os.path.realpath(path) for path in exclude_paths}
+        if os.path.realpath(root) in excluded:
+            return 0
         if not os.path.isdir(root):
             return 0
         for dirpath, dirnames, filenames in os.walk(root):
             abs_dir = os.path.abspath(dirpath)
+            dirnames[:] = [name for name in dirnames
+                           if os.path.realpath(os.path.join(dirpath, name)) not in excluded]
             if abs_dir == root and prune_top_level:
                 blocked = set(prune_top_level)
                 dirnames[:] = [name for name in dirnames if name not in blocked]
@@ -70,13 +75,15 @@ class WorkdirSizeWorker(QRunnable):
     @Slot()
     def run(self):
         sizes = []
-        for path, excluded in (
+        for index, (path, excluded) in enumerate((
             (self.path, ("sandbox", "extra_packages", "addons")),
             (self.sandbox_path, ()),
             (self.packages_path, ()),
-        ):
+        )):
             try:
-                sizes.append(self._tree_size(path, prune_top_level=excluded))
+                sizes.append(self._tree_size(
+                    path, prune_top_level=excluded,
+                    exclude_paths=(self.sandbox_path, self.packages_path) if index == 0 else ()))
             except OSError:
                 sizes.append(None)
         safe_emit(self.signals, "result", self.path, tuple(sizes))
@@ -216,10 +223,13 @@ class SystemInfo(QObject):
         if workdir in self._workers:
             return
 
-        sandbox_path = os.path.join(
-            self.window.core.config.get_base_workdir(),
-            "sandbox",
-        )
+        from pygpt_net.core.sandbox.builtin import BuiltinSandboxRuntime
+        plugin = self.window.core.plugins.get('filesystem')
+        sandbox_path = BuiltinSandboxRuntime(
+            self.window, 'python',
+            sandbox_path_provider=(lambda: plugin.get_option_value('custom_sandbox_path'))
+            if plugin is not None else None,
+        ).sandbox_root
         packages_path = os.path.join(self.window.core.config.get_base_workdir(), "extra_packages")
         worker = WorkdirSizeWorker(workdir, sandbox_path, packages_path)
         self._workers[workdir] = worker

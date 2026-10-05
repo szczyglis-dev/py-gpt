@@ -51,12 +51,16 @@ class BuiltinSandboxRuntime:
             window,
             name: str,
             packages_provider: Optional[Callable[[], Sequence[str]]] = None,
+            sandbox_path_provider: Optional[Callable[[], str]] = None,
+            native_packages_provider: Optional[Callable[[], Sequence[str]]] = None,
     ):
         if name not in {"python", "os"}:
             raise ValueError(f"Unsupported built-in sandbox name: {name}")
         self.window = window
         self.name = name
         self.packages_provider = packages_provider
+        self.sandbox_path_provider = sandbox_path_provider
+        self.native_packages_provider = native_packages_provider
 
     # ------------------------------------------------------------------
     # Paths / environment
@@ -79,7 +83,14 @@ class BuiltinSandboxRuntime:
 
     @property
     def sandbox_root(self) -> str:
+        custom = self.sandbox_path_provider() if self.sandbox_path_provider else ''
+        if custom and str(custom).strip():
+            return os.path.realpath(os.path.expanduser(os.path.expandvars(str(custom).strip())))
         return os.path.join(self.application_root, "sandbox")
+
+    def native_tools(self):
+        packages = self.native_packages_provider() if self.native_packages_provider else None
+        return NativeTools(self.sandbox_root, packages=packages)
 
     @property
     def runtime_root(self) -> str:
@@ -190,7 +201,7 @@ class BuiltinSandboxRuntime:
         # executable in the child PATH: in source/pip installs that directory is
         # usually the application's venv and may also contain its `pip`, Python,
         # and unrelated console scripts.
-        path_parts = [self.bin_dir, *NativeTools(self.sandbox_root).bin_dirs()]
+        path_parts = [self.bin_dir, *self.native_tools().bin_dirs()]
         seen = {os.path.normcase(os.path.realpath(p)) for p in path_parts if p}
         for item in parent_path.split(os.pathsep):
             item = item.strip()
@@ -568,7 +579,7 @@ class BuiltinSandboxRuntime:
             with open(self.marker_path, "w", encoding="utf-8") as handle:
                 json.dump(self._marker_data(), handle, indent=2, sort_keys=True)
             self._clean_python_cache(uv_bin, env)
-            NativeTools(self.sandbox_root).ensure_optional(force=force)
+            self.native_tools().ensure_optional(force=force)
             return self.python_bin
 
     def _clean_python_cache(self, uv_bin, env):
