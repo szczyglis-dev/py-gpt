@@ -159,3 +159,78 @@ def test_get_clipboard_falls_back_to_internal_buffer():
 
     assert paths == ["/internal/a"]
     assert mode == "cut"
+
+
+def _columns_explorer(ratio=0.45, swapped=False):
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QSplitter, QWidget
+
+    splitter = QSplitter(Qt.Horizontal)
+    files = QWidget()
+    files.setMinimumWidth(220)
+    preview = QWidget()
+    splitter.addWidget(files)
+    splitter.addWidget(preview)
+    splitter.resize(1000, 300)
+    splitter.show()
+    explorer = SimpleNamespace(
+        splitter=splitter, files_panel=files, preview=preview,
+        columns_swapped=swapped, _files_ratio=ratio, _closed=False,
+        _columns_resize_timer=MagicMock(),
+        window=SimpleNamespace(core=SimpleNamespace(config=MagicMock())),
+    )
+    FileExplorer._apply_columns_layout(explorer, swapped)
+    FileExplorer._resize_columns(explorer)
+    return explorer
+
+
+def test_columns_follow_user_ratio_after_resize_collapse_and_swap():
+    explorer = _columns_explorer()
+    splitter = explorer.splitter
+    try:
+        assert abs(splitter.sizes()[0] / sum(splitter.sizes()) - 0.45) < 0.002
+        splitter.setSizes([650, 350])
+        FileExplorer._remember_columns_ratio(explorer)
+        preferred = explorer._files_ratio
+        for width in (1600, 600, 1200):
+            splitter.resize(width, 300)
+            FileExplorer._resize_columns(explorer)
+            assert abs(splitter.sizes()[0] / sum(splitter.sizes()) - preferred) < 0.003
+        splitter.hide()
+        splitter.resize(300, 300)
+        FileExplorer._resize_columns(explorer)
+        splitter.resize(1400, 300)
+        splitter.show()
+        FileExplorer._resize_columns(explorer)
+        assert abs(splitter.sizes()[0] / sum(splitter.sizes()) - preferred) < 0.003
+        FileExplorer._apply_columns_layout(explorer, True)
+        FileExplorer._resize_columns(explorer)
+        assert abs(splitter.sizes()[1] / sum(splitter.sizes()) - preferred) < 0.003
+        assert explorer._files_ratio == preferred
+        explorer.window.core.config.set.assert_called_with('files.columns.ratio', preferred)
+    finally:
+        splitter.close()
+
+
+def test_columns_minimum_width_does_not_replace_preferred_ratio():
+    explorer = _columns_explorer(ratio=0.3)
+    try:
+        explorer.splitter.resize(400, 300)
+        FileExplorer._resize_columns(explorer)
+        assert explorer.splitter.sizes()[0] >= 220
+        explorer.splitter.resize(1200, 300)
+        FileExplorer._resize_columns(explorer)
+        assert abs(explorer.splitter.sizes()[0] / sum(explorer.splitter.sizes()) - 0.3) < 0.002
+        assert explorer._files_ratio == 0.3
+    finally:
+        explorer.splitter.close()
+
+
+def test_columns_ratio_loads_saved_value_and_rejects_invalid_values():
+    config = MagicMock()
+    explorer = SimpleNamespace(window=SimpleNamespace(core=SimpleNamespace(config=config)))
+    for value in (None, 'bad', 0, 1, -1, float('nan')):
+        config.get.return_value = value
+        assert FileExplorer._load_columns_ratio(explorer) == 0.45
+    config.get.return_value = 0.62
+    assert FileExplorer._load_columns_ratio(explorer) == 0.62

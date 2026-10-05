@@ -57,6 +57,7 @@ class FileExplorer(QWidget):
         self.treeView.setModel(self.model)
         self.treeView.setRootIndex(self.model.index(self.directory))
         self.treeView.setUniformRowHeights(True)
+        self.treeView.setIndentation(16)
         self.setProperty('class', 'file-explorer')
 
         # Multi-selection support via Ctrl/Shift and row-based selection
@@ -128,7 +129,9 @@ class FileExplorer(QWidget):
         self.splitter.addWidget(self.files_panel)
         self.splitter.addWidget(self.preview)
         self.columns_swapped = self._load_columns_swap()
-        self._apply_columns_layout(self.columns_swapped, preserve_sizes=False)
+        self._files_ratio = self._load_columns_ratio()
+        self.splitter.splitterMoved.connect(self._remember_columns_ratio)
+        self._apply_columns_layout(self.columns_swapped)
         self.preview.layout.removeWidget(self.preview.breadcrumbs_widget)
         self.header_layout = QHBoxLayout()
         self.header_layout.setContentsMargins(0, 0, 10, 0)
@@ -241,42 +244,52 @@ class FileExplorer(QWidget):
         except Exception:
             return False
 
+    def _load_columns_ratio(self) -> float:
+        """Load the file-list share independently of column order."""
+        try:
+            value = float(self.window.core.config.get('files.columns.ratio', 0.45))
+            if 0 < value < 1:
+                return value
+        except (TypeError, ValueError, OverflowError):
+            pass
+        return 0.45
+
+    def _remember_columns_ratio(self, *_):
+        """Only manual separator moves replace the preferred proportion."""
+        sizes = self.splitter.sizes()
+        total = sum(sizes)
+        if len(sizes) != 2 or total <= 0 or not all(sizes):
+            return
+        self._files_ratio = sizes[1 if self.columns_swapped else 0] / total
+        config = self.window.core.config
+        config.set('files.columns.ratio', self._files_ratio)
+        config.save()
+
     def _resize_columns(self):
-        """Allocate one third to files, with a 220 px minimum."""
+        """Follow the last user proportion without recording minimum-size clamps."""
+        if self._closed or not self.splitter.isVisible():
+            return
         available = max(0, self.splitter.width() - self.splitter.handleWidth())
-        files_size = max(self.files_panel.minimumWidth(), round(available / 3))
+        files_size = round(available * self._files_ratio)
         preview_size = max(0, available - files_size)
         sizes = [preview_size, files_size] if self.columns_swapped else [files_size, preview_size]
         self.splitter.setSizes(sizes)
 
-    def _apply_columns_layout(self, swapped: bool, preserve_sizes: bool = True):
-        """Apply list/preview order and the matching footer order immediately."""
-        files_size, preview_size = 300, 600
-        if preserve_sizes:
-            try:
-                sizes = self.splitter.sizes()
-                if len(sizes) >= 2 and sum(sizes[:2]) > 0:
-                    if self.columns_swapped:
-                        preview_size, files_size = sizes[0], sizes[1]
-                    else:
-                        files_size, preview_size = sizes[0], sizes[1]
-            except Exception:
-                pass
-
+    def _apply_columns_layout(self, swapped: bool):
+        """Apply column order while keeping each panel's preferred share."""
         if swapped:
             self.splitter.insertWidget(0, self.preview)
             self.splitter.insertWidget(1, self.files_panel)
-            self.splitter.setStretchFactor(0, 2)
-            self.splitter.setStretchFactor(1, 1)
-            self.splitter.setSizes([preview_size, files_size])
         else:
             self.splitter.insertWidget(0, self.files_panel)
             self.splitter.insertWidget(1, self.preview)
-            self.splitter.setStretchFactor(0, 1)
-            self.splitter.setStretchFactor(1, 2)
-            self.splitter.setSizes([files_size, preview_size])
-
+        # Equal stretch factors let Qt resize both panels proportionally.
+        self.splitter.setStretchFactor(0, 1)
+        self.splitter.setStretchFactor(1, 1)
         self.columns_swapped = swapped
+        files_size = round(1000 * self._files_ratio)
+        sizes = [1000 - files_size, files_size] if swapped else [files_size, 1000 - files_size]
+        self.splitter.setSizes(sizes)
         self._columns_resize_timer.start(0)
 
     def toggle_columns(self):
@@ -367,7 +380,7 @@ class FileExplorer(QWidget):
         :param source: source
         :param event: event
         """
-        if source is getattr(self, 'splitter', None) and event.type() == QEvent.Resize:
+        if source is getattr(self, 'splitter', None) and event.type() in (QEvent.Resize, QEvent.Show):
             self._columns_resize_timer.start(0)
         if event.type() in (QEvent.FocusIn, QEvent.MouseButtonPress):
             if getattr(self, 'tab', None) is not None:

@@ -10,8 +10,8 @@
 # ================================================== #
 
 
-from PySide6.QtCore import Qt, QModelIndex, QUrl, QPoint, QMimeData, QItemSelectionModel
-from PySide6.QtGui import QGuiApplication, QDrag
+from PySide6.QtCore import Qt, QModelIndex, QUrl, QPoint, QPointF, QMimeData, QItemSelectionModel
+from PySide6.QtGui import QGuiApplication, QDrag, QPainter, QPen, QPalette
 from PySide6.QtWidgets import QTreeView
 
 
@@ -33,6 +33,21 @@ class MultiDragTreeView(QTreeView):
         self._md_press_pos = QPoint()
         self._md_press_index = QModelIndex()
         self._sel_anchor_index = QModelIndex()
+
+    def drawBranches(self, painter, rect, index):
+        """Compact chevrons use the current theme's text color."""
+        if not self.model().hasChildren(index):
+            return
+        center = QPointF(rect.right() - self.indentation() / 2 + 1, rect.center().y())
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setPen(QPen(self.palette().color(QPalette.Text), 1))
+        if self.isExpanded(index):
+            points = [QPointF(-4, -2), QPointF(0, 2), QPointF(4, -2)]
+        else:
+            points = [QPointF(-2, -4), QPointF(2, 0), QPointF(-2, 4)]
+        painter.drawPolyline([center + point for point in points])
+        painter.restore()
 
     def _selected_count(self) -> int:
         try:
