@@ -38,6 +38,37 @@ def test_get_extra():
     assert Tokens.get_extra() == 3
 
 
+def test_current_counter_counts_late_plugin_system_instructions():
+    from pygpt_net.core.events import Event
+    window = MagicMock()
+    config = {'mode': 'chat', 'model': 'test-model', 'prompt': 'base',
+              'max_total_tokens': 1000, 'context_threshold': 0}
+    window.core.config.get.side_effect = lambda key, default=None: config.get(key, default)
+    window.core.models.get.return_value.id = 'test-model'
+    window.core.models.get_num_ctx.return_value = 1000
+    window.core.ctx.count_prompt_items.return_value = (0, 0)
+    window.core.ctx.count_items.return_value = 0
+    current = CtxItem()
+    current.extra = {'agents_v2_filesystem_context': 'keep original state'}
+    window.core.ctx.get_last_item.return_value = current
+    window.core.prompt.build_final_system_prompt.side_effect = lambda prompt, *_: prompt
+    window.core.context_manager.prepare_system_prompt.side_effect = lambda prompt, *_args, **_kwargs: prompt
+
+    def dispatch(event):
+        assert event.name == Event.POST_PROMPT_END
+        assert event.data['preview'] and event.data['silent']
+        event.ctx.extra.pop('agents_v2_filesystem_context')
+        event.data['value'] += ' filesystem instructions'
+
+    window.dispatch.side_effect = dispatch
+    tokens = Tokens(window)
+    tokens.from_prompt = MagicMock(side_effect=lambda text, *_: len(text))
+    result = tokens.get_current('')
+    assert result[1] >= len('base filesystem instructions')
+    assert window.core.ctx.current_sys_prompt == 'base filesystem instructions'
+    assert current.extra == {'agents_v2_filesystem_context': 'keep original state'}
+
+
 def test_from_prompt():
     """Test from_prompt"""
     text = "This is a test"

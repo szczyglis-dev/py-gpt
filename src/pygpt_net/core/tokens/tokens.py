@@ -11,6 +11,9 @@
 
 from typing import Tuple, List, TYPE_CHECKING
 from functools import lru_cache
+from copy import copy
+
+from pygpt_net.core.events import Event
 
 if TYPE_CHECKING:
     from llama_index.core.base.llms.types import ChatMessage as ChatMessageLlama
@@ -259,6 +262,24 @@ class Tokens:
                 print("Tokens calc exception", e)
         return num
 
+    def _preview_late_system_prompt(self, prompt, mode, current_ctx):
+        """Include runtime plugin instructions without mutating the last turn."""
+        ctx = copy(current_ctx) if current_ctx is not None else CtxItem()
+        ctx.extra = dict(ctx.extra or {})
+        ctx.reply = False
+        if current_ctx is None:
+            ctx.meta = self.window.core.ctx.get_current_meta()
+        event = Event(Event.POST_PROMPT_END, {
+            'mode': mode,
+            'reply': False,
+            'value': prompt,
+            'silent': True,
+            'preview': True,
+        })
+        event.ctx = ctx
+        self.window.dispatch(event)
+        return event.data['value']
+
     def get_current(
             self,
             input_prompt: str
@@ -285,6 +306,8 @@ class Tokens:
             system_prompt = self.window.core.context_manager.prepare_system_prompt(
                 system_prompt, current_ctx, mode, model_data, internal=False
             )
+
+            system_prompt = self._preview_late_system_prompt(system_prompt, mode, current_ctx)
 
             # Agents v2 must show the real main-agent system footprint before
             # the first request of the turn is sent. Compose a temporary prompt
@@ -317,6 +340,7 @@ class Tokens:
             system_prompt = self.window.core.context_manager.prepare_system_prompt(
                 system_prompt, current_ctx, mode, model_data, internal=False
             )
+            system_prompt = self._preview_late_system_prompt(system_prompt, mode, current_ctx)
             system_tokens = self.from_text(system_prompt, model_id)
             if input_prompt:
                 if user_name and ai_name:
