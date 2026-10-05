@@ -107,6 +107,7 @@ class DummyMeta:
 
 class DummyGroup:
     def __init__(self, additional_ctx=None):
+        self.extra = {}
         self.additional_ctx = additional_ctx
         self.additional_ctx_current = []
 
@@ -328,9 +329,24 @@ class TestAttachment:
         dummy_meta.group = group
         dummy_window.core.attachments.context.is_project_share_enabled.return_value = True
         att.append_to_meta(dummy_meta, item)
-        assert group.additional_ctx is None
-        assert dummy_meta.additional_ctx == [item]
+        assert group.additional_ctx == [item]
+        assert dummy_meta.additional_ctx == []
         assert dummy_meta.additional_ctx_current[-1] == item
+
+    @pytest.mark.parametrize("bulk, explicit, expected", [
+        (False, None, False), (True, None, True),
+        (True, False, False), (False, True, True),
+    ])
+    def test_new_project_attachment_sharing(self, dummy_window, dummy_meta, bulk, explicit, expected):
+        dummy_meta.group = DummyGroup()
+        dummy_meta.group.extra["attachment_share_all"] = bulk
+        attachment = AttachmentItem()
+        if explicit is not None:
+            attachment.extra["project_active"] = explicit
+        item = {"uuid": "new"}
+        Attachment(dummy_window).append_to_meta(dummy_meta, item, attachment)
+        assert item["project_active"] is expected
+        assert item.get("active", True) is True
 
     def test_upload_web(self, dummy_window, dummy_meta):
         att = Attachment(dummy_window)

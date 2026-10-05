@@ -549,3 +549,21 @@ def test_all_registered_web_readers_are_available_without_workdir_scan():
     entries = ChatInput._build_mention_entries(widget, include_workdir=False)
     assert [(entry.kind, entry.value) for entry in entries] == [('web_loader', 'google_drive'), ('web_loader', 'database')]
     core.filesystem.get_data_dir.assert_not_called()
+
+
+def test_project_library_keeps_inactive_and_pending_files_with_same_name_unambiguous():
+    from pygpt_net.item.attachment import AttachmentItem
+    core = MagicMock()
+    core.attachments.context.is_shared.side_effect = lambda item: item.get("project_active", item.get("active", True))
+    core.attachments.context.is_project_share_enabled.return_value = True
+    core.attachments.context.get_project_items.return_value = [
+        {"uuid": "saved", "name": "plans.txt", "path": "/old/plans.txt", "active": False}]
+    core.attachments.get_all.return_value = {"pending": AttachmentItem(id="pending", name="plans.txt", path="/new/plans.txt")}
+    core.attachments.get_from_meta_ctx.return_value = [AttachmentItem(id="saved", name="plans.txt", path="/old/plans.txt")]
+    widget = SimpleNamespace(window=SimpleNamespace(core=core, controller=MagicMock()))
+    entries = ChatInput._build_mention_entries(widget, include_workdir=False)
+    assert len(entries) == 2
+    assert all(entry.label == "plans.txt" and entry.shared for entry in entries)
+    assert entries[0].attachment_id == "pending:pending" and entries[0].active
+    assert entries[1].attachment_id == "saved" and not entries[1].active
+    assert entries[0].value != entries[1].value

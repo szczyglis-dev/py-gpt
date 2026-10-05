@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.29 09:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from packaging.version import parse as parse_version, Version
@@ -135,6 +135,17 @@ class Patch:
                 for key in ("filesystem.preview.markdown.font_size", "filesystem.preview.text.font_size"):
                     if key not in data:
                         data[key] = 0  # Use the default font until the first zoom gesture.
+                        updated = True
+
+            # Global external-context gateway and project evidence sharing.
+            if old < parse_version("2.9.1") <= version:
+                from pygpt_net.core.summarizer.summarizer import DEFAULTS
+                if "ctx.attachment.project_share" in data:
+                    del data["ctx.attachment.project_share"]
+                    updated = True
+                for key, value in DEFAULTS.items():
+                    if key not in data:
+                        data[key] = value
                         updated = True
 
             # Replace all Dockerfile settings on upgrade to 2.9.0, including

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 00:20:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import math
@@ -108,6 +108,7 @@ class RAGContextPreparer:
             system_prompt: str = "",
             tools: Optional[List[Any]] = None,
             context_window_limit: Optional[int] = None,
+            context_transform: Optional[Callable[[str], str]] = None,
     ) -> PreparedRAGContext:
         """Return retrieval context prepared for a single final LLM call.
 
@@ -142,6 +143,8 @@ class RAGContextPreparer:
             return result
 
         source_chunks = self._format_nodes(nodes)
+        if context_transform is not None:
+            source_chunks = [context_transform("\n\n".join(source_chunks))]
         packed_chunks = self._pack_context(
             llm=llm,
             chunks=source_chunks,

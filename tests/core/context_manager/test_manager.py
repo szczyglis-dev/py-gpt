@@ -564,3 +564,15 @@ def test_build_agent_tools_is_disabled_with_context_and_delegates_when_enabled(m
     expected = [object()]
     monkeypatch.setattr("pygpt_net.core.context_manager.tools.build_context_tools", lambda mgr, item: expected)
     assert manager.build_agent_tools(ctx()) is expected
+
+
+def test_project_source_reset_breaks_chain_even_without_advanced_context():
+    manager = make_manager({"context.advanced.enabled": False})
+    assert manager.should_break_server_chain([], ctx(extra={"project_context_reset": True})) is True
+    assert manager.should_break_server_chain([], ctx(extra={})) is False
+
+
+def test_project_chain_reset_keeps_current_response_tool_continuations():
+    manager = make_manager({"context.advanced.enabled": False})
+    current = ctx(extra={"project_context_reset": True}, msg_id="new-chain-response")
+    assert manager.should_break_server_chain([], current) is False

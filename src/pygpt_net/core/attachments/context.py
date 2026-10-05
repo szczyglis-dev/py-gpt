@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.06 01:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -22,9 +22,10 @@ from typing import TYPE_CHECKING, Optional, List, Dict, Any, Tuple
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.events import KernelEvent
 from pygpt_net.core.types import MODEL_DEFAULT_MINI
-from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text
+from pygpt_net.core.text.mentions import to_model_text as mentions_to_model_text, iter_tags, attachment_reference, KIND_ATTACHMENT
 from pygpt_net.item.attachment import AttachmentItem
-from pygpt_net.item.ctx import CtxMeta, CtxItem, group_additional_ctx_items
+from .project import ProjectContext
+from pygpt_net.item.ctx import CtxMeta, CtxItem, CtxGroup, group_additional_ctx_items
 
 if TYPE_CHECKING:
     from llama_index.core import Document
@@ -38,6 +39,8 @@ class Context:
         """
         self.window = window
         self.dir_index = "index"
+        self.project = ProjectContext(window)
+        self._project_owners = {}
         self.last_used_item = None
         self.last_used_content = None
         self.last_used_context = None
@@ -104,17 +107,135 @@ class Context:
         return item.get("active", True) is not False
 
 
+    @staticmethod
+    def is_shared(item: Dict[str, Any]) -> bool:
+        """Project sharing is independent of activity in the owner conversation."""
+        return item.get("project_active", item.get("active", True)) is not False
+
     def is_project_share_enabled(self, meta: Optional[CtxMeta] = None) -> bool:
-        """Return whether project-wide attachment sharing is enabled for meta."""
-        return False
+        """Read the persisted project sharing flag without scanning attachments."""
+        if meta is None or meta.group is None:
+            return False
+        group = self.window.core.ctx.get_group_by_id(meta.group.id)
+        if isinstance(group, CtxGroup):
+            meta.group = group
+        if (meta.group.extra or {}).get("attachment_share_cached") is not True:
+            # One-time initialization from existing sources. Subsequent reads
+            # use the group flag without scanning attachment rows.
+            self.get_project_items(meta)
+        return bool((meta.group.extra or {}).get("attachment_share", False))
+
+    def refresh_share_flags(self, meta, items=None):
+        """Recompute only after mutations; ordinary model calls read booleans."""
+        if meta is None or meta.group is None:
+            return
+        if items is None:
+            items = self.get_project_items(meta)
+        owners = {meta.id: meta}
+        for item in items:
+            owner = self.get_item_owner(meta, item)
+            owners[owner.id] = owner
+        any_shared = any(self.is_shared(item) for item in items)
+        pending = (meta.group.extra or {}).get("attachment_share_pending", {})
+        any_shared |= any(pending.values())
+        for owner in owners.values():
+            self.save_owner(owner)
+        meta.group.extra = dict(meta.group.extra or {})
+        states = [self.is_shared(item) for item in items] + list(pending.values())
+        if states and all(states):
+            meta.group.extra["attachment_share_all"] = True
+        elif states and not any(states):
+            meta.group.extra["attachment_share_all"] = False
+        meta.group.extra["attachment_share"] = any_shared
+        meta.group.extra["attachment_share_cached"] = True
+        self.window.core.ctx.update_group(meta.group)
+
+    def get_project_items(self, meta):
+        """Shared storage plus existing files owned by conversations in this project."""
+        if meta is None or meta.group is None:
+            return []
+        group = self.window.core.ctx.get_group_by_id(meta.group.id)
+        if isinstance(group, CtxGroup):
+            meta.group = group
+        peers = {}
+        # Sidebar filters must never change the project evidence library.
+        if isinstance(meta.group.id, int):
+            stored = self.window.core.ctx.provider.get_meta(
+                filters={"group_id": {"mode": "=", "value": meta.group.id}}, limit=0)
+            if isinstance(stored, dict):
+                peers.update({key: peer for key, peer in stored.items()
+                              if peer.group is not None and peer.group.id == meta.group.id})
+        loaded = self.window.core.ctx.get_meta()
+        if isinstance(loaded, dict):
+            peers.update({key: peer for key, peer in loaded.items()
+                          if peer.group is not None and peer.group.id == meta.group.id})
+        peers[meta.id] = meta
+        items = list(meta.group.additional_ctx or [])
+        for item in items:
+            owner = peers.get(item.get("owner_meta_id"), meta)
+            self._project_owners[(meta.group.id, item.get("uuid"))] = owner
+        for peer in peers.values():
+            peer.group = meta.group
+            for item in peer.additional_ctx or []:
+                self._project_owners[(meta.group.id, item.get("uuid"))] = peer
+                items.append(item)
+        seen = set()
+        result = []
+        for item in items:
+            key = item.get("uuid") or (item.get("type"), item.get("path"))
+            if key not in seen:
+                result.append(item)
+                seen.add(key)
+        if (meta.group.extra or {}).get("attachment_share_cached") is not True:
+            self.refresh_share_flags(meta, items=result)
+        return result
+
+    def get_item_owner(self, meta, item):
+        """Locate local storage independently of the open or filtered conversation."""
+        if item in (meta.additional_ctx or []):
+            return meta
+        if meta.group is not None:
+            key = (meta.group.id, item.get("uuid"))
+            if key not in self._project_owners:
+                self.get_project_items(meta)
+            return self._project_owners.get(key, meta)
+        return meta
+
+    def save_owner(self, owner):
+        loaded = self.window.core.ctx.get_meta()
+        if isinstance(loaded, dict) and owner.id not in loaded:
+            self.window.core.ctx.provider.save(owner.id, owner, [])
+        else:
+            self.window.core.ctx.save(owner.id)
+
+    def get_text_path(self, meta, item):
+        project = bool(meta.group and item in (meta.group.additional_ctx or []))
+        owner = meta if project else self.get_item_owner(meta, item)
+        root = self.get_dir(owner, project_scope=project)
+        uid = item["uuid"]
+        return os.path.join(root, uid, uid + ".txt")
 
     def get_meta_items(self, meta: Optional[CtxMeta]) -> list:
         """Return attachments visible for the given context under current sharing policy."""
         if meta is None:
             return []
-        if self.is_project_share_enabled(meta) and meta.group.additional_ctx:
-            return meta.group.additional_ctx
-        return meta.additional_ctx or []
+        items = list(meta.additional_ctx or [])
+        if self.is_project_share_enabled(meta):
+            items = [item for item in self.get_project_items(meta)
+                     if self.is_shared(item) or (meta.id is not None and
+                         (item.get("owner_meta_id") == meta.id if item in (meta.group.additional_ctx or [])
+                          else self.get_item_owner(meta, item).id == meta.id))] + items
+        elif meta.group is not None:
+            items.extend(item for item in meta.group.additional_ctx or []
+                         if meta.id is not None and item.get("owner_meta_id") == meta.id)
+        seen = set()
+        result = []
+        for item in items:
+            key = item.get("uuid") or (item.get("type"), item.get("path"))
+            if key not in seen:
+                seen.add(key)
+                result.append(item)
+        return result
 
     def _use_project_scope(self, meta: Optional[CtxMeta]) -> bool:
         """Return whether the currently visible attachment set comes from the project."""
@@ -134,7 +255,7 @@ class Context:
         return meta.additional_ctx
 
     def _item_project_scope(self, meta: CtxMeta, item: Dict[str, Any]) -> bool:
-        if not self.is_project_share_enabled(meta) or meta.group is None:
+        if meta.group is None:
             return False
         return item in (meta.group.additional_ctx or [])
 
@@ -148,7 +269,7 @@ class Context:
                 return True
             return False
 
-        index_path = os.path.join(self.get_dir(meta), self.dir_index)
+        index_path = os.path.join(os.path.dirname(os.path.dirname(self.get_text_path(meta, item))), self.dir_index)
         changed = False
         for doc_id in list(doc_ids):
             try:
@@ -166,7 +287,8 @@ class Context:
             self,
             meta: CtxMeta,
             item: Dict[str, Any],
-            active: bool
+            active: bool,
+            persist: bool = True
     ) -> bool:
         """Enable/disable one visible attachment row and persist the state.
 
@@ -185,13 +307,37 @@ class Context:
                 continue
             if member.get("active", True) is not active or "active" not in member:
                 member["active"] = active
+                member["share_revision"] = int(member.get("share_revision", 0)) + 1
                 changed = True
             if not active and self._remove_item_from_index(meta, member):
                 changed = True
 
-        if changed:
-            self.window.core.ctx.save(meta.id)
+        if changed and persist:
+            self._save_item_states(meta, members)
         return changed
+
+    def _save_item_states(self, meta, members):
+        if meta.group is not None and any(member in (meta.group.additional_ctx or []) for member in members):
+            self.window.core.ctx.update_group(meta.group)
+        if meta.group is not None:
+            self.refresh_share_flags(meta)
+        else:
+            self.save_owner(meta)
+
+    def set_project_items_active(self, meta, active, attachment_id=None):
+        """Apply a Library action in a batch, saving each owner once."""
+        if meta is None or meta.group is None:
+            return False
+        changed = []
+        for item in self.get_project_items(meta):
+            if attachment_id is None or item.get("uuid") == attachment_id:
+                if item.get("project_active", item.get("active", True)) is not bool(active):
+                    item["project_active"] = bool(active)
+                    item["share_revision"] = int(item.get("share_revision", 0)) + 1
+                    changed.append(item)
+        if changed:
+            self._save_item_states(meta, changed)
+        return bool(changed)
 
     def get_context(
             self,
@@ -218,6 +364,19 @@ class Context:
             content = self.summary_context(ctx, history)
         return content
 
+    def current_ids(self, ctx):
+        """Current uploads and explicitly mentioned library sources, by durable ID."""
+        ids = {item.get("uuid") for item in ctx.meta.additional_ctx_current or []}
+        references = [attachment_reference(tag.value) for tag in iter_tags(getattr(ctx, "input", "") or "")
+                      if tag.kind == KIND_ATTACHMENT]
+        if references:
+            for item in self.get_meta_items(ctx.meta):
+                for uid, name in references:
+                    if (uid and uid in (item.get("uuid"), item.get("attachment_id"))) or (not uid and name in
+                            (item.get("name"), self.get_context_filename(item))):
+                        ids.add(item.get("uuid"))
+        return ids
+
     def get_context_text(
             self,
             ctx: CtxItem,
@@ -235,13 +394,9 @@ class Context:
         meta = ctx.meta
         meta_path = self.get_dir(meta)
         context = ""
-        uuid_current = []
-        if meta.additional_ctx_current:
-            for item in meta.additional_ctx_current:
-                if "uuid" in item:
-                    uuid_current.append(item["uuid"])
+        uuid_current = self.current_ids(ctx)
 
-        if os.path.exists(meta_path) and os.path.isdir(meta_path):
+        if self.get_meta_items(meta):
             for file in self.get_meta_items(meta):
                 if not self.is_active(file):
                     continue
@@ -257,7 +412,7 @@ class Context:
 
                 file_id = file["uuid"]
                 file_idx_path = os.path.join(meta_path, file_id)
-                text_path = os.path.join(file_idx_path, file_id + ".txt")
+                text_path = self.get_text_path(meta, file)
                 store_path = file["path"]
                 if "real_path" in file:
                     store_path = file["real_path"]
@@ -482,7 +637,7 @@ class Context:
         file_id = str(uuid.uuid4())
         meta_path = self.get_dir(
             meta,
-            project_scope=self.is_project_share_enabled(meta),
+            project_scope=meta.group is not None,
         )
         file_idx_path = os.path.join(meta_path, file_id)
         index_path = os.path.join(meta_path, self.dir_index)
@@ -966,14 +1121,18 @@ class Context:
     ):
         """Delete one attachment from its effective local/project scope."""
         project_scope = self._item_project_scope(meta, item)
+        if not project_scope:
+            meta = self.get_item_owner(meta, item)
         items = self._scope_items(meta, project_scope)
         if item in items:
             items.remove(item)
-        self.window.core.ctx.save(meta.id)
+        self.save_owner(meta)
         if delete_files:
             self.delete_local(meta, item, project_scope=project_scope)
         if len(items) == 0:
             self.delete_index(meta, project_scope=project_scope)
+        if meta.group is not None:
+            self.refresh_share_flags(meta)
 
     def delete_display_item(
             self,
@@ -991,28 +1150,51 @@ class Context:
             if member in visible:
                 self.delete(meta, member, delete_files=delete_files)
 
+    def preserve_project_sources(self, meta):
+        """Keep shared knowledge independent of a source conversation's lifetime."""
+        if not self.is_project_share_enabled(meta) or not meta.additional_ctx:
+            return
+        group = meta.group
+        existing = {item.get("uuid") for item in group.additional_ctx or []}
+        pending = []
+        local_root = self.get_dir(meta, project_scope=False)
+        project_root = self.get_dir(meta, project_scope=True)
+        for item in meta.additional_ctx:
+            uid = item.get("uuid")
+            if not uid or uid in existing:
+                continue
+            source = os.path.join(local_root, uid)
+            target = os.path.join(project_root, uid)
+            if os.path.isdir(source):
+                shutil.copytree(source, target, dirs_exist_ok=True)
+            shared = copy.deepcopy(item)
+            shared["owner_meta_id"] = meta.id
+            shared["indexed"] = False
+            shared["doc_ids"] = []
+            pending.append(shared)
+            existing.add(uid)
+        if pending:
+            group.additional_ctx = list(group.additional_ctx or []) + pending
+            self.window.core.ctx.update_group(group)
+
     def delete_by_meta(self, meta: CtxMeta):
-        """Delete attachment index for the currently effective scope."""
-        self.delete_index(meta)
+        """Delete conversation storage while preserving the project's library."""
+        self.preserve_project_sources(meta)
+        self.delete_index(meta, project_scope=False)
 
     def delete_by_meta_id(self, meta_id: int):
-        """Delete attachment index for meta by id."""
         meta = self.window.core.ctx.get_meta_by_id(meta_id)
         if meta is not None:
-            self.delete_index(meta)
+            self.delete_by_meta(meta)
 
-    def reset_by_meta(
-            self,
-            meta: CtxMeta,
-            delete_files: bool = False
-    ):
-        """Delete all attachments in the currently effective scope."""
-        project_scope = self._use_project_scope(meta)
-        items = self._scope_items(meta, project_scope)
-        items.clear()
-        self.window.core.ctx.save(meta.id)
+    def reset_by_meta(self, meta: CtxMeta, delete_files: bool = False):
+        """Reset one conversation without clearing other project conversations."""
+        self.preserve_project_sources(meta)
+        meta.additional_ctx = []
+        meta.additional_ctx_current = []
+        self.save_owner(meta)
         if delete_files:
-            self.delete_index(meta, project_scope=project_scope)
+            self.delete_index(meta, project_scope=False)
 
     def reset_by_meta_id(
             self,
@@ -1029,13 +1211,10 @@ class Context:
             meta: CtxMeta,
             delete_files: bool = False
     ):
-        """Clear all attachments in the currently effective scope."""
-        project_scope = self._use_project_scope(meta)
-        items = self._scope_items(meta, project_scope)
-        items.clear()
-        self.window.core.ctx.save(meta.id)
-        if delete_files:
-            self.delete_index(meta, project_scope=project_scope)
+        """Clear the visible library, respecting every item's storage owner."""
+        items = self.get_project_items(meta) if meta.group is not None else self.get_meta_items(meta)
+        for item in list(items):
+            self.delete(meta, item, delete_files=delete_files)
 
     def delete_index(
             self,

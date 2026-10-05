@@ -5,8 +5,8 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
-# Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 09:00:00                  #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -617,7 +617,11 @@ class ContextManager:
         ctx.extra["context_generation"] = int(state.get("generation") or 0)
 
     def should_break_server_chain(self, history, ctx) -> bool:
-        """Return True once after a checkpoint so stateful APIs start a compact chain."""
+        """Start a fresh server chain after a checkpoint or project source change."""
+        extra = getattr(ctx, "extra", None)
+        if (isinstance(extra, dict) and extra.get("project_context_reset") is True
+                and not getattr(ctx, "msg_id", None)):
+            return True
         if not self.enabled() or ctx is None:
             return False
         current_generation = int(self.get(ctx).get("generation") or 0)

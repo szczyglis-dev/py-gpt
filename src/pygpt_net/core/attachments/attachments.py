@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.12.16 01:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -155,7 +155,8 @@ class Attachments:
     def get_from_meta_ctx(
             self,
             mode: str,
-            meta: CtxMeta
+            meta: CtxMeta,
+            include_inactive: bool = False
     ) -> List[AttachmentItem]:
         """
         Get attachments from meta context
@@ -167,8 +168,11 @@ class Attachments:
         if meta is None:
             return []
         attachments = []
-        for attachment in self.context.get_all(meta):
-            if isinstance(attachment, dict) and attachment.get("active", True) is False:
+        visible = (self.context.get_project_items(meta) if include_inactive and meta.group is not None
+                   else self.context.get_all(meta))
+        shared_ids = {item.get("uuid") for item in visible} if self.context.is_project_share_enabled(meta) else set()
+        for attachment in visible:
+            if not include_inactive and isinstance(attachment, dict) and attachment.get("active", True) is False:
                 continue
             item = AttachmentItem()
             if 'uuid' not in attachment:
@@ -183,6 +187,7 @@ class Attachments:
             else:
                 item.path = '-'
             item.ctx = True
+            item.extra["project_shared"] = attachment.get("uuid") in shared_ids
             item.meta_id = meta.id
             attachments.append(item)
         return attachments
@@ -221,6 +226,11 @@ class Attachments:
 
         if extra is not None:
             attachment.extra = extra
+
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is not None and meta.group is not None:
+            attachment.extra.setdefault("project_active",
+                                        (meta.group.extra or {}).get("attachment_share_all", False) is True)
 
         if isinstance(attachment.extra, dict) and attachment.extra.get("append_to_ctx", True) is False:
             self.register_ctx_excluded_path(attachment.path)

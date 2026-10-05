@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.02 14:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -42,7 +42,7 @@ class BasePlugin(QObject, LocaleDomain):
         "use": None,
     }
     _ALLOW_OUTPUT_KEYS = ("request", "result", "context", "stdout", "stderr", "return_code")
-    _IGNORE_EXTRA_KEYS = ("request", "context")
+    _IGNORE_EXTRA_KEYS = ("request", "context", "model_result")
 
     def __init__(self, *args, **kwargs):
         super(BasePlugin, self).__init__()
@@ -522,11 +522,13 @@ class BasePlugin(QObject, LocaleDomain):
         if execution:
             clean_response.pop("context", None)
             clean_response["result"] = {k: v for k, v in result.items() if k != "context"}
+        if "model_result" in response:
+            clean_response["result"] = response["model_result"]
         ctx.results.append(clean_response)
         ctx.reply = True
 
         extras = {k: v for k, v in response.items() if k not in self._IGNORE_EXTRA_KEYS}
-        if execution:
+        if execution or "model_result" in response:
             extras["result"] = clean_response["result"]
         # Runtime attachments are transport metadata for the immediate next model
         # request. Do not persist local paths inside the durable tool transcript.

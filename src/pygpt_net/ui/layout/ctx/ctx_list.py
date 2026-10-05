@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.11 13:25:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from PySide6 import QtCore
@@ -468,10 +468,12 @@ class CtxList:
                 )
                 section_added = True
 
-            is_attachment = False
+            sharing = bool((group.extra or {}).get("attachment_share", False))
+            is_attachment = sharing and any(file.get("active", True) for file in
+                list(group.additional_ctx or []) + [file for _, meta in items_in_group for file in meta.additional_ctx or []])
             group_name = group.name
             group_item = GroupItem(self._folder_icon, group_name, group.id)
-            group_item.hasAttachments = is_attachment
+            group_item.hasAttachments = False
 
             # Show the exact logical data workdir used by this project.  Resolve
             # by group id rather than by the currently selected context so the
@@ -491,12 +493,15 @@ class CtxList:
             # Provide all metadata required by the delegate
             custom_data = {
                 "is_group": True,
-                "is_attachment": is_attachment,
+                "is_attachment": False,
                 "count": c,
             }
 
             if is_attachment:
                 files = group.get_attachment_names()
+                if sharing:
+                    files = list(dict.fromkeys(files + [name for _, meta in items_in_group
+                        for name in get_additional_ctx_display_names(meta.additional_ctx or [])]))
                 files_str = ", ".join(files)
                 if len(files_str) > 40:
                     files_str = files_str[:40] + '...'
@@ -650,8 +655,10 @@ class CtxList:
         label = data.label
         is_important = data.important
         in_group = bool(data.group)
-        project_share = False
-        is_attachment = False
+        project_share = self.window.core.attachments.context.is_project_share_enabled(data)
+        own_shared = [file for file in data.group.additional_ctx or []
+                      if file.get("owner_meta_id") == data.id] if data.group else []
+        is_attachment = project_share or bool(data.additional_ctx or own_shared)
         dt = self.convert_date(data.updated)
         date_time_str = datetime.fromtimestamp(data.updated).strftime("%Y-%m-%d %H:%M")
         title = data.name
@@ -664,8 +671,11 @@ class CtxList:
         tooltip_text = f"{date_time_str}: {data.name}{mode_str} #{id}"
 
         if is_attachment:
-            if in_group and not project_share:
-                files = get_additional_ctx_display_names(data.additional_ctx or [])
+            if project_share:
+                files = get_additional_ctx_display_names(
+                    self.window.core.attachments.context.get_project_items(data))
+            elif in_group:
+                files = get_additional_ctx_display_names((data.additional_ctx or []) + own_shared)
             else:
                 files = data.get_attachment_names()
             files_str = ", ".join(files)

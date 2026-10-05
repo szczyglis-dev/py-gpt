@@ -81,10 +81,25 @@ Archive files such as ZIP and TAR are a special case. PyGPT unpacks the archive 
 
    To inspect native-upload activity in the console, enable ``Settings -> Debug -> Log attachments usage to console``. Messages such as ``Uploading native attachment: ...`` are printed only when attachment logging is enabled.
 
+When extra-context summary or project sharing is enabled, supported text documents use local extraction so their content can be budgeted and searched. Images continue through their normal provider/vision path.
+
 Attachment context
 ^^^^^^^^^^^^^^^^^^
 
-Full context is always used for local attachments. Large attachments can consume many tokens, including when their original message is replayed in conversation history. For selective retrieval, index files separately and use the conversation's RAG tools.
+Local attachments are added to the uploading turn. Enable ``Settings -> Context -> Auto-strip -> Automatically summarize extra context`` to shorten oversized material before it reaches the model. The same gateway handles web readers, tool text and RAG evidence; source files are preserved.
+
+Project attachment sharing
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In projects, the attachment picker shows a **Sharing** label beside **Add** and sharing toggles in **Library**. The toggle beside a file controls its availability across the project. The Library header toggle enables or disables every file together, and keeps its own saved state: individual file changes do not change that toggle.
+
+Library includes every project attachment, including inactive files, even when no files are currently shared. Project sharing becomes active whenever a conversation has at least one shared attachment. Each change saves the sharing boolean in ctx group.extra; normal requests read this project flag instead of rescanning attachments. There is no global sharing setting or separate Add-header toggle.
+
+Project filenames have no suffix. Ordinary files retain the recent-file limit and **Load more** expands that list in place; the ``@`` picker has no Library limit. References store source IDs, keeping duplicate filenames unambiguous.
+
+Active project text passes through the same extra-context summarizer as other attachments. Stateless chats receive it at each input without saving another copy on every turn. Responses API conversations and agents with conversation memory receive each source once, with its original turn preserved for history replay. New or changed files and re-enabled files can be delivered again. Agents without conversation memory receive runtime context at each input. Disabling a source removes its automatic source block from future local history replay and starts a fresh server chain when needed; previous assistant answers remain conversation history.
+
+A paperclip marks conversations containing local attachments and projects containing shared files. A conversation retains access to files it originally uploaded when all project files are inactive.
 
 **Images as Additional Context**
 

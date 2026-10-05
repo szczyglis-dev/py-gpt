@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.22 11:20:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from threading import Event as ThreadEvent
@@ -69,8 +69,7 @@ class BridgeWorker(QRunnable):
             self.handle_post_prompt_async()
 
             # ADDITIONAL CONTEXT: append additional context from attachments
-            if self.mode != MODE_ASSISTANT:
-                self.handle_additional_context()
+            self.handle_additional_context()
 
             # POST PROMPT END: handle post prompt end event
             self.handle_post_prompt_end()
@@ -243,6 +242,8 @@ class BridgeWorker(QRunnable):
 
     def handle_additional_context(self):
         """Append additional context"""
+        if getattr(self.context, "extra_context_prepared", False):
+            return
         ctx = self.context.ctx
         if ctx is None:
             return
@@ -250,17 +251,41 @@ class BridgeWorker(QRunnable):
             return
         if getattr(ctx, "internal", False) or getattr(ctx, "turn_continuation", False):
             return
-        if not self.window.controller.chat.attachment.has_context(ctx.meta):
-            return
 
         attachment = self.window.controller.chat.attachment
+        if (not attachment.has_context(ctx.meta)
+                and not self.window.core.attachments.context.is_project_share_enabled(ctx.meta)
+                and not any(isinstance(getattr(row, "extra", None), dict) and row.extra.get("project_context")
+                            for row in self.context.history)):
+            return
         # Attachments belong to the uploading turn. History providers replay
         # hidden_input; Responses providers retain that same user message.
         ad_context = attachment.get_context(ctx, self.context.history, only_current=True)
         attachment.bind_current_to_ctx(ctx)
+        if self.window.core.config.get("context.extra_summary.enabled", False):
+            ad_context = self.window.core.summarizer.process(ad_context, self.context, "attachments and web readers")
+        # Account for current uploads before allocating project evidence.
+        original_prompt = self.context.prompt
+        if ad_context:
+            self.context.prompt += "\n\n" + ad_context
+        try:
+            project_context = ""
+            delivery = None
+            project = getattr(self.window.core.attachments.context, "project", None)
+            if project is not None:
+                delivery = project.prepare(self.context)
+                project_context = delivery.text
+        finally:
+            self.context.prompt = original_prompt
+        if delivery is not None:
+            project.record(ctx, delivery)
+        # Runtime project input is never stored on every user turn.
         if ad_context:
             hidden = ctx.hidden_input or ""
             if ad_context not in hidden:
                 ctx.hidden_input = "\n\n".join(filter(None, [hidden, ad_context]))
             if ad_context not in self.context.prompt:
                 self.context.prompt = f"{self.context.prompt}\n\n{ad_context}"
+        if project_context and project_context not in self.context.prompt:
+            self.context.prompt += "\n\n" + project_context
+        self.context.extra_context_prepared = True

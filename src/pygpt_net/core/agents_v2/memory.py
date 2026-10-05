@@ -5,8 +5,8 @@
 # Website: https://pygpt.net                         #
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
-# Created By  : Marcin Szczyglinski                  #
-# Updated Date: 2026.09.16 09:00:00                  #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -290,6 +290,23 @@ class OrchestratorMemoryStore:
         except (TypeError, ValueError):
             exclude_source_id = 0
 
+        # This runtime restores from SQLite rather than BridgeContext.history.
+        # It therefore bypasses the project-context filtering of bridge history.
+        # If any loaded row contains a project_context marker, sanitize this
+        # independent replay before projecting it into agent memory. Otherwise
+        # old shared attachment text could reappear after sharing was disabled.
+        # sanitize_history compares each marked block's source fingerprints with
+        # the currently shared, active project sources. It strips that block from
+        # hidden_input if a source is unavailable/changed or the block belongs to
+        # a different delivery family ("agent-memory" identifies this replay).
+        # Only affected rows are copied; SQLite records and user/assistant text
+        # are preserved. This does not erase answers previously based on a file.
+        # Missing project support or history without markers needs no filtering.
+        attachments = getattr(self.window.core, "attachments", None)
+        project = getattr(getattr(attachments, "context", None), "project", None)
+        if project is not None and any(isinstance(getattr(row, "extra", None), dict)
+                                      and row.extra.get("project_context") for row in source_items):
+            source_items = project.sanitize_history(source_items, meta, "agent-memory")
         projected = []
         sequence = 0
         for source in source_items:

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.02.06 01:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -21,6 +21,7 @@ from typing import Optional
 from dataclasses import dataclass, field
 from uuid import uuid4
 
+from .mention import attachment_reference
 from .render_attachment import attachment_paths, attachment_records
 from .ctx_part import CtxItemPart
 from .ctx_part_task import CtxItemPartTask
@@ -34,7 +35,10 @@ _MENTION_TAG_RE = re.compile(
 
 def _mentions_to_model_text(text: str) -> str:
     """Flatten durable UI mention markers to values used by model history."""
-    return _MENTION_TAG_RE.sub(lambda match: html.unescape(match.group(2)), str(text or ""))
+    def flatten(match):
+        value = html.unescape(match.group(2))
+        return attachment_reference(value)[1] if match.group(1).lower() == "attachment" else value
+    return _MENTION_TAG_RE.sub(flatten, str(text or ""))
 
 
 def _additional_ctx_archive_key(item: dict):

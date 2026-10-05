@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.05 14:45:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
@@ -100,6 +100,14 @@ class Tools:
         # IDs untouched.
         idx = extra.get("agent_idx", None)
         if self.window.core.idx.is_valid(idx):
+            if self.window.core.config.get("context.extra_summary.enabled", False):
+                from llama_index.core.tools import FunctionTool
+
+                def retrieve(query: str) -> str:
+                    return self.window.core.summarizer.retrieve(query, idx, context)
+
+                return [FunctionTool.from_defaults(fn=retrieve, name=TOOL_QUERY_ENGINE_NAME,
+                                                  description=TOOL_QUERY_ENGINE_DESCRIPTION)]
             storage_idx = idx
             if self.window.core.idx.project.is_virtual(idx) is True:
                 storage_idx = self.window.core.idx.resolve_idx(idx)
@@ -461,6 +469,8 @@ class Tools:
                 return "Context is not set for query_engine tool."
             if not self.window.core.idx.is_valid(self.agent_idx):
                 return "Agent index is not set for query_engine tool."
+            if self.window.core.config.get("context.extra_summary.enabled", False):
+                return self.window.core.summarizer.retrieve(params["query"], self.agent_idx, self.context)
             storage_idx = self.agent_idx
             if self.window.core.idx.project.is_virtual(storage_idx) is True:
                 storage_idx = self.window.core.idx.resolve_idx(storage_idx)
@@ -492,7 +502,8 @@ class Tools:
             ctx,  # current ctx
             [cmd],  # commands
         )
-        return response
+        from pygpt_net.core.summarizer import model_payload
+        return model_payload(response)
 
     def export_sources(
             self,

@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.24 11:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from typing import Optional, Union, Tuple
@@ -92,6 +92,8 @@ class ChatInput(QTextEdit):
         self._mention_seq = 0
         self._mention_popup = MentionPopup(self)
         self._mention_popup.selected.connect(self._accept_mention_entry)
+        self._mention_popup.attachment_share_changed.connect(self._set_attachment_shared)
+        self._mention_popup.library_share_changed.connect(self._set_library_shared)
 
         self.setAcceptRichText(False)
         self.setPlaceholderText(trans("input.placeholder"))
@@ -561,7 +563,40 @@ class ChatInput(QTextEdit):
             mode,
             getattr(meta, "id", None),
             getattr(meta, "group_id", None),
+            core.attachments.context.is_project_share_enabled(meta),
         )
+
+    def _set_attachment_shared(self, attachment_id, enabled):
+        self._set_library_shared(enabled, attachment_id)
+
+    def _set_library_shared(self, enabled, attachment_id=None):
+        context = self.window.core.attachments.context
+        meta = self.window.core.ctx.get_current_meta()
+        if meta is None or meta.group is None:
+            return
+        context.is_project_share_enabled(meta)  # resolve canonical group
+        if attachment_id is None:
+            meta.group.extra = dict(meta.group.extra or {})
+            meta.group.extra["attachment_share_all"] = bool(enabled)
+        if attachment_id is None or attachment_id.startswith("pending:"):
+            mode = self.window.core.config.get("mode")
+            for item in self.window.core.attachments.get_all(mode, only_files=True).values():
+                if attachment_id is None or attachment_id == f"pending:{item.id}":
+                    item.extra["project_active"] = bool(enabled)
+                    meta.group.extra = dict(meta.group.extra or {})
+                    meta.group.extra.setdefault("attachment_share_pending", {})[item.id] = bool(enabled)
+        changed = False
+        if attachment_id is None or not attachment_id.startswith("pending:"):
+            changed = context.set_project_items_active(meta, enabled, attachment_id)
+        if not changed:
+            context.refresh_share_flags(meta)
+        self.window.controller.ctx.update_list(reload=False, restore_scroll=True)
+        self.window.controller.chat.attachment.update()
+        self._mention_source_key = None
+        entries = self._build_mention_entries(include_workdir=not self._mention_popup._from_attachment_button)
+        self._mention_popup.set_project_state(True, context.is_project_share_enabled(meta),
+                                             (meta.group.extra or {}).get("attachment_share_all", False))
+        self._mention_popup.set_entries(entries, from_attachment_button=self._mention_popup._from_attachment_button)
 
     def _build_mention_entries(self, include_workdir: bool = True) -> list:
         entries = []
@@ -569,6 +604,7 @@ class ChatInput(QTextEdit):
         core = self.window.core
         mode = core.config.get("mode")
         meta = core.ctx.get_current_meta()
+        project_enabled = meta is not None and meta.group is not None
 
         attachment_items = []
         try:
@@ -577,13 +613,16 @@ class ChatInput(QTextEdit):
         except Exception:
             pass
         try:
-            history_items = list(core.attachments.get_from_meta_ctx(mode, meta))
+            history_items = list(core.attachments.get_from_meta_ctx(mode, meta, include_inactive=bool(project_enabled)))
             # Attachment registries/context lists retain insertion order. Current
             # uploads are newer than stored context; reverse each source for [+].
             attachment_items.extend(history_items if include_workdir else reversed(history_items))
         except Exception:
             pass
 
+        project_items = []
+        if project_enabled:
+            project_items = core.attachments.context.get_project_items(meta)
         for item in attachment_items:
             extra = getattr(item, "extra", None)
             if isinstance(extra, dict) and extra.get("append_to_ctx", True) is False:
@@ -594,11 +633,25 @@ class ChatInput(QTextEdit):
                 name = os.path.basename(path.rstrip("/\\"))
             if not name or any(ch in name for ch in "\r\n\t"):
                 continue
-            key = (KIND_ATTACHMENT, name.casefold())
+            candidates = [source for source in project_items if source.get("name") == name]
+            item_id = getattr(item, "id", None)
+            source = next((source for source in candidates if item_id
+                           and item_id in (source.get("uuid"), source.get("attachment_id"))), None)
+            if source is None and candidates:
+                source = next((source for source in reversed(candidates) if path in
+                              (source.get("path"), source.get("real_path"))), None)
+            shared = source is not None
+            pending_id = getattr(item, "id", None)
+            pending = project_enabled and not shared and isinstance(pending_id, str) and bool(pending_id)
+            value = (f"project-attachment:{source['uuid']}:{name}" if shared
+                     else f"project-attachment:{pending_id}:{name}" if pending else name)
+            key = (KIND_ATTACHMENT, value.casefold())
             if key in seen:
                 continue
             seen.add(key)
-            entries.append(MentionEntry(KIND_ATTACHMENT, name, name, False))
+            entries.append(MentionEntry(KIND_ATTACHMENT, name, value, False, shared=bool(shared or pending),
+                                        active=core.attachments.context.is_shared(source) if source else (extra or {}).get("project_active", (meta.group.extra or {}).get("attachment_share_all", False) if project_enabled else True),
+                                        attachment_id=str(source["uuid"]) if source else (f"pending:{pending_id}" if pending else "")))
 
         # Use the same registered reader choices as the existing URL dialog.
         for choice in self.window.controller.config.placeholder.apply_by_id('llama_index_loaders_web'):
@@ -758,6 +811,11 @@ class ChatInput(QTextEdit):
         conversation_entry = self._get_conversation_mention_entry(query)
         if conversation_entry is not None:
             entries.append(conversation_entry)
+        meta = self.window.core.ctx.get_current_meta()
+        context = self.window.core.attachments.context
+        self._mention_popup.set_project_state(meta is not None and meta.group is not None,
+                                             context.is_project_share_enabled(meta),
+                                             (meta.group.extra or {}).get("attachment_share_all", False) if meta and meta.group else False)
         self._mention_popup.set_entries(entries, from_attachment_button=button_cursor is not None)
 
         if not self._mention_popup.apply_filter(query):

@@ -104,7 +104,7 @@ def test_handle_post_prompt_async_and_end():
 
 def test_handle_additional_context_no_ctx():
     worker = BridgeWorker()
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=AttachmentStub())))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=AttachmentStub())))
     ctx = ContextObj()
     ctx.ctx = None
     ctx.prompt = "p"
@@ -116,7 +116,7 @@ def test_handle_additional_context_no_ctx():
 def test_handle_additional_context_meta_none():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="CTX", mode_value="query")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = None
     ctx.prompt = "p"
@@ -129,7 +129,7 @@ def test_handle_additional_context_meta_none():
 def test_handle_additional_context_has_no_context():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=False)
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -142,7 +142,7 @@ def test_handle_additional_context_has_no_context():
 def test_handle_additional_context_empty_ad_context():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="", mode_value="query")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -155,7 +155,7 @@ def test_handle_additional_context_empty_ad_context():
 def test_handle_additional_context_query_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="query")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -168,7 +168,7 @@ def test_handle_additional_context_query_mode_sets_hidden_input():
 def test_handle_additional_context_agent_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -182,7 +182,7 @@ def test_handle_additional_context_agent_mode_sets_hidden_input():
 def test_handle_additional_context_full_mode_sets_hidden_input():
     worker = BridgeWorker()
     attachment = AttachmentStub(has_context=True, context_value="ADCTX", mode_value="full")
-    worker.window = SimpleNamespace(core=SimpleNamespace(config=MagicMock(), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=MagicMock(return_value=False)))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     ctx = ContextObj()
     ctx.ctx.meta = CtxMeta()
     ctx.prompt = "p"
@@ -363,7 +363,7 @@ def test_attachment_context_is_durable_per_turn_in_every_mode(mode):
     attachment.bind_current_to_ctx = Mock()
     worker = BridgeWorker()
     worker.mode = mode
-    worker.window = SimpleNamespace(controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
+    worker.window = SimpleNamespace(core=SimpleNamespace(config=SimpleNamespace(get=lambda key, default=None: default), attachments=SimpleNamespace(context=SimpleNamespace(is_project_share_enabled=lambda meta: False))), controller=SimpleNamespace(chat=SimpleNamespace(attachment=attachment)))
     item = CtxItem()
     item.meta = CtxMeta()
     item.input = "Analyze this file"

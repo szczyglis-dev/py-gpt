@@ -6,11 +6,12 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.17 13:20:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from typing import Any, Dict, List, Optional
@@ -483,6 +484,15 @@ class WorkerToolFactory:
         core = self.window.core
         if not idx or not core.idx.is_valid(idx):
             return None
+        if core.config.get("context.extra_summary.enabled", False):
+            def retrieve(query: str) -> str:
+                return core.summarizer.retrieve(query, idx, self.runtime.context)
+
+            async def async_retrieve(query: str) -> str:
+                return await asyncio.to_thread(retrieve, query)
+
+            return FunctionTool.from_defaults(fn=retrieve, async_fn=async_retrieve,
+                name="query_index", description=TOOL_QUERY_ENGINE_DESCRIPTION + f" Selected index: {idx}")
         try:
             # Reuse Chat with Files index loading so virtual project RAG and empty-index
             # fallback follow the same lifecycle as the rest of PyGPT.

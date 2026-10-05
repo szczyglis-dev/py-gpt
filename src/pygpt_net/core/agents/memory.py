@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2025.07.30 00:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from typing import List, Dict, Tuple
@@ -137,8 +137,19 @@ class Memory:
                                 "content": item.final_output,
                             })
 
-                # previous response id
-                if is_last_item and item.msg_id is not None:
+                # Continue the server-side response chain from the last history
+                # item, unless project-context changes require a fresh chain.
+                # project_context_reset is set when previously delivered shared
+                # sources become unavailable or change; reusing the old response
+                # ID would retain their old content in the server-side context.
+                # Block that ID only while the current turn has no msg_id yet.
+                # Once the current turn receives its own response ID, subsequent
+                # agent calls may continue the new chain even though the reset
+                # flag remains set for this turn. Without a reset, use the last
+                # item's ID normally; an item without an ID cannot start a chain.
+                if (is_last_item and item.msg_id is not None
+                        and not ((getattr(context.ctx, "extra", None) or {}).get("project_context_reset")
+                                 and not getattr(context.ctx, "msg_id", None))):
                     previous_response_id = item.msg_id
 
         return messages, previous_response_id

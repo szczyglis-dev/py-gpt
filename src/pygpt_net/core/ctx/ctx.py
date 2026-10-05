@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.02 14:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import copy
@@ -2866,6 +2866,16 @@ class Ctx:
         meta.group_id = group_id
         self.provider.update_meta_group_id(id, group_id)
         self.load_groups()
+        # Updating the database ID does not rebind the live conversation object.
+        # Resolve its new project before checking sources, and refresh even when
+        # the project's sharing flag was already cached: this conversation may
+        # have brought shared attachments into the project during the move.
+        meta.group = self.get_group_by_id(group_id) if group_id else None
+        if meta.group is not None:
+            self.window.core.attachments.context.refresh_share_flags(meta)
+            # Saving sharing flags reloads the groups, so keep the runtime object
+            # attached to the newly loaded canonical project instance.
+            meta.group = self.get_group_by_id(group_id)
 
     def get_items_by_id(self, id: int) -> List[str]:
         """

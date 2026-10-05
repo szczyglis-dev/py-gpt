@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.15 14:00:00
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import json
@@ -62,6 +62,7 @@ class BridgeContext:
     assistant_id: str = "" # OpenAI Assistant ID
     attachments: dict = field(default_factory=dict) # id -> AttachmentItem
     ctx: Optional[CtxItem] = None # CtxItem instance
+    extra_context_prepared: bool = False  # runtime-only preprocessing marker
     external_functions: list = field(default_factory=list) # list of tools definitions
     file_ids: list = field(default_factory=list)  # list of uploaded file IDs
     force: bool = False  # force send
@@ -97,6 +98,7 @@ class BridgeContext:
         self.assistant_id = kwargs.get("assistant_id", "")
         self.attachments = dict(kwargs.get("attachments", []))
         self.ctx = kwargs.get("ctx", None)
+        self.extra_context_prepared = kwargs.get("extra_context_prepared", False)
         self.external_functions = list(kwargs.get("external_functions", []))
         self.file_ids = list(kwargs.get("file_ids", []))
         self.force = kwargs.get("force", False)

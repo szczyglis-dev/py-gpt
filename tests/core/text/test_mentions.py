@@ -99,3 +99,12 @@ def test_to_display_text_uses_plain_at_labels_and_decodes_entities():
     )
 
     assert mentions.to_display_text(text) == "@a&b.png @src/app.py"
+
+
+def test_project_attachment_reference_has_stable_identity_and_displays_filename():
+    from pygpt_net.core.text.mentions import attachment_reference, make_tag, to_model_text, to_display_text, KIND_ATTACHMENT
+    value = "project-attachment:one-uuid:folder/plan.txt"
+    assert attachment_reference(value) == ("one-uuid", "folder/plan.txt")
+    tag = make_tag(KIND_ATTACHMENT, value)
+    assert to_model_text(tag) == "folder/plan.txt"
+    assert "project-attachment" not in to_display_text(tag)

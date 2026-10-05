@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.04 00:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 from .core.runtime_packages import RuntimePackages
@@ -51,6 +51,7 @@ from .core.skills import Skills
 from .core.tabs import Tabs
 from .core.text import Text
 from .core.tokens import Tokens
+from .core.summarizer import Summarizer
 from .core.updater import Updater
 from .core.video import Video
 from .core.vision import Vision
@@ -110,6 +111,7 @@ class Core:
         self.tabs = Tabs(window)
         self.text = Text(window)
         self.tokens = Tokens(window)
+        self.summarizer = Summarizer(window)
         self.updater = Updater(window)
         self.video = Video(window)
         self.vision = Vision(window)

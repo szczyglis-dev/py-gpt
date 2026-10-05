@@ -2811,5 +2811,68 @@
         "multiplier": null,
         "step": null,
         "advanced": true
+    },
+    "context.extra_summary.enabled": {
+        "section": "context",
+        "tab": "auto_strip",
+        "type": "bool",
+        "slider": false,
+        "label": "settings.context.extra_summary.enabled",
+        "description": "settings.context.extra_summary.enabled.desc",
+        "value": false,
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false
+    },
+    "context.extra_summary.model": {
+        "section": "context",
+        "tab": "auto_strip",
+        "type": "combo",
+        "slider": false,
+        "label": "settings.context.extra_summary.model",
+        "description": "settings.context.extra_summary.model.desc",
+        "value": "",
+        "min": null,
+        "max": null,
+        "multiplier": null,
+        "step": null,
+        "advanced": false,
+        "use": "models",
+        "use_params": {
+            "mode": [
+                "chat"
+            ],
+            "allow_empty": true
+        }
+    },
+    "context.extra_summary.threshold": {
+        "section": "context",
+        "tab": "auto_strip",
+        "type": "int",
+        "slider": true,
+        "label": "settings.context.extra_summary.threshold",
+        "description": "settings.context.extra_summary.threshold.desc",
+        "value": 25,
+        "min": 1,
+        "max": 95,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": true
+    },
+    "context.extra_summary.target": {
+        "section": "context",
+        "tab": "auto_strip",
+        "type": "int",
+        "slider": true,
+        "label": "settings.context.extra_summary.target",
+        "description": "settings.context.extra_summary.target.desc",
+        "value": 10,
+        "min": 1,
+        "max": 95,
+        "multiplier": 1,
+        "step": 1,
+        "advanced": true
     }
 }

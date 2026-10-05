@@ -6,7 +6,7 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 20:15:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 """Helpers for durable attachment/file/conversation mention markers.
@@ -16,6 +16,8 @@ semantics survive editing and reloads. Attachment/file markers are flattened
 before text reaches a model. Conversation markers intentionally remain structured
 because their body contains query-focused context retrieved from chat history.
 """
+
+from pygpt_net.item.mention import attachment_reference
 
 from dataclasses import dataclass
 import html
@@ -155,7 +157,7 @@ def label_for(kind: str, value: str, label: Optional[str] = None) -> str:
     kind = str(kind or "").lower()
     value = str(value or "").strip()
     if kind == KIND_ATTACHMENT:
-        return value
+        return attachment_reference(value)[1]
     if kind == KIND_CONVERSATION:
         return str(label or value).strip()
 
@@ -282,7 +284,7 @@ def to_model_text(
                     content=tag.content,
                 ))
         else:
-            value = tag.value
+            value = attachment_reference(tag.value)[1] if tag.kind == KIND_ATTACHMENT else tag.value
             if tag.kind == KIND_ATTACHMENT and image_labels:
                 label = image_labels.get(value.strip().casefold())
                 if label is not None:

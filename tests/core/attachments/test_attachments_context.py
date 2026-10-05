@@ -479,6 +479,8 @@ def test_current_context_excludes_old_and_project_attachments(mock_window, tmp_p
     meta = CtxMeta()
     from pygpt_net.item.ctx import CtxGroup
     meta.group = CtxGroup()
+    meta.group.extra["attachment_share"] = True
+    meta.group.extra["attachment_share_cached"] = True
     old = {"uuid": "old", "name": "old.txt", "type": "local_file", "path": "old.txt"}
     new = {"uuid": "new", "name": "new.txt", "type": "local_file", "path": "new.txt"}
     shared = {"uuid": "shared", "name": "shared.txt", "type": "local_file", "path": "shared.txt"}
@@ -494,7 +496,7 @@ def test_current_context_excludes_old_and_project_attachments(mock_window, tmp_p
         (folder / (item["uuid"] + ".txt")).write_text(item["uuid"] + " content")
     ctx = CtxItem()
     ctx.meta = meta
-    assert context.is_project_share_enabled(meta) is False
+    assert context.is_project_share_enabled(meta) is True
     content = context.get_context_text(ctx, only_current=True)
     assert "new content" in content
     assert "old content" not in content

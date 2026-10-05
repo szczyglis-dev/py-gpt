@@ -6,13 +6,13 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.10.04 00:00:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import copy
 import os
 import uuid
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 from pygpt_net.item.render_attachment import AttachmentPath
 
 from PySide6.QtCore import Slot, QObject
@@ -21,6 +21,7 @@ from pygpt_net.core.types import (
     MODE_ASSISTANT,
 )
 from pygpt_net.core.events import KernelEvent
+from pygpt_net.core.text.mentions import iter_tags, KIND_ATTACHMENT
 from pygpt_net.core.bridge import BridgeContext
 from pygpt_net.core.attachments.worker import AttachmentWorker
 from pygpt_net.item.attachment import AttachmentItem
@@ -147,7 +148,7 @@ class Attachment(QObject):
         if meta is None or not context.is_project_share_enabled(meta) or meta.group is None:
             return
 
-        merged = list(meta.group.additional_ctx or [])
+        merged = [item for item in context.get_project_items(meta) if context.is_shared(item)]
         merged.extend(meta.additional_ctx_current or [])
         meta.additional_ctx_current = self._unique_active_items(merged)
 
@@ -166,8 +167,11 @@ class Attachment(QObject):
         meta = ctx.meta
         items = list(meta.additional_ctx_current or [])
         context = self.window.core.attachments.context
+        if any(tag.kind == KIND_ATTACHMENT for tag in iter_tags(ctx.input or "")):
+            ids = context.current_ids(ctx)
+            items.extend(item for item in context.get_all(meta) if item.get("uuid") in ids)
         if include_project and context.is_project_share_enabled(meta) and meta.group is not None:
-            items = list(meta.group.additional_ctx or []) + items
+            items = [item for item in context.get_project_items(meta) if context.is_shared(item)] + items
         items = self._unique_active_items(items)
 
         # Keep exact per-turn metadata in the ctx row as well.  This makes the
@@ -348,7 +352,7 @@ class Attachment(QObject):
                 self.window.core.debug.log(e)
                 continue
             if item and item.get('length', 0) > 0:
-                self.append_to_meta(meta, item)
+                self.append_to_meta(meta, item, attachment)
                 uploaded = True
         if uploaded:
             self.window.core.ctx.save(meta.id)
@@ -401,7 +405,7 @@ class Attachment(QObject):
                             path_relative = os.path.relpath(path, tmp_path).replace(os.sep, "/")
                             sub_attachment.name = path_relative
 
-                            native_ref = self._try_native_upload(path, mode, model, path_relative)
+                            native_ref = self._try_native_upload(path, mode, model, path_relative, meta=meta)
                             if native_ref:
                                 item = self.window.core.attachments.context.create_native_item(
                                     attachment=sub_attachment,
@@ -417,7 +421,7 @@ class Attachment(QObject):
                                 item["archive_name"] = archive_name
                                 item["archive_path"] = attachment.path
                                 item["archive_member"] = path_relative
-                                self.append_to_meta(meta, item)
+                                self.append_to_meta(meta, item, attachment)
                                 attachment.extra.setdefault("native_files", []).append(native_ref)
                                 uploaded = True
                                 sub_attachment.consumed = True
@@ -443,21 +447,21 @@ class Attachment(QObject):
                                     item["archive_name"] = archive_name
                                     item["archive_path"] = attachment.path
                                     item["archive_member"] = path_relative
-                                    self.append_to_meta(meta, item)
+                                    self.append_to_meta(meta, item, attachment)
                                     uploaded = True
                                     sub_attachment.consumed = True
                                     attachment.consumed = True
                 finally:
                     self.window.core.filesystem.packer.remove_tmp(tmp_path)  # clean
         else:
-            native_ref = self._try_native_upload(attachment.path, mode, model, attachment.name or os.path.basename(attachment.path))
+            native_ref = self._try_native_upload(attachment.path, mode, model, attachment.name or os.path.basename(attachment.path), meta=meta)
             if native_ref:
                 item = self.window.core.attachments.context.create_native_item(
                     attachment=attachment,
                     native_ref=native_ref,
                     real_path=attachment.path,
                 )
-                self.append_to_meta(meta, item)
+                self.append_to_meta(meta, item, attachment)
                 attachment.extra.setdefault("native_files", []).append(native_ref)
                 attachment.consumed = True
                 uploaded = True
@@ -470,7 +474,7 @@ class Attachment(QObject):
                     auto_index=auto_index,
                 )
                 if item:
-                    self.append_to_meta(meta, item)
+                    self.append_to_meta(meta, item, attachment)
                     attachment.consumed = True  # allow for deletion
                     uploaded = True
         return uploaded
@@ -481,9 +485,15 @@ class Attachment(QObject):
             mode: str,
             model,
             display_name: str,
+            meta: Optional[CtxMeta] = None,
     ):
         """Try provider-native upload and return its reference; fall back silently on incompatibility/failure."""
-        native = self.window.core.attachments.native
+        core = self.window.core
+        local_context = (core.config.get("context.extra_summary.enabled", False)
+                         or (meta is not None and meta.group is not None))
+        if local_context and self.is_allowed(path) and not core.filesystem.types.is_image(path):
+            return None  # extract text so summary/project retrieval can inspect it
+        native = core.attachments.native
         if not native.can_upload(path, mode, model):
             return None
 
@@ -504,7 +514,7 @@ class Attachment(QObject):
                 print(f"Native upload failed for {display_name}, using local context fallback: {e}")
             return None
 
-    def append_to_meta(self, meta: CtxMeta, item: Dict[str, Any]):
+    def append_to_meta(self, meta: CtxMeta, item: Dict[str, Any], attachment: Optional[AttachmentItem] = None):
         """
         Append item to meta
 
@@ -515,7 +525,27 @@ class Attachment(QObject):
             meta.additional_ctx = []
         if meta.additional_ctx_current is None:
             meta.additional_ctx_current = []
-        meta.additional_ctx.append(item)
+        context = self.window.core.attachments.context
+        if attachment is not None and attachment.id:
+            item["attachment_id"] = attachment.id
+        if meta.group is not None:
+            context.get_project_items(meta)
+            item["project_active"] = bool((meta.group.extra or {}).get("attachment_share_all", False))
+            if attachment is not None and "project_active" in attachment.extra:
+                item["project_active"] = bool(attachment.extra["project_active"])
+            if meta.group.additional_ctx is None:
+                meta.group.additional_ctx = []
+            item["owner_meta_id"] = meta.id
+            meta.group.additional_ctx.append(item)
+            if attachment is not None:
+                pending = (meta.group.extra or {}).get("attachment_share_pending", {})
+                pending.pop(attachment.id, None)
+            self.window.core.ctx.update_group(meta.group)
+            context.refresh_share_flags(meta)
+        else:
+            meta.additional_ctx.append(item)
+        if not context.is_active(item):
+            context.set_display_item_active(meta, item, False)
         meta.additional_ctx_current.append(item)
 
     def upload_web(
@@ -543,7 +573,7 @@ class Attachment(QObject):
         )
         if not item:
             return False
-        self.append_to_meta(meta, item)
+        self.append_to_meta(meta, item, attachment)
         attachment.consumed = True
         return True
 

@@ -20,6 +20,7 @@ from pygpt_net.core.agents.tools import Tools
 def fake_window():
     window = MagicMock()
     window.core = MagicMock()
+    window.core.config.get.side_effect = lambda key, default=None: default
     # Setup idx services.
     window.core.idx = MagicMock()
     window.core.idx.llm = MagicMock()

@@ -6,15 +6,15 @@
 # GitHub:  https://github.com/szczyglis-dev/py-gpt   #
 # MIT License                                        #
 # Created By  : Marcin Szczygliński                  #
-# Updated Date: 2026.09.18 10:55:00                  #
+# Updated Date: 2026.10.05 16:00:00                  #
 # ================================================== #
 
 import os
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
-from PySide6.QtCore import Qt, Signal, QPoint, QSize, QFile
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import Qt, Signal, QPoint, QSize, QFile, QRect, QEvent
+from PySide6.QtGui import QFont, QIcon, QPalette
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QAbstractItemView,
+    QStyledItemDelegate, QStyleOptionViewItem, QStyle,
 )
 
 from pygpt_net.core.text.mentions import KIND_ATTACHMENT, KIND_FILE_CONTEXT, KIND_CONVERSATION
@@ -42,15 +43,54 @@ class MentionEntry:
     value: str
     is_dir: bool = False
     icon: str = ""
+    shared: bool = False
+    active: bool = True
+    attachment_id: str = ""
+
+
+class SharingDelegate(QStyledItemDelegate):
+    """Paint controls inside the themed item, without embedded header widgets."""
+
+    def paint(self, painter, option, index):
+        action = index.data(MentionPopup.ROLE_TOGGLE)
+        label_only = bool(index.data(MentionPopup.ROLE_SHARING_LABEL))
+        if not action and not label_only:
+            return super().paint(painter, option, index)
+        item_option = QStyleOptionViewItem(option)
+        self.initStyleOption(item_option, index)
+        label_width = option.fontMetrics.horizontalAdvance(trans("input.mentions.sharing")) + 12
+        room = option.rect.width() - (label_width + 20 if label_only else 64)
+        item_option.text = option.fontMetrics.elidedText(item_option.text, Qt.ElideMiddle, max(0, room))
+        style = option.widget.style() if option.widget else QApplication.style()
+        style.drawControl(QStyle.CE_ItemViewItem, item_option, painter, option.widget)
+        rect = self.toggle_rect(option.rect)
+        if label_only:
+            painter.save()
+            painter.setPen(option.palette.color(QPalette.Text))
+            painter.drawText(QRect(option.rect.right() - 8 - label_width, option.rect.top(), label_width, option.rect.height()),
+                             Qt.AlignRight | Qt.AlignVCenter, trans("input.mentions.sharing"))
+            painter.restore()
+            return
+        state = bool(index.data(MentionPopup.ROLE_CHECKED))
+        QIcon(f":/icons/toggle_{'on' if state else 'off'}.svg").paint(painter, rect)
+
+    @staticmethod
+    def toggle_rect(rect):
+        return QRect(rect.right() - 37, rect.center().y() - 12, 32, 24)
 
 
 class MentionPopup(QFrame):
     """Small non-activating picker shown above an active ``@`` trigger."""
 
     selected = Signal(object)
+    attachment_share_changed = Signal(str, bool)
+    library_share_changed = Signal(bool)
 
     ROLE_ENTRY = Qt.UserRole + 41
     ROLE_HEADER = Qt.UserRole + 42
+    ROLE_TOGGLE = Qt.UserRole + 43
+    ROLE_CHECKED = Qt.UserRole + 44
+    ROLE_SHARING_LABEL = Qt.UserRole + 45
     MAX_VISIBLE_ROWS = 9
     MAX_RESULTS = 250
     WIDTH = 430
@@ -70,6 +110,8 @@ class MentionPopup(QFrame):
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.list.setTextElideMode(Qt.ElideMiddle)
+        self.list.setItemDelegate(SharingDelegate(self.list))
+        self.list.viewport().installEventFilter(self)
         self.list.itemClicked.connect(self._activate_item)
         self.list.itemActivated.connect(self._activate_item)
 
@@ -78,6 +120,10 @@ class MentionPopup(QFrame):
         layout.setSpacing(0)
         layout.addWidget(self.list)
 
+        self._project_available = False
+        self._project_shared = False
+        self._library_shared = False
+        self._library_limit = ATTACHMENT_BUTTON_LIBRARY_LIMIT
         self._entries: list[MentionEntry] = []
         self._query = ""
         self._from_attachment_button = False
@@ -85,6 +131,7 @@ class MentionPopup(QFrame):
 
     def set_entries(self, entries: Iterable[MentionEntry], *, from_attachment_button: bool = False):
         self._from_attachment_button = from_attachment_button
+        self._library_limit = ATTACHMENT_BUTTON_LIBRARY_LIMIT
         self._entries = list(entries or [])
         self._query = ""
         self.apply_filter("")
@@ -107,6 +154,8 @@ class MentionPopup(QFrame):
 
         self.list.clear()
         self._add_header(trans('input.mentions.add_new'))
+        if self._project_available:
+            self.list.item(0).setData(self.ROLE_SHARING_LABEL, True)
         self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
         self._add_entry(MentionEntry('sketch', trans('input.mentions.sketch'), ''))
         conversations = [e for e in matches if e.kind == KIND_CONVERSATION]
@@ -116,19 +165,14 @@ class MentionPopup(QFrame):
         conversations.sort(key=lambda e: e.label.casefold())
         if self._from_attachment_button:
             # The source supplies newest-first order for the button picker.
-            attachments = attachments[:max(0, ATTACHMENT_BUTTON_LIBRARY_LIMIT)]
+            more_library = len(attachments) > self._library_limit
+            attachments = attachments[:self._library_limit]
         else:
             attachments.sort(key=lambda e: e.label.casefold())
         files.sort(key=lambda e: e.label.casefold())
 
-        # Keep the widget light even for very large project data trees. Filtering
-        # still runs against the full entry set, so typing narrows into items
-        # that were not present in the initial visible slice.
-        visible = []
-        visible.extend(conversations)
-        visible.extend(attachments)
-        visible.extend(files)
-        visible = visible[:self.MAX_RESULTS]
+        # Filtering runs against complete source sets before applying display limits.
+        visible = conversations[:self.MAX_RESULTS] + attachments + files[:self.MAX_RESULTS]
         conversations = [e for e in visible if e.kind == KIND_CONVERSATION]
         attachments = [e for e in visible if e.kind == KIND_ATTACHMENT]
         files = [e for e in visible if e.kind == KIND_FILE_CONTEXT]
@@ -137,10 +181,14 @@ class MentionPopup(QFrame):
             self._add_header(trans("input.mentions.chat_history"))
             for entry in conversations:
                 self._add_entry(entry)
-        if attachments:
-            self._add_header(trans("input.mentions.library"))
+        if attachments or self._project_available:
+            self._add_library_header([e for e in self._entries if e.kind == KIND_ATTACHMENT])
             for entry in attachments:
                 self._add_entry(entry)
+            if self._from_attachment_button and attachments and more_library:
+                self._add_entry(MentionEntry("load_more", trans("input.mentions.load_more"), ""))
+            elif self._from_attachment_button and attachments and self._library_limit > ATTACHMENT_BUTTON_LIBRARY_LIMIT:
+                self._add_entry(MentionEntry("show_less", trans("input.mentions.show_less"), ""))
         if files:
             self._add_header(trans("input.mentions.workdir"))
             for entry in files:
@@ -159,6 +207,60 @@ class MentionPopup(QFrame):
             return False
         return True
 
+    def set_project_state(self, available, enabled, library_enabled=False):
+        self._project_available = bool(available)
+        self._project_shared = bool(enabled)
+        self._library_shared = bool(library_enabled)
+
+    def _set_toggle(self, item, action, enabled):
+        item.setData(self.ROLE_TOGGLE, action)
+        item.setData(self.ROLE_CHECKED, bool(enabled))
+        item.setToolTip(trans("input.mentions.sharing.all.tooltip" if action == "library"
+                              else "input.mentions.sharing.tooltip"))
+
+    def _add_library_header(self, entries):
+        self._add_header(trans("input.mentions.library"))
+        if self._project_available and entries:
+            # Include filtered rows and rows beyond the visible limit.
+            if all(entry.active for entry in entries):
+                self._library_shared = True
+            elif not any(entry.active for entry in entries):
+                self._library_shared = False
+            self._set_toggle(self.list.item(self.list.count() - 1), "library",
+                             self._library_shared)
+
+    def eventFilter(self, watched, event):
+        if watched is self.list.viewport() and event.type() in (QEvent.MouseButtonPress, QEvent.MouseButtonRelease):
+            if event.button() == Qt.LeftButton:
+                item = self.list.itemAt(event.position().toPoint())
+                if item is not None and item.data(self.ROLE_TOGGLE):
+                    rect = SharingDelegate.toggle_rect(self.list.visualItemRect(item))
+                    if rect.contains(event.position().toPoint()):
+                        if event.type() == QEvent.MouseButtonRelease:
+                            enabled = not bool(item.data(self.ROLE_CHECKED))
+                            action = item.data(self.ROLE_TOGGLE)
+                            if action == "library":
+                                self._library_shared = enabled
+                                item.setData(self.ROLE_CHECKED, enabled)
+                                self.library_share_changed.emit(enabled)
+                            else:
+                                self.attachment_share_changed.emit(action, enabled)
+                        return True
+        return super().eventFilter(watched, event)
+
+    def _load_more(self):
+        row = self.list.currentRow()
+        scroll = self.list.verticalScrollBar().value()
+        self._library_limit += ATTACHMENT_BUTTON_LIBRARY_LIMIT
+        self.apply_filter(self._query)
+        self.list.setCurrentRow(min(row, self.list.count() - 1))
+        self.list.verticalScrollBar().setValue(scroll)
+
+    def _show_less(self):
+        self._library_limit = ATTACHMENT_BUTTON_LIBRARY_LIMIT
+        self.apply_filter(self._query)
+        self.list.verticalScrollBar().setValue(0)
+
     def _add_header(self, text: str):
         item = QListWidgetItem(text)
         item.setData(self.ROLE_HEADER, True)
@@ -173,6 +275,8 @@ class MentionPopup(QFrame):
         if entry.kind == KIND_FILE_CONTEXT and entry.is_dir and not label.endswith("/"):
             label += "/"
         item = QListWidgetItem(label)
+        if entry.kind in ("load_more", "show_less"):
+            item.setTextAlignment(Qt.AlignCenter)
         icon_name = {
             'upload': 'attachment',
             'sketch': 'brush',
@@ -188,8 +292,10 @@ class MentionPopup(QFrame):
             icon = extension if extension and QFile.exists(f':/filetypes/{extension}.svg') else 'default'
             item.setIcon(QIcon(f':/filetypes/{icon}.svg'))
         item.setData(self.ROLE_ENTRY, entry)
-        item.setToolTip(entry.value)
+        item.setToolTip(entry.label if entry.shared else entry.value)
         self.list.addItem(item)
+        if entry.kind == KIND_ATTACHMENT and self._project_available and entry.attachment_id:
+            self._set_toggle(item, entry.attachment_id, entry.active)
 
     def _select_first(self):
         for row in range(self.list.count()):
@@ -212,6 +318,12 @@ class MentionPopup(QFrame):
         entry = item.data(self.ROLE_ENTRY)
         if entry is None:
             return
+        if entry.kind == "load_more":
+            self._load_more()
+            return
+        if entry.kind == "show_less":
+            self._show_less()
+            return
         self.hide()
         self.selected.emit(entry)
 
@@ -225,6 +337,12 @@ class MentionPopup(QFrame):
         entry = self.current_entry()
         if entry is None:
             return False
+        if entry.kind == "load_more":
+            self._load_more()
+            return True
+        if entry.kind == "show_less":
+            self._show_less()
+            return True
         self.hide()
         self.selected.emit(entry)
         return True

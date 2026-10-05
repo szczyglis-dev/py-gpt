@@ -111,3 +111,164 @@ def test_registered_readers_have_connect_header_and_configurable_icons(monkeypat
         assert all(not item.icon().pixmap(16, 16).isNull() for item in readers)
     finally:
         popup.close()
+
+
+def test_button_library_paginates_all_attachments_in_batches_of_five(monkeypatch):
+    from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    sources = [MentionEntry(KIND_ATTACHMENT, f'file-{i}', str(i), shared=i % 2 == 0,
+                            attachment_id=str(i)) for i in range(12)]
+    def entries():
+        return [entry for i in range(popup.list.count())
+                if (entry := popup.list.item(i).data(popup.ROLE_ENTRY))]
+    def load_more():
+        row = next(popup.list.item(i) for i in range(popup.list.count())
+                   if popup.list.item(i).data(popup.ROLE_ENTRY)
+                   and popup.list.item(i).data(popup.ROLE_ENTRY).kind == 'load_more')
+        popup._activate_item(row)
+    try:
+        popup.set_project_state(True, True)
+        popup.set_entries(sources, from_attachment_button=True)
+        assert [e.value for e in entries() if e.kind == KIND_ATTACHMENT] == [str(i) for i in range(5)]
+        more = next(popup.list.item(i) for i in range(popup.list.count())
+                    if popup.list.item(i).data(popup.ROLE_ENTRY)
+                    and popup.list.item(i).data(popup.ROLE_ENTRY).kind == 'load_more')
+        from PySide6.QtCore import Qt
+        assert more.textAlignment() == Qt.AlignCenter
+        selected = []
+        popup.selected.connect(selected.append)
+        load_more()
+        assert not selected
+        assert [e.value for e in entries() if e.kind == KIND_ATTACHMENT] == [str(i) for i in range(10)]
+        load_more()
+        assert len([e for e in entries() if e.kind == KIND_ATTACHMENT]) == 12
+        assert not any(e.kind == 'load_more' for e in entries())
+        less = next(popup.list.item(i) for i in range(popup.list.count())
+                    if popup.list.item(i).data(popup.ROLE_ENTRY)
+                    and popup.list.item(i).data(popup.ROLE_ENTRY).kind == 'show_less')
+        assert less.textAlignment() == Qt.AlignCenter
+        popup.list.setCurrentItem(less)
+        assert popup.choose_current()
+        assert not selected
+        assert len([e for e in entries() if e.kind == KIND_ATTACHMENT]) == 5
+        assert any(e.kind == 'load_more' for e in entries())
+        assert not any(e.kind == 'show_less' for e in entries())
+        load_more()
+        load_more()
+        less = next(popup.list.item(i) for i in range(popup.list.count())
+                    if popup.list.item(i).data(popup.ROLE_ENTRY)
+                    and popup.list.item(i).data(popup.ROLE_ENTRY).kind == 'show_less')
+        popup._activate_item(less)
+        assert len([e for e in entries() if e.kind == KIND_ATTACHMENT]) == 5
+        assert not selected
+        popup.set_entries(sources, from_attachment_button=True)
+        assert len([e for e in entries() if e.kind == KIND_ATTACHMENT]) == 5
+        popup.set_entries(sources)
+        assert len([e for e in entries() if e.kind == KIND_ATTACHMENT]) == 12
+    finally:
+        popup.close()
+
+
+def test_library_bulk_state_includes_hidden_attachments(monkeypatch):
+    from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    try:
+        popup.set_project_state(True, True, library_enabled=False)
+        popup.set_entries([MentionEntry(KIND_ATTACHMENT, str(i), str(i),
+                                       active=i < 5, attachment_id=str(i)) for i in range(6)],
+                          from_attachment_button=True)
+        header = next(popup.list.item(i) for i in range(popup.list.count())
+                      if popup.list.item(i).data(popup.ROLE_TOGGLE) == 'library')
+        assert header.data(popup.ROLE_CHECKED) is False
+        changed = []
+        popup.library_share_changed.connect(changed.append)
+        popup.show()
+        click_toggle(popup, popup.list.row(header))
+        assert changed == [True]
+    finally:
+        popup.close()
+
+
+def click_toggle(popup, row):
+    from PySide6.QtTest import QTest
+    from PySide6.QtCore import Qt
+    from pygpt_net.ui.widget.textarea.mention import SharingDelegate
+    item = popup.list.item(row)
+    point = SharingDelegate.toggle_rect(popup.list.visualItemRect(item)).center()
+    QTest.mouseClick(popup.list.viewport(), Qt.LeftButton, pos=point)
+
+
+def test_add_header_has_sharing_label_without_a_toggle(monkeypatch):
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    try:
+        popup.set_project_state(True, False)
+        popup.set_entries([], from_attachment_button=True)
+        assert popup.list.item(0).text() == "input.mentions.add_new"
+        assert popup.list.item(0).data(popup.ROLE_SHARING_LABEL)
+        assert not popup.list.item(0).data(popup.ROLE_TOGGLE)
+        assert all(not popup.list.itemWidget(popup.list.item(i)) for i in range(popup.list.count()))
+        popup.set_project_state(False, False)
+        popup.set_entries([])
+        assert not popup.list.item(0).data(popup.ROLE_SHARING_LABEL)
+    finally:
+        popup.close()
+
+
+def test_bulk_and_individual_toggles_do_not_select_files_and_include_inactive_rows(monkeypatch):
+    from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    try:
+        popup.set_project_state(True, True)
+        popup.set_entries([MentionEntry(KIND_ATTACHMENT, "plans.txt", "plan", shared=True,
+                                       active=False, attachment_id="source-id")], from_attachment_button=True)
+        selected, bulk, individual = [], [], []
+        popup.selected.connect(selected.append)
+        popup.library_share_changed.connect(bulk.append)
+        popup.attachment_share_changed.connect(lambda uid, active: individual.append((uid, active)))
+        popup.show()
+        library = next(i for i in range(popup.list.count()) if popup.list.item(i).data(popup.ROLE_TOGGLE) == "library")
+        source = next(i for i in range(popup.list.count()) if popup.list.item(i).data(popup.ROLE_TOGGLE) == "source-id")
+        click_toggle(popup, library)
+        click_toggle(popup, source)
+        assert bulk == [True] and individual == [("source-id", True)]
+        assert selected == [] and popup.isVisible()
+        popup.set_project_state(False, False)
+        popup.set_entries([MentionEntry(KIND_ATTACHMENT, "plans.txt", "plan", attachment_id="source-id")])
+        assert not any(popup.list.item(i).data(popup.ROLE_TOGGLE) for i in range(popup.list.count()))
+    finally:
+        popup.close()
+
+
+def test_individual_toggle_rebuild_syncs_library_header_state(monkeypatch):
+    from pygpt_net.core.text.mentions import KIND_ATTACHMENT
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    try:
+        popup.set_project_state(True, False, library_enabled=True)
+        popup.set_entries([MentionEntry(KIND_ATTACHMENT, "plans.txt", "plan", shared=True,
+                                       active=True, attachment_id="file")])
+        bulk = next(popup.list.item(i) for i in range(popup.list.count())
+                    if popup.list.item(i).data(popup.ROLE_TOGGLE) == "library")
+        popup.show()
+        changes = []
+        popup.attachment_share_changed.connect(lambda uid, active: changes.append((uid, active)))
+        row = next(i for i in range(popup.list.count()) if popup.list.item(i).data(popup.ROLE_TOGGLE) == "file")
+        click_toggle(popup, row)
+        assert changes == [("file", False)]
+        assert bulk.data(popup.ROLE_CHECKED) is True
+        popup.set_project_state(True, False, library_enabled=True)
+        popup.set_entries([MentionEntry(KIND_ATTACHMENT, "plans.txt", "plan", shared=True,
+                                       active=False, attachment_id="file")])
+        bulk = next(popup.list.item(i) for i in range(popup.list.count())
+                    if popup.list.item(i).data(popup.ROLE_TOGGLE) == "library")
+        assert bulk.data(popup.ROLE_CHECKED) is False
+        # All files can be re-enabled even though project sharing is currently off.
+        row = next(i for i in range(popup.list.count()) if popup.list.item(i).data(popup.ROLE_TOGGLE) == "file")
+        click_toggle(popup, row)
+        assert changes[-1] == ("file", True)
+    finally:
+        popup.close()

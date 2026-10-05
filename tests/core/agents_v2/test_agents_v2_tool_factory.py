@@ -39,6 +39,7 @@ def make_runtime(functions=None):
         tool_history=SimpleNamespace(),
     )
     runtime.window = MagicMock()
+    runtime.window.core.config.get.side_effect = lambda key, default=None: default
     runtime.window.core.command.get_functions.return_value = list(functions or [])
     runtime.window.core.command.is_cmd.return_value = True
     runtime.window.core.debug = MagicMock()

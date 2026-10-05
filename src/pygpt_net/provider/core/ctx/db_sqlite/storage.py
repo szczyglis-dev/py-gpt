@@ -1675,12 +1675,14 @@ class Storage:
             UPDATE ctx_group
             SET
                 name = :name,
+                additional_ctx_json = :additional_ctx_json,
                 extra_json = :extra_json,
                 updated_ts = :updated_ts
             WHERE id = :id
         """).bindparams(
             id=id,
             name=group.name,
+            additional_ctx_json=pack_item_value(group.additional_ctx),
             extra_json=pack_item_value(group.extra),
             updated_ts=int(group.updated),
         )
@@ -1703,6 +1705,7 @@ class Storage:
                 created_ts,
                 updated_ts,
                 name,
+                additional_ctx_json,
                 extra_json
             )
             VALUES 
@@ -1711,6 +1714,7 @@ class Storage:
                 :created_ts,
                 :updated_ts,
                 :name,
+                :additional_ctx_json,
                 :extra_json
             )
         """).bindparams(
@@ -1718,6 +1722,7 @@ class Storage:
             created_ts=int(group.created or 0),
             updated_ts=int(group.updated or 0),
             name=group.name,
+            additional_ctx_json=pack_item_value(group.additional_ctx),
             extra_json=pack_item_value(group.extra),
         )
         with db.begin() as conn:

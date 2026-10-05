@@ -104,3 +104,15 @@ Tool-call rendering is configured separately in ``Settings -> Chats -> Render ->
 ``Restore tool calls in runtime`` controls whether completed tool calls/results from earlier turns are replayed to the model while the current conversation remains active in memory. It is enabled by default and is independent from the database storage mode. Disabling it removes completed tool protocol from later runtime turns, but does not interrupt the tool-call/result sequence that is currently in progress.
 
 By default, historical tool calls and results loaded from the database are not replayed to the model on later turns. To restore persisted tool protocol after reloading a conversation, enable ``Restore tool calls from history`` in ``Settings -> Context -> Tools``. This option applies only to history restored from the database, requires ``Store full input/output``, and is ignored when tool calls are not stored or are stored truncated.
+
+
+Automatic extra-context summary
+-------------------------------
+
+``Settings -> Context -> Auto-strip`` controls the global external-text gateway. Automatic summary is disabled by default. ``Model for extra context summary`` is optional: an empty selection uses the current request model, while a selected model overrides it for auxiliary summary calls.
+
+The default trigger is 25% of the effective context window and the target is 10%. Summarizing also starts when the text exceeds the remaining conversation budget or the advanced context handling threshold. The budget accounts for the model and application limits, history, system prompt, tools, response reserve and protocol overhead. Advanced-context continuation notes and checkpoint filtering are respected.
+
+Large sources are split using the summary model's input capacity and reduced in multiple passes if necessary. Guidance includes the question and conversation; a long conversation is itself condensed in bounded segments. Summary calls have isolated contexts and disabled tools, preventing recursion. Source files remain unchanged. If no usable budget remains or a required summary fails, the request reports the failure instead of sending oversized evidence.
+
+Project evidence retrieval has its own bounded selection stage (up to 12 excerpts, 6,000 tokens and 15% of the request window), then uses this same summary gateway when enabled. Auxiliary summaries and project pre-queries require additional model calls.
