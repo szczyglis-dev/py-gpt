@@ -11,7 +11,7 @@
 """VT terminal display: ANSI cells, keyboard input and bounded scrollback."""
 import math
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QEvent
 from PySide6.QtGui import QColor, QFont, QFontDatabase, QFontMetricsF, QPainter, QKeySequence
 from PySide6.QtWidgets import QAbstractScrollArea, QApplication, QMenu
 from pygpt_net.utils import trans
@@ -360,6 +360,13 @@ class TerminalWidget(QAbstractScrollArea):
         menu = self.build_context_menu()
         menu.exec(event.globalPos())
         menu.deleteLater()
+
+    def event(self, event):
+        # QWidget normally consumes Tab for focus navigation before keyPressEvent.
+        if event.type() == QEvent.KeyPress and event.key() in (Qt.Key_Tab, Qt.Key_Backtab):
+            self.keyPressEvent(event)
+            return True
+        return super().event(event)
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Control, Qt.Key_Shift, Qt.Key_Alt, Qt.Key_Meta):

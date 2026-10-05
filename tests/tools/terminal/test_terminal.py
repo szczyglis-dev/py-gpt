@@ -21,6 +21,18 @@ def mock_shells(monkeypatch):
     monkeypatch.setattr(TerminalProcess, 'close', lambda process: setattr(process, 'closed', True))
 
 
+@pytest.mark.parametrize('key', ['Key_Tab', 'Key_Backtab'])
+def test_tab_bypasses_qt_focus_navigation(key):
+    from unittest.mock import Mock
+    from PySide6.QtCore import Qt, QEvent
+    from PySide6.QtGui import QKeyEvent
+    from pygpt_net.tools.terminal.ui.widget import TerminalWidget
+    widget = SimpleNamespace(keyPressEvent=Mock())
+    event = QKeyEvent(QEvent.KeyPress, getattr(Qt, key), Qt.NoModifier)
+    assert TerminalWidget.event(widget, event) is True
+    widget.keyPressEvent.assert_called_once_with(event)
+
+
 def wait_for(app, predicate):
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
@@ -201,6 +213,10 @@ def test_tab_input_zoom_cursor_and_scrollback(qapp, monkeypatch):
         QTest.keyClicks(widget, 'echo __KEYBOARD__')
         QTest.keyClick(widget, Qt.Key_Return)
         assert ''.join(call.args[0] for call in write.call_args_list) == 'echo __KEYBOARD__\r'
+        write.reset_mock()
+        QTest.keyClick(widget, Qt.Key_Tab)
+        QTest.keyClick(widget, Qt.Key_Backtab)
+        assert [call.args[0] for call in write.call_args_list] == ['\t', '\x1b[Z']
         assert widget.cursor_timer.isActive()
         assert widget.cursor_timer.interval() == 500
         previous = widget.dimensions()
