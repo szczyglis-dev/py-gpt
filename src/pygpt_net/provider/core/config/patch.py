@@ -164,6 +164,12 @@ class Patch:
                 updated = True
 
             if old < parse_version("2.9.1"):
+                if "layout.toolbox.expanded" not in data:
+                    data["layout.toolbox.expanded"] = False
+                    updated = True
+                if "layout.toolbox.placement" not in data:
+                    data["layout.toolbox.placement"] = "middle"
+                    updated = True
                 plugins = data.setdefault("plugins", {})
                 enabled = data.setdefault("plugins_enabled", {})
                 for plugin_id in ("cmd_files", "cmd_code_interpreter", "cmd_system"):

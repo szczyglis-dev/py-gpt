@@ -126,6 +126,25 @@
         "step": 1,
         "advanced": false
     },
+    "layout.toolbox.placement": {
+        "section": "layout",
+        "type": "combo",
+        "label": "settings.layout.toolbox.placement",
+        "description": "settings.layout.toolbox.placement.desc",
+        "value": "middle",
+        "advanced": false,
+        "keys": [
+            {
+                "left": "settings.layout.toolbox.placement.left"
+            },
+            {
+                "middle": "settings.layout.toolbox.placement.middle"
+            },
+            {
+                "right": "settings.layout.toolbox.placement.right"
+            }
+        ]
+    },
     "theme.style": {
         "section": "layout",
         "type": "combo",

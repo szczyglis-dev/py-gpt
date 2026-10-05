@@ -41,6 +41,7 @@ class Layout:
         self.text_nodes_restore()
         self.state_restore()
         self.splitters_restore()
+        self.window.controller.toolbar.restore_toolbox_state()
         #  self.tabs_restore()
         self.groups_restore()
         self.scroll_restore()
@@ -169,15 +170,15 @@ class Layout:
                             continue
                 data[splitter] = splitter_widget.sizes()
                 if splitter == 'main':
-                    from pygpt_net.ui.layout.sidebar import TOOLBOX_FIRST
-                    toolbox_width = data[splitter][0 if TOOLBOX_FIRST else 1]
+                    from pygpt_net.ui.layout.sidebar import pane_order, placement
+                    toolbox_width = data[splitter][pane_order(placement(config)).index('toolbox')]
                     if toolbox_width > 0:
                         config.set('layout.toolbox.width', toolbox_width)
             except Exception:
                 pass
         config.set('layout.splitters', data)
-        from pygpt_net.ui.layout.sidebar import order_name
-        config.set('layout.main.order', order_name())
+        from pygpt_net.ui.layout.sidebar import order_name, placement
+        config.set('layout.main.order', order_name(placement(config)))
 
     def splitters_restore(self):
         """Restore splitters state"""
@@ -192,13 +193,15 @@ class Layout:
                 continue
             try:
                 if splitter == 'main' and len(sizes) == 3:
-                    from pygpt_net.ui.layout.sidebar import pane_sizes
+                    from pygpt_net.ui.layout.sidebar import pane_sizes, placement
                     saved_order = config.get('layout.main.order')
                     if saved_order == 'toolbox-first':
                         toolbox, contexts, chat = sizes
+                    elif saved_order == 'toolbox-right':
+                        contexts, chat, toolbox = sizes
                     else:
                         contexts, toolbox, chat = sizes
-                    sizes = pane_sizes(0, contexts, chat + toolbox)
+                    sizes = pane_sizes(0, contexts, chat + toolbox, placement(config))
                 current = splitter_widget.sizes()
                 if current != sizes:
                     splitter_widget.setSizes(sizes)

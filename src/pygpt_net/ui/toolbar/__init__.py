@@ -1,5 +1,5 @@
 """Persistent navigation toolbar, independent of collapsible side panes."""
-from PySide6.QtCore import QSize, Slot
+from PySide6.QtCore import QEvent, QPoint, QSize, Slot
 from PySide6.QtGui import QIcon, QPainter
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from pygpt_net.ui.widget.element.button import LabelButton
@@ -69,3 +69,35 @@ class LeftToolbar(QWidget):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.window.menuBar().palette().window())
+
+
+class RightToolboxButtonHost(QWidget):
+    """Floating toggle following the chat/toolbox boundary without taking space."""
+
+    EDGE_MARGIN = 4
+    BOTTOM_MARGIN = 24
+
+    def __init__(self, window, parent):
+        super().__init__(parent)
+        self.window = window
+        self.setObjectName('rightToolbar')
+        self.setFixedSize(40, 40)
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        for widget in (parent, window.ui.splitters['main'], window.ui.parts['chat']):
+            widget.installEventFilter(self)
+
+    def update_position(self):
+        from pygpt_net.ui.layout.sidebar import placement
+        if placement(self.window.core.config) != 'right':
+            return
+        chat = self.window.ui.parts['chat']
+        boundary = chat.mapTo(self.parentWidget(), QPoint(chat.width(), 0)).x()
+        self.move(max(0, boundary - self.width() - self.EDGE_MARGIN),
+                  max(0, self.parentWidget().height() - self.height() - self.BOTTOM_MARGIN))
+        self.raise_()
+
+    def eventFilter(self, watched, event):
+        if event.type() in (QEvent.Resize, QEvent.Move, QEvent.Show, QEvent.LayoutRequest):
+            self.update_position()
+        return super().eventFilter(watched, event)

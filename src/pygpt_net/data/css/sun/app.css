@@ -817,3 +817,9 @@ QMenu#modeSelectorMenu::item:checked,
 QMenu#modeSelectorMenu::item:checked:selected {{
   color: #ffffff;
 }}
+
+/* Subtle theme accent for the closed main mode selector. */
+QComboBox#mainModeSelector:enabled {{
+  padding-left: 11px;
+  color: #e2d0af;
+}}

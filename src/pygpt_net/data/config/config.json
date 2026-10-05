@@ -222,6 +222,8 @@
   "font_size": 16,
   "font_size.ctx": 12,
   "font_size.input": 16,
+  "layout.toolbox.placement": "middle",
+  "layout.toolbox.expanded": false,
   "font_size.toolbox": 12,
   "func_call.native": true,
   "img.aspect_ratio": "auto",

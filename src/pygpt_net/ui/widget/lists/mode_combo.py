@@ -21,6 +21,7 @@ class ModePopupCombo(SeparatorComboBox):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setObjectName("mainModeSelector")
         self._popup_menu = None
 
     def wheelEvent(self, event):

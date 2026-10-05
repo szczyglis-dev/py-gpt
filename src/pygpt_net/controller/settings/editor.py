@@ -166,6 +166,9 @@ class Editor:
         self.window.core.idx.sync()
         self.window.controller.idx.update()
 
+        if self.config_changed('layout.toolbox.placement'):
+            self.window.controller.toolbar.apply_toolbox_placement()
+
         # update layout if needed
         if self.config_changed('layout.density'):
             self.window.controller.theme.reload()

@@ -39,6 +39,7 @@ def test_post_setup(mock_window):
     layout.text_nodes_restore.assert_called_once()
     layout.state_restore.assert_called_once()
     layout.splitters_restore.assert_called_once()
+    layout.window.controller.toolbar.restore_toolbox_state.assert_called_once()
     layout.groups_restore.assert_called_once()
     layout.scroll_restore.assert_called_once()
     layout.window.controller.plugins.set_by_tab.assert_called_once()
@@ -69,6 +70,7 @@ def test_main_splitter_restore_migrates_order_and_keeps_toolbox_closed(mock_wind
     for order, saved, expected in (
         (None, [220, 700, 280], pane_sizes(0, 220, 980)),
         ('toolbox-first', [280, 220, 700], pane_sizes(0, 220, 980)),
+        ('toolbox-right', [220, 700, 280], pane_sizes(0, 220, 980)),
     ):
         splitter = MagicMock()
         splitter.sizes.return_value = [0, 200, 1000]

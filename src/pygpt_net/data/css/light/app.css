@@ -872,3 +872,9 @@ QTabBar#outputTabs[activeColumn="false"]::tab:top:selected {{
 /* Files breadcrumb hierarchy. */
 QPushButton[fileBreadcrumb="true"] {{ color: #666666; }}
 QPushButton[fileBreadcrumb="true"][currentBreadcrumb="true"] {{ color: #000000; }}
+
+/* Subtle theme accent for the closed main mode selector. */
+QComboBox#mainModeSelector:enabled {{
+  padding-left: 11px;
+  color: #233d57;
+}}

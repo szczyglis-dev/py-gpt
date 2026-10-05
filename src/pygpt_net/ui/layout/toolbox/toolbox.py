@@ -160,7 +160,7 @@ class ToolboxSectionHover(QObject):
 
 class ToolboxMain:
     MIN_WIDTH = 200
-    TOP_MARGIN = 0  # Align presets / agent tabs with the mode selector row.
+    TOP_MARGIN = 55  # Align presets / agent tabs with the top of New chat.
 
     def __init__(self, window=None):
         """
