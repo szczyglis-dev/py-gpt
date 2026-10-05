@@ -11,7 +11,7 @@
 
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QObject, Signal, Slot
-from PySide6.QtGui import QFontMetrics
+from PySide6.QtGui import QFontMetrics, QIcon
 from PySide6.QtWidgets import QTextEdit, QApplication, QVBoxLayout, QLabel, QCheckBox, QPushButton, QWidget, QSplitter, \
     QHBoxLayout
 
@@ -331,7 +331,8 @@ class ToolWidget:
         )
 
         self.btn_clear = QPushButton("")
-        self.tool.add_lang_mapping(self.btn_clear, "interpreter.btn.clear")
+        self.btn_clear.setIcon(QIcon(":/icons/close.svg"))
+        self.tool.add_lang_mapping(self.btn_clear, "interpreter.btn.clear", setter="setToolTip")
         self.btn_clear.clicked.connect(
             lambda: self.tool.clear(self)
         )
@@ -383,12 +384,12 @@ class ToolWidget:
             self.window.ui.splitters['interpreter.columns'].schedule_restore()
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.btn_clear)
         bottom_layout.addWidget(self.checkbox_ipython)
         bottom_layout.addWidget(self.checkbox_auto_clear)
         bottom_layout.addStretch()
         if all:
             bottom_layout.addWidget(self.checkbox_all)
+        bottom_layout.addWidget(self.btn_clear)
         bottom_layout.addWidget(self.btn_send)
 
         edit_layout = QVBoxLayout()

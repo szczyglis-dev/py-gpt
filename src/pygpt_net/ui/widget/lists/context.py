@@ -686,6 +686,9 @@ class ContextList(BaseList):
             return False
         try:
             item = self._model.itemFromIndex(index)
+            if item.scope == ShowMoreItem.NEW_PROJECT:
+                self.window.controller.ctx.new_group()
+                return True
             if item.scope == ShowMoreItem.PINNED:
                 if item.collapse:
                     self.show_all_pinned = False
@@ -3228,6 +3231,7 @@ class ShowMoreItem(SectionItem):
     """Centered expand/collapse control for capped context-list sections."""
 
     PINNED = 'pinned'
+    NEW_PROJECT = 'new_project'
     PROJECTS = 'projects'
     PROJECT_CONTEXTS = 'project_contexts'
 

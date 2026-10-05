@@ -192,13 +192,12 @@ class Debug:
         opts_layout = QHBoxLayout()
         opts_layout.addWidget(realtime_btn)
         opts_layout.addStretch(1)
-        opts_layout.addWidget(refresh_btn)
-        opts_layout.addStretch(1)
         opts_layout.addWidget(last_update_label)
 
         layout = QVBoxLayout()
         layout.addWidget(splitter, 1)
         layout.addLayout(opts_layout, 0)
+        layout.addWidget(refresh_btn)
         layout.setContentsMargins(5, 5, 5, 5)
 
         self.window.ui.dialog['debug.' + id] = DebugDialog(self.window, id)

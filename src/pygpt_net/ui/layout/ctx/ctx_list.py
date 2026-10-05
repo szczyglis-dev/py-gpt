@@ -380,6 +380,12 @@ class CtxList:
         """
         model = self.window.ui.models[id]
         groups = self.window.core.ctx.get_groups()
+        if not groups:
+            self.append_list_section(
+                model, 'ctx.list.section.projects', action='new_project', section_count=0)
+            model.appendRow(ShowMoreItem(
+                trans('ctx.list.add_project'), scope=ShowMoreItem.NEW_PROJECT))
+            return
         search_string = self.window.core.ctx.get_search_string()
         grouped = {}
         for meta_id, meta in data.items():
@@ -431,7 +437,8 @@ class CtxList:
             self._folder_open_icon = QIcon(":/icons/folder_open.svg")
 
         node = self.window.ui.nodes[id]
-        section_added = False
+        self.append_list_section(
+            model, 'ctx.list.section.projects', action='new_project', section_count=project_total)
 
         # If the active context belongs to a project which would otherwise be
         # outside the visual project limit, reveal all projects so the current
@@ -462,14 +469,6 @@ class CtxList:
             last_dt_str = None
             c = len(items_in_group)
 
-            if not section_added:
-                self.append_list_section(
-                    model,
-                    'ctx.list.section.projects',
-                    action='new_project',
-                    section_count=project_total,
-                )
-                section_added = True
 
             sharing = bool((group.extra or {}).get("attachment_share", False))
             is_attachment = sharing and any(file.get("active", True) for file in
@@ -576,14 +575,6 @@ class CtxList:
 
         hidden_projects = project_total - len(visible_project_rows)
         if hidden_projects > 0:
-            if not section_added:
-                self.append_list_section(
-                    model,
-                    'ctx.list.section.projects',
-                    action='new_project',
-                    section_count=project_total,
-                )
-                section_added = True
             model.appendRow(ShowMoreItem(
                 trans('ctx.list.show_more').format(count=hidden_projects),
                 scope=ShowMoreItem.PROJECTS,
