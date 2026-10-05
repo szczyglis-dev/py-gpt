@@ -87,18 +87,14 @@ class BuiltinSandboxPreparer(QObject):
     def _start(self, request):
         runtime = request["runtime"]
         force = bool(request.get("force"))
-        manual = bool(request.get("manual"))
         self._request = request
 
         if not force and runtime.is_ready():
             self._finish_state()
             return
 
-        if manual:
-            message = trans("sandbox.builtin.rebuild.start")
-        else:
-            message = trans("sandbox.builtin.prepare.start").format(label=self.label)
-        message += "\n" + trans("sandbox.builtin.prepare.wait")
+        message = trans("sandbox.builtin.prepare.start")
+        message += " " + trans("sandbox.builtin.prepare.wait")
         print(f"[BUILT-IN SANDBOX] {message}")
         try:
             dialog = self.plugin.window.ui.dialogs.show_loader(
@@ -134,20 +130,14 @@ class BuiltinSandboxPreparer(QObject):
 
     @Slot(object)
     def _finished(self, runtime):
-        request = self._request or {}
-        manual = bool(request.get("manual"))
         self._close_loader()
         self._finish_state()
-        if manual:
-            message = trans("sandbox.builtin.rebuild.finish")
-            print(f"[BUILT-IN SANDBOX] {message} ({runtime.venv_root})")
-            try:
-                self.plugin.window.ui.dialogs.alert(message)
-            except Exception:
-                pass
-        else:
-            message = f"Built-in sandbox environment ready: {self.label}"
-            print(f"[BUILT-IN SANDBOX] {message} ({runtime.venv_root})")
+        message = trans("sandbox.builtin.prepare.finish") + "\n\n" + str(runtime.venv_root)
+        print(f"[BUILT-IN SANDBOX] {message}")
+        try:
+            self.plugin.window.ui.dialogs.alert(message)
+        except Exception:
+            pass
         try:
             self.plugin.window.update_status(message)
         except Exception:
