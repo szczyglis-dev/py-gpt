@@ -245,5 +245,5 @@ code {{
 
 .user-message-actions {{ --user-actions-color: #858585; }}
 
-:root {{ --user-file-border: transparent; --user-file-bg: transparent; --user-file-hover: transparent; }}
-.user-file {{ border: none; }}
+:root {{ --user-file-border: rgba(0, 0, 0, 0.14); --user-file-bg: rgba(0, 0, 0, 0.025); --user-file-hover: rgba(0, 0, 0, 0.065); }}
+

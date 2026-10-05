@@ -236,5 +236,8 @@ class UrlDialog(QDialog):
             self.window.ui.nodes["dialog.url.config.label"].show()
             self.window.ui.nodes["dialog.url.config.help"].show()
 
-        self.params_widget.adjustSize()
+        # Let the resizable scroll area own the form width. adjustSize()
+        # shrinks a hidden form to its size hint when reopening the dialog.
+        self.params_widget.layout().invalidate()
+        self.params_widget.updateGeometry()
         self.params_scroll.update()
