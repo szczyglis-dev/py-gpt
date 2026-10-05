@@ -155,7 +155,7 @@ def test_long_history_guidance_reads_every_segment_before_evidence():
     assert any("External evidence:\n" in prompt for prompt in prompts)
 
 
-def test_tool_summary_keeps_raw_response_and_model_payload_uses_only_summary():
+def test_tool_response_preserves_raw_payload_without_automatic_summary():
     from pygpt_net.plugin.base.worker import BaseWorker
     from pygpt_net.plugin.base.plugin import BasePlugin
     from pygpt_net.core.summarizer import model_payload
@@ -174,13 +174,14 @@ def test_tool_summary_keeps_raw_response_and_model_payload_uses_only_summary():
     raw = {"data": "external evidence " * 400, "source": "project plans"}
     response = worker.make_response({"cmd": "read"}, raw)
     assert response["result"] is raw
-    assert "4200 EUR" in response["model_result"]
+    assert "model_result" not in response
+    summary.window.dispatch.assert_not_called()
     payload = model_payload([response])[0]
     assert "model_result" not in payload
-    assert "external evidence" not in payload["result"]
+    assert payload["result"] == raw
     plugin.prepare_reply_ctx(response, ctx)
-    assert ctx.results[-1]["result"] == response["model_result"]
-    assert ctx.extra["tool_output"][-1]["result"] == response["model_result"]
+    assert ctx.results[-1]["result"] == raw
+    assert ctx.extra["tool_output"][-1]["result"] == raw
     assert response["result"] is raw
 
 
@@ -201,5 +202,6 @@ def test_execution_local_context_is_never_sent_to_summary_model():
     raw = {"stdout": "large public output " * 400, "stderr": "", "context": "LOCAL_ONLY_SECRET"}
     response = worker.make_response({"cmd": "execute"}, raw, {"context": "LOCAL_ONLY_EXTRA"})
     assert response["result"] is raw
-    assert "model_result" in response
+    assert "model_result" not in response
+    summary.window.dispatch.assert_not_called()
     assert not any("LOCAL_ONLY" in prompt for prompt in prompts)

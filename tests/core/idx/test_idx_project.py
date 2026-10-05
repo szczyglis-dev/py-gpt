@@ -171,3 +171,9 @@ def test_truncate_project_always_removes_tracking_state(mock_window):
     )
     idx.project.remove_state.assert_called_once_with(9)
     mock_window.core.debug.log.assert_called_once()
+
+
+@pytest.fixture(autouse=True)
+def isolate_loader_save_timer(monkeypatch):
+    """Index unit tests use a mock window and do not run delayed UI saves."""
+    monkeypatch.setattr("pygpt_net.core.idx.ui.loaders.QTimer", MagicMock())

@@ -97,7 +97,7 @@ def test_native_tools_are_executed_and_streamed():
     async def read_file(path: str):
         calls.append(path)
         return 'File contents'
-    kwargs['tools'] = [FunctionTool.from_defaults(async_fn=read_file)]
+    kwargs['tools'] = [FunctionTool.from_defaults(async_fn=read_file, name="fs_read_file")]
     result, events = run(provider, window, kwargs)
     assert result == 'Done' and calls == ['a']
     assert any(isinstance(event, ToolCallResult) for event in events)

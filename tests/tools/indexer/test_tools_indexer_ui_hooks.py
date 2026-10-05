@@ -28,7 +28,7 @@ def test_indexer_web_loader_hook_hides_all_groups_and_shows_selected_group():
         "tool.indexer.web.config.help": config_help,
     }
     obj = SimpleNamespace(
-        window=SimpleNamespace(ui=SimpleNamespace(nodes=nodes)),
+        window=SimpleNamespace(ui=SimpleNamespace(nodes=nodes), core=MagicMock()),
         params_widget=MagicMock(),
         params_scroll=MagicMock(),
     )
@@ -57,7 +57,7 @@ def test_indexer_web_loader_hook_keeps_labels_hidden_for_unknown_loader():
         "tool.indexer.web.config.help": config_help,
     }
     obj = SimpleNamespace(
-        window=SimpleNamespace(ui=SimpleNamespace(nodes=nodes)),
+        window=SimpleNamespace(ui=SimpleNamespace(nodes=nodes), core=MagicMock()),
         params_widget=MagicMock(),
         params_scroll=MagicMock(),
     )

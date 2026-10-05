@@ -14,17 +14,13 @@ def test_tools_callbacks_delegate_to_matching_components():
     Tools._toggle_remote_store(widget)
     Tools._rebuild_ipython(widget)
     Tools._rebuild_python_legacy(widget)
-    Tools._rebuild_system(widget)
     Tools._rebuild_python_builtin(widget)
-    Tools._rebuild_system_builtin(widget)
 
     window.controller.tools.open_tab.assert_called_once_with("calendar")
     window.controller.remote_store.toggle_editor.assert_called_once()
     window.controller.tools.rebuild_ipython_docker.assert_called_once_with()
     window.controller.tools.rebuild_python_legacy_docker.assert_called_once_with()
-    window.controller.tools.rebuild_system_docker.assert_called_once_with()
     window.controller.tools.rebuild_python_builtin.assert_called_once_with()
-    window.controller.tools.rebuild_system_builtin.assert_called_once_with()
 
 
 def _window(tab_tools, menu_actions):
@@ -99,11 +95,11 @@ def test_tools_setup_adds_plugin_remote_store_and_docker_actions():
     assert "menu.tools.docker" in window.ui.menu
     assert "menu.tools.ipython.rebuild" in window.ui.menu
     assert "menu.tools.python_legacy.rebuild" in window.ui.menu
-    assert "menu.tools.system.rebuild" in window.ui.menu
+    assert "menu.tools.system.rebuild" not in window.ui.menu
     assert "menu.tools.python_builtin.rebuild" in window.ui.menu
-    assert "menu.tools.system_builtin.rebuild" in window.ui.menu
+    assert "menu.tools.system_builtin.rebuild" not in window.ui.menu
     assert menu.addSeparator.call_count == 3
-    assert docker_menu.addAction.call_count == 5
+    assert docker_menu.addAction.call_count == 3
 
 
 def test_calendar_tool_menu_action_follows_web_browser():

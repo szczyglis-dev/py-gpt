@@ -31,7 +31,7 @@ def test_cmd_syntax_linux_hides_winapi_and_appends_cwd(mock_window):
         plugin.cmd_syntax(data)
     assert [x["cmd"] for x in data["cmd"]] == ["shell_exec"]
     context = plugin.build_runtime_filesystem_context()
-    assert "Host working directory: /tmp/data" in context
+    assert "Working directory: /tmp/data" in context
     assert "Operating system: Linux" in context
 
 

@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import pytest
 import platform
 from unittest.mock import MagicMock
 
@@ -436,3 +437,9 @@ def test_get_version(mock_window):
     idx.get_provider().get_version = MagicMock(return_value="0.1.0")
     res = idx.get_version()
     assert res == "0.1.0"
+
+
+@pytest.fixture(autouse=True)
+def isolate_loader_save_timer(monkeypatch):
+    """Index unit tests use a mock window and do not run delayed UI saves."""
+    monkeypatch.setattr("pygpt_net.core.idx.ui.loaders.QTimer", MagicMock())

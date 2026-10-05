@@ -97,7 +97,7 @@ def test_supervisor_worker_keeps_tool_history_across_turns_and_event_loops():
     async def read_file():
         return 'Secret from the file: 4817'
     kwargs = {'context': context, 'model': SimpleNamespace(id='mock'),
-              'tools':[FunctionTool.from_defaults(async_fn=read_file)], 'verbose':False}
+              'tools':[FunctionTool.from_defaults(async_fn=read_file, name="fs_read_file")], 'verbose':False}
     execute(provider.get_agent(window, kwargs), 'First turn')
     # Same meta id, new CtxItem/workflow instance, and a fresh asyncio.run loop.
     context.ctx = CtxItem()
@@ -167,7 +167,7 @@ def test_custom_connected_memory_keeps_tool_messages_and_no_memory_stays_statele
         {'id':'end', 'type':'end', 'slots':{}}, {'id':'mem', 'type':'memory', 'slots':{}},
     ]
     kwargs = {'context':context, 'schema':schema, 'llm':llm, 'model':None,
-              'tools':[FunctionTool.from_defaults(async_fn=read_file)], 'verbose':False}
+              'tools':[FunctionTool.from_defaults(async_fn=read_file, name="fs_read_file")], 'verbose':False}
     execute(provider.get_agent(window, kwargs), 'First task')
     execute(provider.get_agent(window, kwargs), 'New task')
     assert 'custom-private-value-123' in str(seen[2])
@@ -205,7 +205,7 @@ def test_subtask_planner_executor_retains_its_own_tool_history():
     async def read_file():
         return 'planner-file-value-9001'
     kwargs = {'context':context, 'model':SimpleNamespace(id='mock'), 'llm':llm,
-              'tools':[FunctionTool.from_defaults(async_fn=read_file)], 'verbose':False}
+              'tools':[FunctionTool.from_defaults(async_fn=read_file, name="fs_read_file")], 'verbose':False}
     execute(provider.get_agent(window, kwargs), 'First planner task')
     execute(provider.get_agent(window, kwargs), 'Second planner task')
     assert 'planner-file-value-9001' in str(execution_inputs[2])

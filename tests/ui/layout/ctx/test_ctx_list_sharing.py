@@ -51,6 +51,28 @@ def test_sharing_header_keeps_conversations_visible_with_attachment_icons():
     assert model.item(0).rowCount() == 1
 
 
+def test_empty_projects_show_create_action():
+    from pygpt_net.ui.widget.lists.context import ContextList, ShowMoreItem
+    model = QStandardItemModel()
+    controller = SimpleNamespace(new_group=Mock())
+    widget = SimpleNamespace(
+        window=SimpleNamespace(
+            ui=SimpleNamespace(models={'ctx.list': model}),
+            core=SimpleNamespace(ctx=SimpleNamespace(get_groups=lambda: {}))),
+        append_list_section=Mock())
+    CtxList.update_groups(widget, 'ctx.list', {})
+    widget.append_list_section.assert_called_once_with(
+        model, 'ctx.list.section.projects', action='new_project', section_count=0)
+    action = model.item(0)
+    assert action.scope == ShowMoreItem.NEW_PROJECT
+    assert action.text() == 'ctx.list.add_project'
+    view = SimpleNamespace(
+        _model=model, _is_show_more_index=lambda index: True,
+        window=SimpleNamespace(controller=SimpleNamespace(ctx=controller)))
+    assert ContextList._handle_show_more_click(view, model.index(0, 0))
+    controller.new_group.assert_called_once_with()
+
+
 def test_meta_attachment_icon_tracks_own_files_with_project_sharing():
     group = CtxGroup()
     group.extra['attachment_share'] = True
