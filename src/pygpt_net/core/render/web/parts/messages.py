@@ -80,6 +80,37 @@ class Messages:
 
         return str(text).strip()
 
+    def connection_snapshot(self, ctx, pending=()):
+        """Connection cards belong to their user turn, including restored history."""
+        sources = [item for item in (getattr(ctx, 'additional_ctx', None) or [])
+                   if isinstance(item, dict) and item.get('type') == 'url']
+        for item in pending:
+            if getattr(item, 'type', None) == 'url':
+                sources.append(dict(item.extra or {}, path=item.path, name=item.name))
+        result = {}
+        seen = set()
+        for item in sources:
+            address = str(item.get('path') or item.get('name') or '')
+            if not address or address in seen:
+                continue
+            seen.add(address)
+            provider = None
+            indexing = getattr(getattr(self.renderer.window.core, 'idx', None), 'indexing', None)
+            if indexing is not None:
+                if item.get('loader'):
+                    provider = indexing.get_loader(item['loader'])
+                elif not item.get('loader_name'):
+                    for candidate in indexing.data_providers.values():
+                        if 'web' in candidate.type and candidate.is_supported_attachment(address):
+                            provider = candidate
+                            break
+            name = item.get('loader_name') or getattr(provider, 'name', None) or item.get('loader') or 'Web'
+            icon = item.get('loader_icon') or getattr(provider, 'icon', None) or ':/icons/language.svg'
+            if icon.startswith(':/'):
+                icon = 'qrc:///' + icon[2:]
+            result[str(len(result) + 1)] = {'name': name, 'address': address, 'url': address, 'icon_url': icon}
+        return result
+
     def input_attachment_snapshot(self, ctx, pid):
         """Render the pending upload list before provider-side ctx binding finishes."""
         preview = copy(ctx)
@@ -100,7 +131,7 @@ class Messages:
                 preview.files = [file for file in preview.files if file != path]
                 preview.files.append(AttachmentPath(path, "user"))
         images, files, _, _ = self.renderer.body.build_extras_dicts(preview, pid, origin="user")
-        return {"images": images, "files": files}
+        return {"images": images, "files": files, "connections": self.connection_snapshot(ctx, pending.values())}
 
     def append_input(self, meta: CtxMeta, ctx: CtxItem, flush: bool = True, append: bool = False):
         """
@@ -299,7 +330,8 @@ class Messages:
         block = RenderBlock(id=getattr(ctx, "id", None), meta_id=getattr(meta, "id", None))
 
         user_images, user_files, _, _ = self.renderer.body.build_extras_dicts(ctx, pid, origin="user")
-        block.extra["user_attachments"] = {"images": user_images, "files": user_files}
+        block.extra["user_attachments"] = {"images": user_images, "files": user_files,
+                                           "connections": self.connection_snapshot(ctx)}
 
         # input
         if input_text:

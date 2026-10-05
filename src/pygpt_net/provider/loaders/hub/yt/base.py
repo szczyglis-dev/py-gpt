@@ -3,7 +3,7 @@
 import re
 from typing import Any, List, Optional
 
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
 
 from llama_index.core.readers.base import BasePydanticReader
 from llama_index.core.schema import Document
@@ -25,7 +25,7 @@ class YoutubeTranscriptReader(BasePydanticReader):
     def load_data(
         self,
         ytlinks: List[str],
-        languages: Optional[List[str]] = ["en"],
+        languages: Optional[List[str]] = None,
         **load_kwargs: Any,
     ) -> List[Document]:
         """Load data from the input directory.
@@ -35,7 +35,7 @@ class YoutubeTranscriptReader(BasePydanticReader):
                 for which transcripts are to be read.
 
         """
-        languages = self.languages
+        languages = languages or self.languages
         if not languages:
             languages = ["en"]
 
@@ -52,10 +52,21 @@ class YoutubeTranscriptReader(BasePydanticReader):
                     "(with or without 'www.')\n"
                     "  youtu.be/{video_id\\} (never includes www subdomain)"
                 )
-            transcript_chunks = YouTubeTranscriptApi.get_transcript(
-                video_id, languages=languages
-            )
-            chunk_text = [chunk["text"] for chunk in transcript_chunks]
+            # Prefer configured languages, then use an available original
+            # transcript rather than silently losing context for other languages.
+            if hasattr(YouTubeTranscriptApi, 'list_transcripts'):
+                transcripts = YouTubeTranscriptApi.list_transcripts(video_id)
+            else:
+                transcripts = YouTubeTranscriptApi().list(video_id)
+            try:
+                selected = transcripts.find_transcript(languages)
+            except NoTranscriptFound:
+                selected = next(iter(transcripts), None)
+                if selected is None:
+                    raise
+            transcript_chunks = selected.fetch()
+            chunk_text = [chunk['text'] if isinstance(chunk, dict) else chunk.text
+                          for chunk in transcript_chunks]
             transcript = "\n".join(chunk_text)
             results.append(
                 Document(

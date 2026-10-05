@@ -95,3 +95,19 @@ def test_sketch_action_follows_upload_and_keeps_upload_selected(monkeypatch):
         assert popup.current_entry().kind == 'upload'
     finally:
         popup.close()
+
+
+def test_registered_readers_have_connect_header_and_configurable_icons(monkeypatch):
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+    popup = MentionPopup()
+    try:
+        popup.set_entries([MentionEntry('web_loader', 'Google Drive', 'google_drive'),
+                           MentionEntry('web_loader', 'Database', 'database', icon=':/icons/attachment.svg')])
+        headers = [popup.list.item(i).text() for i in range(popup.list.count()) if popup.list.item(i).data(popup.ROLE_HEADER)]
+        assert headers[-1] == 'input.mentions.connect'
+        readers = [popup.list.item(i) for i in range(popup.list.count()) if popup.list.item(i).data(popup.ROLE_ENTRY)
+                   and popup.list.item(i).data(popup.ROLE_ENTRY).kind == 'web_loader']
+        assert [item.text() for item in readers] == ['Database', 'Google Drive']
+        assert all(not item.icon().pixmap(16, 16).isNull() for item in readers)
+    finally:
+        popup.close()

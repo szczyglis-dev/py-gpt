@@ -414,7 +414,8 @@ class Indexing:
             self,
             url: str,
             type: str = "webpage",
-            extra_args: Optional[Dict[str, Any]] = None
+            extra_args: Optional[Dict[str, Any]] = None,
+            raise_on_error: bool = False,
     ) -> Tuple[str, List[Document]]:
         """
         Get content from external resource
@@ -424,7 +425,8 @@ class Indexing:
         :param extra_args: extra arguments for loader
         :return: text content, list of documents
         """
-        docs = self.read_web(url, type, extra_args)
+        docs = (self.read_web(url, type, extra_args, raise_on_error=True)
+                if raise_on_error else self.read_web(url, type, extra_args))
         data = []
         for doc in docs:
             data.append(doc.text)
@@ -435,6 +437,7 @@ class Indexing:
             url: str,
             type: str = "webpage",
             extra_args: Optional[Dict[str, Any]] = None,
+            raise_on_error: bool = False,
     ) -> List[Document]:
         """
         Read data from external resource
@@ -450,6 +453,7 @@ class Indexing:
         if type not in self.loaders["web"]:
             raise ValueError("No web loader for type: {}".format(type))
 
+        extra_args = dict(extra_args or {})
         try:
             if "url" not in extra_args:
                 extra_args["url"] = url
@@ -467,6 +471,8 @@ class Indexing:
             )
         except Exception as e:
             self.window.core.debug.log(e)
+            if raise_on_error:
+                raise
         return documents
 
     def prepare_document(self, doc: Document):

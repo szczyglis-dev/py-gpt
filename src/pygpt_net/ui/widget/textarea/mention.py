@@ -41,6 +41,7 @@ class MentionEntry:
     label: str
     value: str
     is_dir: bool = False
+    icon: str = ""
 
 
 class MentionPopup(QFrame):
@@ -145,6 +146,12 @@ class MentionPopup(QFrame):
             for entry in files:
                 self._add_entry(entry)
 
+        readers = [entry for entry in matches if entry.kind == 'web_loader']
+        if readers:
+            self._add_header(trans('input.mentions.connect'))
+            for entry in sorted(readers, key=lambda entry: entry.label.casefold()):
+                self._add_entry(entry)
+
         self._select_first()
         self._resize_for_items()
         if self.list.count() == 0:
@@ -172,7 +179,9 @@ class MentionPopup(QFrame):
             KIND_CONVERSATION: 'chat1',
             KIND_ATTACHMENT: 'upload',
         }.get(entry.kind)
-        if icon_name:
+        if entry.kind == 'web_loader':
+            item.setIcon(QIcon(entry.icon or ':/icons/language.svg'))
+        elif icon_name:
             item.setIcon(QIcon(f':/icons/{icon_name}.svg'))
         elif entry.kind == KIND_FILE_CONTEXT and WORKDIR_MENTIONS_SHOW_FILETYPE_ICONS:
             extension = os.path.splitext(entry.value or entry.label)[1].lower().lstrip('.')

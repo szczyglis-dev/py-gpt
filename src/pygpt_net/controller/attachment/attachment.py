@@ -10,6 +10,7 @@
 # ================================================== #
 
 import os
+import json
 from datetime import datetime
 from typing import Optional, Union
 from urllib.parse import urlparse
@@ -307,11 +308,25 @@ class Attachment:
             self.update()
         return added
 
-    def open_add_url(self):
+    def open_add_url(self, loader_id=None, attachment_id=None):
         """Open add attachment URL dialog"""
         self.window.ui.dialog['url'].id = "attachment"
-        self.window.ui.dialog['url'].current = ""
+        self.window.ui.dialog['url'].current = attachment_id or ""
         self.window.ui.dialog['url'].init()
+        if loader_id is not None:
+            self.window.ui.nodes['dialog.url.loader'].set_value(loader_id)
+            self.window.ui.dialog['url'].hook_loader_change(None, loader_id, None)
+        if attachment_id is not None:
+            mode = self.window.core.config.get('mode')
+            item = self.window.core.attachments.get_all(mode).get(attachment_id)
+            if item is not None:
+                for group, values in (('option', item.extra.get('input_params', {})),
+                                      ('config', item.extra.get('input_config', {}))):
+                    for key, value in values.items():
+                        node = self.window.ui.nodes.get(f'dialog.url.loader.{group}.{loader_id}.{key}')
+                        if node is not None:
+                            text = json.dumps(value) if isinstance(value, dict) else (','.join(map(str, value)) if isinstance(value, list) else str(value))
+                            node.setText(text)
         self.window.ui.dialog['url'].resize(800, 400)
         self.window.ui.dialog['url'].show()
 
@@ -322,6 +337,8 @@ class Attachment:
             "dialog.url.loader.option",
             "dialog.url.loader.config",
         )
+        if not result:
+            return
         extra = {
             "loader": loader,
             "input_params": input_params,
@@ -329,18 +346,31 @@ class Attachment:
         }
         provider = self.window.core.idx.indexing.get_loader(loader)
         if provider:
+            extra["loader_name"] = provider.name
+            extra["loader_icon"] = getattr(provider, "icon", "") or ":/icons/language.svg"
             mode = self.window.core.config.get('mode')
             name = provider.get_external_id(input_params)
-            attachment = self.window.core.attachments.new(
-                mode=mode,
-                name=name,
-                path=name,
-                auto_save=False,
-                type=AttachmentItem.TYPE_URL,
-                extra=extra,
-            )
+            current_id = self.window.ui.dialog['url'].current
+            attachment = self.window.core.attachments.get_all(mode).get(current_id) if current_id else None
+            if attachment is not None:
+                attachment.name = name
+                attachment.path = name
+                attachment.extra = extra
+            else:
+                attachment = self.window.core.attachments.new(
+                    mode=mode,
+                    name=name,
+                    path=name,
+                    auto_save=False,
+                    type=AttachmentItem.TYPE_URL,
+                    extra=extra,
+                )
             self.window.core.attachments.save()
             self.update()
+            input_node = self.window.ui.nodes.get('input')
+            strip = getattr(input_node, 'attachment_strip', None)
+            if strip is not None:
+                strip.show_pending(attachment.id)
             self.window.ui.dialog['url'].close()
 
     def add_url(self, url: str):

@@ -23,7 +23,7 @@ from PySide6.QtWebEngineCore import (
 )
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtGui import QAction, QDesktopServices, QIcon
-from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout, QWidget, QFileDialog
+from PySide6.QtWidgets import QMenu, QDialog, QVBoxLayout, QWidget, QFileDialog, QApplication
 
 from pygpt_net.core.qt import safe_emit
 from pygpt_net.core.events import RenderEvent
@@ -629,6 +629,15 @@ class ChatWebOutput(QWebEngineView):
         link_url = self._context_link_url()
         resolved_link = self._resolve_web_link(link_url) if link_url else None
         link_actions_added = False
+
+        if link_url:
+            action = QAction(QIcon(":/icons/copy.svg"),
+                             trans("web.context_menu.copy_link"), self)
+            action.triggered.connect(
+                lambda checked=False, url=link_url: QApplication.clipboard().setText(url)
+            )
+            menu.addAction(action)
+            link_actions_added = True
 
         if resolved_link is not None and resolved_link.can_open_external:
             action = QAction(

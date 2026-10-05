@@ -258,3 +258,79 @@ def test_parent_minimum_counts_attachment_band_once_across_tab_returns(app):
     assert root.minimumHeight() == 0
     assert editor.minimumHeight() == 105
     root.close()
+
+
+def test_connection_tiles_follow_files_show_reader_name_and_default_icon(app):
+    window = MagicMock()
+    window.core.config.get.return_value = 'dark'
+    window.controller.theme.common.is_light_theme_id.return_value = False
+    items = {'web': AttachmentItem(name='source-id', path='source-id', type=AttachmentItem.TYPE_URL,
+                                  extra={'loader': 'database', 'loader_name': 'Database'}),
+             'file': AttachmentItem(name='note.txt', path='/note.txt')}
+    parent = QWidget()
+    strip = InputAttachments(window, parent)
+    try:
+        strip.sync(items, 'chat')
+        assert strip.row.itemAt(0).widget().name == 'note.txt'
+        tile = strip.row.itemAt(1).widget()
+        assert tile.name == 'Database'
+        assert tile.is_connection and tile.image.isNull()
+        assert not tile.icon.pixmap(16, 16).isNull()
+    finally:
+        parent.close()
+
+
+def test_web_reader_attachment_reappears_above_input_when_edited_after_send(app):
+    window = MagicMock()
+    window.core.config.get.return_value = 'dark'
+    window.controller.theme.common.is_light_theme_id.return_value = False
+    source = AttachmentItem(id='youtube', name='video-url', path='video-url', type=AttachmentItem.TYPE_URL,
+                            extra={'loader': 'youtube', 'loader_name': 'YouTube', 'loader_icon': ':/icons/language.svg'})
+    items = {'youtube': source}
+    window.core.attachments.get_all.return_value = items
+    parent = QWidget()
+    strip = InputAttachments(window, parent)
+    heights = []
+    strip.heightChanged.connect(heights.append)
+    try:
+        strip.sync(items, 'chat')
+        strip.mark_sent()
+        assert strip.isHidden()
+        strip.show_pending('youtube')
+        assert not strip.isHidden()
+        tile = strip.row.itemAt(0).widget()
+        assert tile.name == 'YouTube' and tile.is_connection
+        from PySide6.QtGui import QIcon
+        assert tile.icon.pixmap(16, 16).toImage() == QIcon(':/icons/language.svg').pixmap(16, 16).toImage()
+        assert heights[-1] == strip.ROW_HEIGHT
+    finally:
+        parent.close()
+
+
+def test_reader_dialog_submission_creates_visible_attachment_tile(app):
+    from pygpt_net.core.attachments.attachments import Attachments
+    from pygpt_net.controller.attachment.attachment import Attachment as Controller
+    window = MagicMock()
+    window.core.config.get.side_effect = lambda key, *args: 'chat' if key == 'mode' else False
+    window.controller.theme.common.is_light_theme_id.return_value = False
+    store = Attachments(window)
+    store.save = MagicMock()
+    window.core.attachments = store
+    provider = SimpleNamespace(name='YouTube', icon=':/icons/language.svg', get_external_id=lambda params: params['url'])
+    window.core.idx.indexing.get_loader.return_value = provider
+    window.core.idx.ui.loaders.handle_options.return_value = (True, 'youtube', {'url': 'https://youtu.be/F3uvhqiKrcI'}, {})
+    parent = QWidget()
+    strip = InputAttachments(window, parent)
+    window.ui.nodes = {'input': SimpleNamespace(attachment_strip=strip), 'dialog.url.loader': MagicMock()}
+    window.ui.dialog = {'url': SimpleNamespace(current='', close=MagicMock())}
+    ctrl = Controller(window)
+    ctrl.update_tab = MagicMock()
+    try:
+        ctrl.attach_url()
+        assert strip.row.count() == 1 and not strip.isHidden()
+        tile = strip.row.itemAt(0).widget()
+        assert tile.name == 'YouTube' and tile.is_connection
+        assert not tile.icon.pixmap(16, 16).isNull()
+        window.core.idx.indexing.read_web_content.assert_not_called()
+    finally:
+        parent.close()

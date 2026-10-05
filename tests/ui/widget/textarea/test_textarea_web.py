@@ -222,3 +222,32 @@ def test_web_bridge_routes_ready_code_and_scroll_state():
     Bridge.cleanup(bridge)
     assert bridge.window is None
     bridge.deleteLater.assert_called_once_with()
+
+
+def test_context_menu_copies_captured_link_only_when_present(monkeypatch):
+    from pygpt_net.ui.widget.textarea import web
+
+    actions = []
+    class Action:
+        def __init__(self, icon, label, parent):
+            self.label = label
+            self.triggered = SimpleNamespace(connect=lambda callback: setattr(self, 'callback', callback))
+            actions.append(self)
+    monkeypatch.setattr(web, 'QAction', Action)
+    monkeypatch.setattr(web, 'QMenu', lambda parent: MagicMock())
+    monkeypatch.setattr(web, 'trans', lambda key, **kwargs: key)
+    clipboard = MagicMock()
+    monkeypatch.setattr(web, 'QApplication', SimpleNamespace(clipboard=lambda: clipboard))
+    widget = MagicMock()
+    widget._context_link_url.return_value = 'https://example.com/?a=1&b=2'
+    widget._resolve_web_link.return_value = None
+    widget._annotations.return_value = None
+    widget.page.return_value.hasSelection.return_value = False
+    ChatWebOutput.on_context_menu(widget, None)
+    copy = next(a for a in actions if a.label == 'web.context_menu.copy_link')
+    widget._context_link_url.return_value = ''
+    copy.callback()
+    clipboard.setText.assert_called_once_with('https://example.com/?a=1&b=2')
+    actions.clear()
+    ChatWebOutput.on_context_menu(widget, None)
+    assert not any(a.label == 'web.context_menu.copy_link' for a in actions)

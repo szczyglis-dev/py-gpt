@@ -393,7 +393,7 @@ def test_workdir_mention_blacklist_visibility_flag(tmp_path, monkeypatch, hide_b
     core.filesystem.get_data_dir.return_value = str(tmp_path)
     core.filesystem.make_local.side_effect = lambda path, ctx=None: path
     core.idx.indexing.is_allowed.side_effect = lambda path: not path.endswith('private.txt')
-    widget = SimpleNamespace(window=SimpleNamespace(core=core), MENTION_SCAN_LIMIT=5000)
+    widget = SimpleNamespace(window=SimpleNamespace(core=core, controller=MagicMock()), MENTION_SCAN_LIMIT=5000)
     entries = ChatInput._build_mention_entries(widget)
     expected = ['note.txt'] if hide_blacklisted else ['note.txt', 'nested/private.txt', 'nested/program.EXE']
     assert [entry.label for entry in entries] == expected
@@ -475,7 +475,7 @@ def test_button_mention_entries_do_not_access_workdir():
     core = MagicMock()
     core.attachments.get_all.return_value = {}
     core.attachments.get_from_meta_ctx.return_value = []
-    widget = SimpleNamespace(window=SimpleNamespace(core=core))
+    widget = SimpleNamespace(window=SimpleNamespace(core=core, controller=MagicMock()))
     assert ChatInput._build_mention_entries(widget, include_workdir=False) == []
     core.filesystem.get_data_dir.assert_not_called()
     core.filesystem.make_local.assert_not_called()
@@ -492,7 +492,7 @@ def test_button_library_uses_upload_order_not_filename_or_modification_time():
         SimpleNamespace(name='a-history-old.txt', path='/history-old', extra={}),
         SimpleNamespace(name='z-history-new.txt', path='/history-new', extra={}),
     ]
-    widget = SimpleNamespace(window=SimpleNamespace(core=core))
+    widget = SimpleNamespace(window=SimpleNamespace(core=core, controller=MagicMock()))
     entries = ChatInput._build_mention_entries(widget, include_workdir=False)
     assert [entry.label for entry in entries] == [
         'z-current-new.txt', 'a-current-old.txt', 'z-history-new.txt', 'a-history-old.txt',
@@ -527,3 +527,25 @@ def test_upload_from_typed_at_still_inserts_mention(monkeypatch):
     ChatInput._accept_mention_entry(widget, MentionEntry('upload', 'Files and folders', ''))
     widget._insert_mention_cursor.assert_called_once_with(cursor, MentionEntry(KIND_ATTACHMENT, 'uploaded.txt', 'uploaded.txt'))
     cursor.removeSelectedText.assert_called_once()
+
+
+def test_connection_action_opens_selected_reader_without_inserting_mention():
+    from pygpt_net.ui.widget.textarea.mention import MentionEntry
+    widget = SimpleNamespace(window=MagicMock(), _mention_popup=MagicMock())
+    ChatInput._accept_mention_entry(widget, MentionEntry('web_loader', 'Google Drive', 'google_drive'))
+    widget.window.controller.attachment.open_add_url.assert_called_once_with(loader_id='google_drive')
+    widget.window.controller.tabs.open_or_activate.assert_not_called()
+    assert widget._mention_button_cursor is None
+
+
+def test_all_registered_web_readers_are_available_without_workdir_scan():
+    core = MagicMock()
+    core.attachments.get_all.return_value = {}
+    core.attachments.get_from_meta_ctx.return_value = []
+    controller = MagicMock()
+    controller.config.placeholder.apply_by_id.return_value = [{'web_google_drive': 'Google Drive'}, {'web_database': 'Database'}]
+    core.idx.indexing.get_loader.side_effect = lambda key: SimpleNamespace(icon=':/icons/language.svg')
+    widget = SimpleNamespace(window=SimpleNamespace(core=core, controller=controller))
+    entries = ChatInput._build_mention_entries(widget, include_workdir=False)
+    assert [(entry.kind, entry.value) for entry in entries] == [('web_loader', 'google_drive'), ('web_loader', 'database')]
+    core.filesystem.get_data_dir.assert_not_called()

@@ -131,7 +131,7 @@ urllib3 = "2.7.0"
 uv = "0.12.15"
 wikipedia = "1.4.0"
 xai-sdk = "1.17.0"
-youtube-transcript-api = "0.6.3"
+youtube-transcript-api = "1.2.4"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.4.0"

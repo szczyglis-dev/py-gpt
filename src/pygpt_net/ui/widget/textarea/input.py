@@ -600,6 +600,14 @@ class ChatInput(QTextEdit):
             seen.add(key)
             entries.append(MentionEntry(KIND_ATTACHMENT, name, name, False))
 
+        # Use the same registered reader choices as the existing URL dialog.
+        for choice in self.window.controller.config.placeholder.apply_by_id('llama_index_loaders_web'):
+            for key, label in choice.items():
+                loader_id = key.removeprefix('web_')
+                provider = core.idx.indexing.get_loader(loader_id)
+                icon = getattr(provider, 'icon', '') or ':/icons/language.svg'
+                entries.append(MentionEntry('web_loader', label, loader_id, icon=icon))
+
         if not include_workdir:
             return entries
 
@@ -768,13 +776,16 @@ class ChatInput(QTextEdit):
         self.setFocus()
 
     def _accept_mention_entry(self, entry: MentionEntry):
-        if entry.kind == 'sketch':
+        if entry.kind in ('sketch', 'web_loader'):
             self._mention_popup.hide()
             self._mention_button_cursor = None
             self._mention_trigger_pos = None
             self._mention_source_key = None
             self._mention_dismissed = True
-            self.window.controller.tabs.open_or_activate(Tab.TAB_TOOL, 'painter')
+            if entry.kind == 'web_loader':
+                self.window.controller.attachment.open_add_url(loader_id=entry.value)
+            else:
+                self.window.controller.tabs.open_or_activate(Tab.TAB_TOOL, 'painter')
             return
         button_cursor = getattr(self, '_mention_button_cursor', None)
         trigger = ((button_cursor.selectionStart(), button_cursor.selectionEnd(), '')

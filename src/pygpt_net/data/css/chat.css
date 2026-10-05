@@ -1193,13 +1193,13 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 
 /* User-uploaded attachments above the input bubble. */
 .user-attachments {{ margin: 8px 10px 0 auto; max-width: 75%; }}
-.user-attachment-images, .user-attachment-files {{ display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }}
+.user-attachment-images, .user-attachment-files, .user-attachment-connections {{ display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }}
 .user-attachment-images > br {{ display: none; }}
 .user-attachment-images .extra-src-img-box {{ margin-right: 0; padding-right: 0; max-width: 125px; }}
 .user-attachment-images .img-wrapper {{ width: 104px; max-width: 104px; height: 104px; }}
 .user-attachment-images .extra-src-img-box img {{ object-fit: cover; }}
-.user-attachment-files:empty, .user-attachment-images:empty {{ display: none; }}
-.user-attachments:has(.user-attachment-images:empty):has(.user-attachment-files:empty) {{ display: none; }}
+.user-attachment-files:empty, .user-attachment-images:empty, .user-attachment-connections:empty {{ display: none; }}
+.user-attachments:has(.user-attachment-images:empty):has(.user-attachment-files:empty):has(.user-attachment-connections:empty) {{ display: none; }}
 .user-file {{ display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 230px; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--user-file-border); border-radius: 9px; background: var(--user-file-bg); color: inherit; text-decoration: none; }}
 .user-file:hover {{ background: var(--user-file-hover); }}
 /* Event-driven hover fallback for Qt WebEngine. */
@@ -1218,3 +1218,6 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 @media (prefers-reduced-motion: reduce) {{
   .msg-user-region.input-live-arrival, .msg-date-separator.input-live-date {{ animation: none; }}
 }}
+
+.user-connection {{ max-width: 360px; margin-top: 8px; }}
+.user-connection-details {{ display: flex; flex-direction: column; min-width: 0; }}

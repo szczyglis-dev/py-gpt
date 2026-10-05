@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt, QRect, QFile, QSize, QEvent, Signal, QMimeData
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPixmap, QIcon, QImageReader, QDrag
 from PySide6.QtWidgets import QWidget, QScrollArea, QHBoxLayout, QToolButton, QApplication
 from pygpt_net.utils import is_image
+from pygpt_net.item.attachment import AttachmentItem
 
 
 class AttachmentTile(QWidget):
@@ -29,13 +30,15 @@ class AttachmentTile(QWidget):
         self.attachment_key = None
         self._drag_start = None
         self.setCursor(Qt.PointingHandCursor)
-        self.name = item.name or os.path.basename(item.path or '')
-        self.is_image_file = is_image(item.path or self.name)
+        extra = item.extra if isinstance(item.extra, dict) else {}
+        self.is_connection = item.type == AttachmentItem.TYPE_URL
+        self.name = (extra.get('loader_name') or extra.get('loader') or item.name) if self.is_connection else (item.name or os.path.basename(item.path or ''))
+        self.is_image_file = not self.is_connection and is_image(item.path or self.name)
         self.setFixedSize(self.SIDE, self.SIDE)
         self.setToolTip(item.path or self.name)
         reader = QImageReader(item.path or '')
         self.image = QPixmap()
-        if reader.canRead():
+        if not self.is_connection and reader.canRead():
             size = reader.size()
             if size.isValid():
                 reader.setScaledSize(size.scaled(QSize(160, 160), Qt.KeepAspectRatio))
@@ -43,7 +46,8 @@ class AttachmentTile(QWidget):
             self.image = QPixmap.fromImage(reader.read())
         ext = os.path.splitext(item.path or self.name)[1].lower().lstrip('.')
         icon = ext if ext and QFile.exists(f':/filetypes/{ext}.svg') else 'default'
-        self.icon = QIcon(f':/filetypes/{icon}.svg')
+        self.icon = (QIcon(extra.get('loader_icon') or ':/icons/language.svg')
+                     if self.is_connection else QIcon(f':/filetypes/{icon}.svg'))
         self.close = QToolButton(self)
         self.close.setGeometry(self.SIDE - 22, 2, 20, 20)
         self.close.setCursor(Qt.PointingHandCursor)
@@ -165,7 +169,11 @@ class InputAttachments(QScrollArea):
             self.mode = mode
         self.sent.intersection_update(items)
         visible = [(key, item) for key, item in items.items() if key not in self.sent]
-        signature = tuple((key, item.path, item.name) for key, item in visible)
+        # Connection placeholders follow local file/image tiles.
+        visible.sort(key=lambda pair: pair[1].type == AttachmentItem.TYPE_URL)
+        signature = tuple((key, item.path, item.name, item.type,
+                           (item.extra or {}).get('loader_name'), (item.extra or {}).get('loader_icon'))
+                          for key, item in visible)
         if signature == self.signature:
             return
         self.signature = signature
@@ -235,6 +243,7 @@ class InputAttachments(QScrollArea):
     def move_attachment(self, key, index):
         items = self.window.core.attachments.get_all(self.mode)
         visible = [item_key for item_key in items if item_key not in self.sent]
+        visible.sort(key=lambda item_key: items[item_key].type == AttachmentItem.TYPE_URL)
         if key not in visible:
             return
         previous = visible.index(key)
@@ -254,7 +263,9 @@ class InputAttachments(QScrollArea):
         item = self.window.core.attachments.get_all(self.mode).get(key)
         if item is None or not item.path:
             return
-        if is_image:
+        if item.type == AttachmentItem.TYPE_URL:
+            self.window.controller.attachment.open_add_url(loader_id=item.extra.get('loader'), attachment_id=key)
+        elif is_image:
             self.window.tools.get("viewer").open_preview(item.path)
         else:
             self.window.tools.get("files").paths.open(path=item.path)
@@ -265,6 +276,12 @@ class InputAttachments(QScrollArea):
         if key in items:
             self.window.controller.attachment.delete(list(items).index(key), force=True, remove_local=False)
             self.window.ui.nodes['input'].fit_to_content()
+
+    def show_pending(self, key):
+        """Show a newly added/edited source even if its previous version was sent."""
+        self.sent.discard(key)
+        self.signature = None
+        self.sync(self.window.core.attachments.get_all(self.mode), self.mode)
 
     def mark_sent(self):
         self.sent.update(self.window.core.attachments.get_all(self.mode))

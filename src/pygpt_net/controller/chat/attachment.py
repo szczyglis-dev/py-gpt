@@ -536,8 +536,16 @@ class Attachment(QObject):
         :param mode: Work mode
         :return: True if uploaded
         """
-        # URLs keep the existing local context path; native Files APIs here operate on local files.
-        return self.upload_file(attachment, meta, prompt, auto_index, mode)
+        # External sources use the configured reader at send time, never a
+        # local file/native upload or the filesystem extension blacklist.
+        item = self.window.core.attachments.context.upload(
+            meta=meta, attachment=attachment, prompt=prompt, auto_index=False,
+        )
+        if not item:
+            return False
+        self.append_to_meta(meta, item)
+        attachment.consumed = True
+        return True
 
     def has_context(self, meta: CtxMeta) -> bool:
         """

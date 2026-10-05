@@ -373,3 +373,21 @@ def test_live_input_snapshot_has_pending_attachments_before_provider_response():
     assert snapshot['files']['1']['icon_url'] == 'qrc:///filetypes/pdf.svg'
     assert ctx.images == []
     assert ctx.files == ['/pending.png']
+
+
+def test_connection_snapshot_renders_pending_and_restored_web_source():
+    from types import SimpleNamespace
+    from pygpt_net.item.attachment import AttachmentItem
+    from pygpt_net.core.render.web.parts.messages import Messages
+    win = FakeWindow({})
+    renderer = SimpleNamespace(window=win, state=SimpleNamespace())
+    ctx = CtxItem()
+    url = 'https://www.youtube.com/watch?v=F3uvhqiKrcI'
+    extra = {'loader': 'youtube', 'loader_name': 'YouTube', 'loader_icon': ':/icons/language.svg'}
+    pending = AttachmentItem(path=url, name=url, type='url', extra=extra)
+    messages = Messages(renderer)
+    result = messages.connection_snapshot(ctx, [pending])
+    assert result['1'] == {'name': 'YouTube', 'address': url, 'url': url, 'icon_url': 'qrc:///icons/language.svg'}
+    ctx.additional_ctx = [dict(extra, type='url', path=url)]
+    assert messages.connection_snapshot(ctx) == result
+    assert messages.connection_snapshot(ctx, [pending]) == result

@@ -20,7 +20,14 @@ class NodeArtifactsTemplate {
             const name = this.templates.escapeHtml(it.basename || it.path || '');
             return `<a class="user-file" href="${this.templates.escapeHtml(it.url || '')}" title="${name}"><img src="${this.templates.escapeHtml(it.icon_url || '')}" alt=""><span>${name}</span></a>`;
         }).join('');
-        return `<div class="user-attachments"><div class="user-attachment-files">${files}</div><div class="user-attachment-images">${images}</div></div>`;
+        const connections = Object.values(data.connections || {}).filter(Boolean).map(it => {
+            const name = this.templates.escapeHtml(it.name || 'Web');
+            const address = this.templates.escapeHtml(it.address || it.url || '');
+            const icon = this.templates.escapeHtml(it.icon_url || 'qrc:///icons/language.svg');
+            const href = /^https?:\/\//i.test(it.url || '') ? this.templates.escapeHtml(it.url) : '#';
+            return `<a class="user-file user-connection" href="${href}" title="${address}"><img src="${icon}" alt=""><span class="user-connection-details"><span>${name}</span><span>${address}</span></span></a>`;
+        }).join('');
+        return `<div class="user-attachments"><div class="user-attachment-files">${files}</div><div class="user-attachment-images">${images}</div><div class="user-attachment-connections">${connections}</div></div>`;
     }
 
 	// Render extra blocks (images/files/urls/docs/tool-extra)
@@ -75,7 +82,7 @@ class NodeArtifactsTemplate {
 
 		// urls
 		const urls = block.urls || {};
-		const kU = Object.keys(urls);
+		const kU = Object.keys(urls).filter(k => urls[k]);
 		if (kU.length) {
 			const rows = [];
 			kU.forEach((k) => {
@@ -83,7 +90,7 @@ class NodeArtifactsTemplate {
 				if (!it) return;
 				const url = this.templates.esc(it.url);
 				const icon = (typeof window !== 'undefined' && window.ICON_URL) ? `<img src="${window.ICON_URL}" class="extra-src-icon">` : '';
-				rows.push(`${icon}<a href="${url}" title="${url}">${url}</a> <small> [${k}] </small>`);
+				rows.push(`${icon}<a href="${url}" title="${url}">${url}</a>${kU.length > 1 ? ` <small> [${k}] </small>` : ''}`);
 			});
 			if (rows.length) parts.push(this._renderCollapsibleExtraRows(rows));
 		}

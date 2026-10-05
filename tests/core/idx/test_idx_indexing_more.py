@@ -453,3 +453,13 @@ def test_stop_enabled_and_is_stopped(indexing, window):
     assert indexing.stop_enabled() is True
     window.controller.idx.is_stopped = Mock(return_value=True)
     assert indexing.is_stopped() is True
+
+def test_web_attachment_strict_mode_propagates_reader_failure(indexing):
+    reader = MagicMock()
+    reader.prepare_args.return_value = {}
+    reader.get.return_value.load_data.side_effect = RuntimeError('transcript unavailable')
+    indexing.loaders['web']['youtube'] = reader
+    indexing.data_providers['youtube'] = reader
+    with pytest.raises(RuntimeError, match='transcript unavailable'):
+        indexing.read_web_content('url', 'youtube', {}, raise_on_error=True)
+    assert indexing.read_web('url', 'youtube', {}) == []

@@ -559,6 +559,10 @@ class Context:
             result["indexed"] = True
             result["doc_ids"] = doc_ids
 
+        if attachment.type == AttachmentItem.TYPE_URL:
+            for key in ('loader', 'loader_name', 'loader_icon'):
+                if attachment.extra.get(key):
+                    result[key] = attachment.extra[key]
         if real_path:
             result["real_path"] = real_path
 
@@ -754,7 +758,10 @@ class Context:
                 url="",
                 type=loader,
                 extra_args=input_params,
+                raise_on_error=True,
             )
+            if not str(content or "").strip():
+                raise ValueError(f"Web reader {loader!r} returned no content for {attachment.path}")
             # src file save
             name = "url.txt"
             path = os.path.join(dir, name)

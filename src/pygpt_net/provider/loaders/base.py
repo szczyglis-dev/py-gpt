@@ -25,6 +25,7 @@ class BaseLoader(LocaleDomain):
         self.window = None
         self.id = ""
         self.name = ""
+        self.icon = ":/icons/language.svg"  # Override per loader for connection tiles/pickers.
         self.extensions = []
         self.type = ["file"]  # list of types: file, web
         self.instructions = []  # list of instructions for 'web_index' command for how to handle this type
