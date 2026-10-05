@@ -12,8 +12,8 @@
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
-from PySide6.QtCore import Qt, Signal, QPoint
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Qt, Signal, QPoint, QSize
+from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QFrame,
@@ -56,6 +56,7 @@ class MentionPopup(QFrame):
         self.list = QListWidget(self)
         self.list.setProperty("class", "mention-popup-list")
         self.list.setFocusPolicy(Qt.NoFocus)
+        self.list.setIconSize(QSize(16, 16))
         self.list.setSelectionMode(QAbstractItemView.SingleSelection)
         self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -126,7 +127,7 @@ class MentionPopup(QFrame):
                     matches.append(entry)
 
         self.list.clear()
-        self._add_header(trans('input.mentions.add_new'))
+        self._add_header(trans('input.mentions.add_new'), 'computer')
         self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
         conversations = [e for e in matches if e.kind == KIND_CONVERSATION]
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
@@ -149,15 +150,15 @@ class MentionPopup(QFrame):
         files = [e for e in visible if e.kind == KIND_FILE_CONTEXT]
 
         if conversations:
-            self._add_header(trans("input.mentions.chat_history"))
+            self._add_header(trans("input.mentions.chat_history"), "chat1")
             for entry in conversations:
                 self._add_entry(entry)
         if attachments:
-            self._add_header(trans("attachments.tab"))
+            self._add_header(trans("attachments.tab"), "attachment")
             for entry in attachments:
                 self._add_entry(entry)
         if files:
-            self._add_header(trans("output.tab.files"))
+            self._add_header(trans("output.tab.files"), "folder_open")
             for entry in files:
                 self._add_entry(entry)
 
@@ -168,8 +169,8 @@ class MentionPopup(QFrame):
             return False
         return True
 
-    def _add_header(self, text: str):
-        item = QListWidgetItem(text)
+    def _add_header(self, text: str, icon: str):
+        item = QListWidgetItem(QIcon(f":/icons/{icon}.svg"), text)
         item.setData(self.ROLE_HEADER, True)
         item.setFlags(Qt.NoItemFlags)
         font = QFont(item.font())
