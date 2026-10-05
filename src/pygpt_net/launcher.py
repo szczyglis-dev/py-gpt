@@ -156,6 +156,8 @@ class Launcher:
         self.app = QApplication(sys.argv)
         self.app.setAttribute(QtCore.Qt.AA_DontUseNativeMenuBar)
         self.window = MainWindow(self.app, args=args)
+        from pygpt_net.core.shutdown_signals import ShutdownSignals
+        self.shutdown_signals = ShutdownSignals(self.app)
         self.shortcut_filter = GlobalShortcutFilter(self.window)
 
         # Connect the window "ready" signal to close the splash
