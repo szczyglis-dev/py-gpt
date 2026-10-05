@@ -37,14 +37,11 @@ class QuickStart:
     PLUGINS_STEP_1 = (
         ("filesystem", "dialog.quick_start.filesystem.desc"),
         ("canvas_web", "dialog.quick_start.canvas.desc"),
-    )
-    PLUGINS_STEP_2 = (
-        ("openai_dalle", "dialog.quick_start.image.desc"),
         ("mcp", "dialog.quick_start.mcp.desc"),
+        ("openai_dalle", "dialog.quick_start.image.desc"),
     )
     DEFAULT_ENABLED_PLUGINS = {
         "filesystem",
-        "canvas_web",
     }
 
     def __init__(self, window=None):
@@ -96,12 +93,6 @@ class QuickStart:
         self.stack.addWidget(self._build_plugins_page(
             "dialog.quick_start.plugins.primary.question",
             self.PLUGINS_STEP_1,
-            show_tools_hint=True,
-        ))
-        self.stack.addWidget(self._build_plugins_page(
-            "dialog.quick_start.plugins.extra.question",
-            self.PLUGINS_STEP_2,
-            footer_key="dialog.quick_start.plugins.more",
             show_tools_hint=True,
         ))
         self.stack.addWidget(self._build_api_page())
