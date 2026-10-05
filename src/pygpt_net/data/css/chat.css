@@ -1029,8 +1029,12 @@ html.tool-viewport-anchor-lock {{
   display: block;
   position: fixed;
   top: 50%;
-  margin: auto;
-  width: 100%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0 24px;
+  box-sizing: border-box;
   text-align: center;
 }}
 .tips.visible {{
