@@ -231,8 +231,8 @@ def test_get_workdir_prefix_switches_for_sandbox():
     plugin.get_runtime_workdir.return_value = "/mnt/data"
     ctx = object()
     assert cfg.get_workdir_prefix(ctx=ctx) == "/mnt/data"
-    controller_plugins.is_enabled.assert_called_with("cmd_code_interpreter")
-    plugins.get.assert_called_once_with("cmd_code_interpreter")
+    controller_plugins.is_enabled.assert_called_with("filesystem")
+    plugins.get.assert_called_once_with("filesystem")
     plugin.get_runtime_workdir.assert_called_once_with(ctx=ctx)
     filesystem.get_data_dir.assert_called_with(ctx=ctx)
 

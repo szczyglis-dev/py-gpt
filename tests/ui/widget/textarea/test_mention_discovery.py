@@ -3,7 +3,7 @@ import threading
 from unittest.mock import MagicMock
 
 import pytest
-from PySide6.QtCore import QEventLoop, QTimer, QThread
+from PySide6.QtCore import Qt
 
 from pygpt_net.core.filesystem.local_mapper import LocalPathMapper
 from pygpt_net.ui.widget.textarea.mention_discovery import ScanSpec, WorkdirScan, WorkdirMentionDiscovery
@@ -23,17 +23,18 @@ def run_scan(spec):
     return results[-1][0]
 
 
-def wait_for_update(discovery):
-    loop = QEventLoop()
-    timer = QTimer()
-    timer.setSingleShot(True)
-    timer.timeout.connect(loop.quit)
-    discovery.updated.connect(loop.quit)
-    timer.start(3000)
-    loop.exec()
-    discovery.updated.disconnect(loop.quit)
-    assert timer.isActive(), 'Background discovery did not finish'
-    timer.stop()
+def complete_scan(discovery):
+    """Deliver a deferred scan without pumping unrelated Qt events."""
+    worker = discovery._worker
+    assert worker is not None
+    worker.signals.ready.disconnect(discovery._on_ready)
+    results = []
+    worker.signals.ready.connect(
+        lambda _worker, entries, complete: results.append((entries, complete)), Qt.DirectConnection)
+    worker.run()
+    assert results and results[-1][1]
+    for entries, complete in results:
+        discovery._on_ready(worker, entries, complete)
 
 
 def test_scan_preserves_nested_paths_and_prunes_symlinks_blacklist(tmp_path):
@@ -65,25 +66,31 @@ def test_scan_limit_and_inaccessible_directory(tmp_path, monkeypatch):
 def test_discovery_does_not_walk_on_ui_thread_and_reuses_inflight_and_cache(tmp_path, monkeypatch, qt_application):
     (tmp_path / 'note.txt').write_text('')
     original = os.scandir
-    entered, release = threading.Event(), threading.Event()
     threads = []
     def scandir(path):
-        threads.append(QThread.currentThread())
-        entered.set()
-        assert release.wait(3)
+        threads.append(threading.get_ident())
         return original(path)
     monkeypatch.setattr(os, 'scandir', scandir)
     discovery = WorkdirMentionDiscovery()
+    discovery._pool = MagicMock()
     spec = spec_for(tmp_path)
     assert discovery.entries(spec) == []
-    assert entered.wait(3)
+    assert threads == []  # Scheduling discovery must not walk on the caller.
     worker = discovery._worker
     assert discovery.entries(spec) == []
     assert discovery._worker is worker
-    assert all(t != qt_application.thread() for t in threads)
-    # The UI event loop can release a blocked filesystem worker.
-    QTimer.singleShot(0, release.set)
-    wait_for_update(discovery)
+    # Execute the worker on a regular thread; deliver its result explicitly.
+    worker.signals.ready.disconnect(discovery._on_ready)
+    results = []
+    worker.signals.ready.connect(
+        lambda _worker, entries, complete: results.append((entries, complete)), Qt.DirectConnection)
+    thread = threading.Thread(target=worker.run)
+    thread.start()
+    thread.join(timeout=3)
+    assert not thread.is_alive()
+    assert threads and all(t != threading.get_ident() for t in threads)
+    assert results[-1][1]
+    discovery._on_ready(worker, *results[-1])
     assert discovery._worker is None
     assert [e.label for e in discovery.entries(spec)] == ['note.txt']
     assert len(threads) == 1
@@ -92,13 +99,14 @@ def test_discovery_does_not_walk_on_ui_thread_and_reuses_inflight_and_cache(tmp_
 def test_expired_cache_returns_old_results_while_refreshing(tmp_path, qt_application):
     (tmp_path / 'old.txt').write_text('')
     discovery = WorkdirMentionDiscovery()
+    discovery._pool = MagicMock()
     spec = spec_for(tmp_path)
     discovery.entries(spec)
-    wait_for_update(discovery)
+    complete_scan(discovery)
     discovery.CACHE_SECONDS = 0
     (tmp_path / 'new.txt').write_text('')
     assert [e.label for e in discovery.entries(spec)] == ['old.txt']
-    wait_for_update(discovery)
+    complete_scan(discovery)
     discovery.CACHE_SECONDS = 30
     assert [e.label for e in discovery.entries(spec)] == ['new.txt', 'old.txt']
 

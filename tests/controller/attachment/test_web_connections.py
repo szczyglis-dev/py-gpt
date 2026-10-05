@@ -57,7 +57,7 @@ def test_web_context_is_read_at_send_and_appended_as_attachment(tmp_path):
     assert ctrl.upload_web(source, meta, 'Question', False, 'chat')
     window.core.idx.indexing.update_loader_args.assert_called_once_with('database', {'uri': 'db'})
     window.core.idx.indexing.read_web_content.assert_called_once_with(url='', type='database', extra_args={'query': 'docs'}, raise_on_error=True)
-    output = ctrl.get_context(SimpleNamespace(meta=meta), [], only_current=True)
+    output = ctrl.get_context(SimpleNamespace(meta=meta, input='Question'), [], only_current=True)
     assert 'ADDITIONAL CONTEXT' in output and 'fresh remote context' in output
     assert source.consumed
     window.core.attachments.native.upload.assert_not_called()

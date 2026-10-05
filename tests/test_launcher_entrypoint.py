@@ -176,7 +176,8 @@ def test_setup_default_and_parser_failure(launcher_module, capsys):
     assert "Launcher setup error: parse failed" in capsys.readouterr().out
 
 
-def test_init_builds_application_window_and_shortcut_filter(launcher_module):
+def test_init_builds_application_window_and_shortcut_filter(launcher_module, monkeypatch):
+    monkeypatch.setattr('pygpt_net.core.shutdown_signals.ShutdownSignals', MagicMock())
     launcher = launcher_module.Launcher()
     launcher.setup = MagicMock(return_value={"debug": None})
     launcher_module.Platforms = SimpleNamespace(prepare=MagicMock())

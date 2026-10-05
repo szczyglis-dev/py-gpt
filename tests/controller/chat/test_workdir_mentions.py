@@ -37,7 +37,7 @@ def test_workdir_mention_reads_loader_at_send_and_appends_additional_context(tmp
     assert len(meta.additional_ctx_current) == 1
     assert meta.additional_ctx_current == meta.additional_ctx
     window.core.idx.indexing.read_text_content.assert_called_once()
-    ctx = SimpleNamespace(meta=meta)
+    ctx = SimpleNamespace(meta=meta, input=prompt)
     output = attachment.get_context(ctx, [], only_current=True)
     assert 'ADDITIONAL CONTEXT FROM ATTACHMENT(s)' in output
     assert 'latest content' in output

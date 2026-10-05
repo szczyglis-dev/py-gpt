@@ -9,7 +9,7 @@ from pygpt_net.provider.core.ctx.db_sqlite.storage import Storage
 from pygpt_net.ui.widget.textarea.input import ChatInput
 from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
 from pygpt_net.ui.widget.textarea.mention_discovery import ConversationTitleDiscovery, ConversationTitleScan
-from tests.ui.widget.textarea.test_mention_discovery import wait_for_update
+from tests.ui.widget.textarea.test_mention_discovery import complete_scan
 
 
 @pytest.fixture
@@ -54,9 +54,10 @@ def test_title_scan_reads_only_base_undeleted_history(history_db):
                                             ('żółw', ['2']), ('100%_', ['7']), ('missing', [])])
 def test_title_search_uses_full_history_unicode_and_literal_fragments(history_db, qt_application, query, expected):
     discovery = ConversationTitleDiscovery()
+    discovery._pool = MagicMock()
     widget = widget_for(discovery, history_db)
     assert ChatInput._get_conversation_mention_entries(widget, query) == []
-    wait_for_update(discovery)
+    complete_scan(discovery)
     entries = ChatInput._get_conversation_mention_entries(widget, query)
     assert [entry.value for entry in entries] == expected
     assert discovery._worker is None
