@@ -26,6 +26,12 @@ from pygpt_net.core.attachments.worker import AttachmentWorker
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.item.ctx import CtxMeta, CtxItem
 from pygpt_net.utils import trans
+from pygpt_net.core.text.mentions import iter_tags, KIND_FILE_CONTEXT
+
+
+# True: read workdir file mentions with the attachment loader at send time.
+# False: preserve the previous path-only behavior. Directories always stay paths.
+WORKDIR_MENTIONS_LOAD_CONTEXT = True
 
 
 class Attachment(QObject):
@@ -290,6 +296,63 @@ class Attachment(QObject):
         if self.uploaded:
             self.window.core.ctx.save(meta.id)  # save meta
         return self.uploaded
+
+    def upload_workdir_mentions(self, meta: CtxMeta, prompt: str) -> bool:
+        """Load mentioned files into the same per-turn context as attachments.
+
+        Use local extraction even when provider-native uploads are enabled, so
+        workdir mentions consistently populate ADDITIONAL CONTEXT. Never load
+        directories recursively or reread duplicate mentions within a turn.
+        """
+        if not WORKDIR_MENTIONS_LOAD_CONTEXT:
+            return False
+        filesystem = self.window.core.filesystem
+        indexing = self.window.core.idx.indexing
+        # Check the global blacklist explicitly: a registered loader must not
+        # override an excluded extension for automatic workdir context loading.
+        excluded = self.window.core.config.get('llama.idx.excluded.ext', '') or ''
+        excluded_extensions = {ext.strip().lower().lstrip('.') for ext in excluded.split(',') if ext.strip()}
+        seen = set()
+        for item in meta.additional_ctx_current or []:
+            if item.get('path'):
+                try:
+                    path = filesystem.normalize_local_path(item['path'], ctx=meta)
+                    seen.add(os.path.normcase(os.path.realpath(path)))
+                except Exception as e:
+                    self.window.core.debug.log(e)
+        uploaded = False
+        for tag in iter_tags(prompt):
+            if tag.kind != KIND_FILE_CONTEXT:
+                continue
+            try:
+                path = filesystem.normalize_local_path(tag.value, ctx=meta)
+                key = os.path.normcase(os.path.realpath(path))
+                if key in seen:
+                    continue
+                seen.add(key)
+                extension = os.path.splitext(path)[1].lower().lstrip('.')
+                if extension in excluded_extensions or not indexing.is_allowed(path):
+                    continue
+                if not os.path.isfile(path):
+                    continue
+                attachment = AttachmentItem(
+                    name=os.path.basename(path), path=path, type=AttachmentItem.TYPE_FILE,
+                )
+                item = self.window.core.attachments.context.upload(
+                    meta=meta, attachment=attachment, prompt=prompt,
+                    real_path=path, auto_index=False,
+                )
+            except Exception as e:
+                # Keep the durable mention intact: provider conversion already
+                # flattens it to its path, so an unreadable file cannot stop Send.
+                self.window.core.debug.log(e)
+                continue
+            if item and item.get('length', 0) > 0:
+                self.append_to_meta(meta, item)
+                uploaded = True
+        if uploaded:
+            self.window.core.ctx.save(meta.id)
+        return uploaded
 
     def upload_file(
             self,

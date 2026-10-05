@@ -40,6 +40,15 @@ from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
 from pygpt_net.ui.widget.lists.model_combo import CompactModelCombo
 
 
+# True: hide globally excluded workdir files from the @ mention picker.
+# False: show them too; send-time loading still respects the blacklist.
+WORKDIR_MENTIONS_HIDE_BLACKLISTED = True
+
+# True: [+] opens the mention/context picker with Upload file(s) selected.
+# False: [+] immediately opens the file upload dialog.
+ATTACHMENT_BUTTON_OPEN_MENTIONS = True
+
+
 class ChatInput(QTextEdit):
 
     MODEL_SELECTOR_KEY = "model"
@@ -75,6 +84,8 @@ class ChatInput(QTextEdit):
         self._mention_formatting = False
         self._mention_loading = False
         self._mention_trigger_pos = None
+        self._mention_button_cursor = None
+        self._mention_dismissed = False
         self._mention_entries = []
         self._mention_source_key = None
         self._mention_seq = 0
@@ -470,12 +481,15 @@ class ChatInput(QTextEdit):
     def _on_mention_text_changed(self):
         if self._mention_loading or self._mention_formatting:
             return
+        self._mention_button_cursor = None
+        self._mention_dismissed = False
         self._refresh_mention_formats()
         QTimer.singleShot(0, self._refresh_mention_popup)
 
     def _on_mention_cursor_changed(self):
         if self._mention_loading:
             return
+        self._mention_button_cursor = None
         QTimer.singleShot(0, self._refresh_mention_popup)
 
     def _find_mention_trigger(self):
@@ -548,7 +562,7 @@ class ChatInput(QTextEdit):
             getattr(meta, "group_id", None),
         )
 
-    def _build_mention_entries(self) -> list:
+    def _build_mention_entries(self, include_workdir: bool = True) -> list:
         entries = []
         seen = set()
         core = self.window.core
@@ -557,11 +571,15 @@ class ChatInput(QTextEdit):
 
         attachment_items = []
         try:
-            attachment_items.extend(core.attachments.get_all(mode, only_files=True).values())
+            current_items = list(core.attachments.get_all(mode, only_files=True).values())
+            attachment_items.extend(current_items if include_workdir else reversed(current_items))
         except Exception:
             pass
         try:
-            attachment_items.extend(core.attachments.get_from_meta_ctx(mode, meta))
+            history_items = list(core.attachments.get_from_meta_ctx(mode, meta))
+            # Attachment registries/context lists retain insertion order. Current
+            # uploads are newer than stored context; reverse each source for [+].
+            attachment_items.extend(history_items if include_workdir else reversed(history_items))
         except Exception:
             pass
 
@@ -581,10 +599,20 @@ class ChatInput(QTextEdit):
             seen.add(key)
             entries.append(MentionEntry(KIND_ATTACHMENT, name, name, False))
 
+        if not include_workdir:
+            return entries
+
         try:
             root = core.filesystem.get_data_dir(ctx=meta, create=False)
         except Exception:
             root = None
+
+        excluded_extensions = set()
+        if WORKDIR_MENTIONS_HIDE_BLACKLISTED:
+            excluded = core.config.get('llama.idx.excluded.ext', '') or ''
+            excluded_extensions = {
+                ext.strip().lower().lstrip('.') for ext in excluded.split(',') if ext.strip()
+            }
 
         count = 0
         if root and os.path.isdir(root):
@@ -597,24 +625,14 @@ class ChatInput(QTextEdit):
                     )
                     files = sorted(files, key=str.casefold)
 
-                    for name in dirs:
-                        full = os.path.join(current_root, name)
-                        rel = os.path.relpath(full, root_abs).replace(os.sep, "/").rstrip("/") + "/"
-                        if any(ch in rel for ch in "\r\n\t"):
-                            continue
-                        value = core.filesystem.make_local(full, ctx=meta).replace("\\", "/").rstrip("/") + "/"
-                        key = (KIND_FILE_CONTEXT, value.casefold())
-                        if key not in seen:
-                            seen.add(key)
-                            entries.append(MentionEntry(KIND_FILE_CONTEXT, rel, value, True))
-                            count += 1
-                            if count >= self.MENTION_SCAN_LIMIT:
-                                return entries
-
                     for name in files:
                         full = os.path.join(current_root, name)
                         if os.path.islink(full):
                             continue
+                        if WORKDIR_MENTIONS_HIDE_BLACKLISTED:
+                            extension = os.path.splitext(name)[1].lower().lstrip('.')
+                            if extension in excluded_extensions or not core.idx.indexing.is_allowed(full):
+                                continue
                         rel = os.path.relpath(full, root_abs).replace(os.sep, "/")
                         if any(ch in rel for ch in "\r\n\t"):
                             continue
@@ -703,13 +721,15 @@ class ChatInput(QTextEdit):
         return False
 
     def _refresh_mention_popup(self):
-        if self._mention_loading or not self.hasFocus():
+        if self._mention_loading or getattr(self, '_mention_dismissed', False) or not self.hasFocus():
             self._mention_popup.hide()
             self._mention_trigger_pos = None
             self._mention_source_key = None
             return
 
-        trigger = self._find_mention_trigger()
+        button_cursor = getattr(self, '_mention_button_cursor', None)
+        trigger = ((button_cursor.selectionStart(), button_cursor.selectionEnd(), '')
+                   if button_cursor is not None else self._find_mention_trigger())
         if trigger is None:
             self._mention_popup.hide()
             self._mention_trigger_pos = None
@@ -717,18 +737,19 @@ class ChatInput(QTextEdit):
             return
 
         at_pos, _end_pos, query = trigger
-        source_key = self._get_mention_source_key()
+        source_key = (self._get_mention_source_key(), button_cursor is not None)
         if (self._mention_trigger_pos != at_pos
                 or self._mention_source_key != source_key):
             self._mention_trigger_pos = at_pos
             self._mention_source_key = source_key
-            self._mention_entries = self._build_mention_entries()
+            self._mention_entries = (self._build_mention_entries(include_workdir=False)
+                                     if button_cursor is not None else self._build_mention_entries())
 
         entries = list(self._mention_entries)
         conversation_entry = self._get_conversation_mention_entry(query)
         if conversation_entry is not None:
             entries.append(conversation_entry)
-        self._mention_popup.set_entries(entries)
+        self._mention_popup.set_entries(entries, from_attachment_button=button_cursor is not None)
 
         if not self._mention_popup.apply_filter(query):
             return
@@ -737,11 +758,19 @@ class ChatInput(QTextEdit):
         anchor.setPosition(at_pos)
         rect = self.cursorRect(anchor)
         global_pos = self.viewport().mapToGlobal(rect.topLeft())
-        self._mention_popup.show_above(global_pos)
+        button = getattr(self, '_icons_right', {}).get('attach')
+        if button_cursor is not None and button is not None:
+            global_pos = button.mapToGlobal(QPoint(0, 0))
+            self._mention_popup.show_above(global_pos, gap=0)
+        else:
+            self._mention_popup.show_above(global_pos)
         self.setFocus()
 
     def _accept_mention_entry(self, entry: MentionEntry):
-        trigger = self._find_mention_trigger()
+        button_cursor = getattr(self, '_mention_button_cursor', None)
+        trigger = ((button_cursor.selectionStart(), button_cursor.selectionEnd(), '')
+                   if button_cursor is not None else self._find_mention_trigger())
+        self._mention_button_cursor = None
         if trigger is None:
             return
         at_pos, end_pos, _query = trigger
@@ -1116,6 +1145,7 @@ class ChatInput(QTextEdit):
                 if self._mention_popup.choose_current():
                     return
             if key == Qt.Key_Escape:
+                self._mention_button_cursor = None
                 self._mention_popup.hide()
                 self._mention_trigger_pos = None
                 return
@@ -1177,6 +1207,7 @@ class ChatInput(QTextEdit):
         if self._mention_popup.underMouse():
             QTimer.singleShot(80, self._hide_mention_after_focus_out)
             return
+        self._mention_button_cursor = None
         self._mention_popup.hide()
         self._mention_trigger_pos = None
         self._mention_source_key = None
@@ -1216,9 +1247,29 @@ class ChatInput(QTextEdit):
         if event.type() == QEvent.FontChange:
             self._schedule_auto_resize()
 
+    def _dismiss_mention_popup(self):
+        if self._mention_popup.isVisible():
+            self._mention_popup.hide()
+            self._mention_button_cursor = None
+            self._mention_trigger_pos = None
+            self._mention_source_key = None
+            self._mention_dismissed = True
+
+    def mousePressEvent(self, event):
+        self._dismiss_mention_popup()
+        super().mousePressEvent(event)
+
     def action_add_attachment(self):
-        """Add attachment (button click)."""
-        self.window.controller.attachment.open_add()
+        """Open the configured attachment picker without modifying the input."""
+        if not ATTACHMENT_BUTTON_OPEN_MENTIONS:
+            self.window.controller.attachment.open_add()
+            return
+        self.setFocus()
+        self._mention_dismissed = False
+        self._mention_button_cursor = QTextCursor(self.textCursor())
+        self._mention_trigger_pos = None
+        self._mention_source_key = None
+        self._refresh_mention_popup()
 
     def action_toggle_mic(self):
         """Toggle microphone (button click)."""

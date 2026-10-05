@@ -9,10 +9,11 @@
 # Updated Date: 2026.09.18 10:55:00                  #
 # ================================================== #
 
+import os
 from dataclasses import dataclass
 from typing import Iterable, Optional
 
-from PySide6.QtCore import Qt, Signal, QPoint, QSize
+from PySide6.QtCore import Qt, Signal, QPoint, QSize, QFile
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import (
     QApplication,
@@ -25,6 +26,13 @@ from PySide6.QtWidgets import (
 
 from pygpt_net.core.text.mentions import KIND_ATTACHMENT, KIND_FILE_CONTEXT, KIND_CONVERSATION
 from pygpt_net.utils import trans
+
+
+# False disables icons only for workdir file rows.
+WORKDIR_MENTIONS_SHOW_FILETYPE_ICONS = True
+
+# Maximum Library rows in the [+] picker (newest uploads first).
+ATTACHMENT_BUTTON_LIBRARY_LIMIT = 5
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,9 +79,11 @@ class MentionPopup(QFrame):
 
         self._entries: list[MentionEntry] = []
         self._query = ""
+        self._from_attachment_button = False
         self.hide()
 
-    def set_entries(self, entries: Iterable[MentionEntry]):
+    def set_entries(self, entries: Iterable[MentionEntry], *, from_attachment_button: bool = False):
+        self._from_attachment_button = from_attachment_button
         self._entries = list(entries or [])
         self._query = ""
         self.apply_filter("")
@@ -83,59 +93,31 @@ class MentionPopup(QFrame):
         self._query = raw_query.casefold()
         matches = []
 
-        # Keep the existing full os.walk-backed entry cache, but make filtering
-        # path-aware. Once a slash is typed, treat everything before the final
-        # slash as the directory being browsed and show only its direct
-        # children. The text after the final slash filters those children.
-        if "/" in raw_query:
-            parent, leaf_query = raw_query.rsplit("/", 1)
-            parent_prefix_raw = parent.rstrip("/") + "/"
-            parent_prefix = parent_prefix_raw.casefold()
-            leaf_query = leaf_query.casefold()
-
-            for entry in self._entries:
-                if entry.kind != KIND_FILE_CONTEXT:
-                    continue
-
-                label = str(entry.label or "").replace("\\", "/")
-                label_folded = label.casefold()
-                if not label_folded.startswith(parent_prefix):
-                    continue
-
-                remainder = label[len(parent_prefix_raw):]
-                remainder_path = remainder.rstrip("/")
-                if not remainder_path or "/" in remainder_path:
-                    continue
-
-                if leaf_query and leaf_query not in remainder_path.casefold():
-                    continue
+        # Workdir rows are files only. Keep their relative directory paths
+        # visible and searchable, including descendants of a typed directory.
+        for entry in self._entries:
+            if entry.kind == KIND_FILE_CONTEXT and entry.is_dir:
+                continue
+            label = str(entry.label or "").replace("\\", "/")
+            value = str(entry.value or "").replace("\\", "/")
+            haystack = f"{label}\n{value}".casefold()
+            if not self._query or self._query in haystack:
                 matches.append(entry)
-        else:
-            for entry in self._entries:
-                # With a bare ``@`` keep the picker at the data root: show
-                # attachments and only direct children of the top-level data
-                # directory. Nested filesystem entries become visible only
-                # after the user starts navigating a concrete path (e.g.
-                # ``@dir/``).
-                if not self._query and entry.kind == KIND_FILE_CONTEXT:
-                    label = str(entry.label or "").replace("\\", "/")
-                    if "/" in label.rstrip("/"):
-                        continue
-
-                haystack = f"{entry.label}\n{entry.value}".casefold()
-                if not self._query or self._query in haystack:
-                    matches.append(entry)
 
         self.list.clear()
-        self._add_header(trans('input.mentions.add_new'), 'computer')
+        self._add_header(trans('input.mentions.add_new'))
         self._add_entry(MentionEntry('upload', trans('input.mentions.upload_files'), ''))
         conversations = [e for e in matches if e.kind == KIND_CONVERSATION]
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
         files = [e for e in matches if e.kind == KIND_FILE_CONTEXT]
 
         conversations.sort(key=lambda e: e.label.casefold())
-        attachments.sort(key=lambda e: e.label.casefold())
-        files.sort(key=lambda e: (not e.is_dir, e.label.casefold()))
+        if self._from_attachment_button:
+            # The source supplies newest-first order for the button picker.
+            attachments = attachments[:max(0, ATTACHMENT_BUTTON_LIBRARY_LIMIT)]
+        else:
+            attachments.sort(key=lambda e: e.label.casefold())
+        files.sort(key=lambda e: e.label.casefold())
 
         # Keep the widget light even for very large project data trees. Filtering
         # still runs against the full entry set, so typing narrows into items
@@ -150,15 +132,15 @@ class MentionPopup(QFrame):
         files = [e for e in visible if e.kind == KIND_FILE_CONTEXT]
 
         if conversations:
-            self._add_header(trans("input.mentions.chat_history"), "chat1")
+            self._add_header(trans("input.mentions.chat_history"))
             for entry in conversations:
                 self._add_entry(entry)
         if attachments:
-            self._add_header(trans("attachments.tab"), "attachment")
+            self._add_header(trans("input.mentions.library"))
             for entry in attachments:
                 self._add_entry(entry)
         if files:
-            self._add_header(trans("output.tab.files"), "folder_open")
+            self._add_header(trans("input.mentions.workdir"))
             for entry in files:
                 self._add_entry(entry)
 
@@ -169,8 +151,8 @@ class MentionPopup(QFrame):
             return False
         return True
 
-    def _add_header(self, text: str, icon: str):
-        item = QListWidgetItem(QIcon(f":/icons/{icon}.svg"), text)
+    def _add_header(self, text: str):
+        item = QListWidgetItem(text)
         item.setData(self.ROLE_HEADER, True)
         item.setFlags(Qt.NoItemFlags)
         font = QFont(item.font())
@@ -183,6 +165,17 @@ class MentionPopup(QFrame):
         if entry.kind == KIND_FILE_CONTEXT and entry.is_dir and not label.endswith("/"):
             label += "/"
         item = QListWidgetItem(label)
+        icon_name = {
+            'upload': 'attachment',
+            KIND_CONVERSATION: 'chat1',
+            KIND_ATTACHMENT: 'upload',
+        }.get(entry.kind)
+        if icon_name:
+            item.setIcon(QIcon(f':/icons/{icon_name}.svg'))
+        elif entry.kind == KIND_FILE_CONTEXT and WORKDIR_MENTIONS_SHOW_FILETYPE_ICONS:
+            extension = os.path.splitext(entry.value or entry.label)[1].lower().lstrip('.')
+            icon = extension if extension and QFile.exists(f':/filetypes/{extension}.svg') else 'default'
+            item.setIcon(QIcon(f':/filetypes/{icon}.svg'))
         item.setData(self.ROLE_ENTRY, entry)
         item.setToolTip(entry.value)
         self.list.addItem(item)
@@ -240,17 +233,19 @@ class MentionPopup(QFrame):
                 self.list.scrollToItem(item, QAbstractItemView.EnsureVisible)
                 return
 
-    def show_above(self, anchor_global: QPoint):
+    def show_above(self, anchor_global: QPoint, gap: int = 6):
         if self.list.count() <= 0:
             self.hide()
             return
 
+        self.ensurePolished()
+        self.layout().activate()
         self._resize_for_items()
         screen = QApplication.screenAt(anchor_global)
         geometry = screen.availableGeometry() if screen is not None else QApplication.primaryScreen().availableGeometry()
 
         x = anchor_global.x()
-        y = anchor_global.y() - self.height() - 6
+        y = anchor_global.y() - self.height() - gap
         x = max(geometry.left() + 4, min(x, geometry.right() - self.width() - 4))
         if y < geometry.top() + 4:
             y = anchor_global.y() + 22

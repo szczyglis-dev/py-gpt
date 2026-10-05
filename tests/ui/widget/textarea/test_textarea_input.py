@@ -378,3 +378,120 @@ def test_completed_mention_does_not_trigger_picker_after_spaces():
         cursor.movePosition(type(cursor).MoveOperation.End)
         editor.setTextCursor(cursor)
         assert editor._find_mention_trigger() is None
+
+
+@pytest.mark.parametrize('hide_blacklisted', [True, False])
+def test_workdir_mention_blacklist_visibility_flag(tmp_path, monkeypatch, hide_blacklisted):
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.input.WORKDIR_MENTIONS_HIDE_BLACKLISTED', hide_blacklisted)
+    (tmp_path / 'nested').mkdir()
+    for name in ('note.txt', 'nested/program.EXE', 'nested/private.txt'):
+        (tmp_path / name).write_text('text')
+    core = MagicMock()
+    core.config.get.side_effect = lambda key, default=None: ' .exe, BIN ' if key == 'llama.idx.excluded.ext' else 'chat'
+    core.attachments.get_all.return_value = {}
+    core.attachments.get_from_meta_ctx.return_value = []
+    core.filesystem.get_data_dir.return_value = str(tmp_path)
+    core.filesystem.make_local.side_effect = lambda path, ctx=None: path
+    core.idx.indexing.is_allowed.side_effect = lambda path: not path.endswith('private.txt')
+    widget = SimpleNamespace(window=SimpleNamespace(core=core), MENTION_SCAN_LIMIT=5000)
+    entries = ChatInput._build_mention_entries(widget)
+    expected = ['note.txt'] if hide_blacklisted else ['note.txt', 'nested/private.txt', 'nested/program.EXE']
+    assert [entry.label for entry in entries] == expected
+    if not hide_blacklisted:
+        core.idx.indexing.is_allowed.assert_not_called()
+
+
+def test_attachment_button_direct_upload_flag(monkeypatch):
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.input.ATTACHMENT_BUTTON_OPEN_MENTIONS', False)
+    widget = SimpleNamespace(window=MagicMock())
+    ChatInput.action_add_attachment(widget)
+    widget.window.controller.attachment.open_add.assert_called_once_with()
+
+
+def test_attachment_button_popup_defaults_to_upload_without_changing_input(monkeypatch):
+    from PySide6.QtWidgets import QTextEdit
+    from pygpt_net.ui.widget.textarea.mention import MentionPopup, MentionEntry
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.input.ATTACHMENT_BUTTON_OPEN_MENTIONS', True)
+    monkeypatch.setattr('pygpt_net.ui.widget.textarea.mention.trans', lambda key: key)
+
+    class Editor(QTextEdit):
+        action_add_attachment = ChatInput.action_add_attachment
+        _refresh_mention_popup = ChatInput._refresh_mention_popup
+        _accept_mention_entry = ChatInput._accept_mention_entry
+        def mousePressEvent(self, event):
+            ChatInput._dismiss_mention_popup(self)
+            super().mousePressEvent(event)
+
+    editor = Editor()
+    editor.window = MagicMock()
+    editor.window.controller.attachment.open_add.return_value = []
+    editor._mention_loading = False
+    editor._mention_button_cursor = None
+    editor._get_mention_source_key = lambda: 'source'
+    editor._build_mention_entries = MagicMock(return_value=[])
+    editor._get_conversation_mention_entry = lambda query: None
+    editor._find_mention_trigger = lambda: None
+    editor._mention_popup = MentionPopup(editor)
+    editor._mention_popup.selected.connect(editor._accept_mention_entry)
+    editor.setPlainText('Existing prompt')
+    editor.resize(600, 500)
+    from PySide6.QtWidgets import QPushButton
+    button = QPushButton('+', editor)
+    button.setGeometry(20, 420, 30, 30)
+    editor._icons_right = {'attach': button}
+    editor.show()
+    editor.setFocus()
+    from PySide6.QtWidgets import QApplication
+    QApplication.processEvents()
+    try:
+        editor.action_add_attachment()
+        assert editor._mention_popup.isVisible()
+        assert editor._mention_popup.current_entry().kind == 'upload'
+        editor._build_mention_entries.assert_called_once_with(include_workdir=False)
+        from PySide6.QtCore import QPoint
+        assert editor._mention_popup.pos() + QPoint(0, editor._mention_popup.height()) == button.mapToGlobal(QPoint(0, 0))
+        assert editor.toPlainText() == 'Existing prompt'
+        editor.window.controller.attachment.open_add.assert_not_called()
+        editor._mention_popup.choose_current()
+        editor.window.controller.attachment.open_add.assert_called_once_with()
+        assert editor.toPlainText() == 'Existing prompt'
+        assert editor._mention_button_cursor is None
+        editor.action_add_attachment()
+        from PySide6.QtTest import QTest
+        from PySide6.QtCore import Qt
+        QTest.mouseClick(editor.viewport(), Qt.LeftButton, pos=QPoint(10, 10))
+        assert not editor._mention_popup.isVisible()
+        editor._refresh_mention_popup()
+        assert not editor._mention_popup.isVisible()
+    finally:
+        editor._mention_popup.close()
+        editor.close()
+
+
+
+def test_button_mention_entries_do_not_access_workdir():
+    core = MagicMock()
+    core.attachments.get_all.return_value = {}
+    core.attachments.get_from_meta_ctx.return_value = []
+    widget = SimpleNamespace(window=SimpleNamespace(core=core))
+    assert ChatInput._build_mention_entries(widget, include_workdir=False) == []
+    core.filesystem.get_data_dir.assert_not_called()
+    core.filesystem.make_local.assert_not_called()
+    core.idx.indexing.is_allowed.assert_not_called()
+
+
+def test_button_library_uses_upload_order_not_filename_or_modification_time():
+    core = MagicMock()
+    core.attachments.get_all.return_value = {
+        'old': SimpleNamespace(name='a-current-old.txt', path='/old', extra={}),
+        'new': SimpleNamespace(name='z-current-new.txt', path='/new', extra={}),
+    }
+    core.attachments.get_from_meta_ctx.return_value = [
+        SimpleNamespace(name='a-history-old.txt', path='/history-old', extra={}),
+        SimpleNamespace(name='z-history-new.txt', path='/history-new', extra={}),
+    ]
+    widget = SimpleNamespace(window=SimpleNamespace(core=core))
+    entries = ChatInput._build_mention_entries(widget, include_workdir=False)
+    assert [entry.label for entry in entries] == [
+        'z-current-new.txt', 'a-current-old.txt', 'z-history-new.txt', 'a-history-old.txt',
+    ]

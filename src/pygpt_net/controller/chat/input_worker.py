@@ -53,6 +53,9 @@ class InputWorker(QRunnable):
                 attachment.upload(self.meta, self.mode, text)
             if self.cancelled:
                 return
+            attachment.upload_workdir_mentions(self.meta, text)
+            if self.cancelled:
+                return
 
             safe_emit(self.signals, "success", self.request_id, text)
         except Exception as e:
