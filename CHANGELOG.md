@@ -2,7 +2,7 @@
 
 ## 2.9.0 (2026-10-04)
 
- - Modernized the layout: moved the toolbox to the left, hidden it by default, and added a dynamic right column.
+- Modernized the layout: moved the toolbox to the left, hidden it by default, and added a dynamic right column.
 - Added a toolbar on the left.
 - Added a new Terminal tool.
 - Added pending input submission during generation, with interruption and continuation of active turns.
