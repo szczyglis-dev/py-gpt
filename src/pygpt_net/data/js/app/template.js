@@ -40,7 +40,7 @@ class NodeTemplateEngine {
 	// Render one RenderBlock into HTML (may produce 1 or 2 messages – input and/or output)
 	renderNode(block) {
 		const parts = [];
-		if (block && block.input && block.input.text) parts.push(this._renderUser(block));
+		if (block && block.input) parts.push(this._renderUser(block));
 		if (block && block.output) {
 			const extra = block.extra || {};
 			const hasToolCalls = Array.isArray(extra.tool_calls) && extra.tool_calls.length > 0;
@@ -107,7 +107,8 @@ class NodeTemplateEngine {
 		const copyBtn = `<a href="empty:${this.esc(id)}" class="msg-copy-btn" data-id="${this.esc(id)}" data-tip="${this.escapeHtml(copyTitle)}" title="${this.escapeHtml(copyTitle)}" aria-label="${this.escapeHtml(copyTitle)}" role="button"><img src="${this.esc(copyIcon)}" class="copy-img" alt="${this.escapeHtml(copyTitle)}" data-id="${this.esc(id)}"></a>`;
 
 		const editBtn = `<a href="extra-edit:${this.esc(id)}" class="user-edit-btn" data-id="${this.esc(id)}" title="${this.escapeHtml(inp.edit_title || 'Edit')}" aria-label="${this.escapeHtml(inp.edit_title || 'Edit')}" role="button"><img src="${this.esc(inp.edit_icon || '')}" alt=""></a>`;
-        return `${dateLabel}<div class="msg-user-region${block.extra && block.extra.live_input_fade ? ' input-live-arrival' : ''}">${this.artifacts.renderUserAttachments((block.extra || {}).user_attachments)}<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg"><p style="margin:0">${content}</p></div></div><div class="user-message-actions"><time>${this.escapeHtml(inp.time_label || '')}</time>${copyBtn}${editBtn}</div></div>`;
+        const bubble = inp.text ? `<div class="msg-box msg-user" id="${msgId}">${nameHeader}<div class="msg"><p style="margin:0">${content}</p></div></div>` : '';
+        return `${dateLabel}<div ${inp.text ? '' : `id="${msgId}" `}class="msg-user-region${block.extra && block.extra.live_input_fade ? ' input-live-arrival' : ''}">${this.artifacts.renderUserAttachments((block.extra || {}).user_attachments)}${bubble}<div class="user-message-actions"><time>${this.escapeHtml(inp.time_label || '')}</time>${inp.text ? copyBtn : ''}${editBtn}</div></div>`;
 	}
 
 	// Render message-level actions

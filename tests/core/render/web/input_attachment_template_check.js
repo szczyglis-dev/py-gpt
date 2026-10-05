@@ -41,3 +41,11 @@ assert(!singleUrl.includes('[1]'));
 const multipleUrls = templates.artifacts.renderExtras({urls:{1:{url:'https://example.com/one'},2:{url:'https://example.com/two'}}});
 assert(multipleUrls.includes('[1]'));
 assert(multipleUrls.includes('[2]'));
+
+const imageOnly = {images: {1: {url: 'file:///image.png', path: 'file:///image.png', basename: 'image.png'}}};
+nodes.appendToInput('__PYGPT_INPUT_V1__' + JSON.stringify({text: '', user_attachments: imageOnly}));
+assert(rendered.includes('bridge://open_image/file:///image.png'));
+assert(!rendered.includes('msg-box msg-user'));
+const restored = templates.renderNode({id: 9, input: {text: ''}, extra: {user_attachments: imageOnly}});
+assert(restored.includes('bridge://open_image/file:///image.png'));
+assert(!restored.includes('msg-box msg-user'));

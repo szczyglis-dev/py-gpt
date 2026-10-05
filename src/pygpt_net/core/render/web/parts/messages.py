@@ -56,7 +56,7 @@ class Messages:
         :return: prepared text or None
         """
         if ctx.input is None or ctx.input == "":
-            return
+            return "" if not ctx.internal else None
 
         text = ctx.input
         if isinstance(ctx.extra, dict) and "sub_reply" in ctx.extra and ctx.extra["sub_reply"]:
@@ -118,7 +118,8 @@ class Messages:
         preview.files = attachment_paths(ctx.files)
         mode = getattr(ctx, "mode", None) or self.renderer.window.core.config.get("mode")
         manager = getattr(self.renderer.window.core, "attachments", None)
-        pending = manager.get_all(mode) if manager is not None else {}
+        pending = (manager.get_all(mode) if manager is not None
+                   and not (ctx.extra or {}).get('queued_attachments') else {})
         for item in pending.values():
             path = getattr(item, "path", None)
             if getattr(item, "type", "file") != "file" or not isinstance(path, str) or not path:
@@ -149,7 +150,8 @@ class Messages:
 
         self.renderer.view.update_names(meta, ctx)
         text = self.prepare_input(meta, ctx, flush, append)
-        if text:
+        snapshot = self.input_attachment_snapshot(ctx, pid) if text is not None else {}
+        if text is not None and (text or any(snapshot.values())):
             date_label = self.renderer.history.get_live_input_date_label(meta, ctx)
             if flush:
                 if self.renderer.is_stream() and not append:
@@ -172,7 +174,9 @@ class Messages:
             )
             if block:
                 if not append:
-                    block.extra["user_attachments"] = self.input_attachment_snapshot(ctx, pid)
+                    block.extra["user_attachments"] = snapshot
+                    if block.input is None:
+                        block.input = {"type": "user", "text": text}
                 self.renderer.bridge.emit_mutation(meta, RenderMutation(
                     op=RenderOp.APPEND_INPUT,
                     msg_id=getattr(ctx, "id", None),
@@ -184,7 +188,7 @@ class Messages:
         if ctx is None or getattr(ctx, "id", None) is None:
             return None
         input_text = self.prepare_input(meta, ctx, flush=False, append=True)
-        if not input_text:
+        if input_text is None:
             return None
         return self.build_render_block(
             meta,
@@ -334,7 +338,7 @@ class Messages:
                                            "connections": self.connection_snapshot(ctx)}
 
         # input
-        if input_text:
+        if input_text is not None and (input_text or any(block.extra["user_attachments"].values())):
             # Keep raw; formatting is a template duty (escape/BR etc.)
             block.input = {
                 "type": "user",

@@ -621,7 +621,8 @@ class Streaming:
         :param begin: True if begin of stream
         :param date_label: optional day separator rendered before the user row
         """
-        if not text_chunk:
+        if not text_chunk and not any(self.renderer.messages.input_attachment_snapshot(
+                ctx, self.renderer.session.get_or_create_pid(meta)).values()):
             return
         if ctx.hidden:
             return
@@ -840,4 +841,3 @@ class Streaming:
             )
         except Exception:
             pass
-

@@ -98,6 +98,38 @@ class DummyCtxMeta:
     def __init__(self, preset=""):
         self.preset = preset
 
+
+def test_attachment_only_user_block_is_built_for_history(renderer):
+    meta = CtxMeta()
+    ctx = CtxItem()
+    ctx.id = 12
+    ctx.input = ''
+    ctx.images = ['/image.png']
+    renderer.session.get_or_create_pid = MagicMock(return_value=1)
+    renderer.state.pids = {1: MagicMock()}
+    renderer.body.build_extras_dicts.return_value = ({'1': {'url': 'file:///image.png'}}, {}, {}, {})
+    block = renderer.messages.build_input_block(meta, ctx)
+    assert block.input['text'] == ''
+    assert block.extra['user_attachments']['images']['1']['url'] == 'file:///image.png'
+
+
+def test_attachment_only_live_input_is_not_skipped(renderer):
+    from pygpt_net.core.render.web.parts.block import RenderBlock
+    meta = CtxMeta()
+    ctx = CtxItem()
+    ctx.id = 12
+    ctx.input = ''
+    renderer.session.get_or_create_pid = MagicMock(return_value=1)
+    renderer.view.update_names = MagicMock()
+    renderer.messages.input_attachment_snapshot = MagicMock(return_value={
+        'images': {'1': {'url': 'file:///image.png'}}, 'files': {}, 'connections': {}})
+    renderer.messages.build_render_block = MagicMock(return_value=RenderBlock(id=12))
+    renderer.bridge.emit_mutation = MagicMock()
+    renderer.messages.append_input(meta, ctx)
+    mutation = renderer.bridge.emit_mutation.call_args.args[1]
+    assert mutation.block['input']['text'] == ''
+    assert mutation.block['extra']['user_attachments']['images']
+
 class DummyPid:
     def __init__(self, preset=""):
         self.preset = preset

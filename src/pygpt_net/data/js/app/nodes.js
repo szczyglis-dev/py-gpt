@@ -109,7 +109,7 @@ class NodesManager {
 						"'": '&#039;'
 					} [m])).replace(/\r?\n/g, '<br>'));
 			// Minimal, margin-less user message (no empty msg-extra to avoid extra spacing).
-			html = `<div class="msg-box msg-user"><div class="msg"><p style="margin:0">${body}</p></div></div>`;
+			html = trimmed ? `<div class="msg-box msg-user"><div class="msg"><p style="margin:0">${body}</p></div></div>` : '';
 		}
 
         const attachmentHtml = attachments && this.templates

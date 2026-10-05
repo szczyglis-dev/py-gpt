@@ -36,6 +36,7 @@ class RuntimeMutations {
         const current = region.querySelector('.user-attachments');
         if (current && current.outerHTML === html) return;
         if (current) current.outerHTML = html;
+        else if (bubble === region) region.insertAdjacentHTML('afterbegin', html);
         else bubble.insertAdjacentHTML('beforebegin', html);
         this._postMutation(region);
     };
@@ -119,7 +120,7 @@ class RuntimeMutations {
 	// ========================================
 
 	_appendDurableInput = (block) => {
-		if (!block || !block.input || !block.input.text) return;
+		if (!block || !block.input) return;
 		const id = String(block.id == null ? '' : block.id);
 		if (!id) return;
 		if (document.getElementById(`msg-user-${id}`)) {
@@ -130,7 +131,7 @@ class RuntimeMutations {
 		if (!nodes) return;
 		try {
 			const transient = this.runtime.dom.get('_append_input_');
-            const alreadyVisible = transient && transient.querySelector('.msg-user');
+            const alreadyVisible = transient && transient.querySelector('.msg-user-region');
             const inputOnly = Object.assign({}, block, {output: null,
                 extra: Object.assign({}, block.extra || {}, {live_input_fade: !alreadyVisible})});
 			const html = this.runtime.templates.renderNode(inputOnly);

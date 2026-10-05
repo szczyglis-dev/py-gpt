@@ -258,6 +258,15 @@ class Text:
 
         log("Appending input to chat window...")
 
+        if runtime_attachments is not None and not internal:
+            from pygpt_net.item.render_attachment import AttachmentPath
+            ctx.extra['queued_attachments'] = True
+            for attachment in runtime_attachments.values():
+                if attachment.type != 'file' or not attachment.path:
+                    continue
+                target = ctx.images if core.filesystem.types.is_image(attachment.path) else ctx.files
+                target.append(AttachmentPath(attachment.path, 'user'))
+
         if continuation_parent is None:
             # Realtime audio can start a new microphone turn while the previous
             # response is still being cancelled/finalized. Give the new durable
