@@ -831,12 +831,12 @@ class TestRenderer:
         renderer.get_output_node = MagicMock(return_value=fake_window.core.ctx.output.get_current(meta))
         node = fake_window.core.ctx.output.get_current(meta)
         node.page().runJavaScript = MagicMock()
-        fake_window.core.command.realtime_visible_tool_names.return_value = ["read_file"]
+        fake_window.core.command.realtime_visible_tool_names.return_value = ["fs_read_file"]
         ctx = DummyCtxItem()
         renderer.agents.workflow_status_key = MagicMock(return_value=((1, "1"), 1, ctx))
         renderer.agents.workflow_status_add = MagicMock(return_value="read_file-status")
         renderer.agents.update_agent_working = MagicMock()
-        renderer.tool_output_begin(meta, ["read_file"], ctx)
+        renderer.tool_output_begin(meta, ["fs_read_file"], ctx)
         node.page().runJavaScript.assert_called()
 
     def test_tool_output_end(self, renderer, fake_window):

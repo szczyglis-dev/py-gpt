@@ -14,7 +14,7 @@ from tests.mocks import mock_window
 
 
 @pytest.mark.parametrize('use_extra', [False, True])
-@pytest.mark.parametrize('worker_type,cmd', [(PythonWorker, 'python_exec'), (SystemWorker, 'sys_exec')])
+@pytest.mark.parametrize('worker_type,cmd', [(PythonWorker, 'python_exec'), (SystemWorker, 'shell_exec')])
 def test_streams_reach_model_once_and_context_stays_local(mock_window, use_extra, worker_type, cmd):
     backend = execution_response({'cmd': cmd}, 'unique stdout', 'unique stderr', 7,
                                  context='local context unique stdout unique stderr')
@@ -73,7 +73,7 @@ def test_builtin_process_keeps_exit_status_without_shared_state(monkeypatch):
     assert output.return_code == 5
 
 
-@pytest.mark.parametrize('worker_type,cmd', [(PythonWorker, 'ipython_exec'), (SystemWorker, 'sys_exec')])
+@pytest.mark.parametrize('worker_type,cmd', [(PythonWorker, 'ipython_exec'), (SystemWorker, 'shell_exec')])
 def test_execution_response_cleans_terminal_formatting_before_tool_reply(mock_window, worker_type, cmd):
     stdout = '\x1b[32mZażółć gęślą\x1b[0m\n'.encode('utf-8')
     stderr = 'Error executing code:\x1b[31mModuleNotFoundError\x1b[39m\nNo module named googletrans'

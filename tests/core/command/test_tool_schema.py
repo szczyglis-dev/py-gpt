@@ -83,9 +83,9 @@ def test_json_schema_tool_metadata_exposes_same_explicit_schema_for_provider_ada
         "title": "must not leak",
     }
 
-    metadata = JsonSchemaToolMetadata("read_file", "Read a file", schema)
+    metadata = JsonSchemaToolMetadata("fs_read_file", "Read a file", schema)
 
-    assert metadata.name == "read_file"
+    assert metadata.name == "fs_read_file"
     assert metadata.description == "Read a file"
     assert metadata.get_parameters_dict() == {
         "type": "object",

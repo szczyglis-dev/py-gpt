@@ -35,8 +35,7 @@ class QuickStart:
     """First-run onboarding shown immediately after accepting the license."""
 
     PLUGINS_STEP_1 = (
-        ("cmd_files", "dialog.quick_start.files.desc"),
-        ("cmd_code_interpreter", "dialog.quick_start.python.desc"),
+        ("filesystem", "dialog.quick_start.filesystem.desc"),
         ("canvas_web", "dialog.quick_start.canvas.desc"),
     )
     PLUGINS_STEP_2 = (
@@ -44,8 +43,7 @@ class QuickStart:
         ("mcp", "dialog.quick_start.mcp.desc"),
     )
     DEFAULT_ENABLED_PLUGINS = {
-        "cmd_files",
-        "cmd_code_interpreter",
+        "filesystem",
         "canvas_web",
     }
 

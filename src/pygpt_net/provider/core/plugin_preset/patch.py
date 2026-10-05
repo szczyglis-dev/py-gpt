@@ -47,6 +47,10 @@ class Patch:
                 pass
                 updated = True
 
+        if version >= parse_version("2.9.1"):
+            from pygpt_net.plugin.filesystem.migration import migrate_tree
+            updated |= migrate_tree(data, reset_runtime=True)
+
         # update file
         migrated = False
         if updated:

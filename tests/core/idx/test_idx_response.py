@@ -181,7 +181,7 @@ def test_from_llm_stream_preserves_native_tool_call_message():
             "tool_calls": [{
                 "id": "call_1",
                 "function": {
-                    "name": "read_file",
+                    "name": "fs_read_file",
                     "arguments": '{"path":"a.txt"}',
                 },
             }]

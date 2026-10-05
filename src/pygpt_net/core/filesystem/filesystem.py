@@ -118,22 +118,17 @@ class Filesystem:
     def _runtime_artifact_active_paths(self, host_path: str, ctx=None) -> dict:
         """Return paths for the execution backends currently exposed to the model."""
         paths = {}
-        for plugin_id, key in (
-                ("cmd_code_interpreter", "code_interpreter"),
-                ("cmd_system", "system"),
-        ):
+        try:
+            if self.window.controller.plugins.is_enabled("filesystem"):
+                plugin = self.window.core.plugins.get("filesystem")
+                if plugin is not None:
+                    path = plugin.map_host_path_to_runtime(host_path, ctx=ctx)
+                    paths = {"filesystem": path, "code_interpreter": path, "system": path}
+        except Exception as exc:
             try:
-                if not self.window.controller.plugins.is_enabled(plugin_id):
-                    continue
-                plugin = self.window.core.plugins.get(plugin_id)
-                if plugin is None:
-                    continue
-                paths[key] = plugin.map_host_path_to_runtime(host_path, ctx=ctx)
-            except Exception as exc:
-                try:
-                    self.window.core.debug.log(exc)
-                except Exception:
-                    pass
+                self.window.core.debug.log(exc)
+            except Exception:
+                pass
         return paths
 
     def materialize_runtime_artifact(

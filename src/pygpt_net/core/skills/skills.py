@@ -1094,24 +1094,11 @@ class Skills:
         execution hint match the shell the agent can normally use first.
         """
         try:
-            if self._plugin_enabled("cmd_system"):
-                plugin = self.window.core.plugins.get("cmd_system")
-                if plugin is not None and self._has_tool(plugin, "sys_exec"):
+            if self._plugin_enabled("filesystem"):
+                plugin = self.window.core.plugins.get("filesystem")
+                if plugin is not None and self._has_tool(plugin, "shell_exec"):
                     mode = "sandbox" if plugin.is_docker_sandbox() else "host"
-                    return "sys_exec", mode
-        except Exception as exc:
-            self._log(exc)
-
-        try:
-            if self._plugin_enabled("cmd_code_interpreter"):
-                plugin = self.window.core.plugins.get("cmd_code_interpreter")
-                if plugin is not None and plugin.is_ipython_enabled():
-                    if self._has_tool(plugin, "ipython_sys_exec"):
-                        mode = "sandbox" if plugin.is_docker_sandbox() else "host"
-                        return "ipython_sys_exec", mode
-                elif plugin is not None and self._has_tool(plugin, "python_sys_exec"):
-                    mode = "sandbox" if plugin.is_docker_sandbox() else "host"
-                    return "python_sys_exec", mode
+                    return "shell_exec", mode
         except Exception as exc:
             self._log(exc)
 
@@ -1133,10 +1120,8 @@ class Skills:
         if mode == "sandbox":
             try:
                 plugin = None
-                if tool == "sys_exec":
-                    plugin = self.window.core.plugins.get("cmd_system")
-                elif tool in {"ipython_sys_exec", "python_sys_exec"}:
-                    plugin = self.window.core.plugins.get("cmd_code_interpreter")
+                if tool == "shell_exec":
+                    plugin = self.window.core.plugins.get("filesystem")
                 if plugin is not None:
                     sandbox_path = plugin.map_host_path_to_runtime(materialized, ctx=ctx)
             except Exception as exc:
@@ -1148,48 +1133,30 @@ class Skills:
         except Exception:
             is_windows = os.name == "nt"
 
-        if is_windows:
-            escaped = host_path.replace('"', '""')
-            host_cd = f'cd /d "{escaped}" && '
-            host_pythonpath = host_path + ";%PYTHONPATH%"
+        if is_windows and mode != "sandbox":
+            escaped = preferred.replace('"', '""')
+            execution_cd = f'cd /d "{escaped}" && '
+            pythonpath = preferred + ";%PYTHONPATH%"
         else:
-            host_cd = f"cd {shlex.quote(host_path)} && "
-            host_pythonpath = host_path + ":${PYTHONPATH:-}"
-
-        sandbox_cd = f"cd {shlex.quote(sandbox_path)} && "
-        sandbox_pythonpath = sandbox_path + ":${PYTHONPATH:-}"
-
+            execution_cd = f"cd {shlex.quote(preferred)} && "
+            pythonpath = preferred + ":${PYTHONPATH:-}"
         result = {
             "rule": (
-                "Run bundled skill scripts/modules with the skill root as the working directory. "
-                "This is required for relative resources and commands such as `python -m scripts.run_loop`. "
-                "Do not run those commands from the main workdir root."
+                "Run bundled skill scripts/modules with this skill root as the working directory. "
+                "This is required for relative resources and commands such as `python -m scripts.run_loop`."
             ),
             "preferred_tool": tool,
             "preferred_mode": mode,
             "preferred_working_directory": preferred,
             "working_directory_relative": relative_path,
             "host_working_directory": host_path,
-            "sandbox_working_directory": sandbox_path,
-            "host_shell_prefix": host_cd,
-            "sandbox_shell_prefix": sandbox_cd,
+            "shell_prefix": execution_cd,
             "pythonpath_fallback": {
-                "host": host_pythonpath,
-                "sandbox": sandbox_pythonpath,
-                "note": (
-                    "Prefer changing cwd to the skill root. Only use PYTHONPATH when the selected execution surface "
-                    "cannot change its working directory."
-                ),
+                "value": pythonpath,
+                "note": "Prefer changing cwd to the skill root. Use PYTHONPATH only when cwd cannot be changed.",
             },
-            "path_to_skill_argument": (
-                "When the command already runs with this skill root as cwd, use `.` for placeholders such as "
-                "<path-to-skill>; otherwise use the matching host/sandbox working-directory path above."
-            ),
+            "path_to_skill_argument": "When running from this skill root, use `.` for <path-to-skill> placeholders.",
         }
-        if mode != "sandbox":
-            result.pop("sandbox_working_directory")
-            result.pop("sandbox_shell_prefix")
-            result["pythonpath_fallback"].pop("sandbox")
         return result
 
     # ARCHIVE / NETWORK ----------------------------------------------------

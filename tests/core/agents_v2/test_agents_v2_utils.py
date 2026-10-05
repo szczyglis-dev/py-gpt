@@ -27,8 +27,8 @@ def test_effective_iteration_limit_maps_zero_to_unlimited_and_preserves_positive
 
 def test_tool_event_value_supports_dicts_objects_and_first_non_empty_key():
     assert tool_event_value({"name": "", "tool_name": "search"}, "name", "tool_name") == "search"
-    event = SimpleNamespace(name=None, tool="read_file")
-    assert tool_event_value(event, "name", "tool") == "read_file"
+    event = SimpleNamespace(name=None, tool="fs_read_file")
+    assert tool_event_value(event, "name", "tool") == "fs_read_file"
     assert tool_event_value({}, "missing") is None
 
 

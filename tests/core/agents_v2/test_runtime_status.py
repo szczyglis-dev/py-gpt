@@ -29,7 +29,7 @@ def runtime():
 def test_worker_identity_prefix_is_stable(name, number, expected):
     status = RuntimeStatus(runtime())
     assert status.worker_name(name, number) == expected
-    assert status.show_tool('read_file') is False
+    assert status.show_tool('fs_read_file') is False
     assert len(status.worker_name('x'*100, 2)) == 80
 
 

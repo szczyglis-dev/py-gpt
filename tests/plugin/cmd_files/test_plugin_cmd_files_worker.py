@@ -102,13 +102,13 @@ def test_pack_and_unpack_zip_roundtrip(mock_window, tmp_path):
     nested.mkdir()
     (nested / "two.txt").write_text("two", encoding="utf-8")
 
-    pack_item = {"cmd": "pack_archive", "params": {"src": "src", "dst": "bundle.zip"}}
+    pack_item = {"cmd": "fs_pack_archive", "params": {"src": "src", "dst": "bundle.zip"}}
     packed = worker.cmd_pack_archive(pack_item)
     assert packed["result"]["result"] == "OK"
     assert packed["result"]["format"] == "zip"
     assert (tmp_path / "bundle.zip").is_file()
 
-    unpack_item = {"cmd": "unpack_archive", "params": {"src": "bundle.zip", "dst": "unpacked"}}
+    unpack_item = {"cmd": "fs_unpack_archive", "params": {"src": "bundle.zip", "dst": "unpacked"}}
     unpacked = worker.cmd_unpack_archive(unpack_item)
     assert unpacked["result"]["result"] == "OK"
     assert unpacked["result"]["format"] == "zip"
@@ -134,3 +134,30 @@ def test_zip_add_path_skips_symlink_when_supported(mock_window, tmp_path):
         names = archive.namelist()
     assert any(name.endswith("normal.txt") for name in names)
     assert not any(name.endswith("link.txt") for name in names)
+
+
+def test_normalize_docker_tool_paths(mock_window, tmp_path):
+    from pygpt_net.core.filesystem.filesystem import Filesystem
+
+    plugin, worker = _worker(mock_window, tmp_path)
+    plugin.is_docker_sandbox = MagicMock(return_value=True)
+    filesystem = Filesystem(mock_window)
+    filesystem.get_data_dir = MagicMock(return_value=str(tmp_path))
+    mock_window.core.filesystem.from_sandbox_data_path = filesystem.from_sandbox_data_path
+    worker.ctx = object()
+    request = {"cmd": "fs_pack_archive", "params": {
+        "src": ["/mnt/data/a.txt", "/mnt/data", "/mnt/database/b.txt"],
+        "dst": "/mnt/data/archive.zip", "path": "/mnt/data/sub/file.txt",
+        "data": "/mnt/data/content", "pattern": "/mnt/data/*",
+        "url": "https://example.com/mnt/data/file",
+    }}
+    result = worker.normalize_tool_paths(request)
+    assert result["params"]["src"] == [str(tmp_path / "a.txt"), str(tmp_path), "/mnt/database/b.txt"]
+    assert result["params"]["dst"] == str(tmp_path / "archive.zip")
+    assert result["params"]["path"] == str(tmp_path / "sub/file.txt")
+    for name in ("data", "pattern", "url"):
+        assert result["params"][name] == request["params"][name]
+    assert request["params"]["dst"] == "/mnt/data/archive.zip"
+    filesystem.get_data_dir.assert_called_with(ctx=worker.ctx)
+    plugin.is_docker_sandbox.return_value = False
+    assert worker.normalize_tool_paths(request) is request

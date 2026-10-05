@@ -36,14 +36,8 @@ class Tools:
     def _rebuild_python_legacy(self, checked=False):
         self.window.controller.tools.rebuild_python_legacy_docker()
 
-    def _rebuild_system(self, checked=False):
-        self.window.controller.tools.rebuild_system_docker()
-
     def _rebuild_python_builtin(self, checked=False):
         self.window.controller.tools.rebuild_python_builtin()
-
-    def _rebuild_system_builtin(self, checked=False):
-        self.window.controller.tools.rebuild_system_builtin()
 
     def setup(self):
         """Setup tools menu"""
@@ -107,13 +101,6 @@ class Tools:
         menu_docker.addAction(ui_menu['menu.tools.python_legacy.rebuild'])
         ui_menu['menu.tools.python_legacy.rebuild'].triggered.connect(self._rebuild_python_legacy)
 
-        ui_menu['menu.tools.system.rebuild'] = QAction(
-            reload_icon,
-            trans("menu.tools.sandbox_docker.system.rebuild"),
-            window,
-        )
-        menu_docker.addAction(ui_menu['menu.tools.system.rebuild'])
-        ui_menu['menu.tools.system.rebuild'].triggered.connect(self._rebuild_system)
 
         menu_docker.addSeparator()
 
@@ -124,11 +111,3 @@ class Tools:
         )
         menu_docker.addAction(ui_menu['menu.tools.python_builtin.rebuild'])
         ui_menu['menu.tools.python_builtin.rebuild'].triggered.connect(self._rebuild_python_builtin)
-
-        ui_menu['menu.tools.system_builtin.rebuild'] = QAction(
-            reload_icon,
-            trans("menu.tools.sandbox_docker.system_builtin.rebuild"),
-            window,
-        )
-        menu_docker.addAction(ui_menu['menu.tools.system_builtin.rebuild'])
-        ui_menu['menu.tools.system_builtin.rebuild'].triggered.connect(self._rebuild_system_builtin)

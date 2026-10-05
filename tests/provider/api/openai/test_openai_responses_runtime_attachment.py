@@ -58,19 +58,19 @@ def test_runtime_image_is_embedded_in_function_call_output(tmp_path):
     previous.input = "make an animation"
     previous.output = "tool call pending"
     previous.msg_id = "resp_previous"
-    previous.cmds = [{"cmd": "attach_runtime_file"}]
+    previous.cmds = [{"cmd": "fs_attach_runtime_file"}]
     previous.extra = {
         "tool_calls": [{
             "id": "fc_attach",
             "call_id": "call_attach",
             "type": "function",
             "function": {
-                "name": "attach_runtime_file",
+                "name": "fs_attach_runtime_file",
                 "arguments": {"path": [str(image)]},
             },
         }],
         "tool_output": [{
-            "cmd": "attach_runtime_file",
+            "cmd": "fs_attach_runtime_file",
             "result": "Attached for native analysis in the next model request: painter.png",
         }],
     }

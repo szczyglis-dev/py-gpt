@@ -249,7 +249,7 @@ class RuntimeArtifacts:
         During code/project inspection that list may contain every file merely read,
         searched or mentioned. Those paths are runtime evidence, not response
         attachments. Delivery is therefore opt-in through Files I/O
-        ``deliver_file_to_user`` and remains hidden until finalization.
+        ``fs_deliver_file_to_user`` and remains hidden until finalization.
         """
         exported = []
         for entry in files or []:
@@ -269,7 +269,7 @@ class RuntimeArtifacts:
         ``source_ctx.files`` is intentionally excluded. Generic tool/code output can
         auto-populate it with inspected source paths, which must stay internal. A file
         reaches the response only through ``register_delivery_files()`` after an
-        explicit ``deliver_file_to_user`` action.
+        explicit ``fs_deliver_file_to_user`` action.
         """
         main = self.runtime.context.ctx
         if source_ctx is None or main is None or source_ctx is main:

@@ -25,7 +25,7 @@ def test_install(mock_window, monkeypatch):
     exists_mock = MagicMock(return_value=False)
     mkdir_mock = MagicMock()
     monkeypatch.setattr(os.path, "exists", exists_mock)
-    monkeypatch.setattr(os, "mkdir", mkdir_mock)
+    monkeypatch.setattr(os, "fs_mkdir", mkdir_mock)
     filesystem.install()
     exists_mock.assert_called()
     mkdir_mock.assert_called()

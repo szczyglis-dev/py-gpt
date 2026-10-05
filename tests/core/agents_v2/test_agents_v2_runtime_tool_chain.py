@@ -71,10 +71,10 @@ def test_agents_v2_runtime_local_tool_call_unwraps_params_and_attaches_response(
     runtime, _main = make_runtime(True)
 
     call_id = runtime.tool_history.record_local_call(
-        "read_file", {"params": {"path": "a.txt"}}, actor="w01"
+        "fs_read_file", {"params": {"path": "a.txt"}}, actor="w01"
     )
     runtime.tool_history.record_local_result(
-        call_id, "read_file", '{"content":"ok"}', actor="w01"
+        call_id, "fs_read_file", '{"content":"ok"}', actor="w01"
     )
 
     assert call_id == "agents_v2_run123_1"
@@ -82,7 +82,7 @@ def test_agents_v2_runtime_local_tool_call_unwraps_params_and_attaches_response(
         "id": call_id,
         "call_id": call_id,
         "type": "function",
-        "function": {"name": "read_file", "arguments": {"path": "a.txt"}},
+        "function": {"name": "fs_read_file", "arguments": {"path": "a.txt"}},
         "agents_v2_actor": "w01",
         "agents_v2_response": {"content": "ok"},
     }]
@@ -131,10 +131,10 @@ def test_agents_v2_runtime_result_without_call_id_matches_oldest_unanswered_same
 
 def test_agents_v2_runtime_excludes_orchestration_and_registered_local_tools_from_event_capture():
     runtime, _main = make_runtime(True)
-    runtime.tool_history.register_plugin("save_file")
+    runtime.tool_history.register_plugin("fs_save_file")
 
     runtime.tool_history.record_call({"tool_name": "agent_create", "tool_kwargs": {}}, actor="orchestrator")
-    runtime.tool_history.record_call({"tool_name": "save_file", "tool_kwargs": {"path": "x"}}, actor="w01")
+    runtime.tool_history.record_call({"tool_name": "fs_save_file", "tool_kwargs": {"path": "x"}}, actor="w01")
     runtime.tool_history.record_call({"tool_name": "query_index", "tool_kwargs": {"query": "x"}}, actor="w01")
 
     assert [item["function"]["name"] for item in runtime.tool_history.calls] == ["query_index"]
@@ -196,8 +196,8 @@ def test_custom_agent_session_status_supports_shared_tool_persistence():
     from pygpt_net.core.agents.runners.session_components import SessionStatus
     runtime, main = make_runtime()
     runtime.status = SessionStatus(runtime)
-    call_id = runtime.tool_history.persist_call('read_file', {'path': 'a.txt'}, 'orchestrator')
-    assert runtime.tool_history.persist_result('file content', 'orchestrator', 'read_file', call_id)
+    call_id = runtime.tool_history.persist_call('fs_read_file', {'path': 'a.txt'}, 'orchestrator')
+    assert runtime.tool_history.persist_result('file content', 'orchestrator', 'fs_read_file', call_id)
     task = main.parts[0].tasks[0]
     assert task.tool_output == 'file content'
     assert task.extra['status'] == 'completed'
@@ -206,8 +206,8 @@ def test_custom_agent_session_status_supports_shared_tool_persistence():
 def test_agents_v2_shared_tool_persistence_still_refreshes_status():
     runtime, _main = make_runtime()
     runtime.status = SimpleNamespace(refresh_tools=MagicMock())
-    call_id = runtime.tool_history.persist_call('read_file', {'path': 'a.txt'}, 'orchestrator')
-    assert runtime.tool_history.persist_result('file content', 'orchestrator', 'read_file', call_id)
+    call_id = runtime.tool_history.persist_call('fs_read_file', {'path': 'a.txt'}, 'orchestrator')
+    assert runtime.tool_history.persist_result('file content', 'orchestrator', 'fs_read_file', call_id)
     assert runtime.status.refresh_tools.call_count == 2
     runtime.status.refresh_tools.assert_called_with('orchestrator')
 

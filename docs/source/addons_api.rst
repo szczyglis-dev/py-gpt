@@ -858,6 +858,8 @@ Core methods you will use most often
 ``add_option(name, type, **kwargs)``
    Declare a setting in ``__init__()``. The option is persisted and rendered by the normal plugin settings UI. Read it later with ``get_option_value()``. Use ``secret=True`` for credentials and ``advanced=True`` for expert-only settings.
 
+   ``tab="python", subtab="general"`` places an option inside a child tab of the top-level Python tab. Omit ``subtab`` to retain a single-level settings layout. Declare readable labels in ``self.tabs`` and ``self.subtabs``; tab order follows option declaration order, with General first within each level. Advanced option groups remain specific to their tab/subtab.
+
 ``add_cmd(cmd, **kwargs)``
    Declare a model-callable command. The important fields are ``instruction``, ``params`` and ``enabled``. Add the same command ID to ``allowed_cmds``. ``hidden=True`` marks an implementation/internal tool that should not be persisted/displayed like a normal visible tool call.
 

@@ -781,7 +781,8 @@ class Command:
     def get_functions(
             self,
             parent_id: Optional[str] = None,
-            force: bool = False
+            force: bool = False,
+            ctx=None
     ) -> List[Dict[str, Any]]:
         """
         Get current functions list
@@ -793,7 +794,7 @@ class Command:
         func = []
         func_user = self.window.controller.presets.get_current_functions()
         if self.is_native_enabled(force=force):
-            func = self.as_native_functions(all=False, parent_id=parent_id)
+            func = self.as_native_functions(all=False, parent_id=parent_id, ctx=ctx)
         if func_user is None:
             func_user = []
         return func + func_user
@@ -801,7 +802,8 @@ class Command:
     def as_native_functions(
             self,
             all: bool = False,
-            parent_id: Optional[str] = None
+            parent_id: Optional[str] = None,
+            ctx=None
     ) -> List[Dict[str, Any]]:
         """
         Convert internal functions to native API format
@@ -842,9 +844,11 @@ class Command:
 
         if self.window.core.config.get('cmd') or all:
             event = Event(Event.CMD_SYNTAX, data)
+            event.ctx = ctx
             self.window.dispatch(event)
         elif self.window.controller.plugins.is_type_enabled("cmd.inline"):
             event = Event(Event.CMD_SYNTAX_INLINE, data)
+            event.ctx = ctx
             self.window.dispatch(event)
 
         cmds = copy.deepcopy(data['cmd'])

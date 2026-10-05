@@ -1,8 +1,8 @@
 {
     "__meta__": {
-        "version": "2.9.0",
-        "app.version": "2.9.0",
-        "updated_at": "2026-10-04T19:58:00"
+        "version": "2.9.1",
+        "app.version": "2.9.1",
+        "updated_at": "2026-10-05T19:58:00"
     },
     "items": {
         "claude-fable-5": {

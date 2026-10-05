@@ -1,0 +1,403 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.02 14:00:00                  #
+# ================================================== #
+
+import hashlib
+import os
+import threading
+import time
+import uuid
+from contextlib import contextmanager
+
+from PySide6.QtCore import Slot
+
+from pygpt_net.plugin.base.plugin import BasePlugin
+from pygpt_net.core.events import Event
+from pygpt_net.item.ctx import CtxItem
+from pygpt_net.core.sandbox import BuiltinSandboxPreparer, parse_builtin_packages
+
+from .config import Config
+from .render import Render
+from .sandbox import SandboxMode
+from .execution import ExecutionManager
+from .docker import Docker
+from .builder import Builder
+from .ipython import LocalKernel
+from .ipython import DockerKernel
+from .output import Output
+from .runner import Runner
+
+
+
+class PythonRuntime(BasePlugin):
+    def __init__(self, *args, **kwargs):
+        super(PythonRuntime, self).__init__(*args, **kwargs)
+        self.render = Render(self)
+        self.id = "filesystem"
+        self.is_common_plugin = True
+        self.name = "Python interpreter"
+        self.description = "Provides Python code execution"
+        self.prefix = "Python -> code"
+        self.type = [
+            'interpreter',
+        ]
+        self.order = 100
+        self.allowed_cmds = [
+            "ipython_exec",
+            "ipython_sys_exec",
+            "ipython_kernel_restart",
+            "python_exec",
+            "python_exec_file",
+            "python_sys_exec",
+        ]
+        self.use_locale = True
+        self.docker = Docker(self)
+        self.runner = Runner(self)
+        self.ipython_docker = DockerKernel(self)
+        self.ipython_local = LocalKernel(self)
+        self.builder = Builder(self)
+        self.output = Output(self)
+        self.worker = None
+        self.config = Config(self)
+        self.init_options()
+        self.execution = ExecutionManager(self)
+        self.builtin_preparer = BuiltinSandboxPreparer(self, "Python")
+
+        # Protect the shared .interpreter.current.py used by concurrent code runs.
+        # Short executions reuse the stable file; concurrent/long-running calls
+        # fall back to an isolated temporary file instead of blocking agents.
+        self._current_file_lock = threading.Lock()
+        self._current_file_lock_timeout = 0.25
+
+    def init_options(self):
+        """Initialize options"""
+        self.config.from_defaults(self)
+
+    @Slot(object)
+    def handle_log(self, msg):
+        """Route Python system-exec logs to a distinct console prefix."""
+        if isinstance(msg, dict) and msg.get("__pygpt_python_log__"):
+            if self.is_threaded():
+                return
+            text = str(msg.get("message", ""))
+            prefix = str(msg.get("prefix") or self.prefix)
+            full = f"[{prefix}] {text}"
+            log_enabled = self.is_log()
+            self.debug(full, not log_enabled)
+            self.window.update_status(full.replace("\n", " "))
+            if log_enabled:
+                print(full)
+            return
+        super().handle_log(msg)
+
+    def is_ipython_enabled(self) -> bool:
+        """Return True when the IPython interpreter option is enabled."""
+        return bool(self.get_option_value("use_ipython"))
+
+    def get_builtin_packages(self) -> list[str]:
+        """Return package requirements configured for the Built-in venv."""
+        return parse_builtin_packages(self.get_option_value("builtin_packages"))
+
+    def rebuild_builtin_sandbox(self) -> bool:
+        """Force recreation of the Python Built-in sandbox venv."""
+        backend = self.execution.get_backend(SandboxMode.BUILTIN)
+        try:
+            backend.ipython.shutdown_kernel()
+        except Exception as exc:
+            self.window.core.debug.log(exc)
+        return self.builtin_preparer.rebuild(backend.runtime)
+
+    def get_sandbox_mode(self) -> SandboxMode:
+        """Return the selected execution/sandbox mode."""
+        if hasattr(self, "execution"):
+            return self.execution.get_mode()
+        value = self.get_option_value("sandbox")
+        try:
+            return SandboxMode(value)
+        except (TypeError, ValueError):
+            return SandboxMode.DISABLED
+
+    def get_execution_backend(self):
+        """Return the backend responsible for the selected execution mode."""
+        return self.execution.get_backend()
+
+    def is_sandbox_mode(self, mode: str | SandboxMode) -> bool:
+        """Return True when the requested sandbox mode is selected."""
+        value = mode.value if isinstance(mode, SandboxMode) else str(mode)
+        return self.get_sandbox_mode().value == value
+
+    def is_docker_sandbox(self) -> bool:
+        """Compatibility helper for Docker-specific UI/build code."""
+        return self.is_sandbox_mode(SandboxMode.DOCKER)
+
+    def is_builtin_sandbox(self) -> bool:
+        """Return True when the uv-managed built-in sandbox is selected."""
+        return self.is_sandbox_mode(SandboxMode.BUILTIN)
+
+    def is_sandbox_enabled(self) -> bool:
+        """Return True when commands run through any isolated sandbox backend."""
+        return self.get_execution_backend().sandboxed
+
+    def get_runtime_workdir(self, ctx=None) -> str:
+        """Return the working directory visible to the active execution backend."""
+        return self.get_execution_backend().get_runtime_workdir(ctx=ctx)
+
+    def map_host_path_to_runtime(self, path: str, ctx=None) -> str:
+        """Map a host path to the namespace visible to the active backend."""
+        return self.get_execution_backend().map_host_path_to_runtime(path, ctx=ctx)
+
+    def get_filesystem_context(self, host_data_dir: str) -> str:
+        """Return model-facing filesystem guidance for the active backend."""
+        return self.get_execution_backend().get_filesystem_context(
+            host_data_dir,
+            self.is_ipython_enabled(),
+        )
+
+
+    def make_temp_file_path(self, extension: str = "png"):
+        """
+        Make temporary file path for code execution
+
+        :param extension: file extension
+        :return: temporary file path
+        """
+        name = uuid.uuid4().hex + f".{extension}"
+        tmp_dir = self.window.core.config.get_user_dir("tmp")
+        return os.path.join(tmp_dir, name)
+
+    def _make_interpreter_current_fallback(self) -> str:
+        """Reserve an isolated fallback filename for a concurrent code run."""
+        tmp_dir = self.window.core.config.get_user_dir("tmp")
+        os.makedirs(tmp_dir, exist_ok=True)
+        while True:
+            suffix = hashlib.md5(os.urandom(16)).hexdigest()[:5]
+            name = f".interpreter.current.{suffix}.py"
+            path = os.path.join(tmp_dir, name)
+            try:
+                fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            except FileExistsError:
+                continue
+            else:
+                os.close(fd)
+                return name
+
+    @contextmanager
+    def reserve_interpreter_current_file(self, requested_path: str | None = None):
+        """Reserve the shared current-code file or an isolated fallback.
+
+        The normal path remains ``.interpreter.current.py``. A concurrent run
+        waits briefly for it; if it is still busy, a unique file in the same
+        tmp directory is used and removed automatically after the caller exits.
+
+        Yields ``(path, fallback)`` where ``path`` is the interpreter-relative
+        temporary filename and ``fallback`` tells whether an isolated file was
+        allocated. Explicit non-current paths are passed through unchanged.
+        """
+        interpreter = self.window.tools.get("interpreter")
+        current = interpreter.file_current
+        requested = requested_path or current
+        normalized = os.path.normpath(str(requested)).replace("\\", "/")
+        current_normalized = os.path.normpath(current).replace("\\", "/")
+
+        # Only the internal shared current file needs arbitration.
+        if normalized != current_normalized:
+            yield requested, False
+            return
+
+        acquired = self._current_file_lock.acquire(
+            timeout=self._current_file_lock_timeout,
+        )
+        fallback = None
+        try:
+            if acquired:
+                yield current, False
+                return
+
+            fallback = self._make_interpreter_current_fallback()
+            yield fallback, True
+        finally:
+            if acquired:
+                self._current_file_lock.release()
+            elif fallback:
+                path = os.path.join(
+                    self.window.core.config.get_user_dir("tmp"),
+                    fallback,
+                )
+                try:
+                    os.remove(path)
+                except FileNotFoundError:
+                    pass
+                except OSError as exc:
+                    self.window.core.debug.log(exc)
+
+    def handle(self, event: Event, *args, **kwargs):
+        """
+        Handle dispatched event
+
+        :param event: event object
+        :param args: args
+        :param kwargs: kwargs
+        """
+        name = event.name
+        data = event.data
+        ctx = event.ctx
+        silent = data.get("silent", False)
+
+        if name == Event.CMD_SYNTAX:
+            self.cmd_syntax(data, ctx=ctx)
+
+        elif name == Event.CMD_EXECUTE:
+            self.cmd(
+                ctx,
+                data['commands'],
+                silent,
+            )
+
+        elif name == Event.TOOL_OUTPUT_RENDER:
+            if data['tool'] == self.id:
+                # Input/output is already available in the dedicated Code
+                # Interpreter view and in the tool chain. Do not duplicate it
+                # in the message footer.
+                data['html'] = ''
+
+
+    def cmd(self, ctx: CtxItem, cmds: list, silent: bool = False):
+        """
+        Event: CMD_EXECUTE
+
+        :param ctx: CtxItem
+        :param cmds: commands dict
+        :param silent: silent mode
+        """
+        from ..worker import Worker
+
+        is_cmd = False
+        force = False
+        my_commands = []
+        for item in cmds:
+            cmd = item.get("cmd")
+            forced = bool(item.get("force"))
+            if cmd in self.allowed_cmds and (forced or self.is_command_active(cmd)):
+                my_commands.append(item)
+                is_cmd = True
+                if forced:
+                    force = True  # call from tool
+
+        if not is_cmd:
+            return
+
+        backend = self.get_execution_backend()
+        runtime_commands = []
+        for item in my_commands:
+            command = item["cmd"]
+            if command == "python_exec" and self.is_ipython_enabled():
+                command = "ipython_exec"
+            elif command == "shell_exec":
+                command = "ipython_sys_exec" if self.is_ipython_enabled() else "python_sys_exec"
+            elif command == "python_kernel_restart":
+                command = "ipython_kernel_restart"
+            if command in ("python_exec", "ipython_exec", "python_sys_exec", "ipython_sys_exec", "ipython_kernel_restart"):
+                runtime_commands.append(dict(item, cmd=command))
+        if runtime_commands and not backend.prepare(runtime_commands):
+            return
+
+        # set state: busy
+        if not silent:
+            self.cmd_prepare(ctx, my_commands)
+
+        try:
+            worker = Worker()
+            worker.from_defaults(self)
+            worker.cmds = my_commands
+            worker.ctx = ctx
+
+            # connect signals
+            worker.signals.output.connect(self.handle_interpreter_output)
+            worker.signals.output_begin.connect(self.handle_interpreter_output_begin)
+            worker.signals.output_end.connect(self.handle_interpreter_output_end)
+            worker.signals.clear.connect(self.handle_interpreter_clear)
+            worker.signals.ipython_output.connect(self.handle_ipython_output)
+            # Runner/kernel signals are bound inside Worker.run() on the actual
+            # worker thread. Keeping a single shared signal pointer here causes
+            # races between overlapping tool calls and kernel restarts.
+
+            if (not self.is_async(ctx) and not force) or ctx.async_disabled:
+                worker.run()
+                return
+            worker.run_async()
+
+        except Exception as e:
+            self.error(e)
+
+    @Slot(object)
+    def handle_ipython_output(self, data):
+        """
+        Handle IPython output
+
+        :param data: output data
+        """
+        if not self.get_option_value("attach_output"):
+            return
+        # if self.is_threaded():
+        # return
+        # print(data)
+        cleaned_data = self.get_interpreter().remove_ansi(data)
+        self.window.tools.get("interpreter").append_output(cleaned_data)
+        if self.window.tools.get("interpreter").is_opened():
+            self.window.update_status("")
+
+    @Slot(object, str)
+    def handle_interpreter_output(self, data, type):
+        """
+        Handle interpreter output
+
+        :param data: output data
+        :param type: output type
+        """
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").append_output(data, type)
+
+    @Slot(str)
+    def handle_interpreter_output_begin(self, type: str):
+        """
+        Handle interpreter output begin
+
+        :param type: output type
+        """
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").output_begin(type)
+
+    @Slot(str)
+    def handle_interpreter_output_end(self, type: str):
+        """
+        Handle interpreter output end
+
+        :param type: output type
+        """
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").output_end(type)
+
+    @Slot()
+    def handle_interpreter_clear(self):
+        """Handle interpreter clear"""
+        if not self.get_option_value("attach_output"):
+            return
+        self.window.tools.get("interpreter").clear_output()
+
+
+
+    def get_interpreter(self):
+        """Return the IPython kernel selected by the active execution backend."""
+        if not self.is_ipython_enabled():
+            return self.ipython_local
+        return self.get_execution_backend().get_ipython_interpreter()

@@ -208,7 +208,7 @@ class Context:
         """Build an ephemeral user multimodal message for images returned by a tool.
 
         Native function/tool result payloads are text-only for a number of
-        LlamaIndex provider adapters. ``attach_runtime_file`` therefore carries
+        LlamaIndex provider adapters. ``fs_attach_runtime_file`` therefore carries
         its local image separately in ``BridgeContext.attachments``. Promote
         those transport-only images into a normal user multimodal message for
         the immediate continuation, mirroring the Agents v2 main-agent path.

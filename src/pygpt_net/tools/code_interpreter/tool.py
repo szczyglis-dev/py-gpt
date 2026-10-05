@@ -129,7 +129,7 @@ class CodeInterpreter(BaseTool):
     def get_output_max_entries(self) -> int:
         """Return the configured interpreter output block limit (0 = unlimited)."""
         try:
-            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            plugin = self.window.core.plugins.get("filesystem")
             if plugin is None:
                 return 30
             value = plugin.get_option_value("output_max_entries")
@@ -432,7 +432,7 @@ class CodeInterpreter(BaseTool):
         print("Sending restart event...")
         commands = [
             {
-                "cmd": "ipython_kernel_restart",
+                "cmd": "python_kernel_restart",
                 "params": {},
                 "silent": True,
                 "force": True,
@@ -457,7 +457,7 @@ class CodeInterpreter(BaseTool):
         :return: True if ipython is enabled, False otherwise
         """
         try:
-            plugin = self.window.core.plugins.get("cmd_code_interpreter")
+            plugin = self.window.core.plugins.get("filesystem")
             if plugin is not None:
                 return bool(plugin.is_ipython_enabled())
         except Exception:
@@ -506,7 +506,7 @@ class CodeInterpreter(BaseTool):
         self.ipython = use_ipython
         safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
         execute_all = self.is_all() and not use_ipython
-        cmd = "ipython_exec" if use_ipython else "python_exec"
+        cmd = "python_exec"
         command = {
             "cmd": cmd,
             "params": {
@@ -549,7 +549,7 @@ class CodeInterpreter(BaseTool):
         self.ipython = use_ipython
         safe_emit(self.signals, "set_checkbox_ipython", use_ipython)
         execute_all = self.is_all() and not use_ipython
-        cmd = "ipython_exec" if use_ipython else "python_exec"
+        cmd = "python_exec"
         command = {
             "cmd": cmd,
             "params": {
@@ -581,7 +581,7 @@ class CodeInterpreter(BaseTool):
             if not isinstance(event.ctx.extra, dict):
                 event.ctx.extra = {}
             event.ctx.extra["interpreter_tool"] = True
-        self.window.core.dispatcher.apply("cmd_code_interpreter", event)
+        self.window.core.dispatcher.apply("filesystem", event)
 
     def update_input(self):
         """Update input data"""
@@ -718,11 +718,11 @@ class CodeInterpreter(BaseTool):
         :param widget: ToolWidget instance
         """
         self.ipython = widget.checkbox_ipython.isChecked()
-        plugin = self.window.core.plugins.get("cmd_code_interpreter")
+        plugin = self.window.core.plugins.get("filesystem")
         if plugin is not None:
             plugin.set_option_value("use_ipython", self.ipython)
             plugins_cfg = self.window.core.config.data.setdefault("plugins", {})
-            plugin_cfg = plugins_cfg.setdefault("cmd_code_interpreter", {})
+            plugin_cfg = plugins_cfg.setdefault("filesystem", {})
             plugin_cfg["use_ipython"] = self.ipython
             self.window.core.config.save()
         safe_emit(self.signals, "set_checkbox_ipython", self.ipython)

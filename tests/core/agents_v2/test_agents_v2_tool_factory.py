@@ -109,7 +109,7 @@ def test_agents_v2_tool_factory_plugin_call_normalizes_wrapped_arguments(monkeyp
         "required": ["path"],
     }
     runtime = make_runtime([
-        {"name": "read_file", "desc": "Read file", "params": json.dumps(schema)},
+        {"name": "fs_read_file", "desc": "Read file", "params": json.dumps(schema)},
     ])
     worker = make_worker()
     factory = WorkerToolFactory(runtime)
@@ -119,15 +119,15 @@ def test_agents_v2_tool_factory_plugin_call_normalizes_wrapped_arguments(monkeyp
 
     assert result == json.dumps({"ok": True}, ensure_ascii=False, indent=2)
     runtime.tool_history.record_local_call.assert_called_once_with(
-        "read_file", {"path": "/tmp/a.txt"}, actor="w01"
+        "fs_read_file", {"path": "/tmp/a.txt"}, actor="w01"
     )
     runtime.emitter.execute_plugin.assert_awaited_once_with(
         worker.tool_ctx,
-        [{"cmd": "read_file", "params": {"path": "/tmp/a.txt"}}],
+        [{"cmd": "fs_read_file", "params": {"path": "/tmp/a.txt"}}],
         runtime.is_stopped,
     )
     runtime.tool_history.record_local_result.assert_called_once_with(
-        "display-1", "read_file", {"ok": True}, actor="w01"
+        "display-1", "fs_read_file", {"ok": True}, actor="w01"
     )
     assert worker.tool_ctx.agent_call is True
     assert worker.tool_ctx.async_disabled is False
@@ -294,3 +294,12 @@ def test_worker_status_and_shared_context_tools_delegate_semantic_updates():
     result = asyncio.run(tools['report_status'].acall(status='Reading'))
     assert result.content
     runtime.status.worker.assert_called_once_with(worker, 'Reading')
+
+
+def test_plugin_tools_forward_expert_context():
+    runtime = make_runtime([])
+    ctx = SimpleNamespace(mode='expert', agent_call=True)
+    runtime.context = SimpleNamespace(ctx=ctx)
+    factory = WorkerToolFactory(runtime)
+    factory._plugin_tools(make_worker())
+    runtime.window.core.command.get_functions.assert_called_once_with(force=True, ctx=ctx)

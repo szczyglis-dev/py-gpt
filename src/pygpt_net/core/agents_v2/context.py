@@ -43,7 +43,7 @@ async def _store_tool_results_with_runtime_images(agent, ctx, results) -> None:
         tool_blocks = [block for block in blocks if not isinstance(block, ImageBlock)]
 
         # Preserve a protocol-valid textual tool output even when a tool happens
-        # to return only an image. attach_runtime_file normally also returns a
+        # to return only an image. fs_attach_runtime_file normally also returns a
         # TextBlock, so this is only a defensive fallback.
         if not tool_blocks:
             tool_blocks = [TextBlock(text=(
@@ -183,7 +183,7 @@ class RuntimeContext:
         for Agents v2 and is de-duplicated when composing actor prompts.
         """
         try:
-            plugin_id = "cmd_files"
+            plugin_id = "filesystem"
             controller = getattr(self.runtime.window, "controller", None)
             plugins_controller = getattr(controller, "plugins", None)
             if plugins_controller is not None and not plugins_controller.is_enabled(plugin_id):
@@ -191,14 +191,12 @@ class RuntimeContext:
             plugin = self.runtime.window.core.plugins.get(plugin_id)
             if plugin is None:
                 return ""
-            if not plugin.get_option_value("auto_cwd"):
-                return ""
             if not self.runtime.window.core.command.is_cmd(inline=False):
                 return ""
             builder = getattr(plugin, "build_runtime_filesystem_context", None)
             if not callable(builder):
                 return ""
-            return str(builder() or "").strip()
+            return str(builder(ctx=getattr(self.runtime.context, "ctx", None)) or "").strip()
         except Exception as exc:
             self.runtime.window.core.debug.log(exc)
             return ""
@@ -253,7 +251,7 @@ class RuntimeContext:
         )
         cls = FunctionAgent if supports_function_calling(llm) else ReActAgent
         # Runtime tool outputs of the top-level actor may contain ImageBlocks
-        # (for example attach_runtime_file). Keep workers on the normal
+        # (for example fs_attach_runtime_file). Keep workers on the normal
         # FunctionAgent image path that already works for them, and normalize media
         # only for the workflow's single user-facing main actor. This must be
         # based on the resolved strategy name, not only PRIMARY_AGENT mode: in

@@ -47,7 +47,7 @@ You can download compiled 64-bit versions for Windows and Linux here: https://py
 - Web search via `DuckDuckGo`, `Google`, `Microsoft Bing` and remote web search.
 - Speech synthesis via `OpenAI`, `Microsoft Azure`, `Google Cloud / GenAI`, `Eleven Labs`, and `xAI`.
 - Speech recognition via `OpenAI Whisper` (API or local), `Google / Google Cloud / GenAI`, `Microsoft Bing`, and `xAI Grok Voice`.
-- Extensible plugin system with `Files I/O`, `Python interpreter`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and more.
+- Extensible plugin system with `Filesystem, Python and OS`, `Web search`, `Google`, `Facebook`, `X/Twitter`, `Slack`, `Telegram`, `GitHub`, `MCP`, and more.
 - Model Context Protocol (MCP) support.
 - Built-in `MCP Connectors` manager with catalog browsing and import from Claude, Codex, OpenClaw, Cursor, VS Code, OpenCode, MCPorter, and generic JSON/TOML/YAML configurations.
 - Agents multi-agent workflows with Chat, Orchestrator, and Swarm runtimes.
@@ -757,7 +757,7 @@ Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/
 
 ## Querying single files
 
-You can query an individual file on the fly with the `query_file` command from the **Files I/O** plugin. A temporary in-memory index is created for that query; it is not persisted as a normal index unless the plugin is configured to index read files automatically. A similar command is available for querying web and external content through LlamaIndex.
+You can query an individual file on the fly with the `fs_query_file` command from the **Filesystem, Python and OS** plugin. A temporary in-memory index is created for that query; it is not persisted as a normal index unless the plugin is configured to index read files automatically. A similar command is available for querying web and external content through LlamaIndex.
 
 For example, if `data/my_cars.txt` contains `My car is red.`, you can ask the model to query that file for the car color and receive `Red` as the result. Enable the **Tools** switch when using tool commands from plugins.
 
@@ -767,7 +767,7 @@ PyGPT uses three related index concepts:
 
 - **Configured indexes** are the normal persistent indexes listed in `Settings -> Indexes / RAG -> General -> Indexes`. They can contain files, external data, and indexed conversation context.
 - **Project indexes** are isolated persistent indexes created automatically for projects. They are shown to the user as **Current project** and are not added to the normal configured index list.
-- **Temporary indexes** are created in memory for operations such as querying a single attachment or using the Files I/O `query_file` tool. They are not persisted as normal indexes.
+- **Temporary indexes** are created in memory for operations such as querying a single attachment or using the Filesystem `fs_query_file` tool. They are not persisted as normal indexes.
 
 **Important:** Removing an item from the normal **Indexes** list removes only its configuration entry. It does not delete the already stored vector data. Use **Clear and truncate** when you want to permanently remove index data.
 
@@ -821,7 +821,7 @@ The active project index can be used from multiple places:
 - In a supported mode such as **Chat**, select **Current project** in the **RAG** selector at the bottom of the toolbox.
 - In the **Files** tab, use `RMB -> Embed into index -> Current project` for a file or directory.
 - In the **RAG (inline)** plugin, enable **Use project index if in use** to query the active project's isolated index automatically.
-- In the **Files I/O** plugin, enable **Use project index if in use** so persistent file indexing performed by the plugin targets the active project instead of the configured global file index.
+- In the **Filesystem, Python and OS** plugin, enable **Use project index if in use** so persistent file indexing performed by the plugin targets the active project instead of the configured global file index.
 
 Outside a project, the virtual **Current project** target is unavailable and normal configured indexes are used.
 
@@ -891,7 +891,7 @@ Conversations can be organized into projects. By default, projects use the share
 
 A project workdir overrides **only the logical `data` directory** used by conversations in that project. It does not replace the profile/application workdir. Files such as `config.json`, `models.json`, `db.sqlite`, logs and other profile-level directories such as `tmp`, `cache`, `css`, `locale` and fonts continue to use the base profile workdir. Conversations outside projects, and projects with **Use shared workdir** enabled, use the normal `<profile workdir>/data` directory.
 
-The project data directory is resolved at runtime. The **Files** tab, **Files I/O**, **Python interpreter**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/mnt/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
+The project data directory is resolved at runtime. The **Files** tab, **Filesystem, Python and OS**, filesystem-aware tools and Docker sandboxes use the data root that belongs to the current conversation. In Docker, the active host data directory is exposed as `/mnt/data`. The internal `tmp` directory always remains in the base profile workdir. `img`, `capture` and `upload` follow a custom project data workdir only when **Store images, captures, and uploads in the workdir data directory** is enabled; otherwise they remain in their normal base-profile locations.
 
 ## Clearing history
 
@@ -1024,7 +1024,7 @@ Files such as jpg, png, and similar images are a special case. By default, image
 
 The active `data` directory is also where the application stores files generated locally by the AI, such as code files and other model outputs. You can execute code from these files, read them back into the conversation, and index them with LlamaIndex. The project override applies only to this logical data root; it does not move profile-level paths such as `tmp`, configuration files, the database or other application directories.
 
-The `Files I/O` and `Python interpreter` plugins use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/mnt/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
+The `Filesystem, Python and OS` plugin use the same runtime-resolved data workdir as the active conversation. In Docker sandboxes this directory is mounted as `/mnt/data`. If **Store images, captures, and uploads in the workdir data directory** is enabled, `img`, `capture` and `upload` storage follows the active data workdir as well. When the option is disabled, those directories remain in their normal base-profile locations. `tmp` always remains in the base profile workdir.
 
 To allow the model to manage files or execute Python code, enable the `Tools` switch together with the required plugins:
 
@@ -1314,7 +1314,7 @@ The following plugins are currently available:
 
 - `Facebook` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
 
-- `Files I/O` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
+- `Filesystem, Python and OS` - host file operations, Python/IPython execution and system commands through a shared host, built-in or Docker runtime.
 
 - `GitHub` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
 
@@ -1334,7 +1334,6 @@ The following plugins are currently available:
 
 - `OpenStreetMap` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
 
-- `Python interpreter` - lets models execute Python or IPython code on the host, in the built-in uv-managed CPython sandbox, or in Docker, with mutually exclusive standard-Python/IPython tool sets and project-aware file access.
 
 - `RAG (inline)` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 
@@ -1346,7 +1345,6 @@ The following plugins are currently available:
 
 - `Slack` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
 
-- `System (OS)` - executes system commands on the host, in the built-in uv-managed sandbox, or in Docker, with project-aware runtime paths.
 
 - `Telegram` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 
@@ -1390,7 +1388,7 @@ Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#audio-output
 
 **WARNING: Use autonomous mode with caution.** Long or unlimited runs can make repeated API requests and tool calls, including actions with side effects.
 
-The Autonomous mode plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Files I/O, Python interpreter, image generation, and other integrations remain available through the normal PyGPT tool flow.
+The Autonomous mode plugin adds the same iterative autonomous loop to supported standard chat modes. Instead of simulating a conversation with itself, the model keeps working on the original user request across successive passes: it can perform another action, inspect tool results, verify earlier work, refine the result, and continue until the run-control rules stop it. It can cooperate with other enabled plugins, so tools such as web search, Filesystem, Python and OS, image generation, and other integrations remain available through the normal PyGPT tool flow.
 
 The **Iterations** option limits the number of autonomous passes; `0` means unlimited. **Auto-stop** lets the model finish the run early when the goal is complete. **Always continue** is mutually exclusive with Auto-stop: enabling it disables Auto-stop and makes the loop open-ended, ignoring the normal iteration limit until the run is stopped externally.
 
@@ -1483,9 +1481,17 @@ The Facebook plugin exposes Facebook Graph API operations for pages, posts and m
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#facebook
 
-## Files I/O
+## Filesystem, Python and OS
 
-The Files I/O plugin gives the model file and directory tools for reading, writing, copying, moving, downloading, searching and indexing content on the local filesystem. The effective read/write scope is controlled in `Config -> Settings -> Security -> General`. Disabling the filesystem restrictions allows access outside the active data directory, including the host filesystem, so enable broader access only when required and only for trusted workflows.
+This integrated plugin replaces Files I/O, Python interpreter and System (OS). Its settings have four main tabs: **Runtime / sandbox**, **Filesystem**, **Python** and **System (OS)**. Each tool section starts with **General** and an **Enable** switch that controls that section's tools. Other options are grouped into subtabs. A single runtime context supplies the model with the host and execution paths even when a tool section is disabled.
+
+Filesystem tools always access host paths. Python and system commands share the selected runtime and the active conversation's data workdir. Docker maps that host directory to `/mnt/data` and shared temporary files to `/mnt/tmp`.
+
+Upgrading to **2.9.1** merges the three legacy configurations and plugin presets, enables the integrated plugin wherever any predecessor was enabled, and replaces saved Docker image settings and built-in package settings with the current defaults, including customized values. The runtime selection and non-runtime tool preferences are preserved.
+
+### Filesystem tools
+
+The Filesystem section gives the model file and directory tools for reading, writing, copying, moving, downloading, searching and indexing content on the local filesystem. The effective read/write scope is controlled in `Config -> Settings -> Security -> General`. Disabling the filesystem restrictions allows access outside the active data directory, including the host filesystem, so enable broader access only when required and only for trusted workflows.
 
 Plugin capabilities include:
 
@@ -1740,56 +1746,15 @@ Images are saved under `data/openstreetmap/` in the user data directory.
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#openstreetmap
 
-## Python interpreter
+## Python execution
 
-The Python interpreter plugin gives the model and the Python/OS tool a Python/IPython runtime for code execution, package use and shell commands, with host, built-in and Docker backends.
+Python execution is part of **Filesystem, Python and OS**. The model always calls `python_exec(code)`; **Python -> General -> Use IPython** selects a persistent IPython kernel (default) or standard Python in a new process. With IPython selected, `python_kernel_restart` clears the kernel state. `shell_exec(command)` executes shell commands in the same runtime.
 
-### Executing code
+Configure the shared environment in `Plugins -> Settings -> Filesystem, Python and OS -> Runtime / sandbox -> General`. **Disabled** uses the host; **Built-in sandbox** (default) uses a separate uv-managed Python environment; **Docker** uses the selected Python or IPython container. Built-in isolates installed packages from PyGPT but does not restrict host filesystem or network access. Docker provides container isolation.
 
-The Python interpreter plugin provides local Python execution for model-generated code and for code started manually from the **Python/OS** window. It uses the active conversation's runtime `data` workdir, so project-specific data workdirs are handled automatically. Execution can run directly on the host or through the selected sandbox backend.
+Persistent built-in packages are configured in the **General** subtab. **Docker (IPython)** and **Docker (Python)** contain their respective Dockerfiles, images, mounts and permissions. Only the selected interpreter's container is used, including for system commands. Stock images run as the `pygpt` user with passwordless `sudo`; each image has a **Run as root** setting.
 
-The **Use IPython** option selects which Python tool set is exposed to the model. It is enabled by default:
-
-- with **Use IPython** enabled, the model receives only `ipython_exec`, `ipython_sys_exec`, and `ipython_kernel_restart`;
-- with **Use IPython** disabled, the model receives only `python_exec`, `python_exec_file`, and `python_sys_exec`.
-
-The two execution tool sets are never exposed together.
-
-**IPython:** IPython is the recommended execution mode because it keeps kernel state between calls and supports iterative workflows, data analysis, and IPython magic/shell syntax such as `!pip install <package_name>`. Use `ipython_exec` for Python code and `ipython_sys_exec` for shell/system commands in the same runtime environment.
-
-**Standard Python:** `python_exec` executes Python code directly and accepts only the `code` argument. PyGPT manages the temporary script path internally. Use `python_exec_file(path)` only when an existing Python file should be executed. `python_sys_exec` runs shell/system commands in the same selected host or sandbox runtime as standard Python.
-
-**Sandbox:** The **Sandbox** selector is available at the beginning of the plugin's **General** tab. **Disabled** runs Python/IPython directly on the host and is unsafe for untrusted code. **Built-in sandbox** uses a separate uv-managed CPython environment and does not require Docker; it isolates the Python environment from PyGPT itself, but it is not a filesystem/network security boundary. **Docker** requires Docker to be installed and running and provides the strongest isolation of the available options. In both sandbox modes, the active conversation's `data` workdir is used as the runtime working directory; Docker exposes it as `/mnt/data`, while the built-in sandbox uses the host path.
-
-The built-in Python/System environments are stored application-wide under `<application base workdir>/sandbox`. The **application base workdir** is the directory that owns `path.cfg` (by default `{HOME_DIR}/.config/pygpt-net/`, unless `PYGPT_WORKDIR` overrides it). If `path.cfg` redirects the active profile/workdir elsewhere, the `sandbox` directory remains in the application base workdir.
-
-**Built-in packages:** Add persistent packages in `Plugins -> Settings -> Python interpreter -> Built-in sandbox`, one requirement per line. Package-list changes rebuild the environment on the next use; use `Tools -> Sandbox / Docker` to rebuild it immediately. Packages installed manually with `pip` are removed by a rebuild unless they are also listed there.
-
-**Docker permissions:** The stock Docker images run as the unprivileged `pygpt` user by default, with passwordless `sudo` available when elevated privileges are required. Separate **Run as root** options are available for the IPython and standard-Python Docker runtimes.
-
-Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
-
-**Tip: connecting Docker in the Snap version**:
-
-To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemon:
-
-```commandline
-sudo snap connect pygpt:docker-executables docker:docker-executables
-```
-
-````commandline
-sudo snap connect pygpt:docker docker:docker-daemon
-````
-
-**Python/OS window:** PyGPT includes the **Python/OS** tool for real-time Python and IPython execution. Click the `<>` icon above the input field, use `Tools -> Python / OS`, or open it in a split/output tab. Plugin code input/output is mirrored there when **Connect to the Python/OS window** is enabled. The same **Use IPython** setting controls manual execution from this window, so the UI and the model-facing tool set use the same interpreter mode.
-
-![v2_interpreter_icon](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_interpreter_icon.png)
-
-![v2_python](https://github.com/szczyglis-dev/py-gpt/raw/master/docs/source/images/v2_python.png)
-
-**Tip:** Remember to enable the `Tools` switch to allow tools from plugins to be executed.
-
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#python-interpreter
+The Python/OS window uses the same interpreter and runtime. Open it with the `<>` icon or `Tools -> Python / OS`. Runtime images and the shared built-in environment can be rebuilt from `Tools -> Sandbox / Docker`.
 
 ## RAG (inline)
 
@@ -1838,21 +1803,11 @@ The Slack plugin exposes workspace conversations, messages, users and file trans
 
 Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#slack
 
-## System (OS)
+## System commands
 
-The System (OS) plugin gives the model a `sys_exec` tool for running shell commands in the active data workdir. Commands can run on the host, in the built-in uv-managed environment, or in Docker.
+The **System (OS)** section of **Filesystem, Python and OS** exposes `shell_exec(command)`. It uses the shared Python runtime and automatically starts in the active conversation's data directory (`/mnt/data` inside Docker). Shell commands are non-interactive and pass through the configured command whitelist/blacklist in every runtime. There is no separate OS image or built-in environment.
 
-- **Disabled** executes `sys_exec` directly on the host and is unsafe for untrusted commands.
-- **Built-in sandbox** executes commands in a separate uv-managed CPython environment and does not require Docker. It separates the command environment from PyGPT's own Python installation, but it is not a filesystem/network security boundary. Its environment is stored under the shared `<application base workdir>/sandbox/os` path.
-- **Docker** executes `sys_exec` inside the Docker sandbox. Docker must be installed and running; this backend provides the strongest isolation of the available options.
-
-When Docker is selected, the active conversation's runtime `data` directory is mounted as `/mnt/data` and used as the command working directory. Project-specific data workdirs are mapped automatically. The stock Docker image runs as the unprivileged `pygpt` user by default and provides passwordless `sudo`; **Run as root** can be enabled when required.
-
-`sys_exec` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled. **Auto-append CWD to sys_exec** uses the active host data workdir in host mode and `/mnt/data` in Docker mode.
-
-**Built-in packages:** Configure the System / OS environment in `Plugins -> Settings -> System (OS) -> Built-in sandbox`, one requirement per line. Changes rebuild the environment on the next use; use `Tools -> Sandbox / Docker` for an immediate rebuild.
-
-Documentation: https://pygpt.readthedocs.io/en/latest/plugins.html#system-os
+On Windows, the **WinAPI** subtab enables host desktop tools for window management, keyboard/mouse input, clipboard access and screenshots. These always target the host desktop.
 
 ## Telegram
 
@@ -2067,7 +2022,7 @@ Remote vector stores management.
 ## Python/OS
 
 
-This tool allows you to run Python code directly from within the app. It is integrated with the `Python interpreter` plugin. **Use IPython** selects IPython (default) or standard Python, while **Sandbox** selects host execution (**Disabled**), the **Built-in sandbox** based on a uv-managed CPython environment, or **Docker**. Docker provides the strongest isolation; the built-in sandbox separates the execution environment from PyGPT itself and does not require Docker, but it is not a filesystem/network security boundary. In Docker mode the active conversation data workdir is available as `/mnt/data`.
+This tool allows you to run Python code directly from within the app. It is integrated with the `Filesystem, Python and OS` plugin. **Use IPython** selects IPython (default) or standard Python, while **Sandbox** selects host execution (**Disabled**), the **Built-in sandbox** based on a uv-managed CPython environment, or **Docker**. Docker provides the strongest isolation; the built-in sandbox separates the execution environment from PyGPT itself and does not require Docker, but it is not a filesystem/network security boundary. In Docker mode the active conversation data workdir is available as `/mnt/data`.
 
 Docker installation: [Docker Engine](https://docs.docker.com/engine/install/) | [Docker Desktop](https://docs.docker.com/desktop/)
 
@@ -2081,7 +2036,7 @@ Commands run locally with the permissions of the user running PyGPT. Closing a t
 
 ## HTML/JS Canvas
 
-Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Python interpreter` plugin.
+Allows to render HTML/JS code in HTML Canvas (built-in renderer based on Chromium). To use it, just ask the model to render the HTML/JS code in built-in browser (HTML Canvas). Tool is integrated with the `Filesystem, Python and OS` plugin.
 
 ## Translator
 

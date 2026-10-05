@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from tests.mocks import mock_window
-from pygpt_net.plugin.cmd_files import Plugin
+from pygpt_net.plugin.filesystem import Plugin
 from pygpt_net.plugin.cmd_files.worker import Worker
 
 
@@ -24,22 +24,22 @@ def test_options(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.init_options()
     options = plugin.setup()
-    assert "cmd.read_file" in options
-    assert "cmd.save_file" in options
-    assert "cmd.append_file" in options
-    assert "cmd.delete_file" in options
-    assert "cmd.list_dir" in options
-    assert "cmd.mkdir" in options
-    assert "cmd.download_file" in options
-    assert "cmd.rmdir" in options
-    assert "cmd.copy_file" in options
-    assert "cmd.copy_dir" in options
-    assert "cmd.move" in options
-    assert "cmd.is_dir" in options
-    assert "cmd.is_file" in options
-    assert "cmd.file_exists" in options
-    assert "cmd.file_size" in options
-    assert "cmd.file_info" in options
+    assert "cmd.fs_read_file" in options
+    assert "cmd.fs_save_file" in options
+    assert "cmd.fs_append_file" in options
+    assert "cmd.fs_delete_file" in options
+    assert "cmd.fs_list_dir" in options
+    assert "cmd.fs_mkdir" in options
+    assert "cmd.fs_download_file" in options
+    assert "cmd.fs_rmdir" in options
+    assert "cmd.fs_copy_file" in options
+    assert "cmd.fs_copy_dir" in options
+    assert "cmd.fs_move" in options
+    assert "cmd.fs_is_dir" in options
+    assert "cmd.fs_is_file" in options
+    assert "cmd.fs_file_exists" in options
+    assert "cmd.fs_file_size" in options
+    assert "cmd.fs_file_info" in options
 
 
 def test_handle_cmd_syntax(mock_window):
@@ -56,11 +56,11 @@ def test_handle_cmd_syntax(mock_window):
     event.ctx = ctx
     plugin.handle(event)
     names = [item["cmd"] for item in event.data["cmd"]]
-    assert len(names) == 25
-    assert "deliver_file_to_user" in names
-    # assert "attach_runtime_file" in names
-    assert "runtime_artifacts" in names
-    assert "query_file" not in names
+    assert len(set(names).intersection(plugin.command_groups["filesystem"])) == 25
+    assert "fs_deliver_file_to_user" in names
+    # assert "fs_attach_runtime_file" in names
+    assert "fs_runtime_artifacts" in names
+    assert "fs_query_file" not in names
 
 
 def test_handle_cmd_execute(mock_window):
@@ -74,7 +74,7 @@ def test_handle_cmd_execute(mock_window):
     event.data = {
         "commands": [
             {
-                "cmd": "read_file",
+                "cmd": "fs_read_file",
                 "params": {
                     "filename": "test.txt",
                 }
@@ -129,7 +129,7 @@ def test_tool_response_request_preserves_list_path_type():
     worker = Worker()
     response = worker.make_response(
         {
-            "cmd": "read_file",
+            "cmd": "fs_read_file",
             "params": {
                 "path": ["/tmp/a.txt", "/tmp/b.txt"],
             },
@@ -138,7 +138,7 @@ def test_tool_response_request_preserves_list_path_type():
     )
 
     assert response["request"] == {
-        "cmd": "read_file",
+        "cmd": "fs_read_file",
         "path": ["/tmp/a.txt", "/tmp/b.txt"],
     }
     assert isinstance(response["request"]["path"], list)
@@ -148,7 +148,7 @@ def test_tool_response_request_keeps_string_query_as_string():
     """JSON-looking text is still text; only its original type is preserved."""
     worker = Worker()
     request = worker.from_request({
-        "cmd": "query_file",
+        "cmd": "fs_query_file",
         "params": {
             "path": "/tmp/a.txt",
             "query": '{"question": "content?"}',
@@ -166,7 +166,7 @@ def test_tool_response_request_falls_back_for_non_json_value():
 
     worker = Worker()
     request = worker.from_request({
-        "cmd": "read_file",
+        "cmd": "fs_read_file",
         "params": {
             "path": Path("/tmp/a.txt"),
         },

@@ -101,7 +101,7 @@ class Extra:
         :param value: block text
         """
         print("run", value)
-        self.window.core.plugins.get("cmd_code_interpreter").handle_python_run(value)
+        self.window.core.plugins.get("filesystem").handle_python_run(value)
 
     def edit_item(self, item_id: int):
         """

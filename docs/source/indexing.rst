@@ -63,7 +63,7 @@ Source: https://cdn.openai.com/new-and-improved-embedding-model/draft-20221214a/
 Querying single files
 ---------------------
 
-You can query an individual file on the fly with the ``query_file`` command from
+You can query an individual file on the fly with the ``fs_query_file`` command from
 the ``Files I/O`` plugin. A temporary in-memory index is created for that query;
 it is not persisted as a normal index unless the plugin is configured to index
 read files automatically. A similar command is available for querying web and
@@ -85,7 +85,7 @@ PyGPT uses three related index concepts:
   projects. They are shown to the user as ``Current project`` and are not added
   to the normal configured index list.
 * **Temporary indexes** are created in memory for operations such as querying a
-  single attachment or using the Files I/O ``query_file`` tool. They are not
+  single attachment or using the Files I/O ``fs_query_file`` tool. They are not
   persisted as normal indexes.
 
 .. important::

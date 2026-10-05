@@ -22,7 +22,7 @@ def adapter():
 
 def test_tool_calls_and_results_serialize_without_message_roles():
     call = {'type': 'function_call', 'call_id': 'call-1',
-            'name': 'read_file', 'arguments': '{"path":"test.txt"}'}
+            'name': 'fs_read_file', 'arguments': '{"path":"test.txt"}'}
     messages = [ChatMessage(role='user', content='Read file'),
                 ChatMessage(role='assistant', content='', additional_kwargs={'tool_calls': [call]}),
                 ChatMessage(role='tool', content='File contents',
@@ -37,7 +37,7 @@ def test_original_output_replays_reasoning_and_calls_once_in_order():
     raw = response('commentary', 'Checking')
     reasoning = {'id': 'rs-1', 'type': 'reasoning', 'summary': [], 'status': None}
     call = {'id': 'fc-1', 'type': 'function_call', 'call_id': 'call-1',
-            'name': 'read_file', 'arguments': '{}'}
+            'name': 'fs_read_file', 'arguments': '{}'}
     raw.output = [reasoning, *raw.output, call]
     parsed = llm._parse_response_output(raw.output[1:2])
     parsed.raw = raw
@@ -102,7 +102,7 @@ def test_real_sdk_serializes_history_as_references_without_output_metadata():
                 {'id': 'msg-1', 'type': 'message', 'role': 'assistant',
                  'phase': 'commentary', 'status': 'completed', 'content': []},
                 {'id': 'fc-1', 'type': 'function_call', 'call_id': 'call-1',
-                 'status': 'completed', 'name': 'read_file', 'arguments': '{}'},
+                 'status': 'completed', 'name': 'fs_read_file', 'arguments': '{}'},
                 {'id': 'cu-1', 'type': 'computer_call', 'status': 'completed'},
                 {'id': 'ws-1', 'type': 'web_search_call', 'status': 'completed'},
             ]})

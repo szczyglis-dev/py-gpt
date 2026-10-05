@@ -23,7 +23,7 @@ def render_window():
 
 
 def test_multiple_files_preserve_names_and_literal_content(render_window):
-    payload = {'cmd': 'read_file', 'result': [
+    payload = {'cmd': 'fs_read_file', 'result': [
         {'path': 'a.txt', 'content': '<script>no</script>\n```'},
         {'path': 'b.txt', 'content': '{"result":"literal file text"}'},
     ]}
@@ -46,16 +46,16 @@ def test_nested_execution_keeps_both_streams_and_raw_payload(render_window):
 
 
 def test_unknown_shapes_and_small_tools_fall_back_without_losing_errors(render_window):
-    assert project({'cmd': 'file_info', 'result': {'size': 1}}, window=render_window) is None
-    assert project({'cmd': 'read_file', 'result': [{'error': 'missing'}]}, window=render_window) is None
-    assert project([{'cmd': 'tree', 'result': 'tree'}, {'cmd': 'file_info', 'result': 1}], window=render_window) is None
+    assert project({'cmd': 'fs_file_info', 'result': {'size': 1}}, window=render_window) is None
+    assert project({'cmd': 'fs_read_file', 'result': [{'error': 'missing'}]}, window=render_window) is None
+    assert project([{'cmd': 'fs_tree', 'result': 'fs_tree'}, {'cmd': 'fs_file_info', 'result': 1}], window=render_window) is None
 
 
 def test_file_writes_shell_and_tree(render_window):
-    assert project({'cmd': 'append_file', 'params': {'path': 'x.txt', 'data': ''}}, direction='input', window=render_window)[0]['text'] == ''
-    assert project({'cmd': 'sys_exec', 'params': {'command': 'ls'}}, direction='input', window=render_window)[0]['text'] == 'ls'
-    assert project({'cmd': 'tree', 'result': '.\n└── x.txt'}, window=render_window)[0]['text'] == '.\n└── x.txt'
-    assert project({'cmd': 'sys_exec', 'result': '{"foo":1}'}, window=render_window)[0]['text'] == '{"foo":1}'
+    assert project({'cmd': 'fs_append_file', 'params': {'path': 'x.txt', 'data': ''}}, direction='input', window=render_window)[0]['text'] == ''
+    assert project({'cmd': 'shell_exec', 'params': {'command': 'ls'}}, direction='input', window=render_window)[0]['text'] == 'ls'
+    assert project({'cmd': 'fs_tree', 'result': '.\n└── x.txt'}, window=render_window)[0]['text'] == '.\n└── x.txt'
+    assert project({'cmd': 'shell_exec', 'result': '{"foo":1}'}, window=render_window)[0]['text'] == '{"foo":1}'
 
 
 
@@ -93,18 +93,18 @@ def test_broken_plugin_rule_falls_back_to_raw():
 def test_plugins_without_renderer_and_missing_registry_use_raw():
     plugin = BasePlugin()
     assert plugin.get_tool_render_rules() == {}
-    assert project({'cmd': 'sys_exec', 'result': 'raw'}) is None
+    assert project({'cmd': 'shell_exec', 'result': 'raw'}) is None
 
 
 @pytest.mark.parametrize('name,params,language', [
-    ('sys_exec', {'command': 'echo hi'}, 'bash'),
+    ('shell_exec', {'command': 'echo hi'}, 'bash'),
     ('python_exec', {'code': 'print(1)'}, 'python'),
     ('python_exec_file', {'path': 'script.py'}, 'python'),
     ('ipython_exec', {'code': 'print(1)'}, 'python'),
     ('python_sys_exec', {'command': 'ls'}, 'bash'),
     ('ipython_sys_exec', {'command': 'ls'}, 'bash'),
-    ('append_file', {'path': 'a.txt', 'data': 'text'}, 'text'),
-    ('save_file', {'path': 'a.txt', 'data': 'text'}, 'text'),
+    ('fs_append_file', {'path': 'a.txt', 'data': 'text'}, 'text'),
+    ('fs_save_file', {'path': 'a.txt', 'data': 'text'}, 'text'),
 ])
 def test_input_native_language_also_labels_friendly_header(render_window, name, params, language):
     result = project({'cmd': name, 'params': params}, direction='input', window=render_window)
@@ -112,7 +112,7 @@ def test_input_native_language_also_labels_friendly_header(render_window, name, 
 
 
 def test_output_file_names_and_stream_labels_are_preserved(render_window):
-    result = project({'cmd': 'read_file', 'result': [{'path': 'test.py', 'content': 'print(1)'}]}, window=render_window)
+    result = project({'cmd': 'fs_read_file', 'result': [{'path': 'test.py', 'content': 'print(1)'}]}, window=render_window)
     assert result[0]['label'] == 'test.py'
     assert result[0]['language'] == 'text'
     streams = project({'cmd': 'python_exec', 'stdout': 'out', 'stderr': 'err', 'result': False}, window=render_window)
@@ -125,8 +125,10 @@ def test_builtin_plugins_statically_attach_renderer(mock_window):
     from pygpt_net.plugin.cmd_system.plugin import Plugin as SystemPlugin
     from pygpt_net.plugin.cmd_code_interpreter.plugin import Plugin as PythonPlugin
 
-    for plugin_class, render_class in [(FilesPlugin, FilesRender), (SystemPlugin, SystemRender), (PythonPlugin, PythonRender)]:
+    from pygpt_net.plugin.filesystem.render import Render
+
+    for plugin_class in (FilesPlugin, SystemPlugin, PythonPlugin):
         plugin = plugin_class(window=mock_window)
-        assert isinstance(plugin.render, render_class)
+        assert isinstance(plugin.render, Render)
         assert plugin.render.plugin is plugin
         assert plugin.get_tool_render_rules() == plugin.render.get_rules()

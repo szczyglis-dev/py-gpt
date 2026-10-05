@@ -48,31 +48,19 @@ class Tools:
         if not force:
             self._confirm_sandbox_rebuild("tools.sandbox.rebuild.ipython_docker")
             return
-        self.window.core.plugins.get("cmd_code_interpreter").builder.build_and_restart()
+        self.window.core.plugins.get("filesystem").builder.build_and_restart()
 
     def rebuild_python_legacy_docker(self, force: bool = False):
         if not force:
             self._confirm_sandbox_rebuild("tools.sandbox.rebuild.python_legacy_docker")
             return
-        self.window.core.plugins.get("cmd_code_interpreter").docker.build_and_restart()
-
-    def rebuild_system_docker(self, force: bool = False):
-        if not force:
-            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.system_docker")
-            return
-        self.window.core.plugins.get("cmd_system").docker.build_and_restart()
+        self.window.core.plugins.get("filesystem").docker.build_and_restart()
 
     def rebuild_python_builtin(self, force: bool = False):
         if not force:
             self._confirm_sandbox_rebuild("tools.sandbox.rebuild.python_builtin")
             return
-        self.window.core.plugins.get("cmd_code_interpreter").rebuild_builtin_sandbox()
-
-    def rebuild_system_builtin(self, force: bool = False):
-        if not force:
-            self._confirm_sandbox_rebuild("tools.sandbox.rebuild.system_builtin")
-            return
-        self.window.core.plugins.get("cmd_system").rebuild_builtin_sandbox()
+        self.window.core.plugins.get("filesystem").rebuild_builtin_sandbox()
 
     def open_tab(self, type: int):
         """

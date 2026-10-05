@@ -5,13 +5,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.plugin.cmd_system.runner import Runner
-from pygpt_net.plugin.cmd_system.execution.host import HostBackend
-from pygpt_net.plugin.cmd_system.execution.docker import DockerBackend
+from pygpt_net.plugin.filesystem.os.runner import Runner
+from pygpt_net.plugin.filesystem.python.runner import Runner as PythonRunner
+from pygpt_net.plugin.filesystem.python.execution.host import HostBackend
+from pygpt_net.plugin.filesystem.python.execution.docker import DockerBackend
 from tests.mocks import mock_window
 
 
-def make_runner(mock_window):
+def make_runner(mock_window, runtime=False):
     plugin = MagicMock()
     plugin.window = mock_window
     plugin.get_option_value.side_effect = lambda name: {
@@ -19,7 +20,8 @@ def make_runner(mock_window):
         "winapi_enabled": True,
     }.get(name)
     plugin.docker = MagicMock()
-    runner = Runner(plugin)
+    plugin.is_ipython_enabled.return_value = False
+    runner = PythonRunner(plugin) if runtime else Runner(plugin)
     plugin.runner = runner
     backend = HostBackend(plugin)
     plugin.get_execution_backend.return_value = backend
@@ -53,16 +55,16 @@ def test_handle_result_docker_decodes_and_logs(mock_window):
 
 
 def test_docker_backend_executes_in_isolated_runtime(mock_window):
-    runner, plugin = make_runner(mock_window)
+    runner, plugin = make_runner(mock_window, runtime=True)
     backend = DockerBackend(plugin)
     plugin.get_execution_backend.return_value = backend
     plugin.docker.execute.return_value = (b"ok", b"")
     runner.handle_result = MagicMock(return_value="OK")
     runner.parse_result = MagicMock(return_value="PARSED")
     ctx = CtxItem()
-    item = {"cmd": "sys_exec", "params": {"command": "echo x"}}
+    item = {"cmd": "shell_exec", "params": {"command": "echo x"}}
 
-    result = backend.sys_exec(ctx, item, {"cmd": "sys_exec"})
+    result = backend.shell_exec(ctx, item, {"cmd": "shell_exec"})
 
     assert backend.sandboxed is True
     assert backend.get_runtime_workdir() == "/mnt/data"
@@ -70,7 +72,7 @@ def test_docker_backend_executes_in_isolated_runtime(mock_window):
         "echo x", sandbox=True, os_id="linux"
     )
     plugin.docker.execute.assert_called_once_with("echo x", ctx=ctx, demux=True)
-    runner.handle_result.assert_called_once_with(b"ok", b"")
+    runner.handle_result.assert_called_once_with(b"ok", b"", log_category="exec")
     assert result["stdout"] == "ok"
     assert result["stderr"] == ""
     assert result["result"] is True
@@ -78,26 +80,18 @@ def test_docker_backend_executes_in_isolated_runtime(mock_window):
 
 
 def test_docker_backend_converts_execution_exception_to_output(mock_window):
-    runner, plugin = make_runner(mock_window)
+    runner, plugin = make_runner(mock_window, runtime=True)
     backend = DockerBackend(plugin)
     plugin.get_execution_backend.return_value = backend
     plugin.docker.execute.side_effect = RuntimeError("boom")
     runner.handle_result = MagicMock(return_value="boom")
     runner.parse_result = MagicMock(return_value="boom")
 
-    result = backend.sys_exec(
-        CtxItem(),
-        {"cmd": "sys_exec", "params": {"command": "x"}},
-        {"cmd": "sys_exec"},
-    )
-
-    runner.handle_result.assert_called_once_with(b"", b"boom")
-    assert result["stderr"] == "boom"
-    assert result["result"] is False
-
+    with pytest.raises(RuntimeError, match="boom"):
+        backend.shell_exec(CtxItem(), {"params": {"command": "x"}}, {"cmd": "shell_exec"})
 
 def test_host_backend_mocks_subprocess_and_security(mock_window):
-    runner, plugin = make_runner(mock_window)
+    runner, plugin = make_runner(mock_window, runtime=True)
     backend = plugin.get_execution_backend()
     runner.send_interpreter_input = MagicMock()
     runner.send_interpreter_output_begin = MagicMock()
@@ -105,40 +99,40 @@ def test_host_backend_mocks_subprocess_and_security(mock_window):
     runner.handle_result = MagicMock(return_value="OUT")
     runner.parse_result = MagicMock(return_value="PARSED")
     runner.log = MagicMock()
-    runner._communicate_subprocess = MagicMock(return_value=(b"out", b""))
+    backend._communicate_subprocess = MagicMock(return_value=(b"out", b""))
 
-    result = backend.sys_exec(
+    result = backend.shell_exec(
         CtxItem(),
         {"params": {"command": "echo x"}},
-        {"cmd": "sys_exec"},
+        {"cmd": "shell_exec"},
     )
 
     mock_window.core.security.ensure_command.assert_called_once_with("echo x", sandbox=False)
-    runner._communicate_subprocess.assert_called_once()
+    backend._communicate_subprocess.assert_called_once()
     assert result["result"] is True
     assert result["context"].endswith("PARSED")
 
 
 def test_docker_backend_uses_docker_without_host_subprocess(mock_window):
-    runner, plugin = make_runner(mock_window)
+    runner, plugin = make_runner(mock_window, runtime=True)
     backend = DockerBackend(plugin)
     plugin.get_execution_backend.return_value = backend
     runner.send_interpreter_input = MagicMock()
     runner.send_interpreter_output_begin = MagicMock()
     runner.send_interpreter_output_end = MagicMock()
-    runner._communicate_subprocess = MagicMock()
+    backend._communicate_subprocess = MagicMock()
     runner.handle_result = MagicMock(return_value="OUT")
     runner.parse_result = MagicMock(return_value="PARSED")
     runner.log = MagicMock()
     plugin.docker.execute.return_value = (b"out", b"")
     ctx = CtxItem()
 
-    result = backend.sys_exec(
-        ctx, {"params": {"command": "echo x"}}, {"cmd": "sys_exec"}
+    result = backend.shell_exec(
+        ctx, {"params": {"command": "echo x"}}, {"cmd": "shell_exec"}
     )
 
     plugin.docker.execute.assert_called_once_with("echo x", ctx=ctx, demux=True)
-    runner._communicate_subprocess.assert_not_called()
+    backend._communicate_subprocess.assert_not_called()
     assert result["context"].endswith("PARSED")
 
 
@@ -160,7 +154,7 @@ def test_prepare_path_respects_host_and_sandbox(mock_window):
     backend = DockerBackend(plugin)
     plugin.get_execution_backend.return_value = backend
     mock_window.core.filesystem.from_sandbox_data_path = MagicMock(side_effect=lambda path, ctx=None: path)
-    assert runner.prepare_path("a.txt", on_host=False) == "/mnt/data/a.txt"
+    assert runner.prepare_path("a.txt", on_host=False) == "a.txt"  # relative to runtime CWD
     assert runner.prepare_path("a.txt", on_host=True) == "/work/a.txt"
     mock_window.core.filesystem.from_sandbox_data_path.assert_called_once_with("a.txt", ctx=None)
 
@@ -180,12 +174,12 @@ def test_logging_helpers_emit_signals(mock_window):
 
 def test_windows_guard_checks_platform_and_option(mock_window):
     runner, plugin = make_runner(mock_window)
-    with patch("pygpt_net.plugin.cmd_system.runner.platform.system", return_value="Linux"):
+    with patch("pygpt_net.plugin.filesystem.os.runner.platform.system", return_value="Linux"):
         with pytest.raises(RuntimeError, match="Microsoft Windows"):
             runner._ensure_windows()
 
     plugin.get_option_value.side_effect = lambda name: False if name == "winapi_enabled" else None
-    with patch("pygpt_net.plugin.cmd_system.runner.platform.system", return_value="Windows"):
+    with patch("pygpt_net.plugin.filesystem.os.runner.platform.system", return_value="Windows"):
         with pytest.raises(RuntimeError, match="disabled"):
             runner._ensure_windows()
 

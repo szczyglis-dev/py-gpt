@@ -8,13 +8,13 @@ from pygpt_net.core.render.web.parts.agents import Agents
 
 def test_progress_history_groups_tasks_by_actor_after_renderer_reset():
     from pygpt_net.item.ctx_part_task import CtxItemPartTask
-    tasks = [CtxItemPartTask(uuid='t1', extra={'tool_name': 'read_file'},
+    tasks = [CtxItemPartTask(uuid='t1', extra={'tool_name': 'fs_read_file'},
                              agent_id='orchestrator', tool_call_id='c1'),
              CtxItemPartTask(uuid='t2', extra={'tool_name': 'search', 'agent_name': 'Worker'},
                              agent_id='w1', tool_call_id='c2')]
     part = SimpleNamespace(uuid='p1', extra={}, tasks=tasks)
     main = SimpleNamespace(parts=[part])
-    main.get_part_tool_calls = lambda **kwargs: [{'call_id':'c1', 'name':'read_file'}, {'call_id':'c2', 'name':'search'}]
+    main.get_part_tool_calls = lambda **kwargs: [{'call_id':'c1', 'name':'fs_read_file'}, {'call_id':'c2', 'name':'search'}]
     runtime = SimpleNamespace(emitter=MagicMock(), timeline=SimpleNamespace(part=lambda *args, **kwargs: part),
                               context=SimpleNamespace(ctx=main), window=MagicMock(), is_swarm_mode=False,
                               workers=SimpleNamespace(states={}))
@@ -69,7 +69,7 @@ def test_live_status_sends_hierarchy_with_real_worker_task():
     part.uuid = 'p1'
     part.extra = {'agents_v2_progress': {'text': 'Thinking...'}}
     part.tasks = [CtxItemPartTask(agent_id='w1', tool_call_id='c1',
-                                extra={'tool_name': 'read_file', 'agent_name': 'Worker'}, tool_input={'path': 'a.txt'})]
+                                extra={'tool_name': 'fs_read_file', 'agent_name': 'Worker'}, tool_input={'path': 'a.txt'})]
     ctx.parts = [part]
     renderer = SimpleNamespace(state=SimpleNamespace(), window=MagicMock(), get_output_node=MagicMock(),
                                helpers=SimpleNamespace(extract_extra_tool_calls=lambda calls: calls))
@@ -84,7 +84,7 @@ def test_live_status_sends_hierarchy_with_real_worker_task():
     assert 'Odczytuję plik wierszyk.txt' in script
     assert 'Thinking...' not in script
     assert 'hierarchy' in script
-    assert 'read_file' in script
+    assert 'fs_read_file' in script
     assert '"workers": []' in script
 
 
@@ -125,7 +125,7 @@ def test_primary_tool_refresh_keeps_status_across_partial_and_spinner(monkeypatc
     from pygpt_net.item.ctx_part_task import CtxItemPartTask
     monkeypatch.setattr('pygpt_net.core.agents_v2.status.translated_status',
                         lambda key, **kwargs: 'Using tool: ' + kwargs['tool'] if 'tool' in kwargs else 'Thinking...')
-    part = SimpleNamespace(uuid='p1', extra={}, tasks=[CtxItemPartTask(extra={'tool_name': 'read_file'})])
+    part = SimpleNamespace(uuid='p1', extra={}, tasks=[CtxItemPartTask(extra={'tool_name': 'fs_read_file'})])
     emitter = RuntimeEmitter(context=None, extra={}, signals=None)
     runtime = SimpleNamespace(emitter=emitter, timeline=SimpleNamespace(part=lambda *args, **kwargs: part),
                               context=SimpleNamespace(ctx=SimpleNamespace(parts=[part])), window=MagicMock(),

@@ -20,7 +20,7 @@ The following plugins are currently available:
 * ``Experts (inline)`` - exposes enabled Expert presets through the regular ``expert_call`` tool in supported chat modes; Experts run as regular agents on the same Agents v2 runtime used by Agents.
 * ``Extra system prompt`` - automatically appends reusable custom instructions or additional context to the active system prompt.
 * ``Facebook`` - connects to the Facebook Graph API for working with pages, posts, photos, and related account information.
-* ``Files I/O`` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
+* ``Filesystem, Python and OS`` - gives models controlled access to local files and directories for reading, writing, copying, moving, downloading, searching, and indexing data.
 * ``GitHub`` - connects to GitHub for repository, file, issue, pull request, code search, and account operations.
 * ``Google`` - integrates Gmail, Drive, Calendar, Contacts, Keep, Docs, Maps, Colab, and YouTube so models can work with Google services from conversations.
 * ``Image generation (inline)`` - adds image generation and editing directly to conversations using a separately configured image model without requiring a mode change.
@@ -30,13 +30,11 @@ The following plugins are currently available:
 * ``Memory (inline)`` - maintains compact database-backed long-term memory plus raw keyed memory, with a global scope outside projects and an isolated memory scope for each project.
 * ``Mouse and keyboard`` - lets models control the mouse and keyboard, capture screenshots, and interact with the desktop or supported sandbox environment.
 * ``OpenStreetMap`` - adds geocoding, place search, routing, and map utilities based on OpenStreetMap services.
-* ``Python interpreter`` - lets models execute Python or IPython code on the host, in the built-in uv-managed CPython runtime, or in Docker, with mutually exclusive standard-Python/IPython tool sets and project-aware working directories.
 * ``RAG (inline)`` - adds RAG and LlamaIndex retrieval to standard conversations, allowing models to use indexed files, project indexes, and stored context as additional knowledge.
 * ``Real time`` - appends the current date and/or time to system prompts so models can receive up-to-date local time context.
 * ``Serial port / USB`` - gives models access to configured serial and USB devices for reading data and sending commands.
 * ``Server (SSH/FTP)`` - connects to remote servers through SSH, SFTP, or FTP for command execution, file transfers, and filesystem operations.
 * ``Slack`` - connects to Slack workspaces for reading conversations, managing messages, working with users, and transferring files.
-* ``System (OS)`` - executes system commands on the host, in the built-in uv-managed runtime, or in Docker, with project-aware runtime paths.
 * ``Telegram`` - connects to Telegram bots or user accounts for messaging, chat access, contacts, media, and file transfers.
 * ``Tuya (IoT)`` - connects to Tuya Cloud so models can inspect, search, and control supported smart-home and IoT devices.
 * ``TwelveLabs`` - adds video understanding and multimodal embeddings using TwelveLabs Pegasus and Marengo models.
@@ -351,7 +349,7 @@ Backends and runtime rules
 * Browser input is scoped to the Canvas viewport and uses a virtual model cursor. Global OS mouse/keyboard control should not be used for work that can be completed inside Canvas.
 * Prefer ``canvas_inspect`` and its ``data-pygpt-ref`` selectors before coordinate-based clicking. DOM selectors are generally more stable than visual coordinates.
 * Use ``canvas_screenshot`` when appearance matters or after a visual change that should be verified.
-* Use ``get_user_painter_image`` when the user refers to a drawing, sketch, markup, or image created or edited in PyGPT's Painter tab. It captures Painter, not the Canvas browser, into shared runtime temporary storage. In Agents it returns only the path. Outside Agents it also returns only the path when Files I/O is enabled, so the model can call ``attach_runtime_file`` explicitly; without Files I/O it falls back to the same automatic runtime-only attachment transport.
+* Use ``get_user_painter_image`` when the user refers to a drawing, sketch, markup, or image created or edited in PyGPT's Painter tab. It captures Painter, not the Canvas browser, into shared runtime temporary storage. In Agents it returns only the path. Outside agent modes, the image is automatically attached to the next model request for analysis.
 * ``canvas_set_html`` can render a complete HTML/CSS/JavaScript document directly. Relative assets are resolved from ``base_url`` or, when omitted, from the current PyGPT data/work directory.
 * User annotations are explicit feedback about the current page. Read and apply them before making further UI changes when annotations are present.
 * The local preview server listens on loopback only. It is intended for previewing local projects rather than exposing a public web service.
@@ -472,7 +470,7 @@ Canvas tools
    * ``full_page`` (``bool``, optional) - Full page when Playwright backend is active.
 
 ``get_user_painter_image``
-   Capture the current drawing/sketch made by the user in the PyGPT **Painter** tab. The full logical Painter canvas is saved independently of the current Painter zoom level in the shared runtime temporary directory. In Agents the tool returns only the runtime path. Outside Agents it returns only the path when Files I/O is enabled; use ``attach_runtime_file`` with that path for native vision inspection. If Files I/O is unavailable outside Agents, PyGPT automatically uses the same runtime-only attachment transport as ``attach_runtime_file``. The image is never added to the persistent chat attachment list. This is separate from ``canvas_screenshot``, which captures the Canvas/web-browser viewport.
+   Capture the current drawing/sketch made by the user in the PyGPT **Painter** tab. The full logical Painter canvas is saved independently of the current Painter zoom level in the shared runtime temporary directory. In Agents the tool returns only the runtime path. Outside agent modes, the image is automatically attached to the next model request for analysis. The image is never added to the persistent chat attachment list. This is separate from ``canvas_screenshot``, which captures the Canvas/web-browser viewport.
 
    Parameters: none.
 
@@ -974,10 +972,19 @@ The Facebook plugin exposes Facebook Graph API operations for pages, posts and m
 
 - ``fb_page_photo_upload`` - Upload a photo to a page from a local path or URL.
 
-Files I/O
-------------------
+Filesystem, Python and OS
+-------------------------
 
-The Files I/O plugin gives the model file and directory tools for reading, writing, copying, moving, downloading, searching and indexing content on the local filesystem. The ``cwd`` tool reports the active conversation data directory.
+This plugin integrates the former Files I/O, Python interpreter and System (OS) plugins. Settings use four top-level tabs: **Runtime / sandbox**, **Filesystem**, **Python** and **System (OS)**. Tool sections start with a **General** subtab and their **Enable** switch; the remaining provider options appear in subtabs. **Runtime / sandbox** contains **General**, **Docker (IPython)** and **Docker (Python)**.
+
+Filesystem tools always operate on host paths. Python and system commands share the selected runtime and workdir. One dynamic system-prompt context describes the environment and paths, independently of the tool-section switches.
+
+The **2.9.1** migration merges legacy settings and plugin presets and enables this plugin wherever any predecessor was enabled. It replaces Docker image settings and built-in package requirements with the current defaults, including customized values. It preserves runtime selection and other tool preferences.
+
+Filesystem tools
+^^^^^^^^^^^^^^^^---------
+
+The Filesystem section gives the model file and directory tools for reading, writing, copying, moving, downloading, searching and indexing content on the local filesystem. The ``fs_cwd`` tool reports the active conversation data directory.
 
 The effective filesystem scope is controlled in ``Config -> Settings -> Security -> General``. Read and write restrictions can be configured independently; disabling them allows Files I/O to access paths outside the active data directory, including the host filesystem. **Warning:** broader filesystem access can expose or modify sensitive files, so enable it only when required and only for trusted workflows.
 
@@ -1005,12 +1012,12 @@ If a file being created (with the same name) already exists, a prefix including 
 **General**
 
 
-- **Use data loaders** *use_loaders* - Use data loaders from LlamaIndex for file reading (the ``read_file`` tool). *Default:* ``True``
+- **Use data loaders** *use_loaders* - Use data loaders from LlamaIndex for file reading (the ``fs_read_file`` tool). *Default:* ``True``
 
 **Indexing**
 
 
-- **Model for query in-memory index** *model_tmp_query* - Model used to query the temporary in-memory index through ``query_file``. *Default:* ``gpt-4o-mini``
+- **Model for query in-memory index** *model_tmp_query* - Model used to query the temporary in-memory index through ``fs_query_file``. *Default:* ``gpt-4o-mini``
 
 
 - **Use project index if in use** *use_project_index* - When enabled and the current conversation belongs to a project, persistent file indexing targets that project's isolated ``Current project`` index instead of the configured global file index. Outside a project, the configured index is used normally. *Default:* ``True``
@@ -1023,27 +1030,27 @@ If a file being created (with the same name) already exists, a prefix including 
 
 **Tools**
 
-- ``send_file`` - Send a local filesystem file back to the conversation as an attachment.
-- ``read_file`` - Read file contents from the filesystem within the configured security scope.
-- ``append_file`` - Append text to an existing text-based file.
-- ``save_file`` - Create or overwrite text-based files.
-- ``delete_file`` - Delete files from the filesystem within the configured security scope.
+- ``fs_send_file`` - Send a local filesystem file back to the conversation as an attachment.
+- ``fs_read_file`` - Read file contents from the filesystem within the configured security scope.
+- ``fs_append_file`` - Append text to an existing text-based file.
+- ``fs_save_file`` - Create or overwrite text-based files.
+- ``fs_delete_file`` - Delete files from the filesystem within the configured security scope.
 - ``list_files`` - List files and directories in a path.
-- ``list_dir`` - List files and directories in the selected directory.
-- ``download_file`` - Download remote files to a local filesystem path within the configured security scope.
-- ``rmdir`` - Remove directories.
-- ``copy_file`` - Copy files.
-- ``copy_dir`` - Recursively copy directories.
-- ``move`` - Move or rename files and directories.
-- ``is_dir`` - Test whether a path is a directory.
-- ``is_file`` - Test whether a path is a file.
-- ``file_exists`` - Test whether a file or directory exists.
-- ``file_size`` - Read a file size.
-- ``file_info`` - Read file metadata and path information.
-- ``find`` - Search the filesystem for files and directories within the configured security scope.
-- ``cwd`` - Query the active data working directory.
-- ``query_file`` - Build a temporary in-memory index for one file and query it with LlamaIndex.
-- ``file_index`` - Add files or directories to a persistent LlamaIndex index.
+- ``fs_list_dir`` - List files and directories in the selected directory.
+- ``fs_download_file`` - Download remote files to a local filesystem path within the configured security scope.
+- ``fs_rmdir`` - Remove directories.
+- ``fs_copy_file`` - Copy files.
+- ``fs_copy_dir`` - Recursively copy directories.
+- ``fs_move`` - Move or rename files and directories.
+- ``fs_is_dir`` - Test whether a path is a directory.
+- ``fs_is_file`` - Test whether a path is a file.
+- ``fs_file_exists`` - Test whether a file or directory exists.
+- ``fs_file_size`` - Read a file size.
+- ``fs_file_info`` - Read file metadata and path information.
+- ``fs_find`` - Search the filesystem for files and directories within the configured security scope.
+- ``fs_cwd`` - Query the active data working directory.
+- ``fs_query_file`` - Build a temporary in-memory index for one file and query it with LlamaIndex.
+- ``fs_file_index`` - Add files or directories to a persistent LlamaIndex index.
 
 GitHub
 ------
@@ -1589,7 +1596,7 @@ Model-defined runtime connections
 - **Allow self-defined MCP connections** *allow_self_mcp* - allows the model to define and connect to MCP servers over HTTP/HTTPS, including Streamable HTTP and SSE, at runtime. When disabled, ``mcp_connect`` is not exposed for HTTP/SSE and tools from model-defined HTTP/SSE servers are not exposed. *Default:* ``False``.
 - **Allow self-defined MCP stdio** *allow_self_mcp_stdio* - independently allows the model to define stdio MCP connections that start local commands/processes. It does not enable HTTP/SSE by itself. When disabled, model-defined stdio servers and their tools are not exposed. *Default:* ``False``.
 
-When either permission is enabled, PyGPT exposes ``mcp_connect``. The model can provide a server address, optional label and transport, HTTP authorization/headers, environment-backed HTTP headers or bearer token, and stdio environment/cwd values. For stdio, an empty ``cwd`` uses an isolated temporary directory. After a successful connection, PyGPT immediately discovers the server tools and places that result into the normal MCP tools cache; the tools become available on the next tool-selection step.
+When either permission is enabled, PyGPT exposes ``mcp_connect``. The model can provide a server address, optional label and transport, HTTP authorization/headers, environment-backed HTTP headers or bearer token, and stdio environment/cwd values. For stdio, an empty ``fs_cwd`` uses an isolated temporary directory. After a successful connection, PyGPT immediately discovers the server tools and places that result into the normal MCP tools cache; the tools become available on the next tool-selection step.
 
 ``mcp_connect`` does not persist the server in plugin configuration or the Connectors manager. Replacing/updating a runtime server in the same chat refreshes its discovery state. Disabling the corresponding permission hides tools from runtime servers of that transport type even if they were connected earlier in the chat.
 
@@ -1613,7 +1620,7 @@ Tools are discovered dynamically from active MCP servers. Their system names use
 ``mcp_connect``
    Define a runtime MCP server, connect to it and discover its tools. This command is exposed only when at least one self-defined MCP permission is enabled. The connection is scoped to the current chat and is not persisted.
 
-   Parameters currently exposed to the model include ``server_address``, ``label``, ``transport``, ``authorization``, ``headers``, ``env_http_headers``, ``bearer_token_env_var``, ``env`` and ``cwd``.
+   Parameters currently exposed to the model include ``server_address``, ``label``, ``transport``, ``authorization``, ``headers``, ``env_http_headers``, ``bearer_token_env_var``, ``env`` and ``fs_cwd``.
 
 
 Transports
@@ -1897,235 +1904,25 @@ By default no images are downloaded; commands return URLs. The ``osm_tile`` comm
   Parameters:
   - ``z`` (int), ``x`` (int), ``y`` (int), ``out`` (str, optional)
 
-Python interpreter
--------------------------
+Python execution
+----------------
 
-The Python interpreter plugin gives the model and the Python/OS tool a Python/IPython runtime for code execution, package use and shell commands, with host, built-in and Docker backends.
+Python execution belongs to **Filesystem, Python and OS**. The model calls ``python_exec(code)`` in every runtime. **Python -> General -> Use IPython** selects a persistent IPython kernel (default) or standard Python in a new process per call. IPython additionally exposes ``python_kernel_restart``. Shell commands use ``shell_exec(command)`` in the same environment.
 
-**Executing Code**
+Shared runtime
+^^^^^^^^^^^^^^
 
-The Python interpreter plugin provides local Python execution for model-generated code and for code started manually from the ``Python/OS`` window. It uses the active conversation's runtime ``data`` workdir, so a project with a custom data workdir is handled automatically. Execution can run directly on the host or through the selected sandbox backend. The ``Sandbox`` selector provides ``Disabled``, ``Built-in sandbox``, and ``Docker``.
+Select the backend in ``Plugins -> Settings -> Filesystem, Python and OS -> Runtime / sandbox -> General``:
 
-The ``Use IPython`` option selects which Python tool set is exposed to the model:
+* **Disabled:** Python and shell commands execute on the host with the application's OS permissions.
+* **Built-in sandbox** (default): a dedicated uv-managed Python environment under ``<application base workdir>/sandbox/python``. It separates packages from PyGPT's installation, but does not restrict host filesystem or network access. IPython retains kernel state; standard Python runs in separate processes.
+* **Docker:** the selected Python or IPython container executes both code and system commands. The conversation's data directory is mounted at ``/mnt/data`` and the application profile’s entire temporary directory at ``/mnt/tmp``. The model receives the active environment's paths directly. Filesystem tools (``fs_`` prefix) use host paths; ``python_`` and ``shell_`` tools use Docker paths. Without Docker, all three tool groups use host paths. Temporary files remain independent of the active project, and relative paths resolve against the working directory, not the temporary directory.
 
-* when enabled (default), only the IPython tools are exposed: ``ipython_exec``, ``ipython_sys_exec`` and ``ipython_kernel_restart``;
-* when disabled, only the standard Python tools are exposed: ``python_exec``, ``python_exec_file`` and ``python_sys_exec``.
+Persistent built-in package requirements are configured in the **General** subtab. Changing them recreates the environment on its next use. Manual installations are lost on rebuild unless added to that list. ``Tools -> Sandbox / Docker`` rebuilds the shared built-in environment or the Python/IPython images.
 
-The two execution tool sets are never exposed together.
+**Docker (IPython)** and **Docker (Python)** contain the respective image, Dockerfile, mounts, ports and permissions. Stock images run as the unprivileged ``pygpt`` user with passwordless ``sudo``; each has an optional **Run as root** setting. Only the selected interpreter's container is used. System commands have no separate image or environment.
 
-**IPython:** IPython is the recommended execution mode and keeps kernel state between calls, which is useful for iterative development and data analysis. It also supports IPython magic/shell syntax such as ``!pip install <package_name>``. Use ``ipython_exec`` for Python code and ``ipython_sys_exec`` for operating-system commands in the same runtime environment.
-
-**Standard Python:** ``python_exec`` executes Python code directly. The model provides only the ``code`` argument; PyGPT handles the temporary script path internally. Use ``python_exec_file`` only when an existing Python file should be executed. ``python_sys_exec`` runs shell/system commands in the same selected host or sandbox runtime as the standard Python interpreter.
-
-**Sandbox:** Select the backend in ``Plugins -> Settings -> Python interpreter -> General -> Sandbox``. Available modes are ``Disabled``, ``Built-in sandbox`` and ``Docker``. ``Built-in sandbox`` is the default mode for the Python interpreter plugin.
-
-Execution and isolation rules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``Disabled``
-~~~~~~~~~~~~
-
-``Disabled`` uses the host Python/IPython environment and executes shell commands on the host. There is no sandbox boundary. Host-side Security guards are still applied where a plugin operation explicitly passes through them (for example, command whitelist/blacklist checks for dedicated system-command tools and path checks for plugin-managed file arguments), but they do not intercept arbitrary filesystem, subprocess or network access performed by executed Python/IPython code itself. Treat code executed in this mode as normal code running with the OS permissions of the PyGPT process.
-
-``Built-in sandbox``
-~~~~~~~~~~~~~~~~~~~~
-
-The built-in backend is a **separate execution environment**, not a filesystem or container security boundary. It is intended to keep model-executed Python and command-line tooling separate from the Python environment used to run PyGPT itself, without requiring Docker.
-
-The built-in runtime is created under the **application base workdir**: the directory that owns ``path.cfg``. By default this is ``{HOME_DIR}/.config/pygpt-net/`` (unless ``PYGPT_WORKDIR`` overrides the application base path). The default layout is:
-
-.. code-block:: text
-
-   <application base workdir>/
-   ├── path.cfg
-   └── sandbox/
-       ├── runtime/                  # uv-managed CPython runtimes
-       ├── cache/                    # uv package/runtime cache
-       ├── python/                   # venv used by the Python interpreter plugin
-       ├── os/                       # separate venv used by the System (OS) plugin
-       └── state/
-           ├── python/
-           │   ├── home/             # HOME/USERPROFILE for Python built-in processes
-           │   └── tmp/              # TMP/TEMP/TMPDIR for Python built-in processes
-           └── os/
-               ├── home/             # HOME/USERPROFILE for System built-in processes
-               └── tmp/              # TMP/TEMP/TMPDIR for System built-in processes
-
-This is intentionally different from the active profile/workdir. If ``path.cfg`` redirects the active profile to another directory, or a project uses a custom ``data`` workdir, the application-wide ``sandbox`` directory remains under the base directory that contains ``path.cfg``.
-
-For the Python plugin, both standard Python and IPython use ``<application base workdir>/sandbox/python``. The environment is provisioned by ``uv`` and has its own Python executable, ``pip`` and packages. PyGPT prepends this environment's ``bin``/``Scripts`` directory to ``PATH``, sets ``VIRTUAL_ENV`` to the built-in venv, disables the user site with ``PYTHONNOUSERSITE=1``, removes inherited ``PYTHONHOME``/``PYTHONPATH`` and uses the private ``state/python/home`` and ``state/python/tmp`` directories for HOME and temporary files. This prevents the built-in interpreter from accidentally using PyGPT's own virtual environment, but it is **environment separation only**.
-
-Built-in packages and environment rebuild
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Configure persistent packages in ``Plugins -> Settings -> Python interpreter -> Built-in sandbox -> Packages to install``. Enter one Python package requirement per line, for example:
-
-.. code-block:: text
-
-   requests
-   numpy==2.3.1
-   pandas>=2.3
-
-The default Python package list is:
-
-.. code-block:: text
-
-   jupyter
-   ipykernel
-   numpy
-   pandas
-   matplotlib
-   scipy
-   sympy
-   scikit-learn
-   pillow
-   openpyxl
-   xlsxwriter
-   pypdf
-   pdfminer.six
-   pdfplumber
-   pymupdf
-   reportlab
-   python-docx
-   python-pptx
-   requests
-   beautifulsoup4
-   lxml
-   tabulate
-   pyyaml
-
-``pip``, ``setuptools``, ``wheel`` and ``pytest`` are installed as base packages and do not need to be added to the list.
-
-Changing the list recreates the environment on the next built-in use. To rebuild immediately, use ``Tools -> Sandbox / Docker -> Re-create built-in venv for Python interpreter``.
-
-.. important::
-   Packages installed manually with ``pip`` are removed by a rebuild unless they are also added to ``Packages to install``.
-
-The active conversation's ``data`` workdir is the process CWD. Normally this is ``%workdir%/data``. If the conversation belongs to a project with a custom data workdir, that project directory becomes the CWD automatically. Relative paths are resolved from this directory.
-
-There is deliberately **no host filesystem restriction** in the built-in backend. Absolute paths remain host paths, and Python code, IPython code and shell commands can read or write any host location allowed to the OS account running PyGPT. The built-in process also uses the host network stack and runs with the same user privileges as PyGPT; it does not use a separate mount namespace, user namespace or network namespace. On Windows, child processes are additionally attached to a Job Object with kill-on-close/process-lifetime handling, but this does not restrict filesystem or network access.
-
-Standard ``python_exec`` calls run in separate child processes. IPython uses a persistent kernel in the same built-in environment, so variables/imports remain available between calls until the kernel is restarted. ``python_sys_exec`` and ``ipython_sys_exec`` execute shell commands using the same built-in environment and CWD. On Unix-like systems the shell is ``/bin/sh``; on Windows it is ``cmd.exe``/``COMSPEC``.
-
-The working-directory filesystem read/write restrictions are still bypassed for Built-in execution; this change does not add filesystem isolation. The system-command whitelist/blacklist is handled separately and **does apply** to the dedicated ``python_sys_exec`` and ``ipython_sys_exec`` tools in Built-in mode, using the whitelist/blacklist for the host operating system. This is an application-level command guard only: arbitrary Python/IPython code can still start processes itself (for example with ``subprocess`` or ``os.system``), so Built-in must still be treated as code with host-level filesystem/network access.
-
-``Docker``
-~~~~~~~~~~
-
-Docker provides the actual container boundary and is the strongest isolation option supplied by these plugins. The active conversation's ``data`` workdir is mounted read/write at ``/mnt/data`` by the stock configuration and ``/mnt/data`` is used as the runtime CWD. Project-specific data workdirs are mapped automatically.
-
-The container cannot see arbitrary host paths unless they are explicitly exposed through Docker volume mappings or by other Docker configuration. Adding custom entries to ``Docker volumes`` expands the host filesystem visible to the container. The default volume list exposes only the active runtime ``data`` workdir. The application-wide ``<application base workdir>/sandbox`` directory and the active profile's ``%workdir%/tmp`` directory are not mounted by the stock configuration.
-
-The stock Docker images run as the unprivileged ``pygpt`` user by default. Passwordless ``sudo`` is available inside the stock container, and the IPython and standard-Python Docker settings have separate ``Run as root`` options. Root inside the container is still subject to the container boundary, but it can fully access any host volumes that have been mounted into that container. No host ports are published by the stock configuration unless entries are added to ``Docker ports``. Normal Docker networking may still allow outbound network access according to the Docker daemon/network configuration.
-
-Docker isolation depends on the Docker daemon, image, privileges, capabilities and volume/port mappings configured by the user. Avoid mounting sensitive host directories or the Docker socket into model-controlled containers.
-
-For the dedicated Python system-command tools (``python_sys_exec`` and ``ipython_sys_exec``), PyGPT checks the system-command whitelist/blacklist **before** sending the command to Docker. The stock Docker runtimes are Linux containers, so these checks use the ``Security -> Linux`` command list even when the PyGPT host is Windows or macOS. This does not inspect processes spawned indirectly by arbitrary Python/IPython code.
-
-Docker installation: https://docs.docker.com/engine/install/
-
-**Connecting Docker in the Snap version**:
-
-To use the Docker sandbox in the Snap version, connect PyGPT to the Docker daemon:
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:docker-executables docker:docker-executables
-
-.. code-block:: console
-
-    $ sudo snap connect pygpt:docker docker:docker-daemon
-
-**Python/OS window:** PyGPT includes the ``Python/OS`` tool for real-time Python and IPython execution. Click the ``<>`` icon above the input field to open it, use ``Tools -> Python / OS``, or pin it in a split/output tab. Code input/output is mirrored to this window when ``Connect to the Python/OS window`` is enabled. The same ``Use IPython`` setting controls manual execution from this window, so the UI and model-facing tool set use the same interpreter mode.
-
-.. image:: images/v2_interpreter_icon.png
-   :width: 600
-
-.. image:: images/v2_python.png
-   :width: 600
-
-.. important::
-   Host execution requires a working host Python/IPython environment. ``Built-in sandbox`` (the Python plugin default) creates its own uv-managed CPython environment on first use, but it does not restrict host filesystem or network access. ``Docker`` requires Docker and provides the strongest isolation. The system-command whitelist/blacklist applies to the dedicated Python system-command tools in all three execution modes.
-
-   Docker installation: https://docs.docker.com/engine/install/
-
-   Docker Desktop: https://docs.docker.com/desktop/
-
-.. tip::
-   Remember to enable the ``Tools`` switch to allow tools from plugins to be executed.
-
-**Options**
-
-**General**
-
-- **Use IPython** *use_ipython* - Select the interpreter mode. When enabled, PyGPT exposes only the IPython tool set. When disabled, it exposes only the standard Python tool set. *Default:* ``True``
-
-- **Sandbox** *sandbox* - Select the execution backend. ``Disabled`` executes in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed CPython/IPython environment and separate processes, but does not restrict host filesystem or network access. ``Docker`` runs in a container and provides the strongest isolation of the available options. Filesystem Security restrictions keep their existing sandbox behavior, while the system-command whitelist/blacklist applies to ``python_sys_exec`` and ``ipython_sys_exec`` in every mode. *Default:* ``Built-in sandbox``
-
-- **Connect to the Python/OS window** *attach_output* - Automatically attach code input/output to the Python/OS window. *Default:* ``True``
-
-- **Max interpreter window entries** *output_max_entries* - Maximum number of input/output blocks kept in the interpreter window. Set to ``0`` for no limit. *Default:* ``10``
-
-- **Always run code in a fresh kernel** *fresh_kernel* - If enabled, each IPython execution uses the same path as the interpreter's **Run in a fresh kernel** action instead of reusing the current kernel state. *Default:* ``False``
-
-
-**Built-in sandbox**
-
-- **Packages to install** *builtin_packages* - Python package requirements for the built-in environment, one per line. Base packages (``pip``, ``setuptools``, ``wheel`` and ``pytest``) are installed separately. Changes rebuild the environment on the next use. *Default:* ``built-in Python package set``
-
-
-**IPython**
-
-- **Run as root** *ipython_run_as_root* - Run the IPython Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
-
-- **Dockerfile for IPython kernel** *ipython_dockerfile* - Dockerfile used to build the IPython kernel image. You can customize it and rebuild the image via ``Tools -> Rebuild IPython Docker Image``.
-
-- **Session Key** *ipython_session_key* - Session key used by the IPython kernel connection. It must match the key provided by the container configuration.
-
-- **Docker image name** *ipython_image_name* - Custom Docker image name. *Default:* ``pygpt_ipython_kernel``
-
-- **Docker container name** *ipython_container_name* - Custom Docker container name. *Default:* ``pygpt_ipython_kernel_container``
-
-- **Connection address** *ipython_conn_addr* - *Default:* ``127.0.0.1``
-
-- **Port: shell** *ipython_port_shell* - *Default:* ``5555``
-
-- **Port: iopub** *ipython_port_iopub* - *Default:* ``5556``
-
-- **Port: stdin** *ipython_port_stdin* - *Default:* ``5557``
-
-- **Port: control** *ipython_port_control* - *Default:* ``5558``
-
-- **Port: hb** *ipython_port_hb* - *Default:* ``5559``
-
-
-**Python (legacy / standard Python)**
-
-- **Run as root** *docker_run_as_root* - Run the standard Python Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` remains available for commands that require root privileges. This option applies when ``Sandbox`` is set to ``Docker``. *Default:* ``False``
-
-- **Python command template** *python_cmd_tpl* - Python command template used to execute the temporary or selected Python file; use ``{filename}`` as the file-path placeholder. *Default:* ``python3 {filename}``
-
-- **Dockerfile** *dockerfile* - Dockerfile used by the standard Python Docker backend. You can customize it and rebuild the image via ``Tools -> Rebuild Python (Legacy) Docker Image``.
-
-- **Docker image name** *image_name* - Custom Docker image name. *Default:* ``pygpt_python_legacy``
-
-- **Docker container name** *container_name* - Custom Docker container name. *Default:* ``pygpt_python_legacy_container``
-
-- **Docker run command** *docker_entrypoint* - Command used to keep the standard Python container alive. *Default:* ``tail -f /dev/null``
-
-- **Docker volumes** *docker_volumes* - Host-to-container volume mappings. The stock configuration maps the active conversation's runtime ``data`` workdir to ``/mnt/data``. If a project uses a custom data workdir, the Docker mapping is updated at runtime for that project. The application's base workdir and its non-data directories are not remapped.
-
-- **Docker ports** *docker_ports* - Optional host-to-container port mappings. The default list is empty.
-
-
-**Tools**
-
-- ``ipython_exec`` - Execute Python code in the current IPython kernel. The tool accepts one required ``code`` parameter.
-- ``ipython_sys_exec`` - Execute a shell/system command in the active IPython environment. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker runtime and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment.
-- ``ipython_kernel_restart`` - Restart the IPython kernel. Normally automatic recovery handles a kernel failure; this tool is intended for manual recovery when needed.
-- ``python_exec`` - Execute Python code directly. The public tool accepts only the required ``code`` parameter; PyGPT manages the temporary script path internally.
-- ``python_exec_file`` - Execute an existing Python file. The tool accepts the required ``path`` parameter.
-- ``python_sys_exec`` - Execute a shell/system command in the standard Python runtime. The command is checked against the configured system-command whitelist/blacklist before execution in every backend. With ``Sandbox = Built-in sandbox`` it runs on the host OS using the built-in Python venv environment and the active data workdir as CWD; this mode does not restrict host filesystem access. With ``Sandbox = Docker`` the command runs inside the Docker backend and uses the Linux command policy; with ``Sandbox = Disabled`` it runs in the host environment.
+The **Python/OS** window uses the same interpreter and backend as model tools. Open it with the ``<>`` icon or ``Tools -> Python / OS``. The **Connect to the Python/OS window** option mirrors tool input/output there.
 
 RAG (inline)
 ------------
@@ -2391,118 +2188,12 @@ The Slack plugin can be configured with various options to customize connectivit
 
 - ``slack_files_upload`` - Upload a file via external flow and share in Slack.
 
-System (OS)
------------
+System commands
+---------------
 
-The System (OS) plugin gives the model a ``sys_exec`` tool for running shell commands in the active data workdir. Commands can run on the host, in the built-in uv-managed environment, or in Docker.
+The **System (OS)** section of **Filesystem, Python and OS** exposes ``shell_exec(command)``. Commands run non-interactively in the shared Python runtime, with the active data workdir as CWD (``/mnt/data`` inside Docker). The configured command whitelist/blacklist applies in every backend; Docker uses the Linux policy. There is no separate System Docker image or ``sandbox/os`` environment.
 
-System/OS execution and isolation rules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``Disabled`` executes ``sys_exec`` in the host environment. The command runs with the privileges of the PyGPT process. The configured system-command whitelist/blacklist is checked before execution, using the policy for the host operating system.
-
-``Built-in sandbox`` uses a dedicated uv-managed environment under ``<application base workdir>/sandbox/os``. It shares the same application-wide built-in runtime infrastructure described in the Python interpreter section:
-
-.. code-block:: text
-
-   <application base workdir>/sandbox/
-   ├── runtime/              # uv-managed CPython runtimes
-   ├── cache/                # uv cache
-   ├── python/               # Python interpreter plugin venv
-   ├── os/                   # System (OS) plugin venv
-   └── state/os/
-       ├── home/             # HOME/USERPROFILE for built-in System commands
-       └── tmp/              # TMP/TEMP/TMPDIR for built-in System commands
-
-The System built-in venv is separate from the Python interpreter venv. Its ``bin``/``Scripts`` directory is placed first in ``PATH`` and it has its own packaging tools, so commands and packages installed into ``sandbox/os`` do not modify PyGPT's own Python environment or ``sandbox/python``.
-
-Built-in packages and environment rebuild
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Configure persistent packages in ``Plugins -> Settings -> System (OS) -> Built-in sandbox -> Packages to install``, one Python package requirement per line. The editable list is empty by default; ``pip``, ``setuptools``, ``wheel`` and ``pytest`` are installed as base packages.
-
-Changing the list recreates the environment on the next built-in use. To rebuild immediately, use ``Tools -> Sandbox / Docker -> Re-create built-in venv for System / OS plugin``.
-
-.. important::
-   Packages installed manually are removed by a rebuild unless they are also added to ``Packages to install``.
-
-The active conversation's ``data`` workdir is used as the command CWD. Normally this is ``%workdir%/data``; a project's custom data workdir is used automatically when configured. Relative command paths therefore start from the active data workdir.
-
-Despite its name, the System built-in backend is **not a filesystem sandbox**. Commands are started as separate host processes (``/bin/sh -c`` on Unix-like systems or ``cmd.exe``/``COMSPEC`` on Windows) with a private HOME/TMP and the built-in venv environment, but they run as the same OS user as PyGPT and can access the host filesystem and network according to that user's permissions. On Windows the process is additionally attached to a Job Object for process-lifetime handling; this does not restrict filesystem or network access.
-
-The system-command whitelist/blacklist is **not bypassed** in ``Sandbox = Built-in sandbox``. ``sys_exec`` is checked before the child process starts, using the policy for the host operating system. Filesystem read/write restrictions remain separate and keep their existing sandbox behavior; Built-in still has normal host filesystem/network access with the PyGPT user's permissions.
-
-``Docker`` runs ``sys_exec`` inside the configured container. Before the command enters the container, PyGPT checks it against the Linux system-command whitelist/blacklist because the stock System Docker image is Linux-based. The active conversation's runtime ``data`` directory is mounted read/write at ``/mnt/data`` and used as the command CWD. Project-specific data workdirs are mapped automatically. By default no other PyGPT workdir directories are mounted. Custom ``Docker volumes`` can expose additional host paths, and custom ``Docker ports`` can publish container ports. The stock image runs as the unprivileged ``pygpt`` user with passwordless ``sudo`` unless ``Run as root`` is enabled.
-
-``sys_exec`` input/output is mirrored to the Python/OS window when **Connect to the Python/OS window** is enabled.
-
-**Options**
-
-**General**
-
-- **Sandbox** *sandbox* - Select the execution backend. ``Disabled`` executes commands in the host environment. ``Built-in sandbox`` uses a dedicated uv-managed environment and separate process execution, but does not restrict host filesystem or network access. ``Docker`` requires Docker and provides the strongest isolation of the available options. The system-command whitelist/blacklist applies to ``sys_exec`` in every mode; Host/Built-in use the host OS policy and Docker uses the Linux policy. *Default:* ``Disabled``
-
-- **Auto-append CWD to sys_exec** *auto_cwd* - Automatically append the current runtime working directory to ``sys_exec`` commands. On the host this is the active conversation's data workdir. In the Docker backend the runtime working directory is ``/mnt/data``. *Default:* ``True``
-
-- **Connect to the Python/OS window** *attach_output* - Mirror ``sys_exec`` command input and output to the Python/OS window. *Default:* ``True``
-
-
-**Built-in sandbox**
-
-- **Packages to install** *builtin_packages* - Additional Python package requirements for the built-in System / OS environment, one per line. Base packages (``pip``, ``setuptools``, ``wheel`` and ``pytest``) are installed separately. Changes rebuild the environment on the next use. *Default:* ``empty``
-
-**Sandbox (Docker backend)**
-
-- **Run as root** *docker_run_as_root* - Run the Docker sandbox as root. When disabled, the stock image runs as the unprivileged ``pygpt`` user; passwordless ``sudo`` can be used for commands that require root privileges. *Default:* ``False``
-
-- **Dockerfile** *dockerfile* - The Dockerfile used to build the sandbox image. The stock image is based on Python 3.12 Alpine, includes commonly used shell/network utilities, uses ``/mnt/data`` as the workdir, and runs as the unprivileged ``pygpt`` user by default. You can customize it and rebuild via ``Tools -> Rebuild Docker sandbox Images``.
-
-- **Docker image name** *image_name* - Name of the Docker image used by the sandbox. *Default:* ``pygpt_system``
-
-- **Docker container name** *container_name* - Name of the Docker container started for the sandbox. *Default:* ``pygpt_system_container``
-
-- **Docker run command** *docker_entrypoint* - Command executed when starting the container (keeps the container alive). *Default:* ``tail -f /dev/null``
-
-- **Docker volumes** *docker_volumes* - Host ↔ container volume mappings. By default, the active runtime ``data`` workdir on the host is mapped read/write to ``/mnt/data`` in the container. A custom project data workdir is therefore mounted automatically when a conversation from that project runs the tool.
-
-  Structure of each item:
-
-  - ``enabled`` (bool) – include this mapping
-  - ``docker`` (text) – container path (e.g. ``/mnt/data``)
-  - ``host`` (text) – host path (e.g. ``{workdir}``)
-
-  Default: one runtime mapping of the active data workdir → ``/mnt/data``
-
-- **Docker ports** *docker_ports* - Host ↔ container port mappings. You can specify protocol on the container side (e.g. ``8888/tcp``), otherwise TCP is assumed.
-
-  Structure of each item:
-
-  - ``enabled`` (bool) – include this mapping
-  - ``docker`` (text) – container port (e.g. ``8888`` or ``8888/tcp``)
-  - ``host`` (int) – host port (e.g. ``8888``)
-
-  Default: empty list (no ports exposed)
-
-**WinAPI (Windows)**
-
-- **Enable WinAPI** *winapi_enabled* - Enables Windows Desktop/WinAPI integration (window management, input, screenshots) on Microsoft Windows. *Default:* ``True``
-
-- **Keys: per-char delay (ms)** *win_keys_per_char_delay_ms* - Delay between characters when typing Unicode text with ``win_keys_text``. *Default:* ``2``
-
-- **Keys: hold (ms)** *win_keys_hold_ms* - Hold duration for modifier keys (e.g., CTRL/ALT/SHIFT) in ``win_keys_send``. *Default:* ``50``
-
-- **Keys: gap (ms)** *win_keys_gap_ms* - Gap between consecutive key taps in ``win_keys_send``. *Default:* ``30``
-
-- **Drag: step delay (ms)** *win_drag_step_delay_ms* - Delay between intermediate mouse-move steps during ``win_drag``. *Default:* ``10``
-
-Notes:
-
-- WinAPI features are available only on Microsoft Windows.
-- Window and area screenshots are saved as PNG files under the user data directory unless an absolute path is provided.
-
-**Tools**
-
-- ``sys_exec`` - Allows system command execution through the currently selected execution backend. Commands are checked against the configured system-command whitelist/blacklist before execution in Host, Built-in and Docker modes. Commands are non-interactive and should not wait for stdin.
+On Windows, **System (OS) -> WinAPI** provides window management, keyboard/mouse input, clipboard access and screenshots. WinAPI always targets the host Windows desktop, independently of the execution runtime.
 
 Telegram
 ---------

@@ -70,7 +70,6 @@ class OptionCmd(QWidget):
         self.window.ui.nodes[desc_key] = DescLabel("", self.window)
         self.window.ui.nodes[desc_key].setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.window.ui.nodes[desc_key].setWordWrap(True)
-        self.window.ui.nodes[desc_key].setMaximumHeight(40)
         self.window.ui.nodes[desc_key].setContentsMargins(35, 0, 0, 0)
         self.desc_key = desc_key
 
@@ -97,7 +96,7 @@ class OptionCmd(QWidget):
         """Return localized tool description with a generic fallback."""
         txt_desc = self.option.get('description', '')
         key = self.option['id']
-        if self.plugin.use_locale:
+        if (self.plugin.use_locale or self.option.get('_use_locale', False)) and self.option.get('locale', True):
             domain = self.option.get('_locale_domain') or (self.plugin.get_locale_domain() if hasattr(self.plugin, 'get_locale_domain') else 'plugin.' + self.plugin.id)
             translated = trans(key + '.description', False, domain)
             if translated != key + '.description':

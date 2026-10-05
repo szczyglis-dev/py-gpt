@@ -1,14 +1,2 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-from .base import ExecutionBackend
-from .host import HostBackend
-from .docker import DockerBackend
-from .manager import ExecutionManager
-
-__all__ = [
-    "ExecutionBackend",
-    "HostBackend",
-    "DockerBackend",
-    "ExecutionManager",
-]
+"""Compatibility import for extensions using the pre-2.9.1 package."""
+from pygpt_net.plugin.filesystem.python.execution import *

@@ -40,7 +40,7 @@ def _tool():
 def _assert_execute_event(tool, expected_cmd, expected_code, auto_init=None, execute_all=False):
     tool.window.core.dispatcher.apply.assert_called_once()
     plugin_id, event = tool.window.core.dispatcher.apply.call_args.args
-    assert plugin_id == "cmd_code_interpreter"
+    assert plugin_id == "filesystem"
     command = event.data["commands"][0]
     assert command["cmd"] == expected_cmd
     assert command["params"]["code"] == expected_code
@@ -65,7 +65,7 @@ def test_code_interpreter_send_input_normalizes_tabs_dispatches_ipython_and_clea
 
     tool.window.controller.kernel.resume.assert_called_once_with()
     tool.store_history.assert_called_once_with(widget)
-    _assert_execute_event(tool, "ipython_exec", "print(1)", auto_init=True)
+    _assert_execute_event(tool, "python_exec", "print(1)", auto_init=True)
     widget.input.clear.assert_called_once_with()
     widget.input.setFocus.assert_called_once_with()
 
@@ -129,7 +129,7 @@ def test_code_interpreter_run_input_dispatches_native_and_ipython_modes():
     tool.window.core.dispatcher.apply.reset_mock()
     tool.ipython = True
     tool.run_input("print(3)")
-    _assert_execute_event(tool, "ipython_exec", "print(3)")
+    _assert_execute_event(tool, "python_exec", "print(3)")
 
 
 def test_code_interpreter_run_input_execute_all_empty_and_control_commands():
@@ -157,10 +157,10 @@ def test_code_interpreter_restart_kernel_dispatches_command_and_timezone_free_st
     tool.window.controller.kernel.resume.assert_called_once_with()
     tool.window.core.dispatcher.apply.assert_called_once()
     plugin_id, command_event = tool.window.core.dispatcher.apply.call_args.args
-    assert plugin_id == "cmd_code_interpreter"
+    assert plugin_id == "filesystem"
     command = command_event.data["commands"][0]
     assert command == {
-        "cmd": "ipython_kernel_restart",
+        "cmd": "python_kernel_restart",
         "params": {},
         "silent": True,
         "force": True,

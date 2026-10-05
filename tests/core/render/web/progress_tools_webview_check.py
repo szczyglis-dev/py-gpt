@@ -24,7 +24,7 @@ runtime.toolOutput = new ToolOutput(null, {templates:runtime.templates, renderer
 runtime.workflows = new RuntimeWorkflows(runtime);
 runtime.workflows.workflowMessageHost = () => ({timeline});
 window.toggleToolOutput = id => runtime.toolOutput.toggle(id);
-const hierarchy = {group_tools:true,calls:[{call_id:'a', name:'read_file', request:'{}'}],workers:[{id:'w1',name:'Worker',status:'running',text:'Reading',calls:[{call_id:'b',name:'search',request:'{}'}]}]};
+const hierarchy = {group_tools:true,calls:[{call_id:'a', name:'fs_read_file', request:'{}'}],workers:[{id:'w1',name:'Worker',status:'running',text:'Reading',calls:[{call_id:'b',name:'search',request:'{}'}]}]};
 runtime.workflows.setAgentStatus('Working','7','progress-p1',{hierarchy});
 const status=timeline.querySelector('.workflow-status');
 const outer=status.querySelector('details'); outer.open=true;

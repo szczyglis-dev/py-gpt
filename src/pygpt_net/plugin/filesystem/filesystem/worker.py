@@ -1,0 +1,1539 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2026.10.01 00:45:00                  #
+# ================================================== #
+
+import fnmatch
+import mimetypes
+import os.path
+import shutil
+import ssl
+import stat
+import tarfile
+import zipfile
+
+from typing import Tuple, List, Dict
+from urllib.request import Request, urlopen
+from PySide6.QtCore import Slot
+
+from pygpt_net.plugin.base.worker import BaseWorker, BaseSignals
+
+
+class WorkerSignals(BaseSignals):
+    pass  # add custom signals here
+
+
+class Worker(BaseWorker):
+    def __init__(self, *args, **kwargs):
+        super(Worker, self).__init__()
+        self.signals = WorkerSignals()
+        self.args = args
+        self.kwargs = kwargs
+        self.plugin = None
+        self.cmds = None
+        self.ctx = None
+        self.msg = None
+
+    @Slot()
+    def run(self):
+        try:
+            responses = []
+            for item in self.cmds:
+                if self.is_stopped():
+                    break
+                try:
+                    response = None
+                    if item["cmd"] in self.plugin.allowed_cmds and self.plugin.has_cmd(item["cmd"]):
+                        # Runtime-only attachment is intentionally exposed only
+                        # in Agents v2 and Custom agents. Keep this execution
+                        # guard before filesystem security so stale/hallucinated
+                        # calls from normal Chat cannot turn an already-authorized
+                        # user attachment into an out-of-workdir permission error.
+                        if (
+                                item["cmd"] == "fs_attach_runtime_file"
+                                and not self.plugin.is_runtime_attach_mode(
+                                    getattr(self.ctx, "mode", None), ctx=self.ctx
+                                )
+                        ):
+                            responses.append(self.make_response(
+                                item,
+                                "fs_attach_runtime_file is available only in agents. "
+                                "Images already supplied by the user through the chat attachment UI are handled "
+                                "by the system chat/vision pipeline and must not be re-attached through this tool.",
+                            ))
+                            continue
+
+                        item = self.normalize_tool_paths(item)
+                        self.check_security(item)
+
+                        # save file
+                        if item["cmd"] == "fs_save_file":
+                            response = self.cmd_save_file(item)
+
+                        # append to file
+                        elif item["cmd"] == "fs_append_file":
+                            response = self.cmd_append_file(item)
+
+                        # read file
+                        elif item["cmd"] == "fs_read_file":
+                            response = self.cmd_read_file(item)
+
+                        # query file
+                        elif item["cmd"] == "fs_query_file":
+                            response = self.cmd_query_file(item)
+
+                        # delete file
+                        elif item["cmd"] == "fs_delete_file":
+                            response = self.cmd_delete_file(item)
+
+                        # list files
+                        elif item["cmd"] == "fs_list_dir":
+                            response = self.cmd_list_dir(item)
+
+                        # tree
+                        elif item["cmd"] == "fs_tree":
+                            response = self.cmd_tree(item)
+
+                        # mkdir
+                        elif item["cmd"] == "fs_mkdir":
+                            response = self.cmd_mkdir(item)
+
+                        # rmdir
+                        elif item["cmd"] == "fs_rmdir":
+                            response = self.cmd_rmdir(item)
+
+                        # download
+                        elif item["cmd"] == "fs_download_file":
+                            response = self.cmd_download_file(item)
+
+                        # copy file
+                        elif item["cmd"] == "fs_copy_file":
+                            response = self.cmd_copy_file(item)
+
+                        # copy dir
+                        elif item["cmd"] == "fs_copy_dir":
+                            response = self.cmd_copy_dir(item)
+
+                        # move
+                        elif item["cmd"] == "fs_move":
+                            response = self.cmd_move(item)
+
+                        # pack archive
+                        elif item["cmd"] == "fs_pack_archive":
+                            response = self.cmd_pack_archive(item)
+
+                        # unpack archive
+                        elif item["cmd"] == "fs_unpack_archive":
+                            response = self.cmd_unpack_archive(item)
+
+                        # is dir
+                        elif item["cmd"] == "fs_is_dir":
+                            response = self.cmd_is_dir(item)
+
+                        # is file
+                        elif item["cmd"] == "fs_is_file":
+                            response = self.cmd_is_file(item)
+
+                        # file exists
+                        elif item["cmd"] == "fs_file_exists":
+                            response = self.cmd_file_exists(item)
+
+                        # file size
+                        elif item["cmd"] == "fs_file_size":
+                            response = self.cmd_file_size(item)
+
+                        # file info
+                        elif item["cmd"] == "fs_file_info":
+                            response = self.cmd_file_info(item)
+
+                        # cwd
+                        elif item["cmd"] == "fs_cwd":
+                            response = self.cmd_cwd(item)
+
+                        # get file as attachment
+                        elif item["cmd"] == "fs_send_file":
+                            response = self.cmd_send_file(item)
+
+                        # explicitly deliver a generated/existing file to the end user
+                        elif item["cmd"] == "fs_deliver_file_to_user":
+                            response = self.cmd_deliver_file_to_user(item)
+
+                        # attach file to the immediate next model request as runtime-only input
+                        elif item["cmd"] == "fs_attach_runtime_file":
+                            response = self.cmd_attach_runtime_file(item)
+
+                        # materialize provider/tool artifacts in shared runtime tmp
+                        elif item["cmd"] == "fs_runtime_artifacts":
+                            response = self.cmd_runtime_artifacts(item)
+
+                        # index file or directory
+                        elif item["cmd"] == "fs_file_index":
+                            response = self.cmd_file_index(item)
+
+                        # find file or directory
+                        elif item["cmd"] == "fs_find":
+                            response = self.cmd_find(item)
+
+                        # store response
+                        if response:
+                            responses.append(response)
+
+                except Exception as e:
+                    responses.append(
+                        self.make_response(
+                            item,
+                            self.throw_error(e)
+                        )
+                    )
+
+            if len(responses) > 0:
+                self.reply_more(responses) # send response
+
+            if self.msg is not None:
+                self.status(self.msg)
+
+        except Exception as e:
+            self.error(e)
+        finally:
+            self.cleanup()
+
+    def normalize_tool_paths(self, item: dict) -> dict:
+        """Translate Docker paths in every filesystem tool before validation.
+
+        Only path arguments are translated; file contents, URLs and search
+        patterns retain their original values. Keep the caller's request intact.
+        """
+        if not self.plugin.is_docker_sandbox():
+            return item
+
+        def translate(value):
+            if isinstance(value, str):
+                return self.plugin.window.core.filesystem.from_sandbox_data_path(
+                    value, ctx=self.ctx,
+                )
+            if isinstance(value, (list, tuple)):
+                return type(value)(translate(path) for path in value)
+            return value
+
+        params = dict(item.get("params") or {})
+        for name in ("path", "src", "dst"):
+            if name in params:
+                params[name] = translate(params[name])
+        return {**item, "params": params}
+
+    def check_security(self, item: dict):
+        """Validate host filesystem access requested by a Files I/O command."""
+        cmd = item.get("cmd")
+        params = item.get("params") or {}
+
+        def paths(name):
+            value = params.get(name)
+            if value is None:
+                return []
+            if isinstance(value, (list, tuple, set)):
+                return [self.prepare_path(v) for v in value if v not in (None, "")]
+            return [self.prepare_path(value)] if value != "" else []
+
+        read_path = {
+            "fs_read_file", "fs_query_file", "fs_list_dir", "fs_tree", "fs_is_dir", "fs_is_file",
+            "fs_file_exists", "fs_file_size", "fs_file_info", "fs_send_file", "fs_deliver_file_to_user",
+            "fs_attach_runtime_file", "fs_runtime_artifacts", "fs_file_index", "fs_find",
+        }
+        write_path = {"fs_save_file", "fs_append_file", "fs_delete_file", "fs_mkdir", "fs_rmdir"}
+
+        if cmd in read_path:
+            requested = paths("path")
+            if not requested and cmd in {"fs_list_dir", "fs_tree", "fs_find"}:
+                requested = [self.get_workdir()]
+            for path in requested:
+                self.security_read(path)
+        elif cmd in write_path:
+            for path in paths("path"):
+                self.security_write(path)
+        elif cmd in {"fs_copy_file", "fs_copy_dir"}:
+            for path in paths("src"):
+                self.security_read(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "fs_move":
+            for path in paths("src"):
+                self.security_read(path)
+                self.security_write(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "fs_pack_archive":
+            for path in paths("src"):
+                self.security_read(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "fs_unpack_archive":
+            for path in paths("src"):
+                self.security_read(path)
+            for path in paths("dst"):
+                self.security_write(path)
+        elif cmd == "fs_download_file":
+            src = params.get("src")
+            if src and not str(src).lower().startswith(("http://", "https://")):
+                self.security_read(self.prepare_path(src))
+            for path in paths("dst"):
+                self.security_write(path)
+
+    def cmd_save_file(self, item: dict) -> dict:
+        """
+        Save file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"] or "data" not in item["params"]:
+                return self.make_response(item, "Path or data not provided")
+            path = self.prepare_path(item["params"]['path'])
+            data = item["params"]['data']
+            self.msg = "Saving file: {}".format(path)
+            self.log(self.msg)
+            with open(path, 'w', encoding="utf-8") as file:
+                file.write(data)
+                result = "OK"
+                self.log("File saved: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_append_file(self, item: dict) -> dict:
+        """
+        Append to file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"] or "data" not in item["params"]:
+                return self.make_response(item, "Path or data not provided")
+            path = self.prepare_path(item["params"]['path'])
+            data = item["params"]['data']
+            self.msg = "Appending file: {}".format(path)
+            self.log(self.msg)
+            with open(path, 'a', encoding="utf-8") as file:
+                file.write(data)
+                result = "OK"
+                self.log("File appended: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_read_file(self, item: dict) -> dict:
+        """
+        Read file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        context_result = ""
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            self.msg = "Reading file: {}".format(item["params"]['path'])
+            self.log(self.msg)
+            path = item["params"]['path']
+            paths = []
+            if isinstance(path, list):
+                paths = path
+            elif isinstance(path, str):
+                paths = [path]
+            data, context = self.read_files(paths)
+            context_str = None
+            if context:
+                context_str = "\n\n".join(context)
+            result = data
+            if context_str:
+                context_result = context_str
+        except Exception as e:
+            result = self.throw_error(e)
+        extra = self.prepare_extra(item, context_result)
+        return self.make_response(item, result, extra=extra)
+
+    def cmd_query_file(self, item: dict) -> dict:
+        """
+        Query file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        result = None
+        context = None
+        query = None
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Reading path: {}".format(path)
+            self.log(self.msg)
+            if "query" in item["params"] and item["params"]["query"]:
+                query = item["params"]["query"]
+
+            # check if file exists
+            if os.path.exists(path):
+                if query is not None:
+                    # query file using temp index (created on the fly)
+                    self.log("Querying file: {}".format(path))
+                    # get tmp query model
+                    model = self.plugin.window.core.models.from_defaults()
+                    tmp_model = self.plugin.get_option_value("model_tmp_query")
+                    if self.plugin.window.core.models.has(tmp_model):
+                        model = self.plugin.window.core.models.get(tmp_model)
+                    answer = self.plugin.window.core.idx.chat.query_file(
+                        ctx=self.ctx,
+                        path=path,
+                        query=query,
+                        model=model,
+                    )
+                    self.log("Response from temporary in-memory index: {}".format(answer))
+                    if answer:
+                        result = answer
+                        context = "From: " + os.path.basename(path) + ":\n--------------------------------\n" + answer
+
+                # + auto-index file to main index using Llama-index
+                if self.plugin.get_option_value("auto_index"):
+                    for idx_name in self.plugin.get_index_names():
+                        self.plugin.window.core.idx.index_files(
+                            idx_name,
+                            path,
+                        )
+            else:
+                result = "File not found"
+                self.log("File not found: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, context)
+        return self.make_response(item, result, extra=extra)
+
+    def cmd_delete_file(self,item: dict) -> dict:
+        """
+        Delete file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Deleting file: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                os.remove(path)
+                result = "OK"
+                self.log("File deleted: {}".format(path))
+            else:
+                result = "File not found"
+                self.log("File not found: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_list_dir(self, item: dict) -> dict:
+        """
+        List directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            path = self.get_workdir()
+            if "path" in item["params"]:
+                path = self.prepare_path(item["params"]['path'])
+            self.msg = "Listing directory: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                files = os.listdir(path)
+                result = files
+                self.log("Files listed: {}".format(path))
+                self.log("Result: {}".format(files))
+            else:
+                result = "Directory not found"
+                self.log("Directory not found: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
+
+    def cmd_tree(self, item: dict) -> dict:
+        """
+        Get directory tree
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            path = self.get_workdir()
+            if "path" in item["params"]:
+                path = self.prepare_path(item["params"]['path'])
+            self.msg = "Listing directory: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                result = self.format_tree(path)
+                self.log("Directory tree: {}".format(path))
+                self.log("Result: {}".format(result))
+            else:
+                result = "Directory not found"
+                self.log("Directory not found: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
+
+    @staticmethod
+    def format_tree(path: str) -> str:
+        """Return a directory tree as human-readable text."""
+        lines = ["."]
+
+        def walk(directory: str, prefix: str = ""):
+            try:
+                with os.scandir(directory) as iterator:
+                    entries = list(iterator)
+            except OSError:
+                return
+
+            dirs = []
+            files = []
+            for entry in entries:
+                try:
+                    is_dir = entry.is_dir(follow_symlinks=False)
+                except OSError:
+                    is_dir = False
+                if is_dir:
+                    dirs.append(entry)
+                else:
+                    files.append(entry)
+
+            dirs.sort(key=lambda entry: entry.name)
+            files.sort(key=lambda entry: entry.name)
+            children = [(entry, True) for entry in dirs]
+            children.extend((entry, False) for entry in files)
+
+            for idx, (entry, is_dir) in enumerate(children):
+                is_last = idx == len(children) - 1
+                connector = "└── " if is_last else "├── "
+                lines.append("{}{}{}".format(prefix, connector, entry.name))
+                if is_dir:
+                    extension = "    " if is_last else "│   "
+                    walk(entry.path, prefix + extension)
+
+        walk(path)
+        return "\n".join(lines)
+
+    def cmd_mkdir(self, item: dict) -> dict:
+        """
+        Make directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Creating directory: {}".format(path)
+            self.log(self.msg)
+            if not os.path.exists(path):
+                os.makedirs(path)
+                result = "OK"
+                self.log("Directory created: {}".format(path))
+            else:
+                result = "Directory already exists"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_rmdir(self, item: dict) -> dict:
+        """
+        Remove directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Deleting directory: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                shutil.rmtree(path)
+                result = "OK"
+                self.log("Directory deleted: {}".format(path))
+            else:
+                result = "Directory not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_download_file(self, item: dict) -> dict:
+        """
+        Download file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Downloading file: {} into {}".format(item["params"]['src'], dst)
+            self.log(self.msg)
+            size = 0
+            # Check if src is URL
+            if item["params"]['src'].startswith("http"):
+                src = item["params"]['src']
+                # Download file from URL with SSL verification enabled
+                try:
+                    req = Request(
+                        url=src,
+                        headers={'User-Agent': 'Mozilla/5.0'},
+                    )
+                    context = ssl.create_default_context()
+                    with urlopen(
+                            req,
+                            context=context,
+                            timeout=30) as response, \
+                            open(dst, 'wb') as out_file:
+                        expected = response.headers.get('Content-Length')
+                        buf_size = 1024 * 1024  # 1 MiB buffer for throughput
+                        size = 0
+                        while True:
+                            block = response.read(buf_size)
+                            if not block:
+                                break
+                            out_file.write(block)
+                            size += len(block)
+                        if expected is not None:
+                            expected = int(expected)
+                            if expected != size:
+                                raise IOError(
+                                    "Download incomplete: got {} bytes, expected {}".format(
+                                        size, expected
+                                    )
+                                )
+                except Exception as e:
+                    return self.make_response(item, f"Failed to download file: {e}")
+            else:
+                # Handle local file paths
+                src = os.path.join(
+                    self.get_workdir(),
+                    item["params"]['src'],
+                )
+                # Copy local file
+                with open(src, 'rb') as in_file, open(dst, 'wb') as out_file:
+                    shutil.copyfileobj(in_file, out_file)
+                size = os.path.getsize(dst)
+
+            # handle result
+            result = {
+                "result": "OK",
+                "size_bytes": size,
+                "size_human": self.get_human_readable_size(size),
+            }
+            self.log("File downloaded: {} into {}".format(src, dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_copy_file(self, item: dict) -> dict:
+        """
+        Copy file
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+            src = self.prepare_path(item["params"]['src'])
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Copying file: {} into {}".format(src, dst)
+            self.log(self.msg)
+            shutil.copyfile(src, dst)
+            result = "OK"
+            self.log("File copied: {} into {}".format(src, dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_copy_dir(self, item: dict) -> dict:
+        """
+        Copy directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+            src = self.prepare_path(item["params"]['src'])
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Copying directory: {} into {}".format(src, dst)
+            self.log(self.msg)
+            shutil.copytree(src, dst)
+            result = "OK"
+            self.log("Directory copied: {} into {}".format(src, dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_move(self, item: dict) -> dict:
+        """
+        Move file or directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+            src = self.prepare_path(item["params"]['src'])
+            dst = self.prepare_path(item["params"]['dst'])
+            self.msg = "Moving: {} into {}".format(src, dst)
+            self.log(self.msg)
+            shutil.move(src, dst)
+            result = "OK"
+            self.log("Moved: {} into {}".format(src, dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    @staticmethod
+    def _archive_format(path: str) -> tuple[str, str]:
+        """Return archive family and write mode from file extension."""
+        lower = str(path).lower()
+        if lower.endswith(".zip"):
+            return "zip", "w"
+        if lower.endswith((".tar.gz", ".tgz")):
+            return "tar", "w:gz"
+        if lower.endswith((".tar.bz2", ".tbz2", ".tbz")):
+            return "tar", "w:bz2"
+        if lower.endswith((".tar.xz", ".txz")):
+            return "tar", "w:xz"
+        if lower.endswith(".tar"):
+            return "tar", "w"
+        raise ValueError(
+            "Unsupported archive format. Use .zip, .tar, .tar.gz/.tgz, "
+            ".tar.bz2/.tbz2 or .tar.xz/.txz"
+        )
+
+    @staticmethod
+    def _archive_member_target(dst: str, member_name: str) -> str:
+        """Resolve an archive member path and reject path traversal."""
+        name = str(member_name or "").replace("\\", "/")
+        if not name or name.startswith("/"):
+            raise ValueError(f"Unsafe archive member path: {member_name}")
+        drive, _ = os.path.splitdrive(name)
+        if drive:
+            raise ValueError(f"Unsafe archive member path: {member_name}")
+
+        target = os.path.realpath(os.path.abspath(os.path.join(dst, *name.split("/"))))
+        base = os.path.realpath(os.path.abspath(dst))
+        try:
+            if os.path.commonpath([base, target]) != base:
+                raise ValueError(f"Unsafe archive member path: {member_name}")
+        except ValueError:
+            raise ValueError(f"Unsafe archive member path: {member_name}")
+        return target
+
+    @staticmethod
+    def _archive_sources(value) -> list:
+        """Normalize archive source parameter to a non-empty list."""
+        if isinstance(value, (list, tuple, set)):
+            sources = [str(v) for v in value if v not in (None, "")]
+        elif value not in (None, ""):
+            sources = [str(value)]
+        else:
+            sources = []
+        if not sources:
+            raise ValueError("Source path(s) not provided")
+        return sources
+
+    def _zip_add_path(self, archive: zipfile.ZipFile, src: str) -> int:
+        """Add a file or directory recursively to a ZIP archive."""
+        count = 0
+        src = os.path.abspath(src)
+        arc_root = os.path.basename(os.path.normpath(src)) or "data"
+
+        if os.path.isdir(src):
+            for root, dirs, files in os.walk(src, followlinks=False):
+                rel_root = os.path.relpath(root, src)
+                arc_dir = arc_root if rel_root == "." else os.path.join(arc_root, rel_root)
+                archive.write(root, arc_dir)
+                count += 1
+
+                # Do not follow directory symlinks; store only normal directory trees.
+                dirs[:] = [name for name in dirs if not os.path.islink(os.path.join(root, name))]
+                for filename in files:
+                    path = os.path.join(root, filename)
+                    if os.path.islink(path):
+                        continue
+                    archive.write(path, os.path.join(arc_dir, filename))
+                    count += 1
+        else:
+            if os.path.islink(src):
+                raise ValueError(f"Refusing to archive symbolic link: {src}")
+            archive.write(src, arc_root)
+            count += 1
+        return count
+
+    def cmd_pack_archive(self, item: dict) -> dict:
+        """Pack files or directories into ZIP/TAR archive."""
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+
+            src_values = self._archive_sources(item["params"]["src"])
+            sources = [self.prepare_path(value) for value in src_values]
+            dst = self.prepare_path(item["params"]["dst"])
+            kind, mode = self._archive_format(dst)
+
+            dst_real = os.path.realpath(os.path.abspath(dst))
+            for src in sources:
+                if not os.path.exists(src):
+                    return self.make_response(item, f"File or directory not found: {src}")
+                src_real = os.path.realpath(os.path.abspath(src))
+                if src_real == dst_real:
+                    raise ValueError("Destination archive must be different from source path")
+                if os.path.isdir(src_real):
+                    try:
+                        if os.path.commonpath([src_real, dst_real]) == src_real:
+                            raise ValueError("Destination archive cannot be created inside a source directory")
+                    except ValueError as exc:
+                        if str(exc).startswith("Destination archive"):
+                            raise
+
+            self.msg = "Packing archive: {}".format(dst)
+            self.log(self.msg)
+            count = 0
+
+            if kind == "zip":
+                with zipfile.ZipFile(dst, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
+                    for src in sources:
+                        count += self._zip_add_path(archive, src)
+            else:
+                with tarfile.open(dst, mode) as archive:
+                    for src in sources:
+                        if os.path.islink(src):
+                            raise ValueError(f"Refusing to archive symbolic link: {src}")
+                        arcname = os.path.basename(os.path.normpath(src)) or "data"
+                        archive.add(src, arcname=arcname, recursive=True, filter=self._tar_pack_filter)
+                    count = len(archive.getmembers())
+
+            size = os.path.getsize(dst)
+            result = {
+                "result": "OK",
+                "archive": dst,
+                "format": kind,
+                "sources": len(sources),
+                "entries": count,
+                "size_bytes": size,
+                "size_human": self.get_human_readable_size(size),
+            }
+            self.log("Archive created: {}".format(dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    @staticmethod
+    def _tar_pack_filter(member: tarfile.TarInfo):
+        """Skip symlinks, hard links and special files while creating TAR archives."""
+        if member.issym() or member.islnk() or member.isdev() or member.isfifo():
+            return None
+        return member
+
+    def _unpack_zip(self, src: str, dst: str) -> int:
+        """Safely extract ZIP archive without path traversal or symlinks."""
+        count = 0
+        with zipfile.ZipFile(src, "r") as archive:
+            for info in archive.infolist():
+                target = self._archive_member_target(dst, info.filename)
+                mode = (info.external_attr >> 16) & 0xFFFF
+                if stat.S_ISLNK(mode):
+                    raise ValueError(f"Refusing to extract symbolic link: {info.filename}")
+
+                if info.is_dir() or info.filename.endswith("/"):
+                    os.makedirs(target, exist_ok=True)
+                    continue
+
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with archive.open(info, "r") as source, open(target, "wb") as output:
+                    shutil.copyfileobj(source, output)
+                if mode & 0o777:
+                    try:
+                        os.chmod(target, mode & 0o777)
+                    except OSError:
+                        pass
+                count += 1
+        return count
+
+    def _unpack_tar(self, src: str, dst: str) -> int:
+        """Safely extract TAR archive without path traversal, links or special files."""
+        count = 0
+        with tarfile.open(src, "r:*") as archive:
+            for member in archive.getmembers():
+                target = self._archive_member_target(dst, member.name)
+                if member.issym() or member.islnk():
+                    raise ValueError(f"Refusing to extract archive link: {member.name}")
+                if member.isdev() or member.isfifo():
+                    raise ValueError(f"Refusing to extract special archive member: {member.name}")
+
+                if member.isdir():
+                    # Keep destination directories writable while extracting child entries.
+                    os.makedirs(target, exist_ok=True)
+                    continue
+                if not member.isfile():
+                    continue
+
+                source = archive.extractfile(member)
+                if source is None:
+                    continue
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with source, open(target, "wb") as output:
+                    shutil.copyfileobj(source, output)
+                try:
+                    os.chmod(target, member.mode & 0o777)
+                except OSError:
+                    pass
+                count += 1
+        return count
+
+    def cmd_unpack_archive(self, item: dict) -> dict:
+        """Unpack ZIP/TAR archive into a directory."""
+        try:
+            if "src" not in item["params"] or "dst" not in item["params"]:
+                return self.make_response(item, "Source or destination not provided")
+
+            src = self.prepare_path(item["params"]["src"])
+            dst = self.prepare_path(item["params"]["dst"])
+            if not os.path.isfile(src):
+                return self.make_response(item, "Archive file not found")
+
+            self.msg = "Unpacking archive: {} into {}".format(src, dst)
+            self.log(self.msg)
+            os.makedirs(dst, exist_ok=True)
+
+            if zipfile.is_zipfile(src):
+                kind = "zip"
+                count = self._unpack_zip(src, dst)
+            elif tarfile.is_tarfile(src):
+                kind = "tar"
+                count = self._unpack_tar(src, dst)
+            else:
+                raise ValueError("Unsupported or invalid archive. Expected ZIP or TAR archive")
+
+            result = {
+                "result": "OK",
+                "archive": src,
+                "destination": dst,
+                "format": kind,
+                "files_extracted": count,
+            }
+            self.log("Archive unpacked: {} into {}".format(src, dst))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_is_dir(self, item: dict) -> dict:
+        """
+        Check if directory exists
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking if directory exists: {}".format(path)
+            self.log(self.msg)
+            if os.path.isdir(path):
+                result = "OK"
+                self.log("Directory exists: {}".format(path))
+            else:
+                result = "Directory not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_is_file(self, item: dict) -> dict:
+        """
+        Check if file exists
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking if file exists: {}".format(path)
+            self.log(self.msg)
+            if os.path.isfile(path):
+                result = "OK"
+                self.log("File exists: {}".format(path))
+            else:
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_file_exists(self, item: dict) -> dict:
+        """
+        Check if file exists
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking if path exists: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                result = "OK"
+                self.log("Path exists: {}".format(path))
+            else:
+                result = "File or directory not found"
+                self.log("Path not found: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_file_size(self, item: dict) -> dict:
+        """
+        Check file size
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking file size: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                size = os.path.getsize(path)
+                result = {
+                    'size_bytes': size,
+                    'size_human': self.get_human_readable_size(size),
+                }
+                self.log("File size: {}".format(size))
+            else:
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_file_info(self, item: dict) -> dict:
+        """
+        Check file info
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Checking file info: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                size = os.path.getsize(path)
+                result = {
+                    "size": size,
+                    "size_human": self.get_human_readable_size(size),
+                    'mime_type': mimetypes.guess_type(path)[0] or 'application/octet-stream',
+                    "last_access": os.path.getatime(path),
+                    "last_modification": os.path.getmtime(path),
+                    "creation_time": os.path.getctime(path),
+                    "is_dir": os.path.isdir(path),
+                    "is_file": os.path.isfile(path),
+                    "is_link": os.path.islink(path),
+                    "is_mount": os.path.ismount(path),
+                    'stat': os.stat(path),
+                }
+                self.log("File info: {}".format(result))
+            else:
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
+
+    def cmd_cwd(self, item: dict) -> dict:
+        """
+        Get current working directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            self.msg = "Getting CWD: {}".format(self.get_workdir())
+            self.log(self.msg)
+            result = self.get_workdir()
+        except Exception as e:
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
+
+    def cmd_send_file(self, item: dict) -> dict:
+        """
+        Get/send file as attachment
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Adding attachment: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                # make attachment
+                mode = self.plugin.window.core.config.get('mode')
+                title = os.path.basename(path)
+                self.plugin.window.core.attachments.new(mode, title, path, False)
+                self.plugin.window.core.attachments.save()
+                self.plugin.window.controller.attachment.update()
+                result = "Sending attachment: {}".format(title)
+                self.log("Added attachment: {}".format(path))
+            else:
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_deliver_file_to_user(self, item: dict) -> dict:
+        """Mark one local file as an explicit end-user response deliverable."""
+        try:
+            if "path" not in item["params"]:
+                return self.make_response(item, "Path not provided")
+            path = self.prepare_path(item["params"]['path'])
+            self.msg = "Preparing user deliverable: {}".format(path)
+            self.log(self.msg)
+            if not os.path.isfile(path):
+                result = "File not found"
+                self.log("{}: {}".format(result, path))
+                return self.make_response(item, result)
+
+            title = os.path.basename(path)
+            result = "File prepared for user delivery: {}".format(title)
+            self.log("User deliverable prepared: {}".format(path))
+
+            # Agents v2 uses a private tool CtxItem. Pass a private marker to the
+            # runtime; it will expose the file only after the final response has
+            # fully streamed. Other modes can attach the explicit output directly
+            # to their visible CtxItem.
+            if self.ctx is not None and getattr(self.ctx, "agent_call", False):
+                return self.make_response(
+                    item,
+                    result,
+                    extra={
+                        "agent_delivery_files": [
+                            {"path": path, "name": title},
+                        ],
+                    },
+                )
+
+            if self.ctx is not None:
+                if not isinstance(getattr(self.ctx, "files", None), list):
+                    self.ctx.files = []
+                if path not in self.ctx.files:
+                    self.ctx.files.append(path)
+            return self.make_response(item, result)
+        except Exception as e:
+            return self.make_response(item, self.throw_error(e))
+
+    def cmd_attach_runtime_file(self, item: dict) -> dict:
+        """Attach local file(s) to the immediate next model request without touching global chat attachments."""
+        try:
+            params = item.get("params") or {}
+            if "path" not in params:
+                return self.make_response(item, "Path not provided")
+
+            raw_paths = params.get("path")
+            if isinstance(raw_paths, (list, tuple, set)):
+                values = list(raw_paths)
+            else:
+                values = [raw_paths]
+
+            attachments = []
+            missing = []
+            for value in values:
+                if value in (None, ""):
+                    continue
+                path = self.prepare_path(value)
+                if os.path.isfile(path):
+                    attachments.append({
+                        "path": path,
+                        "name": os.path.basename(path),
+                    })
+                else:
+                    missing.append(path)
+
+            if not attachments:
+                result = "File not found"
+                if missing:
+                    result += ": " + ", ".join(missing)
+                return self.make_response(item, result)
+
+            names = [entry["name"] for entry in attachments]
+            result = "Attached for native analysis in the next model request: {}".format(", ".join(names))
+            if missing:
+                result += ". Not found: {}".format(", ".join(missing))
+
+            self.msg = result
+            self.log(result)
+            return self.make_response(
+                item,
+                result,
+                extra={"agent_runtime_attachments": attachments},
+            )
+        except Exception as e:
+            return self.make_response(item, self.throw_error(e))
+
+    def cmd_runtime_artifacts(self, item: dict) -> dict:
+        """Expose generated/downloaded local artifacts through shared runtime tmp."""
+        try:
+            params = item.get("params") or {}
+            values = params.get("path")
+            if values in (None, "", []):
+                values = []
+                if self.ctx is not None:
+                    values.extend(list(getattr(self.ctx, "runtime_artifacts", None) or []))
+                    # Compatibility fallback for providers that populated
+                    # images/files before runtime artifact registration existed.
+                    if not values:
+                        values.extend(list(getattr(self.ctx, "images", None) or []))
+                        values.extend(list(getattr(self.ctx, "files", None) or []))
+            elif not isinstance(values, (list, tuple, set)):
+                values = [values]
+
+            artifacts = self.plugin.window.core.filesystem.materialize_runtime_artifacts(
+                values,
+                ctx=self.ctx,
+            )
+            if not artifacts:
+                return self.make_response(
+                    item,
+                    {
+                        "count": 0,
+                        "artifacts": [],
+                        "message": "No local runtime artifacts were found.",
+                    },
+                )
+
+            result = {
+                "count": len(artifacts),
+                "artifacts": artifacts,
+                "message": (
+                    "Runtime copies are ready. For Python/IPython prefer artifact.runtime_paths.code_interpreter; "
+                    "for System/OS prefer artifact.runtime_paths.system. artifact.path is the preferred default, "
+                    "artifact.host_path is for Built-in/host execution. Docker paths are returned only for active Docker tools."
+                ),
+            }
+            self.msg = "Prepared {} runtime artifact(s)".format(len(artifacts))
+            self.log(self.msg)
+            return self.make_response(item, result)
+        except Exception as e:
+            return self.make_response(item, self.throw_error(e))
+
+    def cmd_file_index(self, item: dict) -> dict:
+        """
+        Index file or directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "path" not in item["params"]:
+                self.log("Path not provided")
+                return self.make_response(item, "Path not provided")
+
+            # prepare path
+            p = item["params"]['path']
+            if isinstance(p, list):
+                p = p[0]  # take first path if list provided
+            path = self.prepare_path(p)
+            self.msg = "Indexing path: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                index_names = self.plugin.get_index_names()
+                indexed = {}
+                errors = []
+                num_indexed = 0
+                for idx_name in index_names:
+                    # index path using Llama-index
+                    files, idx_errors = self.plugin.window.core.idx.index_files(
+                        idx_name,
+                        path,
+                    )
+                    num_indexed += len(files)
+                    indexed[idx_name] = {
+                        'num_indexed': len(files),
+                        'errors': idx_errors,
+                    }
+                    errors.extend([f"{idx_name}: {error}" for error in idx_errors])
+                result = {
+                    'num_indexed': num_indexed,
+                    'index_name': ','.join(index_names),
+                    'index_names': index_names,
+                    'indexes': indexed,
+                    'errors': errors,
+                    'path': path,
+                }
+            else:
+                result = "File or directory not found"
+                self.log("File not found: {}".format(path))
+        except Exception as e:
+            result = self.throw_error(e)
+        return self.make_response(item, result)
+
+    def cmd_find(self, item: dict) -> dict:
+        """
+        Search for files in directory
+
+        :param item: item with parameters
+        :return: response item
+        """
+        try:
+            if "pattern" not in item["params"]:
+                return self.make_response(item, "Search pattern not provided")
+            recursive = True
+            path = self.get_workdir()
+            pattern = item["params"]['pattern']
+            if "path" in item["params"]:
+                path = self.prepare_path(item["params"]['path'])
+            if "recursive" in item["params"]:
+                recursive = item["params"]['recursive']
+            self.msg = "Searching in directory: {}".format(path)
+            self.log(self.msg)
+            if os.path.exists(path):
+                files = self.find_files(path, pattern, recursive)
+                result = files
+                self.log("Result: {}".format(files))
+            else:
+                result = "Directory not found"
+                self.log("{}: {}".format(result, path))
+        except Exception as e:
+            result = self.throw_error(e)
+
+        extra = self.prepare_extra(item, result)
+        return self.make_response(item, result, extra=extra)
+
+    def find_files(self, directory: str, pattern: str, recursive: bool = True) -> list:
+        """
+        Find files in directory
+
+        :param directory: search directory
+        :param pattern: search pattern
+        :param recursive: search recursively
+        :return: list of files
+        """
+        matches = []
+        if recursive:
+            for root, dirs, files in os.walk(directory):
+                for filename in fnmatch.filter(files, pattern):
+                    matches.append(os.path.join(root, filename))
+        else:
+            for filename in os.listdir(directory):
+                if fnmatch.fnmatch(filename, pattern):
+                    matches.append(os.path.join(directory, filename))
+        return matches
+
+    def get_human_readable_size(self, size: int, decimal_places: int = 2):
+        """
+        Return a human-readable file size.
+
+        :param size: file size in bytes
+        :param decimal_places: number of decimal places
+        :return: human-readable file size
+        """
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if size < 1024.0:
+                break
+            size /= 1024.0
+        return f"{size:.{decimal_places}f} {unit}"
+
+    def is_absolute_path(self, path: str) -> bool:
+        """
+        Check if path is absolute
+
+        :param path: path to check
+        :return: True if absolute
+        """
+        return os.path.isabs(path)
+
+    def prepare_path(self, path: str) -> str:
+        """
+        Prepare path
+
+        :param path: path to prepare
+        :return: prepared path
+        """
+        if path in [".", "./"]:
+            return self.get_workdir()
+
+        value = str(path)
+        normalized = value.replace("\\", "/")
+        # Files I/O always executes on the host, including paths supplied by
+        # Docker tools or retained in conversation history.
+        if (normalized == "/mnt/data" or normalized.startswith("/mnt/data/")
+                or normalized == "/data" or normalized.startswith("/data/")):
+            return self.plugin.window.core.filesystem.from_sandbox_data_path(
+                normalized, ctx=self.ctx,
+            )
+        if (normalized.startswith("%workdir%")
+                or normalized.lower().startswith("sandbox:")
+                or normalized == "/mnt/tmp"
+                or normalized.startswith("/mnt/tmp/")):
+            if normalized == "/mnt/tmp" or normalized.startswith("/mnt/tmp/"):
+                value = "sandbox:" + normalized
+            return self.plugin.window.core.filesystem.normalize_local_path(
+                value,
+                auto_prefix=True,
+                ctx=self.ctx,
+            )
+
+        if self.is_absolute_path(value):
+            return value
+        return os.path.join(
+            self.get_workdir(),
+            value,
+        )
+
+    def read_files(self, paths: List[str]) -> Tuple[List[Dict], List[str]]:
+        """
+        Read files from directory
+
+        :param paths: list of paths
+        :return: response data(s), context(s)
+        """
+        data = []
+        context = []
+        for path in paths:
+            path = self.prepare_path(path)
+            if os.path.isdir(path):
+                # read_file is intentionally file-only. Treating a directory as a
+                # file used to pass it to LlamaIndex's SimpleDirectoryReader, which
+                # recursively scanned the directory and could invoke unrelated
+                # optional loaders (for example VideoAudioReader/Whisper).
+                message = "Path is a directory; use list_dir or tree to inspect directories."
+                data.append({
+                    "path": os.path.basename(os.path.normpath(path)) or path,
+                    "error": message,
+                })
+                self.log(f"File read skipped (directory): {path}")
+                continue
+            if os.path.exists(path):
+                # + auto-index file using Llama-index
+                if self.plugin.get_option_value("auto_index") \
+                        or self.plugin.get_option_value("only_index"):
+                    index_names = self.plugin.get_index_names()
+                    indexed = {}
+                    errors = []
+                    num_indexed = 0
+                    for idx_name in index_names:
+                        files, idx_errors = self.plugin.window.core.idx.index_files(
+                            idx_name,
+                            path,
+                        )
+                        num_indexed += len(files)
+                        indexed[idx_name] = {
+                            'num_indexed': len(files),
+                            'errors': idx_errors,
+                        }
+                        errors.extend([f"{idx_name}: {error}" for error in idx_errors])
+                    # if only index, return response and continue
+                    if self.plugin.get_option_value("only_index"):
+                        data.append({
+                            'num_indexed': num_indexed,
+                            'index_name': ','.join(index_names),
+                            'index_names': index_names,
+                            'indexes': indexed,
+                            'errors': errors,
+                            'path': path,
+                        })
+                        self.log("File read (index only): {}".format(path))
+                        return data, context
+
+                # read file as text
+                content = self.plugin.read_as_text(
+                    path,
+                    use_loaders=self.plugin.get_option_value("use_loaders"),
+                    ctx=self.ctx,
+                )
+                data.append({
+                    "path": os.path.basename(path),
+                    "content": content,
+                })
+                context.append(os.path.basename(path) + ":\n--------------------------------\n" + content)
+                self.log("File read: {}".format(path))
+            else:
+                self.log("File not found: {}".format(path))
+                data.append({
+                    "path": os.path.basename(path),
+                    "content": "File not found",
+                })
+
+        return data, context
+
+    def prepare_extra(self, item: dict, context: str) -> dict:
+        """
+        Prepare extra data for response
+
+        :param item: command item
+        :param context: context data
+        :return: extra data
+        """
+        # disabled in v2.6.31
+        # reason: do not duplicate context in chat
+        return {}
+        cmd = item["cmd"]
+        extra = {
+            'plugin': "filesystem",
+            'cmd': cmd,
+            'code': {
+                'output': {
+                    'lang': "bash",
+                    'content': str(context),
+                }
+            }
+        }
+        # extra["context"] = str(context)
+        return extra
+
+    def get_extra_data(self) -> dict:
+        """
+        Return extra data for response
+
+        :return: extra data
+        """
+        return {
+            "post_update": ["file_explorer"],  # update file explorer after processing
+        }

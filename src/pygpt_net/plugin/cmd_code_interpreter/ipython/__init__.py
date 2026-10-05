@@ -1,14 +1,2 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ================================================== #
-# This file is a part of PYGPT package               #
-# Website: https://pygpt.net                         #
-# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
-# MIT License                                        #
-# Created By  : Marcin Szczygliński                  #
-# Updated Date: 2024.11.25 02:00:00                  #
-# ================================================== #
-
-from .local_kernel import LocalKernel
-from .docker_kernel import DockerKernel
-from .builtin_kernel import BuiltinKernel
+"""Compatibility import for extensions using the pre-2.9.1 package."""
+from pygpt_net.plugin.filesystem.python.ipython import *

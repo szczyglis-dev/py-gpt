@@ -206,7 +206,7 @@ class WorkerToolFactory:
 
     @staticmethod
     def _extract_delivery_files(value: Any) -> List[Dict[str, str]]:
-        """Collect files explicitly marked by deliver_file_to_user for user delivery."""
+        """Collect files explicitly marked by fs_deliver_file_to_user for user delivery."""
         out: List[Dict[str, str]] = []
 
         def walk(item):
@@ -328,7 +328,7 @@ class WorkerToolFactory:
     def _plugin_tools(self, worker, exclude: Optional[set] = None) -> List[BaseTool]:
         out: List[BaseTool] = []
         excluded = {str(name) for name in (exclude or set())}
-        for item in self.window.core.command.get_functions(force=True):
+        for item in self.window.core.command.get_functions(force=True, ctx=getattr(getattr(self.runtime, "context", None), "ctx", None)):
             try:
                 name = str(item.get("name") or "").strip()
                 if not name or name in self.RESERVED or name in excluded:

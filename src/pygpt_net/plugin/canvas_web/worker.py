@@ -109,7 +109,8 @@ class Worker(BaseWorker):
         """Return the live Files I/O plugin state without assuming UI availability."""
         try:
             controller = self.plugin.window.controller.plugins
-            return bool(controller.is_enabled("cmd_files"))
+            return bool(controller.is_enabled("filesystem") and
+                        self.plugin.window.core.plugins.get("filesystem").has_cmd("fs_attach_runtime_file"))
         except Exception:
             return False
 
@@ -149,21 +150,19 @@ class Worker(BaseWorker):
                         host_path = str(artifact.get("host_path") or model_path)
                         name = str(artifact.get("name") or os.path.basename(host_path))
 
-                        # Agents own their file/tool loop, so never inject an
-                        # automatic image continuation there.  Likewise, when
-                        # Files I/O is enabled in a normal mode, return the tmp
-                        # path and let the model explicitly call
-                        # attach_runtime_file, exactly like any other local file.
-                        if self._is_agents_mode() or self._is_files_io_enabled():
+                        # Agent runtimes own the attachment loop. In ordinary
+                        # chat attach the image directly: fs_attach_runtime_file
+                        # is not exposed there, even with Filesystem enabled.
+                        if self._is_agents_mode():
                             response = self.make_response(
                                 item,
                                 {"path": model_path},
                                 extra={"plugin": self.plugin.id, "cmd": cmd},
                             )
                         else:
-                            # Files I/O is unavailable, so fall back to the same
+                            # Ordinary chat uses the same
                             # runtime-only transport contract used by
-                            # cmd_files.attach_runtime_file.  This keeps normal
+                            # filesystem.fs_attach_runtime_file.  This keeps normal
                             # Chat usable without introducing a second image
                             # attachment protocol.
                             attached = f"Attached for native analysis in the next model request: {name}"

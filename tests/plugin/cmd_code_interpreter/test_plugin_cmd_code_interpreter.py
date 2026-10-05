@@ -16,9 +16,9 @@ from unittest.mock import MagicMock, patch
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
 from tests.mocks import mock_window
-from pygpt_net.plugin.cmd_code_interpreter import Plugin
-from pygpt_net.plugin.cmd_code_interpreter.worker import Worker
-from pygpt_net.plugin.cmd_code_interpreter.ipython.docker_kernel import DockerKernel
+from pygpt_net.plugin.filesystem import Plugin
+from pygpt_net.plugin.filesystem.python.worker import Worker
+from pygpt_net.plugin.filesystem.python.ipython.docker_kernel import DockerKernel
 
 
 def test_options(mock_window):
@@ -28,10 +28,9 @@ def test_options(mock_window):
     options = plugin.setup()
     assert "python_cmd_tpl" in options
     assert "cmd.python_exec" in options
-    assert "cmd.python_exec_file" in options
-    assert "cmd.python_sys_exec" in options
-    assert "cmd.ipython_exec" in options
-    assert "cmd.ipython_sys_exec" in options
+    assert "cmd.shell_exec" in options
+    assert "cmd.python_kernel_restart" in options
+    assert "cmd.ipython_exec" not in options
     assert options["sandbox"]["value"] == "builtin"
     assert options["use_ipython"]["value"] is True
 
@@ -50,11 +49,10 @@ def test_handle_cmd_syntax(mock_window):
     plugin.handle(event)
 
     names = [item["cmd"] for item in event.data["cmd"]]
-    assert names == [
-        "ipython_exec",
-        "ipython_sys_exec",
-        "ipython_kernel_restart",
-    ]
+    assert "python_exec" in names
+    assert "shell_exec" in names
+    assert "python_kernel_restart" in names
+    assert "ipython_exec" not in names
 
 
 def test_ipython_sys_exec_syntax_describes_same_sandbox_container(mock_window):
@@ -68,10 +66,11 @@ def test_ipython_sys_exec_syntax_describes_same_sandbox_container(mock_window):
     data = {"cmd": []}
     plugin.cmd_syntax(data)
 
-    cmd = next(item for item in data["cmd"] if item["cmd"] == "ipython_sys_exec")
-    assert "same Docker container as the current IPython kernel" in cmd["instruction"]
-    assert "Directory /mnt/data" in cmd["instruction"]
-    assert "passwordless sudo" in cmd["instruction"]
+    assert 'shell_exec' in [item['cmd'] for item in data['cmd']]
+    context = plugin.build_runtime_filesystem_context()
+    assert 'Docker container' in context
+    assert '/mnt/data' in context
+    assert 'passwordless sudo' in context
 
 
 def test_ipython_sys_exec_host_uses_host_security_and_shell(mock_window):
@@ -84,7 +83,7 @@ def test_ipython_sys_exec_host_uses_host_security_and_shell(mock_window):
     process = MagicMock()
     process.communicate.return_value = (b"hello\n", b"")
     with patch(
-        "pygpt_net.plugin.cmd_code_interpreter.execution.host.subprocess.Popen",
+        "pygpt_net.plugin.filesystem.python.execution.host.subprocess.Popen",
         return_value=process,
     ) as popen:
         result = backend.ipython_sys_exec(CtxItem(), item, request)
@@ -93,6 +92,7 @@ def test_ipython_sys_exec_host_uses_host_security_and_shell(mock_window):
     popen.assert_called_once_with(
         "echo hello",
         shell=True,
+        cwd=plugin.get_runtime_workdir(),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.DEVNULL,

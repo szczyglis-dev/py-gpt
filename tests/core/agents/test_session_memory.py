@@ -83,7 +83,7 @@ def test_supervisor_worker_keeps_tool_history_across_turns_and_event_loops():
                         '{"action":"task","instruction":"Recall"}', '{"action":"final","final_answer":"OK"}',
                         '{"action":"task","instruction":"New chat"}', '{"action":"final","final_answer":"OK"}'])
     worker_replies = iter([ChatMessage(role='assistant', blocks=[ToolCallBlock(
-        tool_call_id='r1', tool_name='read_file', tool_kwargs={})]), 'Done', 'Remembered', 'New'])
+        tool_call_id='r1', tool_name='fs_read_file', tool_kwargs={})]), 'Done', 'Remembered', 'New'])
     def sup_response(messages, **kwargs):
         sup_seen.append(messages)
         return ChatMessage(role='assistant', content=next(sup_replies))
@@ -151,7 +151,7 @@ def test_custom_connected_memory_keeps_tool_messages_and_no_memory_stays_statele
     provider.set_id('custom-one')
     seen = []
     replies = iter([ChatMessage(role='assistant', blocks=[ToolCallBlock(
-        tool_call_id='c1', tool_name='read_file', tool_kwargs={})]), 'Done', 'Recall', 'Fresh', 'No memory'])
+        tool_call_id='c1', tool_name='fs_read_file', tool_kwargs={})]), 'Done', 'Recall', 'Fresh', 'No memory'])
     def response(messages, **kwargs):
         seen.append(messages)
         value = next(replies)
@@ -190,7 +190,7 @@ def test_subtask_planner_executor_retains_its_own_tool_history():
     context.preset.extra = {'planner': {'plan_refine': {'after_each_subtask': False}}}
     planning_inputs, execution_inputs = [], []
     replies = iter([ChatMessage(role='assistant', blocks=[ToolCallBlock(
-        tool_call_id='p1', tool_name='read_file', tool_kwargs={})]), 'Completed first', 'Completed second'])
+        tool_call_id='p1', tool_name='fs_read_file', tool_kwargs={})]), 'Completed first', 'Completed second'])
     class PlannerLLM(MockFunctionCallingLLM):
         async def astructured_predict(self, output_cls, prompt, **kwargs):
             planning_inputs.append(kwargs)

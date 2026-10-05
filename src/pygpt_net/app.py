@@ -253,13 +253,11 @@ def run(**kwargs):
         from pygpt_net.plugin.audio_output import Plugin as AudioOutputPlugin
         from pygpt_net.plugin.audio_input import Plugin as AudioInputPlugin
         from pygpt_net.plugin.cmd_api import Plugin as CmdApiPlugin
-        from pygpt_net.plugin.cmd_code_interpreter import Plugin as CmdCodeInterpreterPlugin
+        from pygpt_net.plugin.filesystem import Plugin as FilesystemPlugin
         from pygpt_net.plugin.cmd_custom import Plugin as CmdCustomCommandPlugin
-        from pygpt_net.plugin.cmd_files import Plugin as CmdFilesPlugin
         from pygpt_net.plugin.cmd_history import Plugin as CtxHistoryPlugin
         from pygpt_net.plugin.cmd_mouse_control import Plugin as CmdMousePlugin
         from pygpt_net.plugin.cmd_serial import Plugin as CmdSerialPlugin
-        from pygpt_net.plugin.cmd_system import Plugin as CmdSystemPlugin
         from pygpt_net.plugin.cmd_web import Plugin as CmdWebPlugin
         from pygpt_net.plugin.canvas_web import Plugin as CanvasWebPlugin
         from pygpt_net.plugin.crontab import Plugin as CrontabPlugin
@@ -489,9 +487,7 @@ def run(**kwargs):
         launcher.add_plugin(AudioOutputPlugin())
         launcher.add_plugin(CmdWebPlugin())
         launcher.add_plugin(CanvasWebPlugin())
-        launcher.add_plugin(CmdFilesPlugin())
-        launcher.add_plugin(CmdCodeInterpreterPlugin())
-        launcher.add_plugin(CmdSystemPlugin())
+        launcher.add_plugin(FilesystemPlugin())
         launcher.add_plugin(CmdCustomCommandPlugin())
         launcher.add_plugin(CmdApiPlugin())
         launcher.add_plugin(CmdSerialPlugin())

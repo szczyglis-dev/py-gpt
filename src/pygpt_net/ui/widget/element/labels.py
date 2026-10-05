@@ -35,6 +35,10 @@ class DescLabel(BaseLabel):
         super().__init__(text, window)
         self.window = window
         self.setProperty('class', 'label-desc')
+        # Descriptions must keep the full height required by wrapped text.
+        policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
 
 
 class ElideLabel(QLabel):

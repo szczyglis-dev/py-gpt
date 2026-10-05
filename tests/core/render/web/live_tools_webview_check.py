@@ -60,7 +60,7 @@ const nextSlot=document.createElement('div'); nextSlot.className='msg-part msg-p
 const nextStatus=document.createElement('div'); nextStatus.className='workflow-status'; nextStatus.dataset.statusKind='tool'; nextSlot.append(nextStatus);
 const originalParent=durable.parentNode;
 tools.toggle(-70001);
-calls=[...calls,{call_id:'c',name:'append_file',request:'{"text":"new"}'}];
+calls=[...calls,{call_id:'c',name:'fs_append_file',request:'{"text":"new"}'}];
 tools.syncLive('7',calls);
 if(timeline.querySelectorAll('.tool-output[data-tool-keys]').length!==1) throw Error('continuation created a duplicate');
 if(durable.parentNode!==originalParent) throw Error('continuation moved existing series');

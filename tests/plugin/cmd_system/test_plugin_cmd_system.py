@@ -3,19 +3,19 @@ from unittest.mock import MagicMock, patch
 
 from pygpt_net.core.events import Event
 from pygpt_net.item.ctx import CtxItem
-from pygpt_net.plugin.cmd_system import Plugin
+from pygpt_net.plugin.filesystem import Plugin
 from pygpt_net.plugin.cmd_system.output import Output
-from pygpt_net.plugin.cmd_system.worker import Worker
+from pygpt_net.plugin.filesystem.os.worker import Worker
 from tests.mocks import mock_window
 
 
 def test_system_defaults_include_new_attach_output_option(mock_window):
     plugin = Plugin(window=mock_window)
     options = plugin.setup()
-    assert options["sandbox"]["value"] == "disabled"
+    assert options["sandbox"]["value"] == "builtin"
     assert options["attach_output"]["value"] is True
     assert options["winapi_enabled"]["value"] is True
-    assert plugin.has_cmd("sys_exec") is True
+    assert plugin.has_cmd("shell_exec") is True
 
 
 def test_cmd_syntax_linux_hides_winapi_and_appends_cwd(mock_window):
@@ -23,14 +23,16 @@ def test_cmd_syntax_linux_hides_winapi_and_appends_cwd(mock_window):
     mock_window.core.platforms.get_as_string.return_value = "Linux"
     mock_window.core.config.get_user_dir = MagicMock(return_value="/tmp/data")
     mock_window.core.filesystem.get_data_dir = MagicMock(return_value="/tmp/data")
-    plugin.set_option_value("auto_cwd", True)
+    plugin.set_option_value("enable_filesystem", False)
+    plugin.set_option_value("enable_python", False)
     plugin.set_option_value("sandbox", "disabled")
-    with patch("pygpt_net.plugin.cmd_system.plugin.platform.system", return_value="Linux"):
+    with patch("pygpt_net.plugin.filesystem.plugin.platform.system", return_value="Linux"):
         data = {"cmd": []}
         plugin.cmd_syntax(data)
-    assert [x["cmd"] for x in data["cmd"]] == ["sys_exec"]
-    assert "Current workdir is: /tmp/data" in data["cmd"][0]["instruction"]
-    assert "Current OS is: Linux" in data["cmd"][0]["instruction"]
+    assert [x["cmd"] for x in data["cmd"]] == ["shell_exec"]
+    context = plugin.build_runtime_filesystem_context()
+    assert "Host working directory: /tmp/data" in context
+    assert "Operating system: Linux" in context
 
 
 def test_cmd_syntax_windows_includes_enabled_winapi_commands(mock_window):
@@ -38,11 +40,11 @@ def test_cmd_syntax_windows_includes_enabled_winapi_commands(mock_window):
     mock_window.core.platforms.get_as_string.return_value = "Windows"
     mock_window.core.config.get_user_dir = MagicMock(return_value=r"C:\\data")
     plugin.set_option_value("winapi_enabled", True)
-    with patch("pygpt_net.plugin.cmd_system.plugin.platform.system", return_value="Windows"):
+    with patch("pygpt_net.plugin.filesystem.plugin.platform.system", return_value="Windows"):
         data = {"cmd": []}
         plugin.cmd_syntax(data)
     names = [x["cmd"] for x in data["cmd"]]
-    assert "sys_exec" in names
+    assert "shell_exec" in names
     assert "win_list" in names
     assert "win_monitors" in names
 
@@ -52,11 +54,11 @@ def test_cmd_syntax_sandbox_instruction_reflects_root_mode(mock_window):
     mock_window.core.platforms.get_as_string.return_value = "Linux"
     mock_window.core.config.get_user_dir = MagicMock(return_value="/data")
     plugin.set_option_value("sandbox", "docker")
-    plugin.set_option_value("docker_run_as_root", True)
-    with patch("pygpt_net.plugin.cmd_system.plugin.platform.system", return_value="Linux"):
+    plugin.set_option_value("ipython_run_as_root", True)
+    with patch("pygpt_net.plugin.filesystem.plugin.platform.system", return_value="Linux"):
         data = {"cmd": []}
         plugin.cmd_syntax(data)
-    assert "sudo is not required" in data["cmd"][0]["instruction"]
+    assert "sudo is not required" in plugin.build_runtime_filesystem_context()
 
 
 def test_handle_routes_execute_and_tool_output(mock_window):
@@ -66,7 +68,7 @@ def test_handle_routes_execute_and_tool_output(mock_window):
     event = Event()
     event.name = Event.CMD_EXECUTE
     event.ctx = ctx
-    event.data = {"commands": [{"cmd": "sys_exec", "params": {}}], "silent": True}
+    event.data = {"commands": [{"cmd": "shell_exec", "params": {}}], "silent": True}
     plugin.handle(event)
     plugin.cmd.assert_called_once_with(ctx, event.data["commands"], True)
 
@@ -88,11 +90,12 @@ def test_cmd_ignores_unrelated_commands(mock_window):
 def test_cmd_sandbox_requires_docker_without_starting_worker(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.set_option_value("sandbox", "docker")
+    plugin.set_option_value("use_ipython", False)
     plugin.docker.is_docker_installed = MagicMock(return_value=False)
     mock_window.core.platforms.is_snap.return_value = False
     plugin.error = MagicMock()
-    with patch("pygpt_net.plugin.cmd_system.execution.docker.trans", side_effect=lambda x: x):
-        plugin.cmd(CtxItem(), [{"cmd": "sys_exec", "params": {"command": "echo x"}}])
+    with patch("pygpt_net.plugin.filesystem.python.execution.docker.trans", side_effect=lambda x: x):
+        plugin.cmd(CtxItem(), [{"cmd": "shell_exec", "params": {"command": "echo x"}}])
     plugin.error.assert_called_once_with("docker.install")
     mock_window.update_status.assert_called_once_with("docker.install")
 
@@ -100,12 +103,13 @@ def test_cmd_sandbox_requires_docker_without_starting_worker(mock_window):
 def test_cmd_sandbox_builds_missing_image(mock_window):
     plugin = Plugin(window=mock_window)
     plugin.set_option_value("sandbox", "docker")
+    plugin.set_option_value("use_ipython", False)
     plugin.docker.is_docker_installed = MagicMock(return_value=True)
     plugin.docker.is_image = MagicMock(return_value=False)
     plugin.docker.build = MagicMock()
     plugin.error = MagicMock()
-    with patch("pygpt_net.plugin.cmd_system.execution.docker.trans", side_effect=lambda x: x):
-        plugin.cmd(CtxItem(), [{"cmd": "sys_exec", "params": {"command": "echo x"}}])
+    with patch("pygpt_net.plugin.filesystem.python.execution.docker.trans", side_effect=lambda x: x):
+        plugin.cmd(CtxItem(), [{"cmd": "shell_exec", "params": {"command": "echo x"}}])
     plugin.docker.build.assert_called_once_with()
     plugin.error.assert_called_once_with("docker.image.build")
 
@@ -118,16 +122,16 @@ def test_cmd_routes_sync_worker_and_connects_output_signals(mock_window):
     plugin.runner.attach_signals = MagicMock()
     ctx = CtxItem()
     worker = MagicMock()
-    fake_mod = ModuleType("pygpt_net.plugin.cmd_system.worker")
+    fake_mod = ModuleType("pygpt_net.plugin.filesystem.worker")
     fake_mod.Worker = MagicMock(return_value=worker)
-    request = {"cmd": "sys_exec", "params": {"command": "echo x"}}
-    with patch.dict("sys.modules", {"pygpt_net.plugin.cmd_system.worker": fake_mod}):
+    request = {"cmd": "shell_exec", "params": {"command": "echo x"}}
+    with patch.dict("sys.modules", {"pygpt_net.plugin.filesystem.worker": fake_mod}):
         plugin.cmd(ctx, [request])
     worker.from_defaults.assert_called_once_with(plugin)
     worker.signals.output.connect.assert_called_once_with(plugin.handle_interpreter_output)
     worker.signals.output_begin.connect.assert_called_once_with(plugin.handle_interpreter_output_begin)
     worker.signals.output_end.connect.assert_called_once_with(plugin.handle_interpreter_output_end)
-    plugin.runner.attach_signals.assert_called_once_with(worker.signals)
+    plugin.runner.attach_signals.assert_not_called()  # bound on the execution thread
     worker.run.assert_called_once_with()
 
 
@@ -136,10 +140,10 @@ def test_force_command_uses_async_path_even_when_context_is_sync(mock_window):
     plugin.set_option_value("sandbox", "disabled")
     plugin.is_async = MagicMock(return_value=False)
     worker = MagicMock()
-    fake_mod = ModuleType("pygpt_net.plugin.cmd_system.worker")
+    fake_mod = ModuleType("pygpt_net.plugin.filesystem.worker")
     fake_mod.Worker = MagicMock(return_value=worker)
-    request = {"cmd": "sys_exec", "params": {"command": "echo x"}, "force": True}
-    with patch.dict("sys.modules", {"pygpt_net.plugin.cmd_system.worker": fake_mod}):
+    request = {"cmd": "shell_exec", "params": {"command": "echo x"}, "force": True}
+    with patch.dict("sys.modules", {"pygpt_net.plugin.filesystem.worker": fake_mod}):
         plugin.cmd(CtxItem(), [request])
     worker.run_async.assert_called_once_with()
     worker.run.assert_not_called()
@@ -151,10 +155,10 @@ def test_silent_command_does_not_mark_busy(mock_window):
     plugin.is_async = MagicMock(return_value=False)
     plugin.cmd_prepare = MagicMock()
     worker = MagicMock()
-    fake_mod = ModuleType("pygpt_net.plugin.cmd_system.worker")
+    fake_mod = ModuleType("pygpt_net.plugin.filesystem.worker")
     fake_mod.Worker = MagicMock(return_value=worker)
-    with patch.dict("sys.modules", {"pygpt_net.plugin.cmd_system.worker": fake_mod}):
-        plugin.cmd(CtxItem(), [{"cmd": "sys_exec", "params": {"command": "x"}}], silent=True)
+    with patch.dict("sys.modules", {"pygpt_net.plugin.filesystem.worker": fake_mod}):
+        plugin.cmd(CtxItem(), [{"cmd": "shell_exec", "params": {"command": "x"}}], silent=True)
     plugin.cmd_prepare.assert_not_called()
 
 
@@ -197,12 +201,12 @@ def test_output_renderer_renders_input_and_output_blocks(mock_window):
 def test_worker_prepare_extra_preserves_code_and_context():
     worker = Worker()
     extra = worker.prepare_extra(
-        {"cmd": "sys_exec", "params": {"command": "echo x"}},
+        {"cmd": "shell_exec", "params": {"command": "echo x"}},
         {"result": "x", "context": "ctx"},
     )
     assert extra == {
-        "plugin": "cmd_system",
-        "cmd": "sys_exec",
+        "plugin": "filesystem",
+        "cmd": "shell_exec",
         "code": {
             "input": {"lang": "bash", "content": "echo x"},
             "output": {"lang": "bash", "content": "x"},
@@ -222,35 +226,35 @@ def test_worker_wrap_calls_runner_and_adapts_response():
     assert response["code"]["output"]["lang"] == "json"
 
 
-def test_worker_cmd_sys_exec_chooses_current_backend():
+def test_worker_cmd_shell_exec_chooses_current_backend():
     plugin = MagicMock()
     backend = MagicMock()
-    backend.sys_exec.return_value = {"result": "backend"}
+    backend.shell_exec.return_value = {"result": "backend"}
     plugin.get_execution_backend.return_value = backend
     worker = Worker()
     worker.plugin = plugin
     worker.ctx = CtxItem()
-    item = {"cmd": "sys_exec", "params": {"command": "echo x"}}
+    item = {"cmd": "shell_exec", "params": {"command": "echo x"}}
 
-    response = worker.cmd_sys_exec(item)
+    response = worker.cmd_shell_exec(item)
 
-    backend.sys_exec.assert_called_once()
-    call = backend.sys_exec.call_args.kwargs
+    backend.shell_exec.assert_called_once()
+    call = backend.shell_exec.call_args.kwargs
     assert call["ctx"] is worker.ctx
     assert call["item"] is item
-    assert call["request"]["cmd"] == "sys_exec"
+    assert call["request"]["cmd"] == "shell_exec"
     assert response["result"] == {"result": "backend"}
 
 
 def test_worker_run_executes_enabled_sys_exec_and_cleans_up():
     plugin = MagicMock()
-    plugin.allowed_cmds = ["sys_exec"]
+    plugin.allowed_cmds = ["shell_exec"]
     plugin.has_cmd.return_value = True
     worker = Worker()
     worker.plugin = plugin
-    worker.cmds = [{"cmd": "sys_exec", "params": {"command": "x"}}]
+    worker.cmds = [{"cmd": "shell_exec", "params": {"command": "x"}}]
     worker.is_stopped = MagicMock(return_value=False)
-    worker.cmd_sys_exec = MagicMock(return_value={"result": "ok"})
+    worker.cmd_shell_exec = MagicMock(return_value={"result": "ok"})
     worker.reply_more = MagicMock()
     worker.cleanup = MagicMock()
     worker.run()

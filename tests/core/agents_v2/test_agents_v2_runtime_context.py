@@ -206,8 +206,8 @@ def test_agents_v2_runtime_system_context_reads_filesystem_runtime_prompt_only()
     runtime.window.core.command.is_cmd.return_value = True
 
     assert runtime.inputs.system_context() == "filesystem instructions"
-    runtime.window.core.plugins.get.assert_called_once_with("cmd_files")
-    plugin.build_runtime_filesystem_context.assert_called_once_with()
+    runtime.window.core.plugins.get.assert_called_once_with("filesystem")
+    plugin.build_runtime_filesystem_context.assert_called_once_with(ctx=runtime.context.ctx)
 
 
 def test_agents_v2_runtime_prefetch_rag_context_uses_selected_index():
@@ -414,7 +414,7 @@ def test_main_function_agent_promotes_runtime_image_blocks_after_tool_result(tmp
         tool_output=SimpleNamespace(blocks=[text, image], content="attached"),
         tool_id="call-1",
         return_direct=False,
-        tool_name="attach_runtime_file",
+        tool_name="fs_attach_runtime_file",
     )
 
     class Store:

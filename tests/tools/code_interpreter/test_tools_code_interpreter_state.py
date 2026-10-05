@@ -434,7 +434,7 @@ def test_code_interpreter_toggle_settings_update_config_and_signals(tmp_path):
     tool.toggle_ipython(widget)
     assert tool.ipython is False
     tool.window.core.plugins.get.return_value.set_option_value.assert_called_with("use_ipython", False)
-    assert tool.window.core.config.data["plugins"]["cmd_code_interpreter"]["use_ipython"] is False
+    assert tool.window.core.config.data["plugins"]["filesystem"]["use_ipython"] is False
     tool.window.core.config.save.assert_called_once_with()
     tool.signals.set_checkbox_ipython.emit.assert_called_with(False)
     tool.signals.toggle_all_visible.emit.assert_called_with(True)
@@ -442,7 +442,7 @@ def test_code_interpreter_toggle_settings_update_config_and_signals(tmp_path):
     widget.checkbox_ipython.isChecked.return_value = True
     tool.toggle_ipython(widget)
     tool.window.core.plugins.get.return_value.set_option_value.assert_called_with("use_ipython", True)
-    assert tool.window.core.config.data["plugins"]["cmd_code_interpreter"]["use_ipython"] is True
+    assert tool.window.core.config.data["plugins"]["filesystem"]["use_ipython"] is True
     assert tool.window.core.config.save.call_count == 2
     tool.signals.set_checkbox_ipython.emit.assert_called_with(True)
     tool.signals.toggle_all_visible.emit.assert_called_with(False)

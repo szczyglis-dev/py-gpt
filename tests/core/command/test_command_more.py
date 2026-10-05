@@ -114,7 +114,7 @@ def test_has_cmds_and_extract_cmd_variants():
     assert cmds[1]["cmd"] == "read"
     assert command.extract_cmd('not a json') is None
     assert command.extract_cmd('{"cmd":"ok","params":{"x":1}}') == {"cmd": "ok", "params": {"x": 1}}
-    assert command.extract_cmd('{"read_file": {"path": ["my_cars.txt"]}}') == {"cmd": "read_file", "params": {"path": ["my_cars.txt"]}}
+    assert command.extract_cmd('{"fs_read_file": {"path": ["my_cars.txt"]}}') == {"cmd": "fs_read_file", "params": {"path": ["my_cars.txt"]}}
 
 
 def test_from_commands_filters_without_cmd():
@@ -223,7 +223,7 @@ def test_get_functions_merges_native_and_user(monkeypatch):
     monkeypatch.setattr(command, "is_native_enabled", lambda force=False: False)
     assert command.get_functions() == [{"name": "user"}]
     monkeypatch.setattr(command, "is_native_enabled", lambda force=False: True)
-    monkeypatch.setattr(command, "as_native_functions", lambda all=False, parent_id=None: [{"name": "native"}])
+    monkeypatch.setattr(command, "as_native_functions", lambda all=False, parent_id=None, ctx=None: [{"name": "native"}])
     assert command.get_functions() == [{"name": "native"}, {"name": "user"}]
 
 
@@ -350,9 +350,9 @@ def test_is_model_supports_tools_always_true():
 
 def test_native_function_output_keeps_streams_and_exit_status():
     command = Command(make_window())
-    response = {'request': {'cmd': 'sys_exec'}, 'result': False,
+    response = {'request': {'cmd': 'shell_exec'}, 'result': False,
                 'stdout': 'stdout once', 'stderr': 'stderr once', 'return_code': 4}
-    ctx = SimpleNamespace(tool_calls=[{'id': 'call-1', 'function': {'name': 'sys_exec'}}],
+    ctx = SimpleNamespace(tool_calls=[{'id': 'call-1', 'function': {'name': 'shell_exec'}}],
                           input=json.dumps([response]), extra={})
     outputs = command.get_tool_calls_outputs(ctx)
     assert outputs == [{'tool_call_id': 'call-1', 'output': {

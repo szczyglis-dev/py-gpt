@@ -227,7 +227,7 @@ class Config:
         :return: workdir path
         """
         workdir = self.window.core.filesystem.get_data_dir(ctx=ctx)
-        plugin_id = "cmd_code_interpreter"
+        plugin_id = "filesystem"
         if self.window.controller.plugins.is_enabled(plugin_id):
             plugin = self.window.core.plugins.get(plugin_id)
             if plugin is not None:

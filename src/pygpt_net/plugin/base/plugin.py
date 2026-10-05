@@ -40,6 +40,8 @@ class BasePlugin(QObject, LocaleDomain):
         "persist": False,
         "urls": None,
         "use": None,
+        "tab": None,
+        "subtab": None,
     }
     _ALLOW_OUTPUT_KEYS = ("request", "result", "context", "stdout", "stderr", "return_code")
     _IGNORE_EXTRA_KEYS = ("request", "context", "model_result")
@@ -59,6 +61,7 @@ class BasePlugin(QObject, LocaleDomain):
         self.allowed_cmds = []
         self.render = None
         self.tabs = {}
+        self.subtabs = {}
         self.parent = None
         self.enabled = False
         self.use_locale = False

@@ -45,11 +45,11 @@ def test_agents_v2_verbose_compact_workflow_skips_orchestration_tool_calls(capsy
     logger = make_logger(verbose=False, workflow=True)
 
     logger.log("TOOL CALL", {"tool_name": "agent_create", "tool_kwargs": {"name": "x"}})
-    logger.log("TOOL CALL", {"tool_name": "read_file", "tool_kwargs": {"path": "/tmp/a"}})
+    logger.log("TOOL CALL", {"tool_name": "fs_read_file", "tool_kwargs": {"path": "/tmp/a"}})
 
     output = capsys.readouterr().out
     assert "agent_create" not in output
-    assert "tool call: read_file" in output
+    assert "tool call: fs_read_file" in output
 
 
 def test_agents_v2_verbose_full_mode_prints_header_and_redacted_payload(capsys):

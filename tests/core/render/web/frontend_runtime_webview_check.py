@@ -114,9 +114,9 @@ TEST = r"""
     clearInput(); clearOutput(); clearLive();
     expect(!document.querySelector('#_nodes_ .msg-box'),'clear history');
 
-    const raw = JSON.stringify({cmd:'read_file',result:[{path:'one.txt',content:'<script>unsafe</script>\n```'},{path:'two.txt',content:'second'}]});
+    const raw = JSON.stringify({cmd:'fs_read_file',result:[{path:'one.txt',content:'<script>unsafe</script>\n```'},{path:'two.txt',content:'second'}]});
     const friendly = [{label:'one.txt',text:'<script>unsafe</script>\n```',language:'text'},{label:'two.txt',text:'second',language:'text'}];
-    appendNode(JSON.stringify(node(20,'',{tool_calls:[{call_id:'read',name:'read_file',request:'{"cmd":"read_file","params":{"path":["one.txt","two.txt"]}}',response:raw,response_friendly:friendly}]})));
+    appendNode(JSON.stringify(node(20,'',{tool_calls:[{call_id:'read',name:'fs_read_file',request:'{"cmd":"fs_read_file","params":{"path":["one.txt","two.txt"]}}',response:raw,response_friendly:friendly}]})));
     await settle();
     const tool = document.querySelector('#tool-output-20');
     expect(tool, 'friendly tool missing');

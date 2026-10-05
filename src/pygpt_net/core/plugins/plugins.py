@@ -107,6 +107,14 @@ class Plugins:
         :param plugin: plugin instance
         """
         plugin_id = plugin.id
+        if plugin_id == "filesystem":
+            from pygpt_net.plugin.filesystem.migration import migrate_tree
+            if migrate_tree(self.window.core.config.data):
+                self.window.core.config.save()
+            # Child settings retain their provider translations.
+            for legacy in ("cmd_files", "cmd_code_interpreter", "cmd_system"):
+                register_locale_domain(f"plugin.{legacy}", os.path.join(
+                    self.window.core.config.get_app_path(), 'data', 'locale', 'plugin', legacy))
         self._register_locale_domain(plugin)
         plugin.attach(self.window)
         self.plugins[plugin_id] = plugin
@@ -423,6 +431,9 @@ class Plugins:
     def load_presets(self):
         """Load presets"""
         self.presets = self.provider.load()
+        from pygpt_net.plugin.filesystem.migration import migrate_tree
+        if migrate_tree(self.presets, reset_runtime=True):
+            self.save_presets()
 
     def remove_plugin_param_from_presets(self, plugin_id: str, param: str = None) -> bool:
         """

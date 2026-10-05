@@ -270,7 +270,7 @@ def test_get_docs_html():
     config_data = {"app_path": "/fake/app"}
     win = FakeWindow(config_data)
     b = Body(win)
-    docs = [{"uuid1": {"file_path": "path1", "file_name": "name1", "file_type": "text/plain", "file_size": 28, "creation_date": "2024-03-03", "last_modified_date": "2024-03-03", "last_accessed_date": "2024-03-03"}}]
+    docs = [{"uuid1": {"file_path": "path1", "file_name": "name1", "file_type": "text/plain", "fs_file_size": 28, "creation_date": "2024-03-03", "last_modified_date": "2024-03-03", "last_accessed_date": "2024-03-03"}}]
     html = b.get_docs_html(docs)
     assert "db.svg" in html
     assert "uuid1" in html

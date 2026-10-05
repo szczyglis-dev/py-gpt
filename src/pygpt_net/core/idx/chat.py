@@ -406,7 +406,7 @@ class Chat:
                 "skipping synthetic user reply."
             )
 
-            # ``attach_runtime_file`` returns the protocol-required textual tool
+            # ``fs_attach_runtime_file`` returns the protocol-required textual tool
             # result plus an ephemeral local attachment. Tool-result messages do
             # not have a portable image payload across LlamaIndex providers, so
             # promote runtime images to a normal user multimodal message for the

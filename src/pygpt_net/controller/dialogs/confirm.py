@@ -279,12 +279,8 @@ class Confirm:
             self.window.controller.tools.rebuild_ipython_docker(force=True)
         elif type == 'tools.sandbox.rebuild.python_legacy_docker':
             self.window.controller.tools.rebuild_python_legacy_docker(force=True)
-        elif type == 'tools.sandbox.rebuild.system_docker':
-            self.window.controller.tools.rebuild_system_docker(force=True)
         elif type == 'tools.sandbox.rebuild.python_builtin':
             self.window.controller.tools.rebuild_python_builtin(force=True)
-        elif type == 'tools.sandbox.rebuild.system_builtin':
-            self.window.controller.tools.rebuild_system_builtin(force=True)
 
         # plugins
         elif type == 'plugin.settings.defaults.user':

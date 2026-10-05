@@ -24,6 +24,7 @@ def _plugin(*, mode=MODE_CHAT, files_io=False):
             core=SimpleNamespace(
                 config=SimpleNamespace(get=lambda key: mode if key == "mode" else None),
                 filesystem=filesystem,
+                plugins=SimpleNamespace(get=lambda key: SimpleNamespace(has_cmd=lambda cmd: files_io)),
             ),
             controller=SimpleNamespace(
                 kernel=SimpleNamespace(stopped=lambda: False),
@@ -80,13 +81,11 @@ def test_get_user_painter_image_chat_internal_agent_call_flag_does_not_change_mo
     ]
 
 
-def test_get_user_painter_image_with_files_io_returns_path_for_explicit_attach_runtime_file():
+def test_get_user_painter_image_chat_with_filesystem_attaches_automatically():
     response = _run_painter_tool(mode=MODE_CHAT, files_io=True)
 
-    assert response["result"] == {
-        "path": "/mnt/tmp/runtime_artifacts/2026-09-24/painter-user.png",
-    }
-    assert "agent_runtime_attachments" not in response
+    assert response["result"] == "Attached for native analysis in the next model request: painter-user.png"
+    assert response["agent_runtime_attachments"][0]["path"] == "/profile/tmp/runtime_artifacts/2026-09-24/painter-user.png"
 
 
 def test_get_user_painter_image_without_files_io_uses_attach_runtime_file_transport_contract():
@@ -112,12 +111,12 @@ def test_canvas_plugin_exposes_painter_tool_with_conditional_runtime_guidance():
     instruction = tool["instruction"]
     assert "Painter tab" in instruction
     assert "runtime temporary storage" in instruction
-    assert "attach_runtime_file" in instruction
+    assert "fs_attach_runtime_file" in instruction
     assert "Agents" in instruction
     assert tool["params"] == []
 
     prompt = plugin.on_system_prompt("")
     assert "get_user_painter_image" in prompt
     assert "user created or edited" in prompt
-    assert "attach_runtime_file" in prompt
+    assert "fs_attach_runtime_file" in prompt
     assert "persistent chat attachment list" in prompt

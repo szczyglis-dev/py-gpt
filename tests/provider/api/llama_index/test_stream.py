@@ -17,7 +17,7 @@ def test_extract_tool_calls_from_chat_completions_message():
             "tool_calls": [{
                 "id": "call_1",
                 "function": {
-                    "name": "read_file",
+                    "name": "fs_read_file",
                     "arguments": '{"path":"a.txt"}',
                 },
             }]
@@ -30,7 +30,7 @@ def test_extract_tool_calls_from_chat_completions_message():
         "id": "call_1",
         "type": "function",
         "function": {
-            "name": "read_file",
+            "name": "fs_read_file",
             "arguments": '{"path":"a.txt"}',
         },
     }]
@@ -41,7 +41,7 @@ def test_extract_tool_calls_from_responses_api_tool_call_block():
     message = SimpleNamespace(
         blocks=[SimpleNamespace(
             tool_call_id="call_2",
-            tool_name="read_file",
+            tool_name="fs_read_file",
             tool_kwargs={"path": "b.txt"},
         )],
         additional_kwargs={},
@@ -53,7 +53,7 @@ def test_extract_tool_calls_from_responses_api_tool_call_block():
         "id": "call_2",
         "type": "function",
         "function": {
-            "name": "read_file",
+            "name": "fs_read_file",
             "arguments": {"path": "b.txt"},
         },
     }]

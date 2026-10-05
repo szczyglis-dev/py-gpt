@@ -92,7 +92,7 @@ def test_native_tools_are_executed_and_streamed():
     from llama_index.core.base.llms.types import ToolCallBlock, TextBlock
     provider, window, kwargs, seen = build('base', [
         ChatMessage(role='assistant', blocks=[TextBlock(text='Reading'),
-            ToolCallBlock(tool_call_id='r1', tool_name='read_file', tool_kwargs={'path':'a'})]), 'Done'])
+            ToolCallBlock(tool_call_id='r1', tool_name='fs_read_file', tool_kwargs={'path':'a'})]), 'Done'])
     calls = []
     async def read_file(path: str):
         calls.append(path)

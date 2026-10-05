@@ -163,6 +163,18 @@ class Patch:
                 interpreter["ipython_dockerfile"] = IPYTHON_DOCKERFILE
                 updated = True
 
+        if version >= parse_version("2.9.1"):
+            from pygpt_net.plugin.filesystem.migration import migrate_tree, defaults
+            if migrate_tree(data, reset_runtime=old < parse_version("2.9.1")):
+                updated = True
+            # 2.9.1 deliberately replaces customized images and package settings.
+            if old < parse_version("2.9.1"):
+                config = data.setdefault("plugins", {}).setdefault("filesystem", {})
+                for key, option in defaults().items():
+                    if option["tab"] == "runtime" and key != "sandbox":
+                        config[key] = option["value"]
+                updated = True
+
         # update file
         migrated = False
         if updated:

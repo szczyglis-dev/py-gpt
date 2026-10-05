@@ -127,7 +127,7 @@ Overall Task: {task}
     PROMPT = (
         "You are an execution agent. Follow each sub-task strictly and use the available tools to take actions. "
         "Do not claim that you cannot access files or the web; instead, invoke the appropriate tool. "
-        "For local files prefer the sequence: cwd -> find (pattern, path, recursive=true) -> read_file(path). "
+        "For local files prefer the sequence: fs_cwd -> fs_find (pattern, path, recursive=true) -> fs_read_file(path). "
         "Return only the final output unless explicitly asked for intermediate thoughts."
     )
 
@@ -270,7 +270,7 @@ Overall Task: {task}
         # Small, generic tool usage hint keeps the model from refusing actions.
         tool_hint = (
             "Use tools to take actions. For file operations use: "
-            "'cwd' -> 'find' (pattern, path, recursive=true) -> 'read_file(path)'."
+            "'fs_cwd' -> 'fs_find' (pattern, path, recursive=true) -> 'fs_read_file(path)'."
         )
 
         if ctx_text:

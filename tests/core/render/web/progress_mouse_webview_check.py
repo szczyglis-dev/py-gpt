@@ -36,7 +36,7 @@ runtime.toolOutput = new ToolOutput(null,{templates:runtime.templates,renderer:r
 runtime.workflows = new RuntimeWorkflows(runtime);
 runtime.workflows.workflowMessageHost = () => ({timeline});
 window.toggleToolOutput = id => runtime.toolOutput.toggle(id);
-const hierarchy={calls:[{call_id:'c1',name:'read_file',request:'{}',response:'done'}],workers:[]};
+const hierarchy={calls:[{call_id:'c1',name:'fs_read_file',request:'{}',response:'done'}],workers:[]};
 runtime.workflows.setAgentStatus('Working','42','progress-p1',{hierarchy});
 const status=timeline.querySelector('.workflow-status');
 const summary=status.querySelector('.progress-details > summary');

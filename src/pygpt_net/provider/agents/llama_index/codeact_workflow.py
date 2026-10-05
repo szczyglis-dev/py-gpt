@@ -65,7 +65,7 @@ class CodeActAgent(BaseAgent):
 
         async def execute_code(code: str):
             # IPython preserves variables across snippets, as CodeAct promises.
-            command = "ipython_exec" if "ipython_exec" in tools else "python_exec"
+            command = "python_exec"
             return await execute_plugin(command, {"code": code})
 
         kwargs = {
