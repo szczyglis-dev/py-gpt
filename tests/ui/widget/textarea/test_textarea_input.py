@@ -443,7 +443,7 @@ def test_attachment_button_popup_starts_unselected_without_changing_input(monkey
     editor._mention_button_cursor = None
     editor._get_mention_source_key = lambda: 'source'
     editor._build_mention_entries = MagicMock(return_value=[])
-    editor._get_conversation_mention_entry = lambda query: None
+    editor._get_conversation_mention_entries = lambda query: []
     editor._find_mention_trigger = lambda: None
     editor._mention_popup = MentionPopup(editor)
     editor._mention_popup.selected.connect(editor._accept_mention_entry)

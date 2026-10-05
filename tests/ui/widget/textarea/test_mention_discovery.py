@@ -157,7 +157,7 @@ def test_background_update_keeps_current_query_and_respects_dismissal(qt_applica
     editor.hasFocus = lambda: True
     editor._find_mention_trigger = lambda: (0, 7, 'nested')
     editor._get_mention_source_key = lambda: 'new'
-    editor._get_conversation_mention_entry = lambda query: None
+    editor._get_conversation_mention_entries = lambda query: []
     editor._build_mention_entries = MagicMock(return_value=[
         MentionEntry(KIND_FILE_CONTEXT, 'root.txt', 'root.txt'),
         MentionEntry(KIND_FILE_CONTEXT, 'nested/note.txt', 'nested/note.txt'),

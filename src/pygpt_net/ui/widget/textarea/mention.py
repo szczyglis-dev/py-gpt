@@ -170,6 +170,8 @@ class MentionPopup(QFrame):
         attachments = [e for e in matches if e.kind == KIND_ATTACHMENT]
         files = [e for e in matches if e.kind == KIND_FILE_CONTEXT]
 
+        if self._query.isdigit():
+            conversations.sort(key=lambda e: (e.value != self._query, e.label.casefold()))
         if self._from_attachment_button:
             conversations.sort(key=lambda e: e.label.casefold())
             files.sort(key=lambda e: e.label.casefold())
@@ -183,6 +185,10 @@ class MentionPopup(QFrame):
         attachments = [e for e in visible if e.kind == KIND_ATTACHMENT]
         files = [e for e in visible if e.kind == KIND_FILE_CONTEXT]
 
+        if files:
+            self._add_header(trans("input.mentions.workdir"))
+            for entry in files:
+                self._add_entry(entry)
         if conversations:
             self._add_header(trans("input.mentions.chat_history"))
             for entry in conversations:
@@ -195,10 +201,6 @@ class MentionPopup(QFrame):
                 self._add_entry(MentionEntry("load_more", trans("input.mentions.load_more"), ""))
             elif self._from_attachment_button and attachments and self._library_limit > ATTACHMENT_BUTTON_LIBRARY_LIMIT:
                 self._add_entry(MentionEntry("show_less", trans("input.mentions.show_less"), ""))
-        if files:
-            self._add_header(trans("input.mentions.workdir"))
-            for entry in files:
-                self._add_entry(entry)
 
         readers = [entry for entry in matches if entry.kind == 'web_loader']
         if readers:

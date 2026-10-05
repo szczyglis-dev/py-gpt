@@ -8,7 +8,7 @@ from threading import Event
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Qt, Signal, Slot
 
 from pygpt_net.core.qt import safe_emit
-from pygpt_net.core.text.mentions import KIND_FILE_CONTEXT
+from pygpt_net.core.text.mentions import KIND_FILE_CONTEXT, KIND_CONVERSATION
 from .mention import MentionEntry
 
 
@@ -23,6 +23,7 @@ class ScanSpec:
 
 class ScanSignals(QObject):
     ready = Signal(object, object, bool)
+    error = Signal(object, object)
 
 
 class WorkdirScan(QRunnable):
@@ -88,6 +89,7 @@ class WorkdirScan(QRunnable):
 
 class WorkdirMentionDiscovery(QObject):
     updated = Signal()
+    failed = Signal(object)
     CACHE_SECONDS = 30
     CACHE_ROOTS = 4
 
@@ -110,13 +112,22 @@ class WorkdirMentionDiscovery(QObject):
             self._worker = None
         if cached is not None and time.monotonic() - cached[0] < self.CACHE_SECONDS:
             return list(cached[1])
-        worker = WorkdirScan(spec)
+        worker = self._new_worker(spec)
         self._worker = worker
         worker.signals.ready.connect(self._on_ready, Qt.QueuedConnection)
+        worker.signals.error.connect(self._on_error, Qt.QueuedConnection)
         # Cancel without waiting for filesystem I/O when the editor is destroyed.
         self.destroyed.connect(worker.cancel)
         self._pool.start(worker)
         return list(cached[1]) if cached else []
+
+    @Slot(object, object)
+    def _on_error(self, worker, error):
+        if worker is self._worker:
+            self.failed.emit(error)
+
+    def _new_worker(self, spec):
+        return WorkdirScan(spec)
 
     @Slot(object, object, bool)
     def _on_ready(self, worker, entries, complete):
@@ -130,3 +141,45 @@ class WorkdirMentionDiscovery(QObject):
             self._worker = None
             self.destroyed.disconnect(worker.cancel)
         self.updated.emit()
+
+
+class ConversationTitleScan(QRunnable):
+    """Build a Unicode-searchable title index off the UI thread."""
+
+    def __init__(self, db):
+        super().__init__()
+        self.spec = db
+        self.signals = ScanSignals()
+        self.cancelled = Event()
+
+    def cancel(self):
+        self.cancelled.set()
+
+    @Slot()
+    def run(self):
+        from pygpt_net.provider.core.ctx.db_sqlite.storage import Storage
+        entries = []
+        last_update = time.monotonic()
+        try:
+            for ctx_id, title in Storage.iter_meta_titles(self.spec):
+                if self.cancelled.is_set():
+                    return
+                title = str(title or '').strip()
+                if not title or any(ch in title for ch in '\r\n\t'):
+                    continue
+                entry = MentionEntry(KIND_CONVERSATION, title, str(ctx_id))
+                entries.append((entry, title.casefold()))
+                if len(entries) % 1000 == 0 and time.monotonic() - last_update >= 0.15:
+                    safe_emit(self.signals, 'ready', self, list(entries), False)
+                    last_update = time.monotonic()
+        except Exception as e:
+            safe_emit(self.signals, 'error', self, e)
+            # DB shutdown/profile switching must not leave a scan in flight.
+            entries = []
+        if not self.cancelled.is_set():
+            safe_emit(self.signals, 'ready', self, entries, True)
+
+
+class ConversationTitleDiscovery(WorkdirMentionDiscovery):
+    def _new_worker(self, db):
+        return ConversationTitleScan(db)

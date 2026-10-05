@@ -359,6 +359,18 @@ class Storage:
 
         return items
 
+    @staticmethod
+    def iter_meta_titles(db):
+        """Read only searchable conversation IDs/titles, without message content."""
+        stmt = text("""
+            SELECT id, name FROM ctx_meta
+            WHERE is_deleted = 0 AND (root_id IS NULL OR root_id = 0)
+            ORDER BY updated_ts DESC, id DESC
+        """)
+        with db.connect() as conn:
+            for row in conn.execute(stmt):
+                yield row.id, row.name
+
     def count_meta(
             self,
             search_string: Optional[str] = None,

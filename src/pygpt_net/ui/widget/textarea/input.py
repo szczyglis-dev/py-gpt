@@ -39,7 +39,7 @@ from pygpt_net.core.text.mentions import (
 )
 from pygpt_net.item.attachment import AttachmentItem
 from pygpt_net.ui.widget.textarea.mention import MentionEntry, MentionPopup
-from pygpt_net.ui.widget.textarea.mention_discovery import ScanSpec, WorkdirMentionDiscovery
+from pygpt_net.ui.widget.textarea.mention_discovery import ScanSpec, WorkdirMentionDiscovery, ConversationTitleDiscovery
 from pygpt_net.ui.widget.lists.model_combo import CompactModelCombo
 
 
@@ -94,6 +94,9 @@ class ChatInput(QTextEdit):
         self._mention_seq = 0
         self._workdir_discovery = WorkdirMentionDiscovery(self)
         self._workdir_discovery.updated.connect(self._on_workdir_mentions_updated)
+        self._conversation_discovery = ConversationTitleDiscovery(self)
+        self._conversation_discovery.updated.connect(self._on_workdir_mentions_updated)
+        self._conversation_discovery.failed.connect(self.window.core.debug.log)
         self._mention_refresh_timer = QTimer(self)
         self._mention_refresh_timer.setSingleShot(True)
         self._mention_refresh_timer.setInterval(0)
@@ -732,6 +735,32 @@ class ChatInput(QTextEdit):
             title = raw
         return MentionEntry(KIND_CONVERSATION, title, raw, False)
 
+    def _get_conversation_mention_entries(self, query: str):
+        """Resolve exact IDs and case-insensitive title fragments across history."""
+        raw = str(query or '')
+        if not raw or raw != raw.strip():
+            return []
+        matches, seen = [], set()
+        if raw.isdigit():
+            entry = self._get_conversation_mention_entry(raw)
+            if entry is not None:
+                matches.append(entry)
+                seen.add(str(int(raw)))
+        try:
+            db = self.window.core.db.get_db()
+            titles = self._conversation_discovery.entries(db)
+        except Exception as e:
+            self.window.core.debug.log(e)
+            return matches
+        query = raw.casefold()
+        for entry, title in titles:
+            if query in title and entry.value not in seen:
+                matches.append(entry)
+                seen.add(entry.value)
+                if len(matches) >= MentionPopup.MAX_RESULTS:
+                    break
+        return matches
+
     def _restore_conversation_mention_query(self) -> bool:
         """Turn an edited/backspaced conversation title anchor back into @<id>."""
         cursor = self.textCursor()
@@ -805,9 +834,7 @@ class ChatInput(QTextEdit):
                                      if button_cursor is not None else self._build_mention_entries())
 
         entries = list(self._mention_entries)
-        conversation_entry = self._get_conversation_mention_entry(query)
-        if conversation_entry is not None:
-            entries.append(conversation_entry)
+        entries.extend(self._get_conversation_mention_entries(query))
         meta = self.window.core.ctx.get_current_meta()
         context = self.window.core.attachments.context
         self._mention_popup.set_project_state(meta is not None and meta.group is not None,
