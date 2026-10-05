@@ -798,12 +798,9 @@ class Filesystem:
         """
         upload_dir = self.get_runtime_dir("upload", ctx=ctx)
         file_name = os.path.basename(path)
-        upload_path = os.path.join(upload_dir, file_name)
-        # if file exists, store in UUID subdir
-        if os.path.exists(upload_path):
-            subdir = str(uuid4())
-            os.makedirs(os.path.join(upload_dir, subdir), exist_ok=True)
-            upload_path = os.path.join(upload_dir, subdir, file_name)
+        target_dir = os.path.join(upload_dir, date.today().isoformat(), str(uuid4()))
+        os.makedirs(target_dir, exist_ok=True)
+        upload_path = os.path.join(target_dir, file_name)
         shutil.copyfile(path, upload_path)
         return upload_path
 

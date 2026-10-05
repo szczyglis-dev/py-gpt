@@ -117,15 +117,17 @@ class FileExplorer(QWidget):
         self.files_panel = EmptyFilesDropPanel(self, self)
         self.files_panel.setMinimumWidth(220)
         files_layout = QVBoxLayout(self.files_panel)
-        files_layout.setContentsMargins(0, 0, 10, 0)
+        files_layout.setContentsMargins(0, 4, 10, 0)
         files_layout.setSpacing(0)
         files_layout.addWidget(self.search_header)
         files_layout.addWidget(self.files_stack)
+        files_layout.addSpacing(8)
         self.footer_layout = QHBoxLayout()
         self.footer_layout.setContentsMargins(0, 4, 0, 12)
-        self.footer_layout.addStretch(1)
+        self.footer_layout.addStretch(0)
         for button, _ in self.header_buttons:
             self.footer_layout.addWidget(button)
+        self.footer_layout.addStretch(1)
         files_layout.addLayout(self.footer_layout)
         self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.setChildrenCollapsible(False)
@@ -293,6 +295,8 @@ class FileExplorer(QWidget):
         self.splitter.setStretchFactor(0, 1)
         self.splitter.setStretchFactor(1, 1)
         self.columns_swapped = swapped
+        self.footer_layout.setStretch(0, 1 if swapped else 0)
+        self.footer_layout.setStretch(self.footer_layout.count() - 1, 0 if swapped else 1)
         files_size = round(1000 * self._files_ratio)
         sizes = [1000 - files_size, files_size] if swapped else [files_size, 1000 - files_size]
         self.splitter.setSizes(sizes)

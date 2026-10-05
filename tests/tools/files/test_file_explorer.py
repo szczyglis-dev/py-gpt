@@ -177,6 +177,7 @@ def _columns_explorer(ratio=0.45, swapped=False):
         splitter=splitter, files_panel=files, preview=preview,
         columns_swapped=swapped, _files_ratio=ratio, _closed=False,
         _columns_resize_timer=MagicMock(),
+        footer_layout=MagicMock(),
         window=SimpleNamespace(core=SimpleNamespace(config=MagicMock())),
     )
     FileExplorer._apply_columns_layout(explorer, swapped)

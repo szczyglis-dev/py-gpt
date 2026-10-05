@@ -42,6 +42,12 @@ def test_store_upload_and_remove_upload_handle_name_collisions(tmp_path):
     src.write_text("first")
     first = fs.store_upload(str(src))
     assert Path(first).read_text() == "first"
+    from datetime import date
+    from uuid import UUID
+    relative = Path(first).relative_to(fs.get_runtime_dir('upload'))
+    assert relative.parts[0] == date.today().isoformat()
+    assert str(UUID(relative.parts[1])) == relative.parts[1]
+    assert relative.parts[2:] == ('same.txt',)
     src.write_text("second")
     second = fs.store_upload(str(src))
     assert second != first
