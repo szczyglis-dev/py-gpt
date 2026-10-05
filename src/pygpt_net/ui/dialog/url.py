@@ -25,5 +25,9 @@ class Url:
     def setup(self):
         """Setup URL dialog"""
         id = 'url'
+        previous = self.window.ui.dialog.get(id)
+        if previous is not None:
+            previous.close()
+            previous.deleteLater()
         self.window.ui.dialog[id] = UrlDialog(self.window, id)
         self.window.ui.dialog[id].setWindowTitle(trans("dialog.url.title"))

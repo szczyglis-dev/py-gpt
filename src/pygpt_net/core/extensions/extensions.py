@@ -861,6 +861,9 @@ class Extensions:
                 obj.locale_domain = domain
                 obj.locale_dir = locale_dir
 
+            if manifest.get("type") == "loader":
+                obj.localize_fields()
+
             # Plugin UI localization is opt-in in BasePlugin. Presence of an
             # add-on locale directory is the opt-in for external plugins.
             if manifest.get("type") == "plugin":

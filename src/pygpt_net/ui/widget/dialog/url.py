@@ -37,10 +37,33 @@ class UrlDialog(QDialog):
         self.initialized = False
         self.params_scroll = None
 
-    def init(self):
+    def init(self, rebuild=False):
         """Initialize dialog"""
-        if self.initialized:
+        if self.initialized and not rebuild:
             return
+        saved = {}
+        selected = 'webpage'
+        if self.initialized:
+            selected = self.window.ui.nodes['dialog.url.loader'].get_value()
+            for key, node in list(self.window.ui.nodes.items()):
+                if key.startswith(('dialog.url.loader.option.', 'dialog.url.loader.config.')):
+                    saved[key] = node.text()
+                    del self.window.ui.nodes[key]
+            # Delete the old layout synchronously before installing another;
+            # deferred deletion leaves Qt using the previous layout meanwhile.
+            from shiboken6 import delete
+            def clear(layout):
+                while layout.count():
+                    item = layout.takeAt(0)
+                    if item.widget() is not None:
+                        item.widget().hide()
+                        item.widget().deleteLater()
+                    elif item.layout() is not None:
+                        clear(item.layout())
+            old_layout = self.layout()
+            clear(old_layout)
+            delete(old_layout)
+            self.initialized = False
 
         self.window.ui.nodes['dialog.url.btn.update'] = QPushButton(trans('dialog.url.update'))
         self.window.ui.nodes['dialog.url.btn.update'].clicked.connect(
@@ -163,11 +186,14 @@ class UrlDialog(QDialog):
         layout.addLayout(bottom)
 
         # defaults
-        self.window.ui.nodes["dialog.url.loader"].set_value("webpage")
-
         self.setLayout(layout)
-
         self.initialized = True
+        for key, value in saved.items():
+            node = self.window.ui.nodes.get(key)
+            if node is not None:
+                node.setText(value)
+        self.window.ui.nodes['dialog.url.loader'].set_value(selected)
+        self.hook_loader_change(None, selected, None)
 
     def hook_loader_change(self, key, value, caller, *args, **kwargs):
         """

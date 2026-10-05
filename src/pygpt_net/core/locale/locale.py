@@ -55,8 +55,8 @@ class Locale:
         """
         Register a directory for a logical translation domain.
 
-        Registered directories use the canonical add-on/plugin layout:
-        ``<path>/locale.<lang>.ini``. Multiple directories can be registered for
+        Registered directories support ``<path>/<lang>.ini`` and the canonical
+        add-on/plugin layout ``<path>/locale.<lang>.ini``. Multiple directories can be registered for
         one domain; later directories override earlier ones.
 
         :param domain: logical translation domain
@@ -276,7 +276,10 @@ class Locale:
         """
         registered = self.get_domain_dirs(domain)
         if registered:
-            paths = [os.path.join(path, f'locale.{lang}.ini') for path in registered]
+            paths = []
+            for path in registered:
+                paths.extend([os.path.join(path, f'{lang}.ini'),
+                              os.path.join(path, f'locale.{lang}.ini')])
         elif domain.startswith('plugin.'):
             plugin_id = domain[len('plugin.'):]
             paths = [os.path.join(

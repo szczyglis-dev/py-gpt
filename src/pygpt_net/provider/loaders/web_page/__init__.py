@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# ================================================== #
+# This file is a part of PYGPT package               #
+# Website: https://pygpt.net                         #
+# GitHub:  https://github.com/szczyglis-dev/py-gpt   #
+# MIT License                                        #
+# Created By  : Marcin Szczygliński                  #
+# Updated Date: 2025.08.06 01:00:00                  #
+# ================================================== #
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from llama_index.core.readers.base import BaseReader
+
+from ..base import BaseLoader
+
+
+class Loader(BaseLoader):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = "webpage"
+        self.name = "Webpage"
+        self.type = ["web"]
+        self.instructions = [
+            {
+                "webpage": {
+                    "description": "index provided standard webpage URL",
+                    "args": {
+                        "url": {
+                            "type": "str",
+                            "label": 'options.url.label',
+                            "description": 'options.url.desc',
+                        },
+                    },
+                }
+            }
+        ]
+
+        self.configure_locale(__file__, required_config=[],
+                              required_options=['url'])
+
+    def get(self) -> BaseReader:
+        """
+        Get reader instance
+
+        :return: Data reader instance
+        """
+        from ..hub.web_page.base import WebPage
+        return WebPage()
+
+    def prepare_args(self, **kwargs) -> dict:
+        """
+        Prepare arguments for reader
+
+        :param kwargs: keyword arguments
+        :return: args to pass to reader
+        """
+        args = {}
+        args["url"] = kwargs.get("url")
+        return args

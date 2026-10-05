@@ -463,3 +463,59 @@ def test_web_attachment_strict_mode_propagates_reader_failure(indexing):
     with pytest.raises(RuntimeError, match='transcript unavailable'):
         indexing.read_web_content('url', 'youtube', {}, raise_on_error=True)
     assert indexing.read_web('url', 'youtube', {}) == []
+
+
+def test_extended_loader_schema_survives_registration_and_argument_storage(indexing, window):
+    from pygpt_net.provider.loaders.base import BaseLoader
+    loader = BaseLoader()
+    loader.id = 'extended'
+    loader.type = ['web']
+    loader.init_args = {'enabled': False, 'mapping': {}, 'token': ''}
+    loader.init_args_types = {
+        'enabled': {'type': 'bool', 'extra': {}},
+        'mapping': {'type': 'dict', 'extra': {}},
+        'token': {'type': 'str', 'extra': {'secret': True}, 'required': True,
+                  'label': 'config.token.label'},
+    }
+    window.core.config.s = {'llama.hub.loaders.args': []}
+    indexing.register_loader(loader)
+    schema = indexing.get_external_config()['extended']
+    assert schema['mapping']['type'] == 'dict'
+    assert schema['token']['extra'] == {'secret': True}
+    assert schema['token']['required'] is True
+    assert schema['token']['label'] == 'config.token.label'
+    indexing.update_loader_args('extended', {'enabled': False, 'mapping': {'x': 2}, 'token': 'value'})
+    stored = window.core.config.s['llama.hub.loaders.args']
+    assert [item['type'] for item in stored] == ['bool', 'dict', 'str']
+    assert indexing.get_loader_arguments('extended', 'web') == {'enabled': False, 'mapping': {'x': 2}, 'token': 'value'}
+
+
+@pytest.mark.parametrize('default,saved,expected', [
+    (True, None, True), (False, None, False), (True, False, False), (False, True, True),
+])
+def test_boolean_form_uses_saved_value_or_reader_default(indexing, window, monkeypatch, default, saved, expected):
+    import pygpt_net.utils as utils
+    from PySide6.QtWidgets import QWidget
+    from pygpt_net.core.idx.ui.loaders import Loaders
+    from pygpt_net.provider.loaders.base import BaseLoader
+    monkeypatch.setattr(utils, 'locale', SimpleNamespace(get=lambda key, domain=None: key))
+    loader = BaseLoader()
+    loader.id = 'bool_demo'
+    loader.type = ['web']
+    loader.init_args = {'enabled': default}
+    # Even a value inside the field definition must not replace a saved value.
+    loader.init_args_types = {'enabled': {'type': 'bool', 'value': default}}
+    stored = [] if saved is None else [{'loader': 'web_bool_demo', 'name': 'enabled', 'type': 'bool', 'value': saved}]
+    window.core.config.s = {'llama.hub.loaders.args': stored}
+    indexing.register_loader(loader)
+    parent = QWidget()
+    parent.core = SimpleNamespace(idx=SimpleNamespace(indexing=indexing))
+    parent.controller = Mock()
+    service = Loaders(parent)
+    inputs, groups = service.setup_loader_config()
+    field = inputs['bool_demo']['enabled']
+    assert field.input.isChecked() is expected
+    assert field.text() == ('true' if expected else 'false')
+    for group in groups.values():
+        group.deleteLater()
+    parent.deleteLater()

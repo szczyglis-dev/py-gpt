@@ -154,6 +154,9 @@ try:
 except Exception:
     pass
 
+# Loader-owned translation domains retain their module-relative paths.
+datas += collect_data_files('pygpt_net', includes=['provider/loaders/**/locale/*.ini'])
+
 # Bundle the complete application data tree recursively.
 # Keep the same directory layout below data/ so new resources and
 # subdirectories are picked up automatically without updating this spec.

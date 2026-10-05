@@ -22,7 +22,7 @@ from sqlalchemy import text
 
 
 from pygpt_net.item.model import ModelItem
-from pygpt_net.provider.loaders.base import BaseLoader
+from pygpt_net.provider.loaders.base import BaseLoader, normalize_field
 from pygpt_net.utils import parse_args, pack_arg
 
 if TYPE_CHECKING:
@@ -100,18 +100,21 @@ class Indexing:
                             "type": "str",  # default = str
                             "label": key,
                             "description": None,
+                            "required": getattr(loader, 'init_args_required', {}).get(key, False),
                             "_locale_domain": loader.get_locale_domain()
                             if hasattr(loader, 'get_locale_domain') else None,
                         }
                         # from config
                         if key in loader.args:
                             self.external_config[loader.id][key]["value"] = loader.args[key]
-                        if key in loader.init_args_types:
-                            self.external_config[loader.id][key]["type"] = loader.init_args_types[key]
                         if key in loader.init_args_labels:
                             self.external_config[loader.id][key]["label"] = loader.init_args_labels[key]
                         if key in loader.init_args_desc:
                             self.external_config[loader.id][key]["description"] = loader.init_args_desc[key]
+                        self.external_config[loader.id][key].update(
+                            normalize_field(loader.init_args_types.get(key, 'str')))
+                        # Saved values (including False) always precede reader defaults.
+                        self.external_config[loader.id][key]['value'] = loader.args.get(key, loader.init_args[key])
 
             except ImportError as e:
                 msg = f"Error while registering data loader: {loader.id} - {e}"
@@ -159,7 +162,7 @@ class Indexing:
                 if not found:
                     type = "str"
                     if arg in self.data_providers[loader].init_args_types:
-                        type = self.data_providers[loader].init_args_types[arg]
+                        type = normalize_field(self.data_providers[loader].init_args_types[arg])['type']
                     # pack value
                     value = pack_arg(args[arg], type)
                     config.append({

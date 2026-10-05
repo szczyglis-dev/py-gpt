@@ -140,7 +140,7 @@ class Lang:
 
         conf.set('lang', id)
         conf.save()
-        trans('', True)
+        trans_reload()
         self._sync_fallback_lang()
 
         self.update()

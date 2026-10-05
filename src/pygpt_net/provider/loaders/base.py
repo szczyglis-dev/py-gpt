@@ -19,6 +19,18 @@ if TYPE_CHECKING:
 from pygpt_net.core.locale import LocaleDomain
 
 
+def normalize_field(definition):
+    """Accept legacy type names and extended field schemas without mutating either."""
+    import copy
+    meta = copy.deepcopy(definition) if isinstance(definition, dict) else {'type': definition or 'str'}
+    meta.setdefault('type', 'str')
+    meta['extra'] = dict(meta.get('extra') or {})
+    if meta['type'] in ('secret', 'path'):
+        meta['extra'][meta['type']] = True
+        meta['type'] = 'str'
+    return meta
+
+
 class BaseLoader(LocaleDomain):
     def __init__(self, *args, **kwargs):
         self.init_locale_domain()
@@ -34,6 +46,7 @@ class BaseLoader(LocaleDomain):
         self.init_args_labels = {}
         self.init_args_types = {}
         self.init_args_desc = {}
+        self.init_args_required = {}
         self.allow_compiled = True  # allow in compiled and Snap versions
         # This is required due to some readers may require Python environment to install additional packages
 
@@ -44,6 +57,32 @@ class BaseLoader(LocaleDomain):
         :param window: Window instance
         """
         self.window = window
+
+    def configure_locale(self, source, required_config=(), required_options=()):
+        """Bind field metadata to a loader-owned domain after defining its schema.
+
+        Built-ins and add-ons keep translations beside their module in locale/locale.en.ini. Add-on loaders
+        can use the same method or continue supplying their own locale domain.
+        """
+        from pathlib import Path
+        self.set_locale_domain(
+            'loader.' + self.id,
+            str(Path(source).parent / 'locale'), register=True,
+        )
+        self.localize_fields(required_config, required_options)
+
+    def localize_fields(self, required_config=(), required_options=()):
+        """Supply standard keys while preserving explicit add-on metadata."""
+        for key in self.init_args:
+            self.init_args_labels.setdefault(key, f'config.{key}.label')
+            self.init_args_desc.setdefault(key, f'config.{key}.desc')
+            self.init_args_required.setdefault(key, key in required_config)
+        for item in self.instructions:
+            for instruction in item.values():
+                for key, meta in instruction.get('args', {}).items():
+                    meta.setdefault('label', f'options.{key}.label')
+                    meta.setdefault('description', f'options.{key}.desc')
+                    meta.setdefault('required', key in required_options)
 
     def set_args(self, args: dict):
         """

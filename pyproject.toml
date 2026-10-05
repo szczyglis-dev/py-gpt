@@ -19,6 +19,7 @@ packages = [
     { from = "src", include = "pygpt_net" },
 ]
 include = [
+    { path = "src/pygpt_net/provider/loaders/**/locale/*.ini", format = ["sdist", "wheel"] },
     "CHANGELOG.md",
     "icon.png",
     "README.md",

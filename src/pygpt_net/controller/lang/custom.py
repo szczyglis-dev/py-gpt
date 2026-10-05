@@ -40,6 +40,7 @@ class Custom:
 
     def apply(self):
         """Apply custom mappings"""
+        self.window.core.idx.ui.loaders.update_locale()
         
         # Runtime model selector tooltip is not covered by the generic text mapping.
         model_selector = self.window.ui.nodes.get("prompt.model")

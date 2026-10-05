@@ -42,11 +42,10 @@ class ExampleLoader(BaseLoader):
         self.extensions = ["example"]
         self.type = ["file"]
         self.init_args = {"encoding": "utf-8"}
-        self.init_args_types = {"encoding": "str"}
-        # Loader configuration carries this Add-on's locale domain, so labels
-        # and descriptions can be translation keys from locale/locale.<lang>.ini.
-        self.init_args_labels = {"encoding": "encoding.label"}
-        self.init_args_desc = {"encoding": "encoding.description"}
+        self.init_args_types = {"encoding": {"type": "str", "extra": {}, "required": True}}
+        # The Add-ons manager binds locale/ and supplies config.<field>.label
+        # and config.<field>.desc automatically. Secret, bool and path widgets
+        # use the same schema as built-in loaders.
 
     def is_supported_attachment(self, source: str) -> bool:
         return str(source).lower().endswith(".example")

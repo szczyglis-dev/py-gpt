@@ -12,11 +12,11 @@
 import json
 from typing import Dict, Tuple, Any, Optional
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QHBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget, QMessageBox
 
 from pygpt_net.ui.widget.element.labels import HelpLabel
-from pygpt_net.ui.widget.option.input import OptionInput
+from pygpt_net.provider.loaders.base import normalize_field
+from .field import LoaderField
 from pygpt_net.utils import trans
 
 
@@ -43,184 +43,118 @@ class Loaders:
         :param prefix_config: prefix for config
         :return: bool, loader name, input_params, input_config
         """
-        input_params = {}
-        input_config = {}
         loader = select_loader.get_value()
         if not loader:
-            return False, loader, input_params, input_config
-        loaders = self.window.core.idx.indexing.get_external_instructions()
-        if loader in loaders:
-            params = loaders[loader]
-            for k in params["args"]:
-                key_path = prefix_options + "." + loader + "." + k
-                if key_path in self.window.ui.nodes:
-                    tmp_value = self.window.ui.nodes[key_path].text()
-                    type = params["args"][k]["type"]
-                    try:
-                        if tmp_value:
-                            if type == "int":
-                                tmp_value = int(tmp_value)
-                            elif type == "float":
-                                tmp_value = float(tmp_value)
-                            elif type == "bool":
-                                if tmp_value.lower() in ["true", "1"]:
-                                    tmp_value = True
-                                else:
-                                    tmp_value = False
-                            elif type == "list":
-                                tmp_value = tmp_value.split(",")
-                            elif type == "dict":
-                                tmp_value = json.loads(tmp_value)
-                            input_params[k] = tmp_value
-                    except Exception as e:
-                        self.window.core.debug.log(e)
-                        self.window.ui.dialogs.alert(e)
+            return False, loader, {}, {}
+        indexing = self.window.core.idx.indexing
+        schemas = (
+            (prefix_options, indexing.get_external_instructions().get(loader, {}).get('args', {})),
+            (prefix_config, indexing.get_external_config().get(loader, {})),
+        )
+        results = []
+        for prefix, fields in schemas:
+            result = {}
+            for key, meta in fields.items():
+                meta = normalize_field(meta)
+                node = self.window.ui.nodes.get(f'{prefix}.{loader}.{key}')
+                value = node.text() if node is not None else ''
+                label = trans(meta.get('label', key), domain=meta.get('_locale_domain'))
+                if not value.strip():
+                    if meta.get('required'):
+                        self._validation_alert(node, trans('web.loader.required').format(field=label))
+                        return False, loader, {}, {}
+                    continue
+                try:
+                    kind = meta['type']
+                    if kind == 'int':
+                        value = int(value)
+                    elif kind == 'float':
+                        value = float(value)
+                    elif kind == 'bool':
+                        if value.strip().lower() not in ('true', 'false', '1', '0'):
+                            raise ValueError(trans('web.loader.invalid.bool'))
+                        value = value.strip().lower() in ('true', '1')
+                    elif kind == 'list':
+                        value = [item.strip() for item in value.split(',') if item.strip()]
+                    elif kind == 'dict':
+                        value = json.loads(value)
+                        if not isinstance(value, dict):
+                            raise ValueError(trans('web.loader.invalid.dict'))
+                    result[key] = value
+                except (ValueError, TypeError) as error:
+                    self.window.core.debug.log(error)
+                    self._validation_alert(node, trans('web.loader.invalid.field').format(
+                        field=label, type=meta['type']))
+                    return False, loader, {}, {}
+            results.append(result)
+        return True, loader, results[0], results[1]
 
-        loaders = self.window.core.idx.indexing.get_external_config()
-        if loader in loaders:
-            params = loaders[loader]
-            for k in params:
-                key_path = prefix_config + "." + loader + "." + k
-                type = params[k]["type"]
-                if key_path in self.window.ui.nodes:
-                    tmp_value = self.window.ui.nodes[key_path].text()
-                    try:
-                        if tmp_value:
-                            if type == "int":
-                                tmp_value = int(tmp_value)
-                            elif type == "float":
-                                tmp_value = float(tmp_value)
-                            elif type == "bool":
-                                if tmp_value.lower() in ["true", "1"]:
-                                    tmp_value = True
-                                else:
-                                    tmp_value = False
-                            elif type == "list":
-                                tmp_value = tmp_value.split(",")
-                            elif type == "dict":
-                                tmp_value = json.loads(tmp_value)
-                            input_config[k] = tmp_value
-                    except Exception as e:
-                        self.window.core.debug.log(e)
-                        self.window.ui.dialogs.alert(e)
-
-        return True, loader, input_params, input_config
+    def _validation_alert(self, node, message):
+        parent = node.window() if isinstance(node, QWidget) else self.window
+        QMessageBox.warning(parent, trans('web.loader.validation.title'), message)
+        if node is not None:
+            node.setFocus()
 
     def setup_loader_options(self):
-        """Setup loader options"""
-        inputs = {}
-        groups = {}
-        loaders = self.window.core.idx.indexing.get_external_instructions()
-        for loader in loaders:
-            params = loaders[loader]
-            domain = params.get('_locale_domain') if isinstance(params, dict) else None
-            inputs[loader] = {}
-            group = QVBoxLayout()
-            for k in params["args"]:
-                arg_meta = params["args"][k]
-                arg_domain = arg_meta.get('_locale_domain', domain) if isinstance(arg_meta, dict) else domain
-                label = k
-                description = None
-                is_label = False
-                if "label" in params["args"][k]:
-                    label = trans(params["args"][k]["label"], domain=arg_domain)
-                    is_label = True
-                if "description" in params["args"][k]:
-                    description = trans(params["args"][k]["description"], domain=arg_domain)
-                option_id = "web.loader." + loader + ".option." + k
-                option_widget = OptionInput(self.window, "tool.indexer", option_id, {
-                    "label": label,
-                    "value": "",
-                    "_use_locale": False,
-                    "_locale_domain": arg_domain,
-                })
-                option_widget.setPlaceholderText(params["args"][k]["type"])
-                inputs[loader][k] = option_widget
-
-                option_label = QLabel(label)
-                option_label.setToolTip(k)
-
-                row = QHBoxLayout()  # cols
-                row.addWidget(option_label)
-                row.addWidget(option_widget)
-                row.setContentsMargins(5, 0, 5, 0)
-
-                option_layout = QVBoxLayout()
-                option_layout.addLayout(row)
-                if description:
-                    option_layout.addWidget(HelpLabel(description))
-
-                option_layout.setContentsMargins(5, 0, 0, 0)
-
-                group.addLayout(option_layout)
-                group.setContentsMargins(0, 0, 0, 0)
-
-            group_widget = QWidget()
-            group_widget.setLayout(group)
-            groups[loader] = group_widget
-
-        return inputs, groups
+        """Build source fields using the same schema as the indexer."""
+        schemas = self.window.core.idx.indexing.get_external_instructions()
+        fields = {
+            loader: {key: dict(meta, _locale_domain=meta.get('_locale_domain', schema.get('_locale_domain')))
+                     for key, meta in schema['args'].items()}
+            for loader, schema in schemas.items()
+        }
+        return self._build_groups(fields, 'option')
 
     def setup_loader_config(self):
-        """Setup loader config"""
-        inputs = {}
-        groups = {}
-        loaders = self.window.core.idx.indexing.get_external_config()
-        for loader in loaders:
-            params = loaders[loader]
+        """Build reader configuration fields."""
+        return self._build_groups(self.window.core.idx.indexing.get_external_config(), 'config')
+
+    def _build_groups(self, schemas, section):
+        inputs, groups = {}, {}
+        for loader, fields in schemas.items():
             inputs[loader] = {}
+            if not fields:
+                continue
             group = QVBoxLayout()
-            for k in params:
-                domain = params[k].get('_locale_domain') if isinstance(params[k], dict) else None
-                label = k
-                description = None
-                is_label = False
-                if "label" in params[k]:
-                    label = trans(params[k]["label"], domain=domain)
-                    is_label = True
-                if "description" in params[k]:
-                    description = trans(params[k]["description"], domain=domain)
-                option_id = "web.loader." + loader + ".config." + k
-                option_widget = OptionInput(self.window, "tool.indexer", option_id, {
-                    "label": label,
-                    "value": params[k]["value"],
-                    "_use_locale": False,
-                    "_locale_domain": domain,
-                })
-                try:
-                    if params[k]["value"] is not None:
-                        if params[k]["type"] == "list" and isinstance(params[k]["value"], list):
-                            option_widget.setText(", ".join(params[k]["value"]))
-                        elif params[k]["type"] == "dict" and isinstance(params[k]["value"], dict):
-                            option_widget.setText(json.dumps(params[k]["value"]))
-                        else:
-                            option_widget.setText(str(params[k]["value"]))
-                except Exception as e:
-                    self.window.core.debug.log(e)
-
-                option_widget.setPlaceholderText(params[k]["type"])
-                inputs[loader][k] = option_widget
-
-                option_label = QLabel(label)
-                option_label.setToolTip(k)
-
-                row = QHBoxLayout()  # cols
-                row.addWidget(option_label)
-                row.addWidget(option_widget)
-                row.setContentsMargins(5, 0, 5, 0)
-
-                option_layout = QVBoxLayout()
-                option_layout.addLayout(row)
-                if description:
-                    option_layout.addWidget(HelpLabel(description))
-
-                option_layout.setContentsMargins(5, 0, 0, 0)
-
-                group.addLayout(option_layout)
-                group.setContentsMargins(0, 0, 0, 0)
-
-            group_widget = QWidget()
-            group_widget.setLayout(group)
-            groups[loader] = group_widget
-
+            group.setContentsMargins(5, 0, 5, 0)
+            for key, meta in fields.items():
+                meta = normalize_field(meta)
+                option = LoaderField(self.window, f'web.loader.{loader}.{section}.{key}', meta)
+                value = meta.get('value', meta.get('default', ''))
+                if value is not None:
+                    if isinstance(value, (dict, list)):
+                        value = json.dumps(value) if isinstance(value, dict) else ', '.join(map(str, value))
+                    option.setText(str(value))
+                label = QLabel()
+                label.setWordWrap(True)
+                label.setBuddy(option.input)
+                help_label = HelpLabel('')
+                # Keep the field above its input: no competing horizontal size
+                # hints can squeeze the form into half the scroll viewport.
+                group.addWidget(label)
+                group.addWidget(option)
+                group.addWidget(help_label)
+                option._loader_field = (key, dict(meta), label, help_label)
+                self._refresh_field(option)
+                inputs[loader][key] = option
+            widget = QWidget()
+            widget.setLayout(group)
+            groups[loader] = widget
         return inputs, groups
+
+    def _refresh_field(self, option):
+        key, meta, label, help_label = option._loader_field
+        domain = meta.get('_locale_domain')
+        text = trans(meta.get('label', key), domain=domain)
+        label.setText(text + (' *' if meta.get('required') else ''))
+        label.setToolTip(key)
+        description = trans(meta['description'], domain=domain) if meta.get('description') else ''
+        help_label.setText(description)
+        help_label.setVisible(bool(description))
+        option.update_locale(label.text(), description)
+
+    def update_locale(self):
+        """Refresh both live forms without replacing inputs or their values."""
+        for node in list(self.window.ui.nodes.values()):
+            if isinstance(node, LoaderField) and hasattr(node, '_loader_field'):
+                self._refresh_field(node)
