@@ -268,5 +268,6 @@ code {{
 
 .user-message-actions {{ --user-actions-color: #858585; }}
 
-:root {{ --user-file-border: rgba(0, 0, 0, 0.14); --user-file-bg: rgba(0, 0, 0, 0.025); --user-file-hover: rgba(0, 0, 0, 0.065); }}
+:root {{ --user-file-color: #000; --user-file-border: #e8e8e8; --user-file-bg: rgba(0, 0, 0, 0.025); --user-file-hover: var(--user-file-bg); }}
+.user-file, .user-file:hover, .user-file.chat-hover {{ color: #000 !important; }}
 

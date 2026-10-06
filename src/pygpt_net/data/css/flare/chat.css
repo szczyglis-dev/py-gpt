@@ -241,4 +241,4 @@ code {{
 
 .user-message-actions {{ --user-actions-color: #a0a0a0; }}
 
-:root {{ --user-file-border: rgba(255, 255, 255, 0.14); --user-file-bg: rgba(255, 255, 255, 0.025); --user-file-hover: rgba(255, 255, 255, 0.065); }}
+:root {{ --user-file-color: #ffd8d8; --user-file-border: rgba(255, 255, 255, 0.14); --user-file-bg: rgba(255, 255, 255, 0.025); --user-file-hover: rgba(255, 255, 255, 0.065); }}

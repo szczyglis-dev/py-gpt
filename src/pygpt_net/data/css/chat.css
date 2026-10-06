@@ -1204,10 +1204,11 @@ html[data-tool-view="raw"] .tool-view-friendly {{ display: none; }}
 .user-attachment-images .extra-src-img-box img {{ object-fit: cover; }}
 .user-attachment-files:empty, .user-attachment-images:empty, .user-attachment-connections:empty {{ display: none; }}
 .user-attachments:has(.user-attachment-images:empty):has(.user-attachment-files:empty):has(.user-attachment-connections:empty) {{ display: none; }}
-.user-file {{ display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 230px; box-sizing: border-box; padding: 6px 9px; border: 1px solid var(--user-file-border); border-radius: 9px; background: var(--user-file-bg); color: inherit; text-decoration: none; }}
+.user-file {{ display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 230px; box-sizing: border-box; padding: 14px 9px; border: 1px solid var(--user-file-border); border-radius: 9px; background: var(--user-file-bg); color: inherit; text-decoration: none; }}
 .user-file:hover {{ background: var(--user-file-hover); }}
 /* Event-driven hover fallback for Qt WebEngine. */
 .user-file.chat-hover {{ background: var(--user-file-hover); }}
+.user-file, .user-file:hover, .user-file.chat-hover {{ color: var(--user-file-color, #fff) !important; }}
 .user-file img {{ width: 20px; height: 20px; flex-shrink: 0; }}
 .user-file span {{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }}
 
