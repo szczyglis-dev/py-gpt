@@ -52,7 +52,7 @@ OpenAI
 
 * ``Use the Responses API in Chat mode``: Sends OpenAI Chat-mode requests through the Responses API instead of Chat Completions. This enables Responses-specific capabilities and remote tools where supported by the selected model. Default: True.
 
-* ``Use the Responses API in RAG (LlamaIndex)``: Makes OpenAI-backed LlamaIndex RAG requests use the Responses API rather than Chat Completions. It affects only OpenAI models and allows the LlamaIndex path to use Responses-specific behavior where supported. Default: True.
+* ``Responses API (LlamaIndex)``: Uses the Responses API instead of the Chat Completions API in the LlamaIndex runtime for OpenAI models. This applies to LlamaIndex-backed flows, including RAG/legacy agent paths that use the OpenAI provider. Default: True.
 
 Google
 ^^^^^^
@@ -167,7 +167,7 @@ Layout
 General
 ^^^^^^^
 
-* ``Style (chat)``: Selects the visual style used to display messages and other content in the chat view. It changes presentation only and does not affect model behavior. Default: ``chatgpt``.
+* ``Style (chat)``: Selects the visual style used to display messages and other content in the chat view. It changes presentation only and does not affect model behavior. Default: ``standard``.
 
 * ``Chat output window zoom``: Sets the scale of content displayed in the chat output, including text, code blocks, images, and controls. Use it to enlarge or shrink chat output independently of the individual font-size settings. Default: 1.0.
 
@@ -177,7 +177,9 @@ General
 
 * ``Font size (context list)``: Sets the text size used for conversations, projects, separators, and related entries in the context list on the left. Default: 12.
 
-* ``Font size (toolbox)``: Sets the text size used by controls and entries in the toolbox panel on the right side of the main window. Default: 12.
+* ``Font size (toolbox)``: Sets the text size used by controls and entries in the toolbox panel. Default: 12.
+
+* ``Toolbox placement``: Chooses where the toolbox is placed in the main window. Available positions are ``Left``, ``Middle``, and ``Right``; the change is applied immediately. Default: ``Middle``.
 
 * ``Layout density``: Changes the spacing and compactness of application UI elements. Lower values make the interface denser while higher values add more padding and spacing; the change is applied to the active layout. Default: -1.
 
@@ -196,7 +198,7 @@ General
 Code syntax
 ^^^^^^^^^^^
 
-* ``Code syntax highlighting``: Selects the color theme used for syntax highlighting in rendered code blocks. It changes presentation only, not code execution. Default: ``darcula``.
+* ``Code syntax highlighting``: Selects the color theme used for syntax highlighting in rendered code blocks. The ``-`` value follows the current application theme automatically (``material-darker`` for dark themes and ``github`` for light themes). It changes presentation only, not code execution. Default: ``-``.
 
 * ``Disable syntax highlighting``: Renders code blocks without token-level syntax coloring. This can reduce rendering work for very large outputs or avoid highlighting issues with unusual code; the code content itself is unchanged. Default: False.
 
@@ -290,7 +292,7 @@ Options
 Context
 ~~~~~~~
 
-The ``Context`` settings are organized into three tabs: ``General``, ``Tools``, and ``Advanced handling``.
+The ``Context`` settings are organized into four tabs: ``General``, ``Tools``, ``Auto-strip``, and ``Advanced handling``.
 
 General
 ^^^^^^^
@@ -308,13 +310,26 @@ Tools
 
 Tool-call persistence and replay options are grouped in this tab. ``Store tool calls in database`` controls durable storage, while ``Restore tool calls in runtime`` and ``Restore tool calls from history`` independently control replay for the active in-memory conversation and for history reloaded from the database.
 
-* ``Store tool calls in database``: Selects how tool requests/results are persisted in conversation history. ``Do not store`` keeps no durable tool payloads, ``Store truncated`` preserves the structure while truncating stored string values, and ``Store full input/output`` persists complete payloads. Default: ``Store truncated``.
+* ``Store tool calls in database``: Selects how tool requests/results are persisted in conversation history. ``Do not store`` keeps no durable tool payloads, ``Store truncated`` preserves the structure while truncating stored string values, and ``Store full input/output`` persists complete payloads. Default: ``Store full input/output``.
 
 * ``Restore tool calls in runtime``: Replays completed tool calls/results from earlier turns to the model while the current conversation remains active in memory. It does not control durable database storage and does not interrupt the tool exchange currently in progress. Default: True.
 
 * ``Restore tool calls from history``: Replays persisted tool protocol after a conversation is reloaded from the database. It requires ``Store full input/output`` and is ignored for ``Do not store`` or ``Store truncated``. Default: False.
 
 See ``Context and memory -> Tool call storage`` for details.
+
+Auto-strip
+^^^^^^^^^^
+
+The Auto-strip tab controls optional pre-processing of oversized **extra context** before it is added to a model request. It applies to text attachments, web-reader content, tool text, and retrieved evidence; original files and stored source data are not modified. Summarization uses additional model calls.
+
+* ``Automatically summarize extra context``: When enabled, PyGPT shortens oversized extra text before sending it to the model. The trigger is calculated from the selected model's input window and the context budget available for the current request. Default: False.
+
+* ``Model for extra context summary``: Optional model used to summarize external evidence in the context of the current question and conversation. Leave it empty to use the currently selected model. Large sources are split into chunks that fit the summary model. Default: empty.
+
+* ``Extra context summary threshold (%)``: Starts summarization when extra text exceeds this percentage of the model input window, the currently available conversation budget, or the advanced-context threshold when advanced context handling is active. Default: ``25``.
+
+* ``Extra context summary target (%)``: Sets the maximum share of the model input window that the produced extra-context summary should occupy. The actual result can be smaller because of the remaining request budget and the summary model's output limit. Default: ``10``.
 
 Advanced handling
 ^^^^^^^^^^^^^^^^^
@@ -395,6 +410,37 @@ Anthropic
 
 * ``Computer use``: Allows supported Claude Computer Use models to request screen, mouse, and keyboard interactions through PyGPT's Computer Use flow. It is ignored by models without Computer Use support. Default: False.
 
+
+**Advanced provider parameters**
+
+The following fields expose optional Anthropic server-tool parameters. Values left empty, or numeric limits left at ``0``, are not sent. Domain lists are comma-separated; if both allowed and blocked domains are supplied, the allowed list takes precedence in the current implementation.
+
+* ``Web search / type``: Sets the Anthropic server-tool type identifier used for Web Search. Default: ``web_search_20250305``.
+
+* ``Web search / max uses``: Limits how many Web Search calls Anthropic may make in one request. ``0`` leaves the provider parameter unset. Default: 0.
+
+* ``Web search / allowed domains``: Restricts Web Search to a comma-separated allowlist of domains. Default: empty.
+
+* ``Web search / blocked domains``: Supplies a comma-separated blocklist of domains for Web Search when no allowlist is configured. Default: empty.
+
+* ``Web search / user location / city``: Optional city used to build Anthropic's approximate Web Search user location. Default: empty.
+
+* ``Web search / user location / region``: Optional region/state used for the approximate Web Search user location. Default: empty.
+
+* ``Web search / user location / country``: Optional country used for the approximate Web Search user location. Default: empty.
+
+* ``Web search / user location / timezone``: Optional timezone used for the approximate Web Search user location. Default: empty.
+
+* ``Web fetch / max uses``: Limits how many Web Fetch calls Anthropic may make in one request. ``0`` leaves the provider parameter unset. Default: 0.
+
+* ``Web fetch / allowed domains``: Restricts Web Fetch to a comma-separated allowlist of domains. Default: empty.
+
+* ``Web fetch / blocked domains``: Supplies a comma-separated blocklist of domains for Web Fetch when no allowlist is configured. Default: empty.
+
+* ``Web fetch / citations / enabled``: Requests citations for Anthropic Web Fetch results. When disabled, PyGPT omits the citations option from the Web Fetch tool definition. Default: True.
+
+* ``Web fetch / max content tokens``: Sets the maximum content-token budget for Web Fetch. ``0`` leaves the provider parameter unset. Default: 0.
+
 xAI
 ^^^
 
@@ -411,6 +457,53 @@ xAI
 * ``Collections Search``: Lets supported Grok models search xAI-hosted Collections during a response. Only the collection IDs configured below are exposed to the search tool. Default: False.
 
 * ``Collection IDs``: Lists the xAI Collection IDs that Collections Search may query; separate multiple IDs with commas. A separate xAI Management API key is required for collection-management operations in the Remote vector stores tool.
+
+
+**Advanced provider parameters**
+
+These fields expose optional xAI search/agent-tool parameters. Their effect depends on the xAI API path and model in use (native SDK, Responses API, Realtime, or legacy Chat Completions search parameters). Empty strings and numeric limits set to ``0`` are generally omitted. Filters that are unsupported by the active xAI path are not sent.
+
+* ``Return citations``: Requests citation data from the legacy xAI Live Search/Chat Completions search path. Default: True.
+
+* ``Max results``: Sets the maximum number of search results for the legacy Live Search path. ``0`` leaves the limit unset. Default: 0.
+
+* ``Inline citations``: Requests inline citations in xAI native chat responses when that include option is supported. Default: True.
+
+* ``Include code output``: Requests Code Execution call output in xAI native chat responses. Default: True.
+
+* ``Use encrypted content``: Enables xAI's encrypted-content request option on the native chat path. Default: False.
+
+* ``Max turns``: Sets the provider-side maximum number of tool/model turns on the native chat path. ``0`` leaves the limit unset. Default: 0.
+
+* ``X / included handles``: Comma-separated X handles used as an allowlist on xAI paths that support handle filtering. Default: empty.
+
+* ``X / excluded handles``: Comma-separated X handles used as a blocklist on xAI paths that support handle filtering. Where the API accepts only one mode, PyGPT applies either the include or exclude list, not both. Default: empty.
+
+* ``X / min favs``: Minimum X post favorite count used by supported xAI search paths. ``0`` disables the filter. Default: 0.
+
+* ``X / min views``: Minimum X post view count used by supported xAI search paths. ``0`` disables the filter. Default: 0.
+
+* ``From date``: Optional start date filter passed to supported X/search paths. Use the date format expected by xAI, normally ``YYYY-MM-DD``. Default: empty.
+
+* ``To date``: Optional end date filter passed to supported X/search paths. Use the date format expected by xAI, normally ``YYYY-MM-DD``. Default: empty.
+
+* ``Web / country``: Optional two-letter country code for the legacy Web Search source. PyGPT normalizes a valid two-letter value to uppercase. Default: empty.
+
+* ``Web / safe search``: Controls the legacy xAI Web Search safe-search parameter. Choices: Default, Enabled, Disabled. ``Default`` leaves the provider parameter unset. Default: Default.
+
+* ``Web / enable image understanding``: Enables image understanding for xAI Web Search on supported native/Responses paths. Default: False.
+
+* ``X / enable image understanding``: Enables image understanding for X Search on supported xAI paths. Default: False.
+
+* ``X / enable video understanding``: Enables video understanding for X Search on supported xAI paths. Default: False.
+
+* ``Web / allowed websites``: Comma-separated website/domain allowlist used on xAI paths that support Web Search filtering. The current implementation uses at most five entries. Default: empty.
+
+* ``Web / excluded websites``: Comma-separated website/domain blocklist used when no allowlist is active. The current implementation uses at most five entries. Default: empty.
+
+* ``Web / enable image search``: Enables image search in xAI Web Search when supported by the Responses API path. Default: False.
+
+* ``Store messages``: Controls xAI native chat message storage. Choices: Default, Enabled, Disabled. ``Default`` uses PyGPT's normal provider default (enabled); image requests force storage off according to the xAI SDK guidance used by PyGPT. Default: Default.
 
 Models
 ~~~~~~
@@ -467,14 +560,14 @@ Image
 
 * ``Image quality``: Selects the quality tier/quality hint sent with OpenAI image-generation requests. Supported values and their effect on latency or cost depend on the selected image model.
 
-* ``Prompt generation model``: Selects the text model used to expand/refine the user's image prompt before the final request is sent to the image generator. It does not choose the image-generation model itself. Default: ``gpt-4o``.
+* ``Prompt generation model``: Selects the text model used to expand/refine the user's image prompt before the final request is sent to the image generator. It does not choose the image-generation model itself. Default: ``gpt-5.6-luna``.
 
 Video
 ^^^^^
 
 * ``Seed``: Sends an optional random seed to video models that support deterministic seeding. Currently this is used by the Google/Veo provider. Reusing the same seed can make generations more repeatable; leave it empty to let the provider choose randomness.
 
-* ``Prompt enhancement model``: Selects the text model used to expand/refine a user prompt before it is sent to the video generator. It does not select the video-generation model itself. Default: ``gemini-2.5-flash``.
+* ``Prompt enhancement model``: Selects the text model used to expand/refine a user prompt before it is sent to the video generator. It does not select the video-generation model itself. Default: ``gpt-5.6-luna``.
 
 Vision and camera
 ~~~~~~~~~~~~~~~~~
@@ -525,7 +618,7 @@ Options
 
 * ``VAD end silence (in ms)``: Defines how long Voice Activity Detection must observe silence before treating the current utterance as finished. Lower values respond faster; higher values tolerate longer pauses while speaking. Default: 2000 ms.
 
-* ``Audio notification for microphone listening start/stop``: Plays a short audible cue when microphone capture begins or ends, making it easier to know when PyGPT is actively listening without watching the UI. Default: False.
+* ``Audio notification for microphone listening start/stop``: Plays a short audible cue when microphone capture begins or ends, making it easier to know when PyGPT is actively listening without watching the UI. Default: True.
 
 Cache
 ^^^^^
@@ -716,7 +809,7 @@ General
 
 * ``Enable system command whitelist``: When enabled, non-sandbox plugin commands may execute only command names listed in the whitelist for the current operating system. Command names are separated by commas or semicolons. When enabled, the whitelist takes precedence over the blacklist. Default: False.
 
-* ``Auto-prevent prompt injections``: When enabled, PyGPT appends the configured prompt-injection security annotation to system prompts across work modes and auxiliary model calls. The annotation tells the model to treat RAG/retrieval, tool output, files, web/API content, and other external content as untrusted data rather than instructions. Default: False.
+* ``Auto-prevent prompt injections``: When enabled, PyGPT appends the configured prompt-injection security annotation to system prompts across work modes and auxiliary model calls. The annotation tells the model to treat RAG/retrieval, tool output, files, web/API content, and other external content as untrusted data rather than instructions. Default: True.
 
 * ``Prompt injection security annotation``: Editable security instruction appended when automatic prompt-injection prevention is enabled. The default text tells the model to ignore instructions embedded in external content, especially attempts to override system or user instructions, and to inform the user when a likely prompt-injection attempt is detected.
 

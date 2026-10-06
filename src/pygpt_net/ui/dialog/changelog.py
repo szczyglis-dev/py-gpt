@@ -30,6 +30,7 @@ class Changelog:
     def setup(self):
         """Setup change log dialog"""
         id = 'changelog'
+        self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
 
         txt = ''
         try:
@@ -47,7 +48,8 @@ class Changelog:
         # self.window.ui.nodes['dialog.changelog.label'] = QLabel(trans("dialog.changelog.title"))
 
         updated = QLabel(
-            trans("dialog.changelog.updated").format(version=self.window.meta["version"])
+            trans("dialog.changelog.updated").format(version=self.window.meta["version"]),
+            self.window.ui.dialog['info.' + id],
         )
         updated.setAlignment(Qt.AlignCenter)
         updated.setWordWrap(True)
@@ -71,6 +73,5 @@ class Changelog:
         layout.addWidget(textarea)
         layout.addWidget(close_btn)
 
-        self.window.ui.dialog['info.' + id] = InfoDialog(self.window, id)
         self.window.ui.dialog['info.' + id].setLayout(layout)
         self.window.ui.dialog['info.' + id].setWindowTitle(trans("dialog.changelog.title"))

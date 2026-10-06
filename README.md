@@ -2,7 +2,7 @@
 
 [![pygpt](https://snapcraft.io/pygpt/badge.svg)](https://snapcraft.io/pygpt)
 
-Release: **2.9.0** | build: **2026-10-04** | Python: **>=3.10, <3.14**
+Release: **2.9.1** | build: **2026-10-06** | Python: **>=3.10, <3.14**
 
 > Official website: [pygpt.net](https://pygpt.net) | [Documentation](https://pygpt.readthedocs.io) | [Add-ons](https://github.com/szczyglis-dev/py-gpt-addons) | [Discord](https://pygpt.net/discord)
 > 
@@ -2491,6 +2491,16 @@ may consume additional tokens that are not displayed in the main window.
 # CHANGELOG
 
 ## Recent changes:
+
+**2.9.1 (2026-10-06)**
+
+- Improved attachment uploads and handling; added remote connectors to the Add attachment menu, shared context between chats within a project, and @mentions for referencing other chats in the same project.
+- Merged the Files I/O, Python Interpreter, and System (OS) plugins into a single integrated plugin: Filesystem, Python and OS.
+- Added @mention search by chat title alongside exact ID lookup.
+- Added configurable toolbox placement: left, middle, or right.
+- Added Tab completion support in the terminal.
+- Optimized directory discovery for file searches in @mentions.
+- Fixed various UI issues.
 
 **2.9.0 (2026-10-04)**
 

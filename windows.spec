@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import glob
 import shutil
 import sys
 
@@ -203,8 +204,14 @@ try:
 except Exception:
     pass
 
-# Loader-owned translation domains retain their module-relative paths.
-datas += collect_data_files('pygpt_net', includes=['provider/loaders/**/locale/*.ini'])
+# Collect from the checkout before Analysis applies pathex, without relying on
+# an installed pygpt_net package. Preserve paths used by each loader's __file__.
+loader_root = os.path.join(SPECPATH, 'src', 'pygpt_net', 'provider', 'loaders')
+for locale_file in glob.glob(os.path.join(loader_root, '**', 'locale', '*.ini'), recursive=True):
+    datas.append((locale_file, os.path.join(
+        'pygpt_net', 'provider', 'loaders',
+        os.path.relpath(os.path.dirname(locale_file), loader_root),
+    )))
 
 # Bundle the complete application data tree recursively.
 # Keep the same directory layout below data/ so new resources and
