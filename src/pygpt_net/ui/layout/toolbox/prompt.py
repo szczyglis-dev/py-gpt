@@ -120,7 +120,7 @@ class Prompt:
         manage_agents.clicked.connect(w.controller.agents_v2.editor.open)
         nodes['agent.v2.manage'] = manage_agents
 
-        mode_widget = QWidget()
+        mode_widget = QWidget(w)
         mode_layout = QVBoxLayout(mode_widget)
 
         mode_select_widget = QWidget()

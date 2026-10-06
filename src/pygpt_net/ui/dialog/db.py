@@ -323,9 +323,6 @@ class DataBrowser(QWidget):
         self.prev_button.clicked.connect(self.prev_page)
         self.next_button.clicked.connect(self.next_page)
 
-        self.table_select.setCurrentText(self.get_default_table())
-        self.on_table_select_changed()
-
         # setup layouts
         if not self.is_inline():
             top_layout.addWidget(QLabel(trans("db.table")))
@@ -369,6 +366,11 @@ class DataBrowser(QWidget):
             main_layout.addWidget(self.db_path_label)  # db path
 
         self.setLayout(main_layout)
+
+        # Pagination updates can show the navigation buttons. Initialize the
+        # selection only after the layout has parented them to this browser.
+        self.table_select.setCurrentText(self.get_default_table())
+        self.on_table_select_changed()
 
         view = self.get_list_widget()
 

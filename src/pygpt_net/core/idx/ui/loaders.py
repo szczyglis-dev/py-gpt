@@ -196,7 +196,10 @@ class Loaders:
             inputs[loader] = {}
             if not fields:
                 continue
-            group = QVBoxLayout()
+            # Parent every field before locale refresh can make it visible.
+            # Showing an unparented help label creates a native top-level window.
+            widget = QWidget(self.window)
+            group = QVBoxLayout(widget)
             group.setContentsMargins(5, 0, 5, 0)
             for key, meta in fields.items():
                 meta = normalize_field(meta)
@@ -209,10 +212,10 @@ class Loaders:
                     lambda text, loader=loader, section=section, key=key, meta=meta:
                     self._remember_field(loader, section, key, meta, text)
                 )
-                label = QLabel()
+                label = QLabel(widget)
                 label.setWordWrap(True)
                 label.setBuddy(option.input)
-                help_label = HelpLabel('')
+                help_label = HelpLabel('', widget)
                 # Keep the field above its input: no competing horizontal size
                 # hints can squeeze the form into half the scroll viewport.
                 group.addWidget(label)
@@ -221,8 +224,6 @@ class Loaders:
                 option._loader_field = (key, dict(meta), label, help_label)
                 self._refresh_field(option)
                 inputs[loader][key] = option
-            widget = QWidget()
-            widget.setLayout(group)
             groups[loader] = widget
         return inputs, groups
 
