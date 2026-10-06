@@ -550,6 +550,27 @@
           }
         }
       }
+    },
+    {
+      "name": "baizhi-agent-toolkit",
+      "display_name": "Baizhi Cloud Agent Toolkit",
+      "description": "Hosted web search, page reading and structured extraction. Requires a Baizhi Cloud account and BAIZHI_API_KEY; calls send inputs to Baizhi Cloud and may use paid credits. The linked MIT client integration excludes the hosted backend.",
+      "publisher": "Baizhi Cloud",
+      "homepage": "https://github.com/chaitin/baizhi-agent-toolkit",
+      "config": {
+        "mcpServers": {
+          "baizhi-agent-toolkit": {
+            "url": "https://agent-toolkit.app.baizhi.cloud/mcp",
+            "type": "http",
+            "bearer_token_env_var": "BAIZHI_API_KEY",
+            "allowed_tools": [
+              "websearch_search",
+              "web_scrape",
+              "web_extract"
+            ]
+          }
+        }
+      }
     }
   ]
 }
