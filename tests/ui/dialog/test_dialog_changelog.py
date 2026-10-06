@@ -41,7 +41,7 @@ def test_setup_loads_changelog_and_builds_info_dialog():
 
     opened.assert_called_once_with("/app/CHANGELOG.txt", "r", encoding="utf-8")
     textarea.setPlainText.assert_called_once_with("Changes")
-    qlabel.assert_called_once_with("PyGPT has been updated to version: 2.8.30")
+    qlabel.assert_called_once_with("PyGPT has been updated to version: 2.8.30", dialog)
     qbutton.assert_called_once_with("action.close")
     assert window.ui.nodes["dialog.changelog.updated"] is updated_label
     updated_label.setAlignment.assert_called_once()
