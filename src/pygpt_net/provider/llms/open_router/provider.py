@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Optional, Dict, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,6 +36,13 @@ class OpenRouterLLM(BaseLLM):
     def setup(self) -> dict:
         from .config import setup
         return setup()
+
+    def get_models(self, window) -> List[Dict]:
+        # Filter discovery only: saved/custom model IDs remain requestable.
+        current = {"minimax/minimax-m3.1-flash:free", "minimax/minimax-m3"}
+        return [item for item in super().get_models(window)
+                if not re.match(r"^minimax/minimax-m\d", item["id"], re.IGNORECASE)
+                or item["id"] in current]
 
     def llama(
             self,

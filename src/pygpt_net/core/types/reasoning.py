@@ -43,6 +43,7 @@ PROVIDER_REASONING_EFFORTS: Dict[str, Tuple[str, ...]] = {
     "google": ("minimal", "low", "medium", "high"),
     "x_ai": ("none", "low", "medium", "high", "xhigh"),
     "deepseek_api": ("low", "high", "max"),
+    "minimax": ("low", "medium", "high", "xhigh", "max"),
     "perplexity": ("low", "medium", "high"),
     "huggingface_router": ("low", "medium", "high"),
     "ollama": ("low", "medium", "high"),
@@ -110,6 +111,10 @@ MODEL_REASONING_EFFORTS: Dict[Tuple[str, str], Tuple[str, ...]] = {
     ("x_ai", "grok-4.7"): ("low", "medium", "high", "xhigh"),
     ("x_ai", "grok-4.6"): ("low", "medium", "high"),
     ("x_ai", "grok-4.6-latest"): ("low", "medium", "high"),
+
+    # MiniMax Chat Completions: M3 ignores effort; Flash always thinks.
+    ("minimax", "MiniMax-M3.1-Flash"): ("low", "medium", "high", "xhigh", "max"),
+    ("minimax", "MiniMax-M3"): (),
 
     # DeepSeek API
     ("deepseek_api", "deepseek-v4-flash"): ("low", "high", "max"),

@@ -404,7 +404,11 @@ class Importer:
             except Exception as e:
                 print(e)
                 self.set_status(str(e))
-        models = dict(sorted(models.items(), key=lambda item: item[1].id.lower()))
+        models = dict(sorted(models.items(), key=lambda item: (
+            (self.provider == "minimax" and item[1].id != "MiniMax-M3.1-Flash")
+            or (self.provider == "open_router" and item[1].id == "minimax/minimax-m3"),
+            item[1].id.lower(),
+        )))
         return models
 
     def get_provider_available(self) -> Dict:
@@ -443,6 +447,8 @@ class Importer:
                 MODE_EXPERT,
             ]
             m.provider = self.provider
+            if self.provider == "minimax":
+                m.mode.remove(MODE_COMPLETION)
             # Provider model catalogs may expose input capabilities. Keep the
             # existing text-only default when metadata is unavailable, but
             # preserve declared image input (notably LiteLLM supports_vision).

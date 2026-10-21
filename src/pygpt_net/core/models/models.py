@@ -496,6 +496,17 @@ class Models:
         """Sort items"""
         if self.items:
             self.items = dict(sorted(self.items.items(), key=lambda x: x[1].name.lower()))
+            # Keep Flash first among bundled MiniMax choices without moving
+            # other providers or rewriting saved model IDs.
+            for provider, flash, m3 in (
+                ("minimax", "MiniMax-M3.1-Flash", "MiniMax-M3"),
+                ("open_router", "minimax/minimax-m3.1-flash:free", "minimax/minimax-m3"),
+            ):
+                keys = [key for key, item in self.items.items()
+                        if item.provider == provider and item.id in (flash, m3)]
+                replacements = iter(sorted(keys, key=lambda key: self.items[key].id != flash))
+                order = [next(replacements) if key in keys else key for key in self.items]
+                self.items = {key: self.items[key] for key in order}
 
     def save(self):
         """Save models"""
