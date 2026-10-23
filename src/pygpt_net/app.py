@@ -321,6 +321,7 @@ def run(**kwargs):
         from pygpt_net.provider.llms.litellm.provider import LiteLLMProvider
         from pygpt_net.provider.llms.forge.provider import ForgeLLM
         from pygpt_net.provider.llms.edenai.provider import EdenAILLM
+        from pygpt_net.provider.llms.cheaperinference.provider import CheaperInferenceLLM
         from pygpt_net.provider.llms.voyage.config import VoyageConfigLLM
         from pygpt_net.provider.llms.jev.config import JevConfigLLM
 
@@ -537,6 +538,7 @@ def run(**kwargs):
         launcher.add_llm(OpenRouterLLM())
         launcher.add_llm(ForgeLLM())
         launcher.add_llm(EdenAILLM())
+        launcher.add_llm(CheaperInferenceLLM())
         launcher.add_llm(VoyageConfigLLM())
         launcher.add_llm(JevConfigLLM())
         launcher.add_llm(LiteLLMProvider())

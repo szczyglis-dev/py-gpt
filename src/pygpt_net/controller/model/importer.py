@@ -486,6 +486,7 @@ class Importer:
                             "x_ai",
                             "forge",
                             "edenai",
+                            "cheaperinference",
                         }
                         and "tool_calls" not in model
                     )

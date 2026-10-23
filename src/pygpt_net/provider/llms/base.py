@@ -482,6 +482,7 @@ class BaseLLM(LocaleDomain):
             "huggingface_router": (["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN"], ["HF_INFERENCE_ENDPOINT"]),
             "forge": (["FORGE_API_KEY"], ["FORGE_API_BASE"]),
             "edenai": (["EDENAI_API_KEY"], ["EDENAI_API_BASE"]),
+            "cheaperinference": (["CHEAPERINFERENCE_API_KEY"], ["CHEAPERINFERENCE_API_BASE"]),
         }
         extra_keys, extra_bases = provider_names.get(self.id, ([], []))
         return [*extra_keys, *key_names], [*extra_bases, *base_names]

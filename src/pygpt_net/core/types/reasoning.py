@@ -60,6 +60,7 @@ PROVIDER_REASONING_EFFORTS: Dict[str, Tuple[str, ...]] = {
     "mistral_ai": (),
     "forge": (),
     "edenai": (),
+    "cheaperinference": (),
 }
 
 # Exact model/API capabilities used for the bundled catalog.  Unknown custom
