@@ -1195,6 +1195,7 @@ There is built-in support for those LLM providers:
 - `Mistral AI`
 - `Ollama`
 - `OpenAI` (native SDK)
+- `OpenLLM`
 - `OpenRouter`
 - `Perplexity`
 - `xAI` (native SDK)
@@ -2247,7 +2248,7 @@ Config -> Settings...
 
 The current top-level Settings sections are: **General**, **API Keys**, **Layout**, **Files and attachments**, **Chats**, **Context**, **Remote tools**, **Models**, **Prompts**, **Images and video**, **Vision and camera**, **Audio**, **Indexes / RAG**, **Agents and experts**, **Accessibility**, **Security**, **Personalize**, **Custom providers**, **Updates**, and **Debug**. Several sections use additional tabs; the current layout includes:
 
-- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI, Jev
+- **API Keys:** OpenAI, Google, Anthropic, Hugging Face, DeepSeek, xAI, Azure OpenAI, Perplexity, Mistral AI, Voyage AI, OpenRouter, Forge, Eden AI, OpenLLM, Jev
 - **Layout:** General, Code syntax
 - **Files and attachments:** General, RAG
 - **Chats:** List, Render, Annotations, Options

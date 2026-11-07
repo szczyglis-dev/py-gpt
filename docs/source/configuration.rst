@@ -152,6 +152,15 @@ Eden AI
 
 * ``API Endpoint``: Sets the Eden AI base URL used for requests. Change it only when your deployment requires another compatible endpoint. Default: ``https://api.edenai.run/v3``.
 
+OpenLLM
+^^^^^^^
+
+* ``OpenLLM API key``: Optional. The local OpenLLM daemon uses its saved login, so leave this field empty when you use the default local endpoint. Enter an OpenLLM API key (``sk-llm-...``) when ``API Endpoint`` points to the hosted endpoint. The ``OPENLLM_API_KEY`` environment variable is also accepted.
+
+* ``API Endpoint``: Sets the OpenLLM base URL used by PyGPT. Default: ``http://127.0.0.1:8787/v1`` (local daemon). For the hosted endpoint use ``https://www.openllm.sh/v1`` together with an API key.
+
+Models are available through ``Config -> Models -> Import`` (provider ``OpenLLM``). The ``ultra``, ``plus`` and ``lite`` aliases appear in the list when your OpenLLM account has them.
+
 Jev
 ^^^
 

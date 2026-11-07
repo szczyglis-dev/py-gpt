@@ -486,6 +486,7 @@ class Importer:
                             "x_ai",
                             "forge",
                             "edenai",
+                            "openllm",
                         }
                         and "tool_calls" not in model
                     )
