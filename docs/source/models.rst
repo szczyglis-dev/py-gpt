@@ -130,6 +130,7 @@ There is built-in support for those LLM providers:
 * ``Mistral AI``
 * ``Ollama``
 * ``OpenAI`` (native SDK)
+* ``OpenLLM``
 * ``OpenRouter``
 * ``Perplexity``
 * ``xAI`` (native SDK)
